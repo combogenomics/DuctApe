@@ -65,6 +65,10 @@ class BiologExp(object):
         self.zero = bool(zero)
 
 class PlateCarrier(object):
+    '''
+    Class PlateCarrier
+    Contains informations about a particular plate
+    '''
     def __init__(self):
         self.plate_id = None
         self.strainType = None
@@ -79,6 +83,10 @@ class PlateCarrier(object):
         self._idx = {}
 
 class BiologRaw(object):
+    '''
+    Class BiologRaw
+    Contains signals for a particular plate/well
+    '''
     def __init__(self, plate_id, well_id):
         self.plate_id = plate_id
         self.well_id = well_id.replace(' ','')

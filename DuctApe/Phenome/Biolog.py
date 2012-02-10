@@ -77,10 +77,64 @@ class PlateCarrier(object):
         self.strainNumber = None
         self.other = None
         
+        # Added by the system to avoid confusion
+        self.strain = None
+        
         # Raw data --> well_id -> BiologRaw objects
         self.data = {}
         # Used internaly, index in Hours row --> well_id
         self._idx = {}
+
+class PlotCarrier(object):
+    '''
+    Class PlotCarrier
+    Contains all the distinct strains data for a particular plate
+    There can be more than one replica for each strain
+    An averaged plate can be added
+    '''
+    def __init__(self, plate_id):
+        self.plate_id = plate_id
+        self.strains = {}
+        self.colors = {}
+        
+    def _plot(self, dStrains):
+        '''
+        Plot a series of strains
+        Returns a series of matplotlib figures (or plots)
+        '''
+        # Check colors
+        
+        # Check time concordance
+        
+        # Smooth
+        
+        # Plot
+        
+        pass
+        
+    def setColor(self, strain, color):
+        '''
+        Set the color code of a strain
+        '''
+        self.colors[strain] = color
+    
+    def addData(self, strain, data):
+        '''
+        Add a PlateCarrier object regarding a particular strain
+        A check on the plate_id is performed!
+        '''
+        if data.plate_id != self.plate_id:
+            logging.error('Expecting %s, got %s'%(self.plate_id,data.plate_id))
+            return False
+        
+        if strain not in self.strains:
+            self.strains[strain] = []
+        self.strains[strain].append(data)
+        
+        return True
+    
+    def plotWell(self):
+        pass
 
 class BiologRaw(object):
     '''

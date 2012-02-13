@@ -7,9 +7,11 @@ Pheenome library
 Classes to handle Biolog data
 """
 from DuctApe.Common.CommonThread import CommonThread
+from DuctApe.Common.utils import smooth
 import Queue
 import csv
 import logging
+import matplotlib.pyplot as plt
 
 __author__ = "Marco Galardini"
 
@@ -92,25 +94,93 @@ class PlotCarrier(object):
     There can be more than one replica for each strain
     An averaged plate can be added
     '''
-    def __init__(self, plate_id):
+    def __init__(self, plate_id, smooth = True, window = 11):
         self.plate_id = plate_id
         self.strains = {}
         self.colors = {}
         
-    def _plot(self, dStrains):
+        self.times = None
+        
+        self.smooth = bool(smooth)
+        self.window = int(window)
+    
+    def _plot(self, dWell):
+        '''
+        Smooths the signal and plots it
+        If there are more than one exp for a strain, the intersection is plotted
+        '''
+        # Figure creation
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        
+        for strain,signals in dWell.iteritems():
+            if len(signals) > 1:
+                # Intersect!
+                logging.warning('Nothing to see here, still not implemented!')
+            else:
+                # Single plot!
+                if self.smooth:
+                    signal = smooth(signals[0], window_len=self.window)
+                else:
+                    signal = signals[0]
+                ax.plot(self.times, signal, color=self.colors[strain])
+        
+        # TODO: Use an unique figure with many subplots?
+        return fig
+    
+    def plot(self):
         '''
         Plot a series of strains
         Returns a series of matplotlib figures (or plots)
         '''
+        figures = []
+        
         # Check colors
-        
+        for strain in self.strains:
+            if strain not in self.colors:
+                logging.error('Color code for strain %s is missing!'%strain)
+                return figures
+                
         # Check time concordance
+        times = []
+        for strain, plates in self.strains.iteritems():
+            for plate in plates:
+                for well_id, data in plate.data.iteritems():
+                    for time in data.signals.keys():
+                        if time not in times:
+                            times.append(time)
+        times.sort()
+        self.times = times
         
-        # Smooth
+        # Get also each plate/well pair
+        wells = []
+        for strain, plates in self.strains.iteritems():
+            for plate in plates:
+                for well_id, data in plate.data.iteritems():
+                    data.fillMissing(self.times)
+                    if well_id not in wells:
+                        wells.append(well_id) 
         
-        # Plot
+        # Cycle over each well
+        for well_id in wells:
+            strain_signals = {}
+            for strain, plates in self.strains.iteritems():
+                strain_signals[strain] = []
+                try:
+                    for plate in plates:
+                        strain_signals[strain].append( 
+                                [plate.data[well_id].signals[hour] for hour in self.times]
+                                )
+                except:
+                    # TODO: add a warning here
+                    pass
+            
+            # Smooth & Plot
+            figure = self._plot(strain_signals)
+            # TODO: Use a dictionary instead of a list 
+            figures.append(figure)
         
-        pass
+        return figures
         
     def setColor(self, strain, color):
         '''
@@ -132,9 +202,6 @@ class PlotCarrier(object):
         self.strains[strain].append(data)
         
         return True
-    
-    def plotWell(self):
-        pass
 
 class BiologRaw(object):
     '''
@@ -148,6 +215,14 @@ class BiologRaw(object):
         
     def addSignal(self,time,signal):
         self.signals[time] = signal
+        
+    def fillMissing(self, times):
+        '''
+        Given a times list, fills the missing values with None
+        '''
+        for hour in sorted(times):
+            if hour not in self.signals:
+                self.signals[hour] = None
 
 class BiologParser(CommonThread):
     '''

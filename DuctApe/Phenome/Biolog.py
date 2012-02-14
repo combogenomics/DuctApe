@@ -376,6 +376,10 @@ class BiologZero(CommonThread):
                 for hour in sorted(zero.signals.keys()):
                     plate.data[well].signals[hour] -= zero.signals[hour]
                     
+            # Last step: put the zero well to zero
+            for hour in zero.signals.keys():
+                zero.signals[hour]=0
+                    
     def _zeroBlank(self, plate):
         '''
         Blank plate zero subtraction

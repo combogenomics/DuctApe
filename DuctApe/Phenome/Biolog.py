@@ -95,7 +95,8 @@ class PlotCarrier(object):
     There can be more than one replica for each strain
     An averaged plate can be added
     '''
-    def __init__(self, plate_id, smooth = True, window = 11):
+    def __init__(self, plate_id, smooth = True, window = 11, alpha = 0.5,
+                 linewidth = 2):
         self.plate_id = plate_id
         self.strains = {}
         self.colors = {}
@@ -104,6 +105,26 @@ class PlotCarrier(object):
         
         self.smooth = bool(smooth)
         self.window = int(window)
+        
+        self.alpha = float(alpha)
+        self.linewidth = float(linewidth)
+    
+    def _bracketing(self, signals):
+        '''
+        Given a set of signals returns two sets with maximum and minimum value
+        '''
+        if len(signals) == 2:
+            return signals
+        
+        maxout = []
+        minout = []
+        
+        for i in range(len(signals[0])):
+            sigs = [x[i] for x in signals]
+            maxout.append(max(sigs))
+            minout.append(min(sigs))
+            
+        return maxout, minout
     
     def _plot(self, dWell):
         '''
@@ -117,14 +138,22 @@ class PlotCarrier(object):
         for strain,signals in dWell.iteritems():
             if len(signals) > 1:
                 # Intersect!
-                logging.warning('Nothing to see here, still not implemented!')
+                maxsig,minsig = self._bracketing(signals)
+                if self.smooth:
+                    maxsig = smooth(maxsig, window_len=self.window)
+                    minsig = smooth(minsig, window_len=self.window)
+                ax.fill_between(self.times, maxsig, minsig,
+                                 color=self.colors[strain],
+                                 linewidth=self.linewidth,
+                                 alpha=self.alpha)
             else:
                 # Single plot!
                 if self.smooth:
                     signal = smooth(signals[0], window_len=self.window)
                 else:
                     signal = signals[0]
-                ax.plot(self.times, signal, color=self.colors[strain])
+                ax.plot(self.times, signal, color=self.colors[strain],
+                        linewidth=self.linewidth)
         
         # TODO: Use an unique figure with many subplots?
         return fig

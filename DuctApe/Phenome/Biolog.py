@@ -9,6 +9,7 @@ Classes to handle Biolog data
 from DuctApe.Common.CommonThread import CommonThread
 from DuctApe.Common.utils import smooth
 import Queue
+import copy
 import csv
 import logging
 import matplotlib.pyplot as plt
@@ -325,7 +326,7 @@ class BiologZero(CommonThread):
     def __init__(self,data, blank=False, blankData=[], queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         # Biolog
-        self.data = data
+        self.data = copy.deepcopy(data)
         self.blank = bool(blank)
         self.blankData = blankData
         # Results

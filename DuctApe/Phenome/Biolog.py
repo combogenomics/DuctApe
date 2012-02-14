@@ -199,8 +199,8 @@ class PlotCarrier(object):
                 try:
                     for plate in plates:
                         strain_signals[strain].append( 
-                                [plate.data[well_id].signals[hour] for hour in self.times]
-                                )
+                                [plate.data[well_id].signals[hour]
+                                 for hour in self.times])
                 except:
                     # TODO: add a warning here
                     pass

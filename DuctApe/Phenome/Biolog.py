@@ -95,19 +95,38 @@ class PlotCarrier(object):
     There can be more than one replica for each strain
     An averaged plate can be added
     '''
-    def __init__(self, plate_id, smooth = True, window = 11, alpha = 0.5,
-                 linewidth = 2):
+    def __init__(self, plate_id, plate_name = '', smooth = True, window = 11,
+                 alpha = 0.5,
+                 linewidth = 2, maxsig = None):
         self.plate_id = plate_id
+        self.plate_name = ' '.join( (plate_id, plate_name) ).rstrip()
         self.strains = {}
         self.colors = {}
+        self.wellNames = {}
         
         self.times = None
+        self.wells = None
         
         self.smooth = bool(smooth)
         self.window = int(window)
         
         self.alpha = float(alpha)
         self.linewidth = float(linewidth)
+        
+        self.maxsignal = maxsig
+        
+        # Figures
+        self.figures = {}
+        self.figure = None
+        
+        self._figidx = 1
+        
+    def addWellTitles(self, dWell):
+        '''
+        Add all the titles of the current plate in the form of a dictionary
+        d[well_id] = title
+        '''
+        self.wellNames = dWell
     
     def _bracketing(self, signals):
         '''
@@ -126,14 +145,22 @@ class PlotCarrier(object):
             
         return maxout, minout
     
-    def _plot(self, dWell):
+    def _plot(self, well_id, dWell):
         '''
         Smooths the signal and plots it
         If there are more than one exp for a strain, the intersection is plotted
         '''
         # Figure creation
         fig = plt.figure()
-        ax = fig.add_subplot(111)
+        # The big picture
+        if not self.figure:
+            self.figure = plt.figure()
+        
+        
+        smallAx = fig.add_subplot(111)
+        bigAx = self.figure.add_subplot(8,12,self._figidx)
+        
+        axes = (smallAx, bigAx)
         
         for strain,signals in dWell.iteritems():
             if len(signals) > 1:
@@ -142,7 +169,8 @@ class PlotCarrier(object):
                 if self.smooth:
                     maxsig = smooth(maxsig, window_len=self.window)
                     minsig = smooth(minsig, window_len=self.window)
-                ax.fill_between(self.times, maxsig, minsig,
+                for ax in axes:
+                    ax.fill_between(self.times, maxsig, minsig,
                                  color=self.colors[strain],
                                  linewidth=self.linewidth,
                                  alpha=self.alpha)
@@ -152,24 +180,48 @@ class PlotCarrier(object):
                     signal = smooth(signals[0], window_len=self.window)
                 else:
                     signal = signals[0]
-                ax.plot(self.times, signal, color=self.colors[strain],
+                for ax in axes:
+                    ax.plot(self.times, signal, color=self.colors[strain],
                         linewidth=self.linewidth)
+                    
+        for ax in axes:
+            ax.set_ylim(0,self.maxsignal)
         
-        # TODO: Use an unique figure with many subplots?
-        return fig
+        # Big axes tweaks
+        if self._figidx%12 == 1:
+            bigAx.set_ylabel(well_id[0], rotation='horizontal')
+        if abs(96 % self._figidx - 12) <= 12:
+            bigAx.set_xlabel(str(abs(96 % self._figidx - 12)))
+        self._figidx += 1
+        
+        # Small axes tweaks
+        if well_id in self.wellNames:
+            smallAx.set_title(self.wellNames[well_id])
+        smallAx.set_xlabel('Hour')
+        smallAx.set_ylabel('Signal')
+        
+        self.figures[well_id] = fig
+        
+    def fixFigure(self):
+        '''
+        Fix some parameters of the Big picture
+        '''
+        self.figure.subplots_adjust(wspace=0, hspace=0)
+        for ax in self.figure.axes:
+            ax.get_xaxis().set_ticks([])
+            ax.get_yaxis().set_ticks([])
+        self.figure.suptitle(self.plate_name)
     
-    def plot(self):
+    def preparePlot(self):
         '''
         Plot a series of strains
         Returns a series of matplotlib figures (or plots)
         '''
-        figures = []
-        
         # Check colors
         for strain in self.strains:
             if strain not in self.colors:
                 logging.error('Color code for strain %s is missing!'%strain)
-                return figures
+                return
                 
         # Check time concordance
         times = []
@@ -189,10 +241,17 @@ class PlotCarrier(object):
                 for well_id, data in plate.data.iteritems():
                     data.fillMissing(self.times)
                     if well_id not in wells:
-                        wells.append(well_id) 
+                        wells.append(well_id)
+        wells.sort()
+        self.wells = wells
+    
+    def plot(self):
+        # Preparatory steps
+        if not self.times and not self.wells:
+            self.preparePlot()
         
         # Cycle over each well
-        for well_id in wells:
+        for well_id in self.wells:
             strain_signals = {}
             for strain, plates in self.strains.iteritems():
                 strain_signals[strain] = []
@@ -202,15 +261,16 @@ class PlotCarrier(object):
                                 [plate.data[well_id].signals[hour]
                                  for hour in self.times])
                 except:
-                    # TODO: add a warning here
+                    logging.debug('Something missing: %s, %s, %f'%(
+                                        strain, well_id, hour))
                     pass
             
             # Smooth & Plot
-            figure = self._plot(strain_signals)
-            # TODO: Use a dictionary instead of a list 
-            figures.append(figure)
+            self._plot(well_id, strain_signals)
+            
+            yield well_id
         
-        return figures
+        self.fixFigure()
         
     def setColor(self, strain, color):
         '''

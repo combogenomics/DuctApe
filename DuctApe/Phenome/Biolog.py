@@ -248,11 +248,11 @@ class BiologRaw(object):
         
     def fillMissing(self, times):
         '''
-        Given a times list, fills the missing values with None
+        Given a times list, fills the missing values with 0
         '''
         for hour in sorted(times):
             if hour not in self.signals:
-                self.signals[hour] = None
+                self.signals[hour] = 0
 
 class BiologParser(CommonThread):
     '''

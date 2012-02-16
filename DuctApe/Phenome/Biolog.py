@@ -206,6 +206,8 @@ class PlotCarrier(object):
                     for time in data.signals.keys():
                         if time not in times:
                             times.append(time)
+                    break
+                
         times.sort()
         self.times = times
         

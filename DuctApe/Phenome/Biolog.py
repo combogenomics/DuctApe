@@ -6,13 +6,19 @@ Pheenome library
 
 Classes to handle Biolog data
 """
+from DuctApe.Common.CommonMultiProcess import CommonMultiProcess
 from DuctApe.Common.CommonThread import CommonThread
 from DuctApe.Common.utils import smooth
 import Queue
 import copy
 import csv
 import logging
+# TODO: this part must be handled somewhere else
+import matplotlib
+matplotlib.use('Agg')
+#
 import matplotlib.pyplot as plt
+import os
 
 __author__ = "Marco Galardini"
 
@@ -423,7 +429,7 @@ class BiologZero(CommonThread):
     
     _substatuses = [1]
     
-    def __init__(self,data, blank=False, blankData=[], queue=Queue.Queue()):
+    def __init__(self, data, blank=False, blankData=[], queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         # Biolog
         self.data = copy.deepcopy(data)
@@ -516,3 +522,106 @@ class BiologZero(CommonThread):
             self.sendFailure('Zero subtraction failure!')
             return
         self.resetSubStatus()
+        
+class BiologPlot(CommonMultiProcess):
+    '''
+    Class BiologPlot
+    Takes a list of PlateCarrier objects and creates some plots
+    Can work in parallelization
+    '''
+    _statusDesc = {0:'Not started',
+                1:'Making room',
+                2:'Preparing data',
+                3:'Preparing plots',
+                4:'Creating plates plots',
+                5:'Saving plates plots'}
+    
+    _substatuses = [2,4,5]
+    
+    def __init__(self, data, ncpus=1,
+                 plateNames = {}, colors = {}, smooth = True, window = 11,
+                 maxsig = None, queue=Queue.Queue()):
+        CommonMultiProcess.__init__(self,ncpus,queue)
+        # Biolog
+        self.data = data
+        
+        # Plot parameters
+        self.colors = colors
+        self.plateNames = plateNames
+        self.smooth = bool(smooth)
+        self.window = int(window)
+        self.maxsig = maxsig
+        
+        # Results
+        # PLate_id --> PlotCarrier
+        self.results = {}
+        
+    def makeRoom(self,location=''):
+        '''
+        Creates a tmp directory in the desired location
+        '''
+        try:
+            path = os.path.abspath(location)
+            path = os.path.join(path, 'tmp')
+            try:os.mkdir(path)
+            except:pass
+            path = os.path.join(path, 'plots')
+            self._room = path
+            os.mkdir(path)
+        except:
+            logger.debug('Temporary directory creation failed! %s'
+                          %path)
+    
+    def run(self):
+        self.updateStatus()
+        self.makeRoom()
+        
+        self._maxsubstatus = len(self.data)
+        self.updateStatus()
+        for plate in self.data:
+            self._substatus += 1
+            self.updateStatus(True)
+            if plate.plate_id in self.plateNames:
+                plate_name = self.plateNames[plate.plate_id]
+            else:
+                plate_name = ''
+            if plate.plate_id not in self.results:
+                self.results[plate.plate_id] = PlotCarrier(plate.plate_id, 
+                                                    plate_name = plate_name,
+                                                    smooth = self.smooth,
+                                                    window = self.window,
+                                                    maxsig = self.maxsig)
+            
+            self.results[plate.plate_id].addData(plate.strain, plate)
+            # Sanity check
+            if plate.strain not in self.colors:
+                logging.error('Color code for strain %s is missing'%plate.strain)
+                return
+            #
+            self.results[plate.plate_id].setColor(plate.strain,
+                                                  self.colors[plate.strain])
+        self.resetSubStatus()
+        
+        self.updateStatus()
+        for plate_id in self.results:
+            self.results[plate_id].preparePlot()
+        self.resetSubStatus()
+        
+        self._maxsubstatus = len(self.results)
+        self.updateStatus()
+        for plate_id in self.results:
+            self._substatus += 1
+            self.updateStatus(True)
+            for i in self.results[plate_id].plotAll():pass                
+        self.resetSubStatus()
+        
+        self._maxsubstatus = len(self.results)
+        self.updateStatus()
+        for plate_id in self.results:
+            self._substatus += 1
+            self.updateStatus(True)
+            fname = os.path.join(self._room,'%s.png'%plate_id)
+            self.results[plate_id].figure.savefig(fname, dpi=150)
+        self.resetSubStatus()
+        
+        

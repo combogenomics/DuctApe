@@ -116,7 +116,6 @@ class PlotCarrier(object):
         self.maxsignal = maxsig
         
         # Figures
-        self.figures = {}
         self.figure = None
         
         self._figidx = 1
@@ -145,23 +144,11 @@ class PlotCarrier(object):
             
         return maxout, minout
     
-    def _plot(self, well_id, dWell):
+    def _plot(self, well_id, dWell, ax):
         '''
         Smooths the signal and plots it
         If there are more than one exp for a strain, the intersection is plotted
         '''
-        # Figure creation
-        fig = plt.figure()
-        # The big picture
-        if not self.figure:
-            self.figure = plt.figure()
-        
-        
-        smallAx = fig.add_subplot(111)
-        bigAx = self.figure.add_subplot(8,12,self._figidx)
-        
-        axes = (smallAx, bigAx)
-        
         for strain,signals in dWell.iteritems():
             if len(signals) > 1:
                 # Intersect!
@@ -169,38 +156,21 @@ class PlotCarrier(object):
                 if self.smooth:
                     maxsig = smooth(maxsig, window_len=self.window)
                     minsig = smooth(minsig, window_len=self.window)
-                for ax in axes:
-                    ax.fill_between(self.times, maxsig, minsig,
+                ax.fill_between(self.times, maxsig, minsig,
                                  color=self.colors[strain],
                                  linewidth=self.linewidth,
-                                 alpha=self.alpha)
+                                 alpha=self.alpha,
+                                 rasterized=True)
             else:
                 # Single plot!
                 if self.smooth:
                     signal = smooth(signals[0], window_len=self.window)
                 else:
                     signal = signals[0]
-                for ax in axes:
-                    ax.plot(self.times, signal, color=self.colors[strain],
-                        linewidth=self.linewidth)
+                ax.plot(self.times, signal, color=self.colors[strain],
+                        linewidth=self.linewidth, rasterized=True)
                     
-        for ax in axes:
-            ax.set_ylim(0,self.maxsignal)
-        
-        # Big axes tweaks
-        if self._figidx%12 == 1:
-            bigAx.set_ylabel(well_id[0], rotation='horizontal')
-        if abs(96 % self._figidx - 12) <= 12:
-            bigAx.set_xlabel(str(abs(96 % self._figidx - 12)))
-        self._figidx += 1
-        
-        # Small axes tweaks
-        if well_id in self.wellNames:
-            smallAx.set_title(self.wellNames[well_id])
-        smallAx.set_xlabel('Hour')
-        smallAx.set_ylabel('Signal')
-        
-        self.figures[well_id] = fig
+        ax.set_ylim(0,self.maxsignal)
         
     def fixFigure(self):
         '''
@@ -214,8 +184,7 @@ class PlotCarrier(object):
     
     def preparePlot(self):
         '''
-        Plot a series of strains
-        Returns a series of matplotlib figures (or plots)
+        Prepare a series of plots
         '''
         # Check colors
         for strain in self.strains:
@@ -244,33 +213,75 @@ class PlotCarrier(object):
                         wells.append(well_id)
         wells.sort()
         self.wells = wells
+        
+    def _prepareSignals(self, well_id):
+        '''
+        Prepares the signals for a specific well
+        '''
+        strain_signals = {}
+        
+        for strain, plates in self.strains.iteritems():
+            strain_signals[strain] = []
+            try:
+                for plate in plates:
+                    strain_signals[strain].append( 
+                            [plate.data[well_id].signals[hour]
+                             for hour in self.times])
+            except:
+                logging.debug('Something missing: %s, %s, %f'%(
+                                    strain, well_id, hour))
+                pass
+            
+        return strain_signals
     
-    def plot(self):
+    def plotAll(self):
         # Preparatory steps
         if not self.times and not self.wells:
             self.preparePlot()
         
         # Cycle over each well
         for well_id in self.wells:
-            strain_signals = {}
-            for strain, plates in self.strains.iteritems():
-                strain_signals[strain] = []
-                try:
-                    for plate in plates:
-                        strain_signals[strain].append( 
-                                [plate.data[well_id].signals[hour]
-                                 for hour in self.times])
-                except:
-                    logging.debug('Something missing: %s, %s, %f'%(
-                                        strain, well_id, hour))
-                    pass
+            strain_signals = self._prepareSignals(well_id)
+            
+            if not self.figure:
+                self.figure = plt.figure()
+            ax = self.figure.add_subplot(8,12,self._figidx)
             
             # Smooth & Plot
-            self._plot(well_id, strain_signals)
+            self._plot(well_id, strain_signals, ax)
             
-            yield well_id
+            if self._figidx%12 == 1:
+                ax.set_ylabel(well_id[0], rotation='horizontal')
+            if abs(96 % self._figidx - 12) <= 12:
+                ax.set_xlabel(str(abs(96 % self._figidx - 12)))
+            self._figidx += 1
+            
+            yield well_id, self.wells.index(well_id)
         
         self.fixFigure()
+    
+    def plotWell(self, well_id):
+        '''
+        Generates and returns a single well as a figure
+        '''
+        # Preparatory steps
+        if not self.times and not self.wells:
+            self.preparePlot()
+        
+        strain_signals = self._prepareSignals(well_id)
+        
+        # Figure creation
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        
+        self._plot(well_id, strain_signals, ax)
+        
+        if well_id in self.wellNames:
+            ax.set_title(self.wellNames[well_id])
+        ax.set_xlabel('Hour')
+        ax.set_ylabel('Signal')
+        
+        return fig
         
     def setColor(self, strain, color):
         '''

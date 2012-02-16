@@ -6,6 +6,7 @@ Common library
 
 MultiProcess base structure
 """
+from DuctApe.Common.CommonThread import CommonThread
 from multiprocessing.queues import Queue
 import logging
 import multiprocessing
@@ -129,3 +130,38 @@ class Consumer(multiprocessing.Process):
             answer = next_task()
             self.result_queue.put(answer)
         return
+    
+class CommonMultiProcess(CommonThread):
+    '''
+    Class CommonMultiProcess
+    A Thread that can perform multiprocesses
+    '''
+    def __init__(self,ncpus=1, queue=Queue()):
+        CommonThread.__init__(self,queue)
+        
+        self.ncpus = int(ncpus)
+        # Parallelization
+        self._parallel = None
+        self._paralleltasks = SafeQueue()
+        self._parallelresults = SafeQueue()
+        self.sleeper = SafeSleep()
+    
+    def initiateParallel(self):
+        self._parallel = [Consumer(self._paralleltasks,self._parallelresults)
+                          for x in range(self.ncpus)]
+        for consumer in self._parallel:
+            consumer.start()
+            
+    def addPoison(self):
+        for consumer in self._parallel:
+            self._paralleltasks.put(None)
+
+    def isTerminated(self):
+        for consumer in self._parallel:
+            if consumer.is_alive():
+                return False
+        return True
+
+    def killParallel(self):
+        for consumer in self._parallel:
+            consumer.terminate()

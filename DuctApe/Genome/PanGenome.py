@@ -7,9 +7,8 @@ Genome library
 Uses a serial-BBH approach to compute a pangenome of the desired organisms list
 """
 from Bio import SeqIO
-from DuctApe.Common.CommonMultiProcess import Consumer, SafeSleep, \
-    SafeQueue
-from DuctApe.Common.CommonThread import CommonThread
+from DuctApe.Common.CommonMultiProcess import Consumer, SafeSleep, SafeQueue, \
+    CommonMultiProcess
 from DuctApe.Genome.Blast import Blaster
 import Queue
 import logging
@@ -104,7 +103,7 @@ class RunBBH(object):
         os.remove(out)
         return (None, self.targetorg, True)
 
-class PanGenomer(CommonThread):
+class PanGenomer(CommonMultiProcess):
     '''
     Class panGenomer
     '''
@@ -121,7 +120,7 @@ class PanGenomer(CommonThread):
                  ncpus=1,evalue=1e-50,
                  recover=False,prefix='',
                  matrix='BLOSUM80',queue=Queue.Queue()):
-        CommonThread.__init__(self,queue)
+        CommonMultiProcess.__init__(self,ncpus,queue)
         # Blast
         self.organisms = list(organisms)
         self.dbs = {}
@@ -131,44 +130,18 @@ class PanGenomer(CommonThread):
         # TODO: implement recovery
         self.recover = recover
         #
-        self.ncpus = int(ncpus)
         self.results = {}
         self._blast = Blaster()
         self._pangenomeroom = None
         self.prefix = prefix.rstrip('_')
         self.matrix = matrix
         self._already = []
-        # Parallelization
-        self._parallel = None
-        self._paralleltasks = SafeQueue()
-        self._parallelresults = SafeQueue()
         self._unique = 0
-        self.sleeper = SafeSleep()
         # Results
         self.orthologs = {}
         self.core = []
         self.accessory = []
         self.unique = []
-
-    def initiateParallel(self):
-        self._parallel = [Consumer(self._paralleltasks,self._parallelresults)
-                          for x in range(self.ncpus)]
-        for consumer in self._parallel:
-            consumer.start()
-            
-    def addPoison(self):
-        for consumer in self._parallel:
-            self._paralleltasks.put(None)
-
-    def isTerminated(self):
-        for consumer in self._parallel:
-            if consumer.is_alive():
-                return False
-        return True
-
-    def killParallel(self):
-        for consumer in self._parallel:
-            consumer.terminate()
             
     def getUniqueID(self):
         self._unique += 1

@@ -284,7 +284,7 @@ class PlotCarrier(object):
         self._plot(well_id, strain_signals, ax)
         
         if well_id in self.wellNames:
-            ax.set_title(self.wellNames[well_id])
+            ax.set_title(' '.join( [well_id, self.wellNames[well_id]]))
         ax.set_xlabel('Hour')
         ax.set_ylabel('Signal')
         

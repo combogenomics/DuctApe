@@ -433,6 +433,7 @@ class BiologZero(CommonThread):
     def __init__(self, data, blank=False, blankData=[], queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         # Biolog
+        # TODO: remove this copy?
         self.data = copy.deepcopy(data)
         self.blank = bool(blank)
         self.blankData = blankData

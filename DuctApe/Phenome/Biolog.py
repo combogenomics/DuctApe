@@ -534,21 +534,25 @@ class BiologPlot(CommonThread):
                 1:'Making room',
                 2:'Preparing data',
                 3:'Preparing plots',
-                4:'Creating plates plots',
-                5:'Saving plates plots'}
+                4:'Creating plates plots'}
     
-    _substatuses = [2,4,5]
+    _substatuses = [2,4]
     
-    def __init__(self, data, ncpus=1,
-                 plateNames = {}, colors = {}, smooth = True, window = 11,
+    def __init__(self, data,
+                 expname = 'exp', 
+                 plateNames = {}, wellNames = {},
+                 colors = {}, smooth = True, window = 11,
                  maxsig = None, queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         # Biolog
         self.data = data
         
+        self.expname = expname
+        
         # Plot parameters
         self.colors = colors
         self.plateNames = plateNames
+        self.wellNames = wellNames
         self.smooth = bool(smooth)
         self.window = int(window)
         self.maxsig = maxsig
@@ -556,6 +560,8 @@ class BiologPlot(CommonThread):
         # Results
         # PLate_id --> PlotCarrier
         self.results = {}
+        # Single well plot
+        self.well = None
         
     def makeRoom(self,location=''):
         '''
@@ -567,6 +573,9 @@ class BiologPlot(CommonThread):
             try:os.mkdir(path)
             except:pass
             path = os.path.join(path, 'plots')
+            try:os.mkdir(path)
+            except:pass
+            path = os.path.join(path, self.expname)
             self._room = path
             os.mkdir(path)
         except:
@@ -608,21 +617,18 @@ class BiologPlot(CommonThread):
             self.results[plate_id].preparePlot()
         self.resetSubStatus()
         
-        self._maxsubstatus = len(self.results)
+        # TODO: more precise here
+        # TODO: speed up by implementing threading
+        self._maxsubstatus = len(self.results)*96
         self.updateStatus()
         for plate_id in self.results:
-            self._substatus += 1
-            self.updateStatus(True)
-            for i in self.results[plate_id].plotAll():pass                
-        self.resetSubStatus()
-        
-        self._maxsubstatus = len(self.results)
-        self.updateStatus()
-        for plate_id in self.results:
-            self._substatus += 1
-            self.updateStatus(True)
+            for i in self.results[plate_id].plotAll():
+                self._substatus += 1
+                self.updateStatus(True)
+            # TODO: remember qgraphicspixmapitem for GUI clickable!
             fname = os.path.join(self._room,'%s.png'%plate_id)
             self.results[plate_id].figure.savefig(fname, dpi=150)
+            self.results[plate_id].figure.clf()
         self.resetSubStatus()
         
         

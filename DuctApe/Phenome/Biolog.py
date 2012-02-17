@@ -6,7 +6,6 @@ Pheenome library
 
 Classes to handle Biolog data
 """
-from DuctApe.Common.CommonMultiProcess import CommonMultiProcess
 from DuctApe.Common.CommonThread import CommonThread
 from DuctApe.Common.utils import smooth
 import Queue
@@ -525,7 +524,7 @@ class BiologZero(CommonThread):
             return
         self.resetSubStatus()
         
-class BiologPlot(CommonMultiProcess):
+class BiologPlot(CommonThread):
     '''
     Class BiologPlot
     Takes a list of PlateCarrier objects and creates some plots
@@ -543,7 +542,7 @@ class BiologPlot(CommonMultiProcess):
     def __init__(self, data, ncpus=1,
                  plateNames = {}, colors = {}, smooth = True, window = 11,
                  maxsig = None, queue=Queue.Queue()):
-        CommonMultiProcess.__init__(self,ncpus,queue)
+        CommonThread.__init__(self,queue)
         # Biolog
         self.data = data
         

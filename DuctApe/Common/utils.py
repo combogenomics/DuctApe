@@ -81,3 +81,7 @@ def smooth(x,window_len=11,window='hanning'):
 
     y=numpy.convolve(w/w.sum(),s,mode='same')
     return y[window_len-1:-window_len+1]
+
+def compress(x, span=10):
+    return [i[0] for i in get_span(x, span)]
+        

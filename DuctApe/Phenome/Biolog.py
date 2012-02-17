@@ -582,6 +582,26 @@ class BiologPlot(CommonThread):
             logger.debug('Temporary directory creation failed! %s'
                           %path)
     
+    def getPlot(self, plate_id, well_id):
+        '''
+        A specific well is plotted and assigned to attribute well
+        To save memory just one well can be plotted at any time
+        Returns True/False
+        '''
+        if plate_id not in self.results:
+            logging.warning('Plate %s was not found!'%plate_id)
+            return False
+        if well_id not in self.results[plate_id].wells:
+            logging.warning('Well %s was not found!'%well_id)
+            return False
+        
+        if self.well:
+            self.well.clf()
+        
+        self.well = self.results[plate_id].plotWell(well_id)
+        
+        return True
+    
     def run(self):
         self.updateStatus()
         self.makeRoom()

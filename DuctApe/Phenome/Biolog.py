@@ -454,6 +454,9 @@ class BiologZero(CommonThread):
                 # will end at the same time
                 for hour in sorted(zero.signals.keys()):
                     plate.data[well].signals[hour] -= zero.signals[hour]
+                    # Values below zero are forced to zero
+                    if plate.data[well].signals[hour] < 0:
+                        plate.data[well].signals[hour] = 0
                     
             # Last step: put the zero well to zero
             for hour in zero.signals.keys():
@@ -478,6 +481,9 @@ class BiologZero(CommonThread):
                 for hour in sorted(zplate.data[well].signals.keys()):
                     try:
                         plate.data[well].signals[hour] -= zplate.data[well].signals[hour]
+                        # Values below zero are forced to zero
+                        if plate.data[well].signals[hour] < 0:
+                            plate.data[well].signals[hour] = 0
                     except:
                         logging.debug('Time %f present in blank plate was not'%(hour)+ 
                                         ' found on plate %s, signal was forced to'%(plate.plate_id)+

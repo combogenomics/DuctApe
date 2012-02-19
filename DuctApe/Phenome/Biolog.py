@@ -92,6 +92,12 @@ class PlateCarrier(object):
         self.data = {}
         # Used internaly, index in Hours row --> well_id
         self._idx = {}
+        
+    def getMax(self):
+        '''
+        Maximum signal for the entire plate
+        '''
+        return max( [self.data[well].getMax() for well in self.data] )
 
 class PlotCarrier(object):
     '''
@@ -331,6 +337,12 @@ class BiologRaw(object):
         for hour in sorted(times):
             if hour not in self.signals:
                 self.signals[hour] = 0
+    
+    def getMax(self):
+        '''
+        Maximum signal
+        '''
+        return max(self.signals.values())
 
 class BiologParser(CommonThread):
     '''

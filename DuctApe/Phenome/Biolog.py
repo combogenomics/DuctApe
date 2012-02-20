@@ -343,6 +343,19 @@ class BiologRaw(object):
         Maximum signal
         '''
         return max(self.signals.values())
+    
+    def smooth(self, window_len = 11, window_type = 'hanning'):
+        '''
+        Apply a smoothing algorithm to the signals
+        Really useful for clearer plots and other features
+        '''
+        signals = [self.signals[hour] for hour in sorted(self.signals.keys())]
+        smoothed = smooth(signals, window_len = window_len, 
+                          window_type = window_type)
+        
+        for idx in range(len(self.signals)):
+            hour = sorted(self.signals.keys())[idx]
+            self.signals[hour] = smoothed[idx]
 
 class BiologParser(CommonThread):
     '''

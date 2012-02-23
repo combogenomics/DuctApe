@@ -123,7 +123,9 @@ class Project(DBBase):
         for field in cursor.description:
             self.__setattr__(field[0],data[0][cursor.description.index(field)])
             
-    def addProject(self, name, description=None, kind=None, tmp=None):
+    def addProject(self, name='Project',
+                         description='Generic project',
+                         kind='generic', tmp=None):
         '''
         If there is no project it is added to db,
         otherwise an exception is thrown

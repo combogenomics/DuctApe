@@ -70,6 +70,9 @@ class CommonThread(threading.Thread):
     def getMaxSubStatus(self):
         return self._maxsubstatus
     
+    def getSubStatuses(self):
+        return self._substatuses
+    
     def resetSubStatus(self):
         self._substatus = 0
         self._maxsubstatus = 0

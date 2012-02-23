@@ -117,11 +117,11 @@ class Project(DBBase):
         with self.connection as conn:
             cursor = conn.execute('select * from project limit 1;')
         
-        data = cursor.fetchall()[0]
+        data = cursor.fetchall()
         if len(data) == 0:
             return
         for field in cursor.description:
-            self.__setattr__(field[0],data[cursor.description.index(field)])
+            self.__setattr__(field[0],data[0][cursor.description.index(field)])
             
     def addProject(self, name, description=None, kind=None, tmp=None):
         '''

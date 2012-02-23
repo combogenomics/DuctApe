@@ -7,8 +7,7 @@ Genome library
 Uses a serial-BBH approach to compute a pangenome of the desired organisms list
 """
 from Bio import SeqIO
-from DuctApe.Common.CommonMultiProcess import Consumer, SafeSleep, SafeQueue, \
-    CommonMultiProcess
+from DuctApe.Common.CommonMultiProcess import CommonMultiProcess
 from DuctApe.Genome.Blast import Blaster
 import Queue
 import logging

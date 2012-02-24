@@ -6,15 +6,16 @@ Genome library
 
 Classes to handle Blast analysis against a local database
 """
+import logging
+import os
+import subprocess
+import sys
 
 __author__ = "Marco Galardini"
 
 ################################################################################
 # Imports
 
-import logging
-import sys
-import subprocess
 
 ################################################################################
 # Log setup
@@ -178,3 +179,81 @@ class Blaster(object):
                     h=BlastHit(BlastQuery,alignment,hsp)
                     hits.append(h)
             yield hits
+            
+class RunBBH(object):
+    def __init__(self, query, queryid,
+                 source, target, targetorg,
+                 evalue, matrix, short = False, uniqueid = 1):
+        self.query = query
+        self.queryid = queryid
+        self.source = source
+        self.target = target
+        self.targetorg = targetorg
+        self.evalue = evalue
+        self.matrix = matrix
+        self.short = short
+        self.uniqueid = uniqueid
+    
+    def __call__(self):
+        blaster = Blaster()
+        # First Blast run
+        out = self.query + '_' + str(self.uniqueid) +'.xml'
+        additional = (' -soft_masking true -dbsize 500000000 '+
+                    '-use_sw_tback -num_alignments 1 -matrix %s'%self.matrix)
+        if self.short:
+            res = blaster.runBlast(self.query, self.target, out,
+                         evalue = self.evalue,
+                         task='blastp-short',
+                         additional=additional)
+        else:
+            res = blaster.runBlast(self.query, self.target, out,
+                         evalue = self.evalue,
+                         additional=additional)
+        
+        if not res:
+            os.remove(out)
+            return (None, self.targetorg, False)
+        
+        blaster.parseBlast(out)
+        for hits in blaster.getHits(self.evalue):
+            if len(hits) == 0:
+                break
+            targethit = hits[0]
+            queryreturn = self.query + '_' + str(self.uniqueid) + '_return'
+            if not blaster.retrieveFromDB(self.target, targethit.hit,
+                                          out=queryreturn):
+                os.remove(out)
+                return (None, self.targetorg, False)
+            # Second Blast run
+            if targethit.hit_len < 30:
+                res = blaster.runBlast(queryreturn, self.source, out,
+                         evalue = self.evalue,
+                         task='blastp-short',
+                         additional=additional)
+            else:
+                res = blaster.runBlast(queryreturn, self.source, out,
+                         evalue = self.evalue,
+                         additional=additional)
+            
+            if not res:
+                os.remove(out)
+                os.remove(queryreturn)
+                return (None, self.targetorg, False)
+            
+            blaster.parseBlast(out)
+            for hits in blaster.getHits(self.evalue):
+                if len(hits) == 0:
+                    return (None, self.targetorg, True)
+                sourcehit = hits[0]
+                if self.queryid == sourcehit.hit:
+                    os.remove(out)
+                    os.remove(queryreturn)
+                    return (sourcehit.query_id.replace('lcl|',''),
+                            self.targetorg, True)
+                else:
+                    os.remove(out)
+                    os.remove(queryreturn)
+                    return (None, self.targetorg, True)
+
+        os.remove(out)
+        return (None, self.targetorg, True)

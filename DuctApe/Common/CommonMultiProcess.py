@@ -145,6 +145,13 @@ class CommonMultiProcess(CommonThread):
         self._paralleltasks = SafeQueue()
         self._parallelresults = SafeQueue()
         self.sleeper = SafeSleep()
+        
+        # ID
+        self._unique = 0
+        
+    def getUniqueID(self):
+        self._unique += 1
+        return self._unique
     
     def initiateParallel(self):
         self._parallel = [Consumer(self._paralleltasks,self._parallelresults)

@@ -14,10 +14,6 @@ import sys
 __author__ = "Marco Galardini"
 
 ################################################################################
-# Imports
-
-
-################################################################################
 # Log setup
 
 logger = logging.getLogger('Blast')
@@ -183,7 +179,8 @@ class Blaster(object):
 class RunBBH(object):
     def __init__(self, query, queryid,
                  source, target, targetorg,
-                 evalue, matrix, short = False, uniqueid = 1):
+                 evalue, matrix, short = False, uniqueid = 1,
+                 kegg = False, ko_id = None):
         self.query = query
         self.queryid = queryid
         self.source = source
@@ -193,67 +190,102 @@ class RunBBH(object):
         self.matrix = matrix
         self.short = short
         self.uniqueid = uniqueid
+        self.kegg = kegg
+        self.ko_id = ko_id
+        
+        self.out = self.query + '_' + str(self.uniqueid) +'.xml'
+        self.blaster = Blaster()
+        self.additional = (' -soft_masking true -dbsize 500000000 '+
+                    '-use_sw_tback -num_alignments 1 -matrix %s'%self.matrix)
+        self.queryreturn = self.query + '_' + str(self.uniqueid) + '_return'
+    
+    def _firstRun(self):
+        if self.short:
+            res = self.blaster.runBlast(self.query, self.target, self.out,
+                         evalue = self.evalue,
+                         task='blastp-short',
+                         additional=self.additional)
+        else:
+            res = self.blaster.runBlast(self.query, self.target, self.out,
+                         evalue = self.evalue,
+                         additional=self.additional)
+        
+        return res
+    
+    def _secondRun(self, hit_len = None):
+        # Second Blast run
+        if not hit_len:
+            if self.short:
+                hit_len = 29
+            else:
+                hit_len = 100
+        if hit_len < 30:
+            res = self.blaster.runBlast(self.queryreturn, self.source, self.out,
+                     evalue = self.evalue,
+                     task='blastp-short',
+                     additional=self.additional)
+        else:
+            res = self.blaster.runBlast(self.queryreturn, self.source, self.out,
+                     evalue = self.evalue,
+                     additional=self.additional)
+            
+        return res
     
     def __call__(self):
-        blaster = Blaster()
-        # First Blast run
-        out = self.query + '_' + str(self.uniqueid) +'.xml'
-        additional = (' -soft_masking true -dbsize 500000000 '+
-                    '-use_sw_tback -num_alignments 1 -matrix %s'%self.matrix)
-        if self.short:
-            res = blaster.runBlast(self.query, self.target, out,
-                         evalue = self.evalue,
-                         task='blastp-short',
-                         additional=additional)
-        else:
-            res = blaster.runBlast(self.query, self.target, out,
-                         evalue = self.evalue,
-                         additional=additional)
-        
-        if not res:
-            os.remove(out)
-            return (None, self.targetorg, False)
-        
-        blaster.parseBlast(out)
-        for hits in blaster.getHits(self.evalue):
-            if len(hits) == 0:
-                break
-            targethit = hits[0]
-            queryreturn = self.query + '_' + str(self.uniqueid) + '_return'
-            if not blaster.retrieveFromDB(self.target, targethit.hit,
-                                          out=queryreturn):
-                os.remove(out)
-                return (None, self.targetorg, False)
-            # Second Blast run
-            if targethit.hit_len < 30:
-                res = blaster.runBlast(queryreturn, self.source, out,
-                         evalue = self.evalue,
-                         task='blastp-short',
-                         additional=additional)
-            else:
-                res = blaster.runBlast(queryreturn, self.source, out,
-                         evalue = self.evalue,
-                         additional=additional)
+        if not self.kegg:
+            # First Blast run
+            res = self._firstRun()
             
             if not res:
-                os.remove(out)
-                os.remove(queryreturn)
+                os.remove(self.out)
                 return (None, self.targetorg, False)
             
-            blaster.parseBlast(out)
-            for hits in blaster.getHits(self.evalue):
+            self.blaster.parseBlast(self.out)
+            for hits in self.blaster.getHits(self.evalue):
                 if len(hits) == 0:
-                    return (None, self.targetorg, True)
-                sourcehit = hits[0]
-                if self.queryid == sourcehit.hit:
-                    os.remove(out)
-                    os.remove(queryreturn)
-                    return (sourcehit.query_id.replace('lcl|',''),
-                            self.targetorg, True)
+                    break
+                targethit = hits[0]
+    
+                if not self.blaster.retrieveFromDB(self.target, targethit.hit,
+                                      out=self.queryreturn):
+                    os.remove(self.out)
+                    return (None, self.targetorg, False)
+    
+                # Second Blast run            
+                res = self._secondRun(targethit.hit_len)
+                break
+        else:
+            if not self.blaster.retrieveFromDB(self.target, self.ko_id,
+                                      out=self.queryreturn):
+                try:
+                    os.remove(self.out)
+                except:
+                    pass
+                return (None, self.targetorg, False)
+            res = self._secondRun()
+        
+        if not res:
+            os.remove(self.out)
+            os.remove(self.queryreturn)
+            return (None, self.targetorg, False)
+        
+        self.blaster.parseBlast(self.out)
+        for hits in self.blaster.getHits(self.evalue):
+            if len(hits) == 0:
+                return (None, self.targetorg, True)
+            sourcehit = hits[0]
+            if self.queryid == sourcehit.hit:
+                os.remove(self.out)
+                os.remove(self.queryreturn)
+                if self.kegg:
+                    return (sourcehit.getKO(),self.targetorg, True)
                 else:
-                    os.remove(out)
-                    os.remove(queryreturn)
-                    return (None, self.targetorg, True)
+                    return (sourcehit.query_id.replace('lcl|',''),
+                        self.targetorg, True)
+            else:
+                os.remove(self.out)
+                os.remove(self.queryreturn)
+                return (None, self.targetorg, True)
 
-        os.remove(out)
+        os.remove(self.out)
         return (None, self.targetorg, True)

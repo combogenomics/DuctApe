@@ -57,16 +57,11 @@ class PanGenomer(CommonMultiProcess):
         self.prefix = prefix.rstrip('_')
         self.matrix = matrix
         self._already = []
-        self._unique = 0
         # Results
         self.orthologs = {}
         self.core = []
         self.accessory = []
         self.unique = []
-            
-    def getUniqueID(self):
-        self._unique += 1
-        return self._unique
 
     def makeRoom(self,location=''):
         '''

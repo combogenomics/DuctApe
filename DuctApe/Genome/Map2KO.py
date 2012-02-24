@@ -7,9 +7,9 @@ Genome library
 Handle a KO search on a local machine (Blast-BBH) or online (KAAS)
 """
 from Bio import SeqIO
-from DuctApe.Common.CommonThread import CommonThread
+from DuctApe.Common.CommonMultiProcess import CommonMultiProcess
 from DuctApe.Common.utils import slice_it
-from DuctApe.Genome.Blast import Blaster
+from DuctApe.Genome.Blast import Blaster, RunBBH
 import Queue
 import logging
 import os
@@ -25,7 +25,10 @@ logger = logging.getLogger('Map2KO')
 ################################################################################
 # Classes
 
-class LocalSearch(CommonThread):
+class KOBBH(object):
+    pass
+
+class LocalSearch(CommonMultiProcess):
     '''
     Class localSearch
     '''
@@ -43,7 +46,7 @@ class LocalSearch(CommonThread):
     def __init__(self,query,target,
                  ncpus=1,evalue=1e-50,
                  buildDB=True,bbh=True,recover=False,queue=Queue.Queue()):
-        CommonThread.__init__(self,queue)
+        CommonMultiProcess.__init__(self,ncpus,queue)
         # Blast
         self.query = query
         if buildDB:
@@ -167,53 +170,47 @@ class LocalSearch(CommonThread):
             logger.error('Could not create source DB %s'%sourceDB)
             return False
         self._maxsubstatus = len(self._kohits)
+        
+        self.initiateParallel()
+        
         for hit in self._kohits:
-            # TODO: this would be better implemented in thread mode
-            # TODO: but actually it's fast enough not to care
-            self._substatus += 1
-            self.updateStatus(sub=True)
-            # Retrieve the hits from the KEGG db
-            acc = hit.hit
-            query = os.path.join(self._room,'sourceBBH.fsa')
-            if not self._blast.retrieveFromDB(self.db, acc, out=query):
-                logger.error('Could not retrieve protein %s'%acc)
-                return False
-            # Launch the return Blast
+            uniqueid = self.getUniqueID()
+            
             if hit.query_len > 30:
-                task = 'blastp'
+                short = False
             else:
-                task = 'blastp-short'
-            out = os.path.join(self._room,'BBHres.xml')
-            if not self._blast.runBlast(query, sourceDB, out,
-                                evalue=self.evalue,
-                                task=task, ncpus=self.ncpus):
-                logger.error('Could not run the return Blast on %s'%acc)
-                return False
-            # Parse (just the first hit)
-            self._blast.parseBlast(out)
-            atLeastOne = False
-            try:
-                for hits in self._blast.getHits(self.evalue):
-                    if len(hits) == 0:
-                        break
-                    atLeastOne = True
-                    targethit = hits[0]
-                    if hit.query_id == targethit.hit:
-                        logger.debug('BBH found: %s - %s'%(hit.query_id,
-                                                            targethit.hit))
-                        if hit.query_id not in self.results:
-                            self.results[hit.query_id] = []
-                        ko = hit.getKO()
-                        if ko not in self.results[hit.query_id]:
-                            self.results[hit.query_id].append(ko)
-                    else:
-                        logger.debug('No BBH: %s - %s'%(hit.query_id,
-                                                            targethit.hit))
-            except:
-                logger.error('Blast results corrupted for file %s'%out)
-                return False
-            if not atLeastOne:
-                logger.warning('No hits for %s'%hit.query_id)
+                short = True
+            
+            # Multi process
+            obj = RunBBH('Map2KO',hit.query_id,sourceDB,
+                    self.db,None,
+                    self.evalue,'BLOSUM62',short,uniqueid,
+                    kegg = True, ko_id = hit.hit)
+            self._paralleltasks.put(obj)
+            
+        # Poison pill to stop the workers
+        self.addPoison()
+        
+        while True:
+            if not self._parallelresults.empty():
+                self._substatus += 1
+                self.updateStatus(sub=True)
+                
+                result = self._parallelresults.get()
+                
+                if not result[2]:
+                    logger.error('An error occurred for BBH!')
+                    return False
+                if result[0] and result[0] not in self.results[hit.query_id]:
+                    self.results[hit.query_id].append(result[0])
+                    
+            if self.isTerminated():
+                break
+            
+            self.sleeper.sleep(0.1)
+            
+        self.killParallel()            
+
         return True
             
     def run(self):

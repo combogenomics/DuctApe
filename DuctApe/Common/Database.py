@@ -99,6 +99,17 @@ class Project(DBBase):
         self.creation = None
         self.last = None
     
+    def __str__(self):
+        self.getProject()
+        return ' - '.join([
+                  ' '.join(['Name:',str(self.name)]),
+                  ' '.join(['Description:',str(self.description)]),
+                  ' '.join(['Type:',str(self.kind)]),
+                  ' '.join(['Temp directory:',str(self.tmp)]),
+                  ' '.join(['Creation date:',str(self.creation)]),
+                  ' '.join(['Last update:',str(self.last)])
+                          ])
+    
     def isProject(self):
         '''
         Do we have already a project in there?
@@ -174,6 +185,9 @@ class Organism(DBBase):
     ''' 
     def __init__(self, dbname='storage'):
         DBBase.__init__(self, dbname)
+        
+    def __len__(self):
+        return self.howMany()
     
     def isOrg(self, org_id):
         '''
@@ -211,6 +225,17 @@ class Organism(DBBase):
         
         for mut in cursor:
             yield mut[0]
+            
+    def howManyMutants(self, org_id):
+        '''
+        Get the number of mutants for this organism
+        '''
+        muts = 0
+        
+        for mut in self.getOrgMutants(org_id):
+            muts += 1
+        
+        return muts
     
     def howMany(self):
         '''
@@ -261,7 +286,15 @@ class Organism(DBBase):
         with self.connection as conn:
             conn.execute('insert or replace into organism values (?,?,?,?,?,?);',
                      (org_id, name, description, orgfile, mutant, reference,))
-            
+    
+    def delAllOrgs(self):
+        '''
+        Delete all the organsim from the db
+        (including all dependent tables)
+        '''
+        for org in self.getAll():
+            self.delOrg(org.org_id)
+    
     def delOrg(self, org_id, cascade=False):
         '''
         Delete an organism from the db
@@ -273,7 +306,7 @@ class Organism(DBBase):
         with self.connection as conn:
             conn.execute('delete from organism where org_id=?;', (org_id,))
         
-        if len(self.getOrgMutants(org_id)) > 0 and cascade:
+        if self.howManyMutants(org_id) > 0 and cascade:
             for mut_id in self.getOrgMutants(org_id):
                 self.delOrg(mut_id, cascade=True)
         
@@ -391,6 +424,20 @@ class Genome(DBBase):
             
         for res in cursor:
             yield Row(res, cursor.description)
+            
+    def getRecords(self, org_id):
+        '''
+        Get all the proteins from a specific organism
+        As SeqRecords objects
+        '''
+        from Bio import Alphabet
+        from Bio.Seq import Seq
+        from Bio.SeqRecord import SeqRecord
+        
+        for prot in self.getAllProt(org_id):
+            yield SeqRecord(Seq(prot.sequence,
+                                Alphabet.IUPAC.ExtendedIUPACProtein()),
+                            id = prot.prot_id)
     
     def howMany(self, org_id):
         '''
@@ -416,6 +463,9 @@ class Genome(DBBase):
             
     def addKOs(self, kos):
         oCheck = Kegg(self.dbname)
+        
+        self.boost()
+        
         with self.connection as conn:
             for prot_id,ko_id in kos:
                 if not self.isProt(prot_id):
@@ -456,7 +506,9 @@ class Genome(DBBase):
             if not self.isProt(prot_id):
                 logging.warning('Protein %s is not present yet!'%prot_id)
                 raise Exception('This Protein (%s) is not present yet!'%prot_id)
-            
+        
+        self.boost()
+        
         # Go for it!
         i = 0
         with self.connection as conn:
@@ -619,7 +671,7 @@ class Genome(DBBase):
         Remove all the entries about the pangenome
         '''
         with self.connection as conn:
-            conn.execute('truncate table ortholog')
+            conn.execute('delete from ortholog')
 
 class Kegg(DBBase):
     '''
@@ -628,18 +680,32 @@ class Kegg(DBBase):
     '''
     def __init__(self, dbname='storage'):
         DBBase.__init__(self, dbname)
+    
+    def addDraftKOs(self, ko):
+        '''
+        Add new KOs (ignoring errors if they are already present)
+        the input is a list, so no details about this KOs are there yet
+        '''
+        self.boost()
         
+        with self.connection as conn:
+            for ko_id in ko:
+                conn.execute('insert or replace into ko (`ko_id`) values (?);',
+                     (ko_id,))
+    
     def addKOs(self, ko):
         '''
         Add new KOs (ignoring errors if they are already present)
         the input is a dictionary
         ko_id --> name, description
         '''
+        self.boost()
+        
         with self.connection as conn:
             for ko_id in ko:
                 name = ko[ko_id][0]
                 description = ko[ko_id][1]
-                conn.execute('insert or ignore into ko values (?,?,?);',
+                conn.execute('insert or replace into ko values (?,?,?);',
                      (ko_id,name,description,))
     
     def addKOReacts(self, koreact):

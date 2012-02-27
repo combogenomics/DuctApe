@@ -192,7 +192,7 @@ class LocalSearch(CommonMultiProcess):
         self.addPoison()
         
         while True:
-            if not self._parallelresults.empty():
+            while not self._parallelresults.empty():
                 self._substatus += 1
                 self.updateStatus(sub=True)
                 
@@ -201,15 +201,30 @@ class LocalSearch(CommonMultiProcess):
                 if not result[2]:
                     logger.error('An error occurred for BBH!')
                     return False
-                if hit.query_id not in self.results:
-                    self.results[hit.query_id] = []
-                if result[0] and result[0] not in self.results[hit.query_id]:
-                    self.results[hit.query_id].append(result[0])
+                if result[1] not in self.results and result[0]:
+                    self.results[result[1]] = []
+                if result[0] and result[0] not in self.results[result[1]]:
+                    self.results[result[1]].append(result[0])
                     
             if self.isTerminated():
                 break
             
             self.sleeper.sleep(0.1)
+            
+        # Get the last messages
+        while not self._parallelresults.empty():
+            self._substatus += 1
+            self.updateStatus(sub=True)
+            
+            result = self._parallelresults.get()
+            
+            if not result[2]:
+                logger.error('An error occurred for BBH!')
+                return False
+            if result[1] not in self.results and result[0]:
+                self.results[result[1]] = []
+            if result[0] and result[0] not in self.results[result[1]]:
+                self.results[result[1]].append(result[0])
             
         self.killParallel()            
 

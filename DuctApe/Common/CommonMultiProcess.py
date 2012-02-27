@@ -164,10 +164,10 @@ class CommonMultiProcess(CommonThread):
             self._paralleltasks.put(None)
 
     def isTerminated(self):
-        for consumer in self._parallel:
-            if consumer.is_alive():
-                return False
-        return True
+        if self._paralleltasks.empty():
+            return True
+        else:
+            return False
 
     def killParallel(self):
         for consumer in self._parallel:

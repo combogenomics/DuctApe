@@ -167,7 +167,7 @@ class PanGenomer(CommonMultiProcess):
                 self.addPoison()
                 
                 while True:
-                    if not self._parallelresults.empty():
+                    while not self._parallelresults.empty():
                         result = self._parallelresults.get()
                         
                         if not result[2]:
@@ -183,6 +183,18 @@ class PanGenomer(CommonMultiProcess):
                         break
                     
                     self.sleeper.sleep(0.1)
+                    
+                while not self._parallelresults.empty():
+                    result = self._parallelresults.get()
+                    
+                    if not result[2]:
+                        logger.error('An error occurred for BBH on query %s'%seq.id+
+                                     ' and target %s'%result[1])
+                        return False
+                    if result[0] and result[0] not in self._already:
+                        self.orthologs[orthname].append(result[0])
+                        orgsincluded.append(result[1])
+                        self._already.append(result[0])
                 
                 self.killParallel()
                 
@@ -229,7 +241,7 @@ class PanGenomer(CommonMultiProcess):
                         self.addPoison()
                         
                         while True:
-                            if not self._parallelresults.empty():
+                            while not self._parallelresults.empty():
                                 result = self._parallelresults.get()
                                 
                                 if not result[2]:
@@ -245,6 +257,18 @@ class PanGenomer(CommonMultiProcess):
                                 break
                             
                             self.sleeper.sleep(0.1)
+                        
+                        while not self._parallelresults.empty():
+                            result = self._parallelresults.get()
+                            
+                            if not result[2]:
+                                logger.error('An error occurred for BBH on query %s'%seq.id+
+                                             ' and target %s'%result[1])
+                                return False
+                            if result[0] and result[0] not in self._already:
+                                self.orthologs[orthname].append(result[0])
+                                orgsincluded.append(result[1])
+                                self._already.append(result[0])
                         
                         self.killParallel()
                 

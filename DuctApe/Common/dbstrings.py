@@ -6,7 +6,9 @@ CREATE TABLE project (
     "kind" TEXT,
     "tmp" TEXT,
     "creation" TEXT,
-    "last" TEXT
+    "last" TEXT,
+    "genome" TEXT   DEFAULT ('none'),
+    "phenome" TEXT   DEFAULT ('none')
 );
 CREATE TABLE "organism" (
     "org_id" TEXT NOT NULL,

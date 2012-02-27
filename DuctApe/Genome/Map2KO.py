@@ -278,6 +278,10 @@ class LocalSearch(CommonMultiProcess):
             self.updateStatus(send=False)   
         self.resetSubStatus()
         
+        try:
+            del self.results[None]
+        except:pass
+        
         # Only ONE KO for each protein
         for k in self.results:
             self.results[k] = self.results[k][0]
@@ -301,7 +305,8 @@ class OnlineSearch(object):
         
     def getExplanation(self):
         msg = ' '.join(['The only way to access to KAAS annotation service is',
-                'your browser.\nJust go to '+self.url+' and add your fasta file.',
+                'your browser.\nThe program will redirect you to '+self.url+
+                ', where you can add your fasta file(s).',
                 '\nThe analysis will take less than one hour.'])
         if self.bbh:
             msg = '\n'.join([msg, 'Select the BBH option and use the appropriate'+

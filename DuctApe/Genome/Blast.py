@@ -279,7 +279,7 @@ class RunBBH(object):
                 os.remove(self.out)
                 os.remove(self.queryreturn)
                 if self.kegg:
-                    return (self.ko_id,self.targetorg, True)
+                    return (self.ko_id,self.queryid, True)
                 else:
                     return (sourcehit.query_id.replace('lcl|',''),
                         self.targetorg, True)

@@ -185,7 +185,7 @@ class LocalSearch(CommonMultiProcess):
             obj = RunBBH('Map2KO',hit.query_id,sourceDB,
                     self.db,None,
                     self.evalue,'BLOSUM62',short,uniqueid,
-                    kegg = True, ko_id = hit.hit)
+                    kegg = True, ko_entry = hit.hit, ko_id = hit.getKO())
             self._paralleltasks.put(obj)
             
         # Poison pill to stop the workers
@@ -201,6 +201,8 @@ class LocalSearch(CommonMultiProcess):
                 if not result[2]:
                     logger.error('An error occurred for BBH!')
                     return False
+                if hit.query_id not in self.results:
+                    self.results[hit.query_id] = []
                 if result[0] and result[0] not in self.results[hit.query_id]:
                     self.results[hit.query_id].append(result[0])
                     

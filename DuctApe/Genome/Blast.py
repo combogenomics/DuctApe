@@ -180,7 +180,7 @@ class RunBBH(object):
     def __init__(self, query, queryid,
                  source, target, targetorg,
                  evalue, matrix, short = False, uniqueid = 1,
-                 kegg = False, ko_id = None):
+                 kegg = False, ko_entry = None, ko_id = None):
         self.query = query
         self.queryid = queryid
         self.source = source
@@ -191,6 +191,7 @@ class RunBBH(object):
         self.short = short
         self.uniqueid = uniqueid
         self.kegg = kegg
+        self.ko_entry = ko_entry
         self.ko_id = ko_id
         
         self.out = self.query + '_' + str(self.uniqueid) +'.xml'
@@ -255,7 +256,7 @@ class RunBBH(object):
                 res = self._secondRun(targethit.hit_len)
                 break
         else:
-            if not self.blaster.retrieveFromDB(self.target, self.ko_id,
+            if not self.blaster.retrieveFromDB(self.target, self.ko_entry,
                                       out=self.queryreturn):
                 try:
                     os.remove(self.out)
@@ -278,7 +279,7 @@ class RunBBH(object):
                 os.remove(self.out)
                 os.remove(self.queryreturn)
                 if self.kegg:
-                    return (sourcehit.getKO(),self.targetorg, True)
+                    return (self.ko_id,self.targetorg, True)
                 else:
                     return (sourcehit.query_id.replace('lcl|',''),
                         self.targetorg, True)

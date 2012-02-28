@@ -1,0 +1,309 @@
+#!/usr/bin/env python
+"""
+DuctGenome
+
+Analyze genome(s) and map them to KEGG
+"""
+from DuctApe import __version__
+from DuctApe.Actions import dInit, touchProject, dRemove, dGenomeClear, \
+    dGenomeRemove, dGenomeAdd, dGenomeDirAdd
+import argparse
+import logging.handlers
+import os
+
+__author__ = "Marco Galardini"
+__prog__ = "ductgenome"
+
+################################################################################
+# Log setup
+
+logger = logging.getLogger()
+
+################################################################################
+# Methods
+
+def dinit(options, wdir, project):
+    if not dInit(project, wdir, options.name, options.descr):
+        logger.warning('You can remove the old project file or run ductape rm')
+        return False
+    else:
+        return True
+
+def dadd(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    return dGenomeAdd(project, options.orgID, options.f, options.n, options.d)
+
+def daddDir(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    return dGenomeDirAdd(project, options.folder)
+
+def daddMut(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    pass
+
+def dstart(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    pass
+
+def dremove(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('Nothing to be removed')
+        return False
+    return dGenomeRemove(project, options.organisms)
+
+def dclear(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('Nothing to be cleaned up!\n'+
+                       'You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    return dGenomeClear(project)
+
+################################################################################
+# Options
+
+def getOptions():
+    description = "Add and analyze genomes"
+    parser = argparse.ArgumentParser(description = description,
+                                     prog=__prog__)
+    parser.add_argument('-p', metavar='project', action='store',
+                        dest='project',
+                        default='ductape.db',
+                        help='Project file')
+    parser.add_argument('-w', metavar='workdir', action='store', dest='wdir',
+                        default='.',
+                        help='Working directory')
+    parser.add_argument('-v', action='count',
+                        default=0,
+                        help='Increase verbosity level')
+    parser.add_argument('--version', action='version',
+                        version='%(prog)s '+__version__)
+    subparsers = parser.add_subparsers()
+
+    parser_init = subparsers.add_parser('init', help='Initialize the project')
+    parser_init.add_argument('name', action="store",
+                             default = 'Project',
+                             help='Project name')
+    parser_init.add_argument('-d', metavar='descr', action="store",
+                            dest='descr',
+                            default = 'DuctApe project',
+                            help='Project description')
+    parser_init.set_defaults(func=dinit)
+
+    parser_add = subparsers.add_parser('add',
+                           help='Add a single genome')
+    parser_add.add_argument('orgID', action='store',
+                            help='Organism ID')
+    parser_add.add_argument('-f', metavar='file', action="store",
+                            required = True,
+                            help='Protein fasta file')
+    parser_add.add_argument('-n', metavar='name', action="store",
+                            default = '',
+                            help='Organism name')
+    parser_add.add_argument('-d', metavar='descr', action="store",
+                            default = '',
+                            help='Organism description')
+    parser_add.set_defaults(func=dadd)
+    
+    parser_add_dir = subparsers.add_parser('add-dir',
+           help='Add a series of genomes (orgIDs will be guessed)')
+    parser_add_dir.add_argument('folder', action="store",
+                            help='Folder where the genomes fasta are stored')
+    parser_add_dir.set_defaults(func=daddDir)
+
+    parser_add_mut = subparsers.add_parser('add-mut',
+                               help='Add a mutant of an existing genome')
+    parser_add_mut.add_argument('mutID', action='store',
+                            help='Mutant organism ID')
+    parser_add_mut.add_argument('-m', metavar='mutparent', action="store",
+                            required = True,
+                            help='This mutant parent orgID')
+    parser_add_mut.add_argument('-f', metavar='mutfasta', action="store",
+                            required = True,
+                            help='Mutated genes fasta file')
+    parser_add_mut.add_argument('-k', metavar='kind', action="store",
+                            choices = ['deletion', 'insertion'],
+                            default = 'deletion',
+                            help='This mutant kind')
+    parser_add_mut.add_argument('-n', metavar='name', action="store",
+                            default = '',
+                            help='Organism name')
+    parser_add_mut.add_argument('-d', metavar='descr', action="store",
+                            default = '',
+                            help='Organism description')
+    parser_add_mut.set_defaults(func=daddMut)
+
+    parser_start = subparsers.add_parser('start', help='Start the analysis')
+    parser_start.add_argument('-n', metavar='cpu', action="store", dest='cpu',
+                            type=int,
+                            default=1,
+                            help='Number of CPUs to be used')
+    parser_start.set_defaults(func=dstart)
+
+    parser_rm = subparsers.add_parser('rm', help='Remove genome analysis')
+    parser_rm.add_argument('organisms', metavar='orgID', nargs='+',
+                              action="store",
+                            help='Organism(s) to be removed')
+    parser_rm.set_defaults(func=dremove)
+    
+    parser_clear = subparsers.add_parser('clear',
+                                         help='Clear all the genomic results')
+    parser_clear.set_defaults(func=dclear)
+    
+    return parser.parse_args()
+
+################################################################################
+# 
+
+options = getOptions()
+
+logger.setLevel(logging.DEBUG)
+
+ch = logging.StreamHandler()
+if options.v == 0:
+    ch.setLevel(logging.WARNING)
+elif options.v == 1:
+    ch.setLevel(logging.INFO)
+elif options.v >= 2:
+    ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - ductgenome - %(message)s',
+                            '%H:%M:%S')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
+
+fh = logging.handlers.RotatingFileHandler('ductape.log', maxBytes=10240)
+if options.v == 0:
+    ch.setLevel(logging.INFO)
+elif options.v >= 1:
+    ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - ductgenome - [%(levelname)s] - %(message)s',
+                            '%Y-%m-%d %H:%M:%S')
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+
+wdir = os.path.abspath(options.wdir)
+if not os.path.exists(wdir):
+    try:
+        os.mkdir(wdir)
+    except:
+        logger.error('Could not create working directory %s'%wdir)
+    
+project = os.path.join(wdir, options.project)
+
+options.func(options, wdir, project)
+
+#        
+## TODO: below this part just the input files can be ignored (we have the
+##       proteome locked into the db)
+#
+#genomes = {}
+#protdir = os.path.join(tmp, 'proteins')
+#try:
+#    os.mkdir(protdir)
+#except:
+#    pass
+#for org in orgs.getAll():
+#    protfile = os.path.join(protdir, org.org_id)
+#    genomes[org.org_id] = protfile
+#    SeqIO.write(gen.getRecords(org.org_id), open(protfile, 'w'), 'fasta')
+#
+## PanGenome
+#if len(orgs) > 1 and options.pangenome:
+#    pangenome = PanGenomer(genomes, ncpus=options.cpu)
+#
+#    pangenome.start()
+#    prg = None
+#    while True:
+#        sleep(1)
+#        while not pangenome.msg.empty():
+#            msg = pangenome.msg.get()
+#            if msg:
+#                if msg.status in pangenome.getSubStatuses():
+#                    if prg is None:
+#                        prg = ProgressBar(TerminalController(sys.stdout), msg.msg)
+#                if msg.fail:
+#                    # TODO: print something
+#                    break
+#                elif not msg.substatus:
+#                    # TODO: print something
+#                    prg = None
+#                else:
+#                    prg.update(msg.substatus/float(msg.maxsubstatus),
+#                               'Item %d on %d total'%(msg.substatus,
+#                                                      msg.maxsubstatus))
+#        if not pangenome.isAlive():
+#            break
+#    
+#    gen.addPanGenome(pangenome.orthologs)
+#    
+## KEGG map
+#kegg = Kegg(options.project)
+#if options.local:
+#    for genome in genomes:
+#        if genome in orgsAlready:
+#            continue
+#        gfile = genomes[genome]
+#        localKegg = LocalSearch(gfile,
+#                                options.db,
+#                                 ncpus=options.cpu,
+#                                 buildDB=False,
+#                                 recover=True)
+#        localKegg.start()
+#        prg = None
+#        while True:
+#            sleep(1)
+#            while not localKegg.msg.empty():
+#                msg = localKegg.msg.get()
+#                if msg:
+#                    if msg.status in localKegg.getSubStatuses():
+#                        if prg is None:
+#                            prg = ProgressBar(TerminalController(sys.stdout), msg.msg)
+#                    if msg.fail:
+#                        # TODO: print something
+#                        break
+#                    elif not msg.substatus:
+#                        # TODO: print something
+#                        prg = None
+#                    else:
+#                        prg.update(msg.substatus/float(msg.maxsubstatus),
+#                                   'Item %d on %d total'%(msg.substatus,
+#                                                          msg.maxsubstatus))
+#            if not localKegg.isAlive():
+#                break
+#        kegg.addDraftKOs( set(localKegg.results.values()) )
+#        for t in localKegg.results.iteritems():
+#            print t
+#        gen.addKOs( localKegg.results.iteritems() )
+#else:
+#    kaas = OnlineSearch()
+#    if options.interactive:
+#        print kaas.getExplanation()
+#        test = raw_input('When you are ready press any key to open the KAAS web page')
+#        kaas.openBrowser()
+#        while True:
+#            filename = raw_input('When the analysis is finished type the filename: ')
+#            while True:
+#                if os.path.exists(filename):
+#                    break
+#                raw_input('Wrong filename? Try again: ')
+#            kaas.parseKAAS(filename)
+#        pass
+#
+## KEGG details
+## Once
+#
+## KEGG maps
+## For each genome

@@ -351,7 +351,7 @@ class Organism(DBBase):
                 raise Exception('This reference (%s) is not present yet!'%reference)
         
         with self.connection as conn:
-            conn.execute('update project set mutant = ? where org_id = ?;',
+            conn.execute('update organism set mutant = ? where org_id = ?;',
                          [mutant,org_id,])
             
 class Genome(DBBase):

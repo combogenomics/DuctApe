@@ -71,8 +71,8 @@ class DBBase(object):
                 for command in dbcreate.split(';'):
                     self.connection.execute(command+';')
         except sqlite3.Error, e:
-            logging.error('Could not create the database!')
-            logging.error(e)
+            logger.error('Could not create the database!')
+            logger.error(e)
             return False
 
         return True
@@ -105,7 +105,7 @@ class Project(DBBase):
                   ' '.join(['Name:',str(self.name)]),
                   ' '.join(['Description:',str(self.description)]),
                   ' '.join(['Type:',str(self.kind)]),
-                  ' '.join(['Temp directory:',str(self.tmp)]),
+                  #' '.join(['Temp directory:',str(self.tmp)]),
                   ' '.join(['Creation date:',str(self.creation)]),
                   ' '.join(['Last update:',str(self.last)])
                           ])
@@ -142,14 +142,16 @@ class Project(DBBase):
         otherwise an exception is thrown
         '''
         if self.isProject():
-            logging.warning('Tried to add a project when one is already defined')
+            logger.warning('Tried to add a project when one is already defined')
             raise Exception('Only one project at a time!')
         
         creation = time.asctime()
         last = time.asctime()
         
         with self.connection as conn:
-            conn.execute('insert into project values (?,?,?,?,?,?);',
+            conn.execute('''insert into project (`name`, `description`, `kind`,
+                                                `tmp`, `creation`, `last`)
+                            values (?,?,?,?,?,?);''',
                          (name, description, kind, tmp, creation, last,))
         
     def updateLast(self):
@@ -177,7 +179,29 @@ class Project(DBBase):
                          [newKind,self.name,])
         # Update the project
         self.getProject()
-
+    
+    def setGenome(self, status):
+        '''
+        Set the genomic status of the project
+        '''
+        self.getProject()
+        with self.connection as conn:
+            conn.execute('update project set genome = ? where name = ?;',
+                         [status,self.name,])
+        # Update the project
+        self.getProject()
+    
+    def setPhenome(self, status):
+        '''
+        Set the phenomic status of the project
+        '''
+        self.getProject()
+        with self.connection as conn:
+            conn.execute('update project set phenome = ? where name = ?;',
+                         [status,self.name,])
+        # Update the project
+        self.getProject()
+    
 class Organism(DBBase):
     '''
     Class Organism
@@ -188,6 +212,15 @@ class Organism(DBBase):
         
     def __len__(self):
         return self.howMany()
+    
+    def resetProject(self):
+        '''
+        Reset the project statuses
+        '''
+        # Reset the project statuses
+        oProj = Project(self.dbname)
+        oProj.setGenome('none')
+        oProj.setPhenome('none')
     
     def isOrg(self, org_id):
         '''
@@ -269,23 +302,34 @@ class Organism(DBBase):
         return Row(cursor.fetchall()[0], cursor.description)
     
     def addOrg(self, org_id, name=None, description=None,
-                    orgfile=None, mutant=False, reference=None):
+                    orgfile=None, mutant=False, reference=None, kind=''):
         '''
         Adds a new organism to the db
         Performs some checks on the fields mutant and reference
         If it is a mutant, the reference organism can be null, otherwise
         an exception is raised if it's not present
-        '''        
+        '''
+        already = self.isOrg(org_id)
+        
         mutant = int(mutant)
         if mutant:
             if reference:
                 if not self.isOrg(reference):
-                    logging.warning('Reference %s is not present yet!'%reference)
+                    logger.warning('Reference %s is not present yet!'%reference)
                     raise Exception('This reference (%s) is not present yet!'%reference)
         
         with self.connection as conn:
-            conn.execute('insert or replace into organism values (?,?,?,?,?,?);',
+            conn.execute('''insert or replace into organism (`org_id`, `name`,
+                                `description`, `file`, `mutant`, `reference`)
+                            values (?,?,?,?,?,?);''',
                      (org_id, name, description, orgfile, mutant, reference,))
+        
+        if not already:
+            # Reset the genomic/phenomic status
+            self.setGenomeStatus(org_id, 'none')
+            self.setPhenomeStatus(org_id, 'none')
+        
+        self.resetProject()
     
     def delAllOrgs(self):
         '''
@@ -294,6 +338,8 @@ class Organism(DBBase):
         '''
         for org in self.getAll():
             self.delOrg(org.org_id)
+            
+        self.resetProject()
     
     def delOrg(self, org_id, cascade=False):
         '''
@@ -314,6 +360,8 @@ class Organism(DBBase):
         oDel.delProteome(org_id)
         
         # TODO: remove Biolog related entries
+        
+        self.resetProject()
         
     def setName(self, org_id, newName):
         '''
@@ -347,12 +395,42 @@ class Organism(DBBase):
         mutant=int(mutant)
         if reference and mutant:
             if not self.isOrg(reference):
-                logging.warning('Reference %s is not present yet!'%reference)
+                logger.warning('Reference %s is not present yet!'%reference)
                 raise Exception('This reference (%s) is not present yet!'%reference)
         
         with self.connection as conn:
             conn.execute('update organism set mutant = ? where org_id = ?;',
                          [mutant,org_id,])
+    
+    def resetGenomes(self):
+        '''
+        Reset each organism genomic status
+        '''
+        for org in self.getAll():
+            self.setGenomeStatus(org.org_id, 'none')
+    
+    def resetPhenomes(self):
+        '''
+        Reset each organism phenomic status
+        '''
+        for org in self.getAll():
+            self.setPhenomeStatus(org.org_id, 'none')
+    
+    def setGenomeStatus(self, org_id, status):
+        '''
+        Change the genomic status of an organism
+        '''
+        with self.connection as conn:
+            conn.execute('update organism set genome = ? where org_id = ?;',
+                         [status,org_id,])
+    
+    def setPhenomeStatus(self, org_id, status):
+        '''
+        Change the phenomic status of an organism
+        '''
+        with self.connection as conn:
+            conn.execute('update organism set phenome = ? where org_id = ?;',
+                         [status,org_id,])
             
 class Genome(DBBase):
     '''
@@ -362,16 +440,36 @@ class Genome(DBBase):
     def __init__(self, dbname='storage'):
         DBBase.__init__(self, dbname)
     
-    def clearGenome(self):
+    def resetProject(self):
+        '''
+        Reset the project Genomic statuses
+        '''
+        # Reset the project statuses
+        oProj = Project(self.dbname)
+        oProj.setGenome('none')
+    
+    def updateStatus(self, org_id, status):
+        '''
+        Update the organism status
+        '''
+        oOrg = Organism(self.dbname)
+        oOrg.setGenomeStatus(org_id, status)
+    
+    def clearAllGenome(self):
         '''
         Truncate all the tables about the genomic data
         '''
-        logging.debug('Clearing genomic data')
+        logger.debug('Clearing genomic data')
         
         with self.connection as conn:
             conn.execute('delete from protein;')
             conn.execute('delete from ortholog;')
             conn.execute('delete from mapko;')
+            
+        oOrg = Organism(self.dbname)
+        oOrg.resetGenomes()
+        
+        self.resetProject()
     
     def isProt(self, prot_id):
         '''
@@ -392,7 +490,7 @@ class Genome(DBBase):
         # Is the organism present?
         oCheck = Organism(self.dbname)
         if not oCheck.isOrg(org_id):
-            logging.warning('Organism %s is not present yet!'%org_id)
+            logger.warning('Organism %s is not present yet!'%org_id)
             raise Exception('This organism (%s) is not present yet!'%org_id)
         
         self.boost()
@@ -404,7 +502,9 @@ class Genome(DBBase):
                          [s.id,org_id,s.description,str(s.seq),])
                 i += 1
         
-        logging.debug('Added %d protein to organism %s'%(i,org_id))
+        logger.debug('Added %d protein to organism %s'%(i,org_id))
+        
+        self.updateStatus(org_id, 'none')
              
     def getProt(self, prot_id):
         '''
@@ -471,6 +571,8 @@ class Genome(DBBase):
             conn.execute('delete from protein where org_id=?;', (org_id,))
             
         self.delPanGenome()
+        
+        self.resetProject()
             
     def addKOs(self, kos):
         oCheck = Kegg(self.dbname)
@@ -480,10 +582,10 @@ class Genome(DBBase):
         with self.connection as conn:
             for prot_id,ko_id in kos:
                 if not self.isProt(prot_id):
-                    logging.warning('Protein %s is not present yet!'%prot_id)
+                    logger.warning('Protein %s is not present yet!'%prot_id)
                     raise Exception('This Protein (%s) is not present yet!'%prot_id)
                 if not oCheck.isKO(ko_id):
-                    logging.warning('KO %s is not present yet!'%ko_id)
+                    logger.warning('KO %s is not present yet!'%ko_id)
                     raise Exception('This KO (%s) is not present yet!'%ko_id)
             
             conn.execute('insert or replace into mapko values (?,?);',
@@ -504,6 +606,8 @@ class Genome(DBBase):
         with self.connection as conn:
             for prot_id in prots:
                 conn.execute('delete from mapko where prot_id=?;', (prot_id,))
+                
+        self.resetProject()
                     
     def addPanGenome(self, orthologs):
         '''
@@ -515,7 +619,7 @@ class Genome(DBBase):
         prots = [prot_id for ps in orthologs.values() for prot_id in ps]
         for prot_id in prots:
             if not self.isProt(prot_id):
-                logging.warning('Protein %s is not present yet!'%prot_id)
+                logger.warning('Protein %s is not present yet!'%prot_id)
                 raise Exception('This Protein (%s) is not present yet!'%prot_id)
         
         self.boost()
@@ -529,7 +633,7 @@ class Genome(DBBase):
                              [group_id,prot_id,])
                 i += 1
         
-        logging.debug('Added %d orthologous groups'%(i))
+        logger.debug('Added %d orthologous groups'%(i))
     
     def getPanGenome(self):
         '''
@@ -683,6 +787,8 @@ class Genome(DBBase):
         '''
         with self.connection as conn:
             conn.execute('delete from ortholog')
+            
+        self.resetProject()
 
 class Kegg(DBBase):
     '''
@@ -726,13 +832,13 @@ class Kegg(DBBase):
         with self.connection as conn:
             for ko_id in koreact:
                 if not self.isKO(ko_id):
-                    logging.warning('KO %s is not present yet!'
+                    logger.warning('KO %s is not present yet!'
                                     %ko_id)
                     raise Exception('This KO (%s) is not present yet!'
                                     %ko_id)
                 for re_id in koreact[ko_id]:
                     if not self.isReaction(re_id):
-                        logging.warning('Reaction %s is not present yet!'
+                        logger.warning('Reaction %s is not present yet!'
                                     %re_id)
                         raise Exception('This reaction (%s) is not present yet!'
                                     %re_id)
@@ -778,13 +884,13 @@ class Kegg(DBBase):
         with self.connection as conn:
             for re_id in reactcomp:
                 if not self.isReaction(re_id):
-                    logging.warning('Reaction %s is not present yet!'
+                    logger.warning('Reaction %s is not present yet!'
                                     %re_id)
                     raise Exception('This reaction (%s) is not present yet!'
                                     %re_id)
                 for co_id in reactcomp[re_id]:
                     if not self.isCompound(co_id):
-                        logging.warning('Compound %s is not present yet!'
+                        logger.warning('Compound %s is not present yet!'
                                     %co_id)
                         raise Exception('This compound (%s) is not present yet!'
                                     %co_id)
@@ -862,13 +968,13 @@ class Kegg(DBBase):
         with self.connection as conn:
             for path_id in pathreact:
                 if not self.isPathway(path_id):
-                    logging.warning('Pathway %s is not present yet!'
+                    logger.warning('Pathway %s is not present yet!'
                                     %path_id)
                     raise Exception('This pathway (%s) is not present yet!'
                                     %path_id)
                 for re_id in pathreact[path_id]:
                     if not self.isReaction(re_id):
-                        logging.warning('Reaction %s is not present yet!'
+                        logger.warning('Reaction %s is not present yet!'
                                     %re_id)
                         raise Exception('This reaction (%s) is not present yet!'
                                     %re_id)
@@ -882,13 +988,13 @@ class Kegg(DBBase):
         with self.connection as conn:
             for path_id in pathcomp:
                 if not self.isPathway(path_id):
-                    logging.warning('Pathway %s is not present yet!'
+                    logger.warning('Pathway %s is not present yet!'
                                     %path_id)
                     raise Exception('This pathway (%s) is not present yet!'
                                     %path_id)
                 for co_id in pathcomp[path_id]:
                     if not self.isCompound(co_id):
-                        logging.warning('Compound %s is not present yet!'
+                        logger.warning('Compound %s is not present yet!'
                                     %co_id)
                         raise Exception('This compound (%s) is not present yet!'
                                     %co_id)
@@ -902,7 +1008,7 @@ class Kegg(DBBase):
         with self.connection as conn:
             for path_id in pathmap:
                 if not self.isPathway(path_id):
-                    logging.warning('Pathway %s is not present yet!'
+                    logger.warning('Pathway %s is not present yet!'
                                     %path_id)
                     raise Exception('This pathway (%s) is not present yet!'
                                     %path_id)
@@ -916,7 +1022,7 @@ class Kegg(DBBase):
         with self.connection as conn:
             for path_id in pathpic:
                 if not self.isPathway(path_id):
-                    logging.warning('Pathway %s is not present yet!'
+                    logger.warning('Pathway %s is not present yet!'
                                     %path_id)
                     raise Exception('This pathway (%s) is not present yet!'
                                     %path_id)
@@ -1130,13 +1236,13 @@ class Biolog(DBBase):
         with self.connection as conn:
             for b in explist:
                 if not self.isPlate(b.plate_id):
-                    logging.warning('Plate %s is not known!'%b.plate_id)
+                    logger.warning('Plate %s is not known!'%b.plate_id)
                     raise Exception('This plate (%s) is not known!'%b.plate_id)
                 if not self.isWell(b.well_id):
-                    logging.warning('Well %s is not known!'%b.well_id)
+                    logger.warning('Well %s is not known!'%b.well_id)
                     raise Exception('This well (%s) is not known!'%b.well_id)
                 if not oCheck.isOrg(b.org_id):
-                    logging.warning('Organism %s is not present yet!'%b.org_id)
+                    logger.warning('Organism %s is not present yet!'%b.org_id)
                     raise Exception('This organism (%s) is not present yet!'%b.org_id)
             
             blist = ['''(%s,%s,%s,%s,%s,%s,%s)'''

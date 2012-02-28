@@ -10,13 +10,15 @@ CREATE TABLE project (
     "genome" TEXT   DEFAULT ('none'),
     "phenome" TEXT   DEFAULT ('none')
 );
-CREATE TABLE "organism" (
+CREATE TABLE organism (
     "org_id" TEXT NOT NULL,
     "name" TEXT,
     "description" TEXT,
     "file" TEXT,
     "mutant" INTEGER,
-    "reference" TEXT
+    "reference" TEXT,
+    "genome" TEXT   DEFAULT ('none'),
+    "phenome" TEXT   DEFAULT ('none')
 );
 CREATE TABLE "protein" (
     "prot_id" TEXT NOT NULL,

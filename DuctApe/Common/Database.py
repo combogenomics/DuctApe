@@ -362,6 +362,17 @@ class Genome(DBBase):
     def __init__(self, dbname='storage'):
         DBBase.__init__(self, dbname)
     
+    def clearGenome(self):
+        '''
+        Truncate all the tables about the genomic data
+        '''
+        logging.debug('Clearing genomic data')
+        
+        with self.connection as conn:
+            conn.execute('delete from protein;')
+            conn.execute('delete from ortholog;')
+            conn.execute('delete from mapko;')
+    
     def isProt(self, prot_id):
         '''
         Is this protein already present?

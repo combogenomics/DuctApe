@@ -80,6 +80,9 @@ def dGenomeClear(project):
     return True
 
 def dGenomeDirAdd(project, folder):
+    '''
+    Add a series of genomes contained in a directory
+    '''
     if not os.path.exists(folder):
         logger.error('Fasta folder %s may not be present'%(folder))
         return False
@@ -100,6 +103,9 @@ def dGenomeDirAdd(project, folder):
         else:
             logger.warning('No genomes were added from %s'%folder)
         return True
+
+def dGenomeMutAdd(project):
+    pass
 
 def isProject(project):
     '''

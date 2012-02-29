@@ -104,9 +104,69 @@ def dGenomeDirAdd(project, folder):
             logger.warning('No genomes were added from %s'%folder)
         return True
 
-def dGenomeMutAdd(project):
-    pass
-
+def dGenomeMutAdd(project, mutID, mutparent, mutfasta, kind, name='', descr=''):
+    '''
+    Check and add a mutant
+    '''
+    if not os.path.exists(mutfasta):
+        logger.error('Fasta file %s may not be present'%(mutfasta))
+        return False
+    else:
+        org = Organism(project)
+        if not org.isOrg(mutparent):
+            logger.error('Parent organism %s not present!'%mutparent)
+            return False
+        elif org.isMutant(mutparent):
+            logger.error('Parent organism %s cannot be a mutant!'%mutparent)
+            return False
+        parents = len(org) - org.howManyMutants()
+        if parents != 1:
+            logger.error('Only one parent is allowed!')
+            return False
+        org.addOrg(mutID, name=name, description=descr, orgfile=mutfasta,
+                   mutant=True, reference=mutparent, mkind=kind)
+        gen = Genome(project)
+        gen.addProteome(mutID, mutfasta)
+        return True
+    
+def dGetGenomeSteps(project):
+    '''
+    Get the analysis that these genomes deserve
+    '''
+    proj = Project(project)
+    proj.getProject()
+    status = proj.genome
+    org = Organism(project)
+    if org.howManyMutants() > 0:
+        logger.info('%d mutants are present'%org.howManyMutants())
+        proj.setKind('mutants')
+        if status == 'map2ko':
+            return ['map2kegg']
+        elif status == 'map2kegg':
+            return []
+        else:
+            return ['map2ko', 'map2kegg']
+    elif org.howMany() == 1:
+        logger.info('Just one organism is present')
+        proj.setKind('single')
+        if status == 'map2ko':
+            return ['map2kegg']
+        elif status == 'map2kegg':
+            return []
+        else:
+            return ['map2ko', 'map2kegg']
+    else:
+        logger.info('%d organisms are present'%org.howMany())
+        proj.setKind('pangenome')
+        if status == 'pangenome':
+            return ['map2ko', 'map2kegg']
+        elif status == 'map2ko':
+            return ['map2kegg']
+        elif status == 'map2kegg':
+            return []
+        else:
+            return ['pangenome', 'map2ko', 'map2kegg']
+    
 def isProject(project):
     '''
     Checks if the project file is there

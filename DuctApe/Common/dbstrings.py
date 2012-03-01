@@ -38,7 +38,8 @@ CREATE TABLE "ortholog" (
 CREATE TABLE "ko" (
     "ko_id" TEXT NOT NULL,
     "name" TEXT,
-    "description" TEXT
+    "description" TEXT,
+    "analyzed" INTEGER   DEFAULT (0)
 );
 CREATE TABLE "reaction" (
     "re_id" TEXT NOT NULL,

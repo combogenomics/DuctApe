@@ -844,11 +844,9 @@ class Kegg(DBBase):
         self.boost()
         
         with self.connection as conn:
-            for ko_id in ko:
-                name = ko[ko_id][0]
-                description = ko[ko_id][1]
-                conn.execute('insert or replace into ko values (?,?,?);',
-                     (ko_id,name,description,))
+            for ko_id,name,description in ko.iteritems():
+                conn.execute('insert or replace into ko values (?,?,?,?);',
+                     (ko_id,name,description,1,))
     
     def addKOReacts(self, koreact):
         '''
@@ -870,7 +868,48 @@ class Kegg(DBBase):
                     conn.execute('insert or ignore into ko_react values (?,?);',
                                  (ko_id,re_id,))
     
+    def getKO2Analyze(self):
+        '''
+        Get all the ko_id to be analyzed
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('select ko_id from ko where analyzed = 0;')
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+            
+    def getAllIDs(self):
+        '''
+        Get all the Kegg IDs already analyzed
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('select ko_id from ko where analyzed = 1;')
+            
+        for res in cursor:
+            yield res[0]
+            
+        with self.connection as conn:
+            cursor=conn.execute('select re_id from reaction;')
+            
+        for res in cursor:
+            yield res[0]
+            
+        with self.connection as conn:
+            cursor=conn.execute('select co_id from compound;')
+            
+        for res in cursor:
+            yield res[0]
+    
+        with self.connection as conn:
+            cursor=conn.execute('select path_id from pathway;')
+            
+        for res in cursor:
+            yield res[0]
+            
     def getKO(self, ko_id):
+        '''
+        Get a specific ko_id
+        '''
         if not self.isKO(ko_id):
             return None
         
@@ -1067,7 +1106,7 @@ class Kegg(DBBase):
     
     def isPathway(self, path_id):
         '''
-        Is this co_id already present?
+        Is this path_id already present?
         '''
         with self.connection as conn:
             cursor=conn.execute('select count(*) from pathway where path_id=?;',

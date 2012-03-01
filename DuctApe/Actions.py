@@ -137,6 +137,7 @@ def dGetGenomeSteps(project):
     proj.getProject()
     status = proj.genome
     org = Organism(project)
+    gen = Genome(project)
     if org.howManyMutants() > 0:
         logger.info('%d mutants are present'%org.howManyMutants())
         proj.setKind('mutants')
@@ -161,7 +162,10 @@ def dGetGenomeSteps(project):
         if status == 'pangenome':
             return ['map2ko', 'map2kegg']
         elif status == 'map2ko':
-            return ['map2kegg']
+            if len(gen) != 0:
+                return ['pangenome', 'map2kegg']
+            else:
+                return ['map2kegg']
         elif status == 'map2kegg':
             return []
         else:
@@ -188,4 +192,23 @@ def touchProject(project):
         proj = Project(project)
         proj.updateLast()
         logger.debug('%s'%str(proj))
+        return True
+
+def prepareDir(wdir, tdir):
+    '''
+    Prepare the temp directory
+    '''
+    tmp = os.path.join(wdir,tdir)
+    if os.path.exists(tmp):
+        return True
+    else:
+        try:
+            os.mkdir(wdir)
+        except:
+            pass
+        try:
+            os.mkdir(tmp)
+        except:
+            logger.error('Could not create tmp directory %s'%tmp)
+            return False
         return True

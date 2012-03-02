@@ -118,14 +118,17 @@ class ProgressBar:
     def __init__(self, term, header):
         self.term = term
         if not (self.term.CLEAR_EOL and self.term.UP and self.term.BOL):
-            raise ValueError("Terminal isn't capable enough -- you "
-            "should use a simpler progress display.")
+            self.use_it = False
+        else:
+            self.use_it = True
         self.width = self.term.COLS or 75
         self.bar = term.render(self.BAR)
         self.header = self.term.render(self.HEADER % header.center(self.width))
         self.cleared = 1 #: true if we haven't drawn the bar yet.
 
     def update(self, percent, message=''):
+        if not self.use_it:
+            return
         if isinstance(message, unicode):
             message = message.encode('utf-8', 'ignore')
         if self.cleared:
@@ -140,6 +143,8 @@ class ProgressBar:
         sys.stdout.flush()
 
     def clear(self):
+        if not self.use_it:
+            return
         if not self.cleared:
             sys.stdout.write(self.term.BOL + self.term.CLEAR_EOL +
             self.term.UP + self.term.CLEAR_EOL +

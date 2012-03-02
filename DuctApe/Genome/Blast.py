@@ -92,7 +92,7 @@ class Blaster(object):
         cmd = cmd%(seqFile,dbType,outFile,title)
         if parseIDs:
             cmd = cmd+' -parse_seqids'
-        logger.info('Create Blast DB cmd: %s'%cmd)
+        logger.debug('Create Blast DB cmd: %s'%cmd)
         proc = subprocess.Popen(cmd,shell=(sys.platform!="win32"),
                     stdin=subprocess.PIPE,stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE)
@@ -113,7 +113,7 @@ class Blaster(object):
         else:
             cmd=('blastdbcmd -db %s -entry_batch "%s" > %s'
                  %(db,accession,out))
-        logger.info('BlastDBcmd cmd: %s'%cmd)
+        logger.debug('BlastDBcmd cmd: %s'%cmd)
         proc = subprocess.Popen(cmd,shell=(sys.platform!="win32"),
                     stdin=subprocess.PIPE,stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE)
@@ -141,7 +141,7 @@ class Blaster(object):
         if additional !='':
             cmd = str(cmd)+' '+additional
         cmd=str(cmd)
-        logger.info('Run Blast cmd: %s'%cmd)
+        logger.debug('Run Blast cmd: %s'%cmd)
         # Run Blast and check the return code
         proc = subprocess.Popen(cmd,shell=(sys.platform!="win32"),
                     stdin=subprocess.PIPE,stdout=subprocess.PIPE,
@@ -209,7 +209,7 @@ class RunBBH(object):
         else:
             res = self.blaster.runBlast(self.query, self.target, self.out,
                          evalue = self.evalue,
-                         additional=self.additional)
+                         additional = self.additional)
         
         return res
     
@@ -238,7 +238,9 @@ class RunBBH(object):
             res = self._firstRun()
             
             if not res:
-                os.remove(self.out)
+                try:
+                    os.remove(self.out)
+                except:pass
                 return (None, self.targetorg, False)
             
             self.blaster.parseBlast(self.out)
@@ -249,7 +251,9 @@ class RunBBH(object):
     
                 if not self.blaster.retrieveFromDB(self.target, targethit.hit,
                                       out=self.queryreturn):
-                    os.remove(self.out)
+                    try:
+                        os.remove(self.out)
+                    except:pass
                     return (None, self.targetorg, False)
     
                 # Second Blast run            
@@ -266,8 +270,10 @@ class RunBBH(object):
             res = self._secondRun()
         
         if not res:
-            os.remove(self.out)
-            os.remove(self.queryreturn)
+            try:
+                os.remove(self.out)
+                os.remove(self.queryreturn)
+            except:pass
             return (None, self.targetorg, False)
         
         self.blaster.parseBlast(self.out)

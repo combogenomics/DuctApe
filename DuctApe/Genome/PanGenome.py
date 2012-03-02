@@ -110,7 +110,7 @@ class PanGenomer(CommonMultiProcess):
             seqs = [seq.id for seq in SeqIO.parse(open(org),'fasta')]
             for seqid in seqs:
                 if seqid in self._prot2orgs:
-                    logging.warning('Protein %s present as duplicate!'%seqid)
+                    logger.warning('Protein %s present as duplicate!'%seqid)
                     return False
                 self._prot2orgs[seqid] = org            
             self.dbs[org] = os.path.join(self._room,str(dbindex)) 
@@ -139,7 +139,7 @@ class PanGenomer(CommonMultiProcess):
                 orgsincluded = [org]
                 self.orthologs[orthname] = [seq.id]
                 query = os.path.join(self._pangenomeroom,str(self._substatus))
-                if SeqIO.write([seq], open(query,'w'), 'fasta') == 0:
+                if SeqIO.write([seq], open(query,'w'), 'fasta') <= 0:
                     logger.error('Error writing sequence %s to file'%seq.id)
                     return False
                 
@@ -160,7 +160,8 @@ class PanGenomer(CommonMultiProcess):
                     # Multi process
                     obj = RunBBH(query,seq.id,self.dbs[org],
                             self.dbs[otherorg],otherorg,
-                            self.evalue,self.matrix,short,uniqueid)
+                            self.evalue,self.matrix,short=short,
+                            uniqueid=uniqueid)
                     self._paralleltasks.put(obj)
                     
                 # Poison pill to stop the workers
@@ -199,12 +200,14 @@ class PanGenomer(CommonMultiProcess):
                 self.killParallel()
                 
                 if len(orgsincluded) < len(self.organisms):
-                    logging.debug('Additional search on missing organisms for'+
+                    logger.debug('Additional search on missing organisms for'+
                                   ' ortholog %s'%orthname)
                     for otherprotein in self.orthologs[orthname]:
                         if otherprotein == seq.id:
                             continue
                         neworg = self._prot2orgs[otherprotein]
+                        if neworg == org:
+                            continue
                         bFound = False
                         for seq in SeqIO.parse(open(neworg),'fasta'):
                             if seq.id == otherprotein:
@@ -234,7 +237,7 @@ class PanGenomer(CommonMultiProcess):
                             # Multi process
                             obj = RunBBH(query,otherprotein,self.dbs[neworg],
                                     self.dbs[evenneworg],evenneworg,
-                                    self.evalue,self.matrix,short,uniqueid)
+                                    self.evalue,self.matrix,short=short,uniqueid=uniqueid)
                             self._paralleltasks.put(obj)
                             
                         # Poison pill to stop the workers
@@ -272,7 +275,7 @@ class PanGenomer(CommonMultiProcess):
                         
                         self.killParallel()
                 
-                os.remove(query)        
+                os.remove(query)   
                 orthindex += 1
         return True
     

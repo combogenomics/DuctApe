@@ -97,7 +97,13 @@ class KeggAPI(object):
             try:
                 self.input = entry
                 logging.debug('Looking for title for KEGG entry %s'%entry)
-                self.result = self._keggserv.btit(entry).strip().split(';')
+                res = self._keggserv.btit(entry).strip()
+                start = res.split(';')
+                name = ' '.join(start[0].split(' ')[1:])
+                if len(start) > 1:
+                    descr = ';'.join(start[1:])
+                else: descr = ''
+                self.result = [name, descr]
                 return
             except:
                 attempts += 1
@@ -135,7 +141,7 @@ class KeggAPI(object):
             try:
                 self.input = re_id
                 logging.debug('Looking for KEGG pathways from %s'%re_id)
-                self.result = self._keggserv.get_pathways_by_reactions([re_id])
+                self.result = list(self._keggserv.get_pathways_by_reactions([re_id]))
                 return
             except:
                 attempts += 1
@@ -154,7 +160,7 @@ class KeggAPI(object):
             try:
                 self.input = co_id
                 logging.debug('Looking for KEGG pathways from %s'%co_id)
-                self.result = self._keggserv.get_pathways_by_compounds([co_id])
+                self.result = list(self._keggserv.get_pathways_by_compounds([co_id]))
                 return
             except:
                 attempts += 1
@@ -173,7 +179,7 @@ class KeggAPI(object):
             try:
                 self.input = path_id
                 logging.debug('Looking for KEGG reactions from %s'%path_id)
-                self.result = self._keggserv.get_reactions_by_pathway(path_id)
+                self.result = list(self._keggserv.get_reactions_by_pathway(path_id))
                 return
             except:
                 attempts += 1
@@ -192,7 +198,7 @@ class KeggAPI(object):
             try:
                 self.input = path_id
                 logging.debug('Looking for KEGG compounds from %s'%path_id)
-                self.result = self._keggserv.get_compounds_by_pathway(path_id)
+                self.result = list(self._keggserv.get_compounds_by_pathway(path_id))
                 return
             except:
                 attempts += 1
@@ -321,18 +327,52 @@ class KeggDetails(object):
         self.pathcomp = None
         # Maps
         self.pathmaps = None
+    
+    def _purgeDetails(self,det):
+        erase = []
+        for key, value in det.iteritems():
+            if not value:
+                erase.append(key)
         
+        for key in erase:
+            del det[key]
+        
+        return det
+    
     def setDetails(self, ko=None, react=None, comp=None, path=None):
-        self.ko = ko
-        self.react = react
-        self.comp = comp
-        self.path = path
+        self.ko = self._purgeDetails(ko)
+        self.react = self._purgeDetails(react)
+        self.comp = self._purgeDetails(comp)
+        self.path = self._purgeDetails(path)
         
     def setLinks(self, koreact=None, comppath=None, pathreact=None, pathcomp=None):
-        self.koreact = koreact
-        self.comppath = comppath
-        self.pathreact = pathreact
-        self.pathcomp = pathcomp
+        self.koreact = {}
+        if koreact:
+            for k,v in koreact.iteritems():
+                self.koreact[k] = []
+                for i in v:
+                    self.koreact[k].append(str(i))
+        
+        self.comppath = {}
+        if comppath:
+            for k,v in comppath.iteritems():
+                self.comppath[k] = []
+                for i in v:
+                    self.comppath[k].append(str(i))
+
+        self.pathreact = {}
+        if pathreact:
+            for k,v in pathreact.iteritems():
+                self.pathreact[k] = []
+                for i in v:
+                    self.pathreact[k].append(str(i))
+                    
+        self.pathcomp = {}
+        if pathcomp:
+            for k,v in pathcomp.iteritems():
+                self.pathcomp[k] = []
+                for i in v:
+                    self.pathcomp[k].append(str(i))
     
     def setMaps(self, maps):
         self.pathmaps = maps
@@ -599,7 +639,7 @@ class KoMapper(BaseMapper):
     
     _substatuses = [2,3,4,5]
     
-    def __init__(self, ko_list, threads=10, avoid=[], queue=Queue.Queue()):
+    def __init__(self, ko_list, threads=20, avoid=[], queue=Queue.Queue()):
         BaseMapper.__init__(self, threads=threads, avoid=avoid, queue=queue)
         # Kegg
         self.ko = ko_list
@@ -830,7 +870,7 @@ class CompMapper(BaseMapper):
     
     _substatuses = [2,3,4]
     
-    def __init__(self, co_list, threads=5, avoid=[], queue=Queue.Queue()):
+    def __init__(self, co_list, threads=20, avoid=[], queue=Queue.Queue()):
         BaseMapper.__init__(self, threads=threads, avoid=avoid, queue=queue)
         # Kegg
         self.co = co_list
@@ -977,7 +1017,7 @@ class MapsFetcher(BaseKegg):
     _substatuses = [3,4]
     
     def __init__(self, color_objs, pictures=True, URLs=False, prefix='', 
-                 threads=5, queue=Queue.Queue()):
+                 threads=20, queue=Queue.Queue()):
         BaseKegg.__init__(self, threads=threads, queue=queue)
         
         self.colors = color_objs
@@ -1025,7 +1065,6 @@ class MapsFetcher(BaseKegg):
             for kmap in piece:
                 path = kmap.path
                 objs,colors = kmap.getAll()
-                print path, objs, colors
                 
                 obj = threading.Thread(
                         target = self.handlers[piece.index(kmap)].getColoredPathway,

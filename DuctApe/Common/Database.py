@@ -102,12 +102,11 @@ class Project(DBBase):
     def __str__(self):
         self.getProject()
         return ' - '.join([
-                  ' '.join(['Name:',str(self.name)]),
-                  ' '.join(['Description:',str(self.description)]),
-                  ' '.join(['Type:',str(self.kind)]),
-                  #' '.join(['Temp directory:',str(self.tmp)]),
-                  ' '.join(['Creation date:',str(self.creation)]),
-                  ' '.join(['Last update:',str(self.last)])
+                 str(self.name),
+                 str(self.description),
+                 str(self.kind),
+                 str(self.creation),
+                 str(self.last)
                           ])
     
     def isProject(self):
@@ -250,7 +249,8 @@ class Organism(DBBase):
         query = '''
                 select distinct org_id
                 from organism
-                where reference = ?;
+                where reference = ?
+                and mutant = 1;
                 '''
         
         with self.connection as conn:
@@ -259,15 +259,22 @@ class Organism(DBBase):
         for mut in cursor:
             yield mut[0]
             
-    def howManyMutants(self, org_id):
+    def howManyMutants(self):
         '''
-        Get the number of mutants for this organism
+        Get the overall number of mutants
         '''
+        query = '''
+                select distinct org_id
+                from organism
+                where mutant = 1;
+                '''
+        
+        with self.connection as conn:
+            cursor = conn.execute(query)
+        
         muts = 0
-        
-        for mut in self.getOrgMutants(org_id):
+        for mut in cursor:
             muts += 1
-        
         return muts
     
     def howMany(self):
@@ -302,7 +309,7 @@ class Organism(DBBase):
         return Row(cursor.fetchall()[0], cursor.description)
     
     def addOrg(self, org_id, name=None, description=None,
-                    orgfile=None, mutant=False, reference=None, kind=''):
+                    orgfile=None, mutant=False, reference=None, mkind=''):
         '''
         Adds a new organism to the db
         Performs some checks on the fields mutant and reference
@@ -320,9 +327,11 @@ class Organism(DBBase):
         
         with self.connection as conn:
             conn.execute('''insert or replace into organism (`org_id`, `name`,
-                                `description`, `file`, `mutant`, `reference`)
-                            values (?,?,?,?,?,?);''',
-                     (org_id, name, description, orgfile, mutant, reference,))
+                                `description`, `file`, `mutant`, `reference`,
+                                mkind)
+                            values (?,?,?,?,?,?,?);''',
+                     (org_id, name, description, orgfile, mutant, reference,
+                      mkind))
         
         if not already:
             # Reset the genomic/phenomic status
@@ -416,6 +425,14 @@ class Organism(DBBase):
         for org in self.getAll():
             self.setPhenomeStatus(org.org_id, 'none')
     
+    def setAllGenomeStatus(self, status):
+        '''
+        Change the genomic status of all organisms
+        '''
+        with self.connection as conn:
+            conn.execute('update organism set genome = ?;',
+                         [status])
+    
     def setGenomeStatus(self, org_id, status):
         '''
         Change the genomic status of an organism
@@ -423,6 +440,14 @@ class Organism(DBBase):
         with self.connection as conn:
             conn.execute('update organism set genome = ? where org_id = ?;',
                          [status,org_id,])
+    
+    def setAllPhenomeStatus(self, status):
+        '''
+        Change the genomic status of all organisms
+        '''
+        with self.connection as conn:
+            conn.execute('update organism set phenome = ?;',
+                         [status])
     
     def setPhenomeStatus(self, org_id, status):
         '''
@@ -819,11 +844,9 @@ class Kegg(DBBase):
         self.boost()
         
         with self.connection as conn:
-            for ko_id in ko:
-                name = ko[ko_id][0]
-                description = ko[ko_id][1]
-                conn.execute('insert or replace into ko values (?,?,?);',
-                     (ko_id,name,description,))
+            for ko_id,name,description in ko.iteritems():
+                conn.execute('insert or replace into ko values (?,?,?,?);',
+                     (ko_id,name,description,1,))
     
     def addKOReacts(self, koreact):
         '''
@@ -845,7 +868,48 @@ class Kegg(DBBase):
                     conn.execute('insert or ignore into ko_react values (?,?);',
                                  (ko_id,re_id,))
     
+    def getKO2Analyze(self):
+        '''
+        Get all the ko_id to be analyzed
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('select ko_id from ko where analyzed = 0;')
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+            
+    def getAllIDs(self):
+        '''
+        Get all the Kegg IDs already analyzed
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('select ko_id from ko where analyzed = 1;')
+            
+        for res in cursor:
+            yield res[0]
+            
+        with self.connection as conn:
+            cursor=conn.execute('select re_id from reaction;')
+            
+        for res in cursor:
+            yield res[0]
+            
+        with self.connection as conn:
+            cursor=conn.execute('select co_id from compound;')
+            
+        for res in cursor:
+            yield res[0]
+    
+        with self.connection as conn:
+            cursor=conn.execute('select path_id from pathway;')
+            
+        for res in cursor:
+            yield res[0]
+            
     def getKO(self, ko_id):
+        '''
+        Get a specific ko_id
+        '''
         if not self.isKO(ko_id):
             return None
         
@@ -1042,7 +1106,7 @@ class Kegg(DBBase):
     
     def isPathway(self, path_id):
         '''
-        Is this co_id already present?
+        Is this path_id already present?
         '''
         with self.connection as conn:
             cursor=conn.execute('select count(*) from pathway where path_id=?;',

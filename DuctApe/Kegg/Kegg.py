@@ -599,7 +599,7 @@ class KoMapper(BaseMapper):
     
     _substatuses = [2,3,4,5]
     
-    def __init__(self, ko_list, threads=5, avoid=[], queue=Queue.Queue()):
+    def __init__(self, ko_list, threads=10, avoid=[], queue=Queue.Queue()):
         BaseMapper.__init__(self, threads=threads, avoid=avoid, queue=queue)
         # Kegg
         self.ko = ko_list

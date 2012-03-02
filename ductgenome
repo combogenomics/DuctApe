@@ -4,12 +4,19 @@ DuctGenome
 
 Analyze genome(s) and map them to KEGG
 """
+from Bio import SeqIO
 from DuctApe import __version__
-from DuctApe.Actions import dInit, touchProject, dRemove, dGenomeClear, \
-    dGenomeRemove, dGenomeAdd, dGenomeDirAdd
+from DuctApe.Actions import dInit, touchProject, dGenomeClear, dGenomeRemove, \
+    dGenomeAdd, dGenomeDirAdd, dGenomeMutAdd, dGetGenomeSteps, prepareDir
+from DuctApe.Common.Database import Organism, Project, Genome, Kegg
+from DuctApe.Genome.Map2KO import LocalSearch, OnlineSearch
+from DuctApe.Genome.PanGenome import PanGenomer
+from DuctApe.Kegg.Kegg import KoMapper
+from DuctApe.Terminal import RunThread
 import argparse
 import logging.handlers
 import os
+import sys
 
 __author__ = "Marco Galardini"
 __prog__ = "ductgenome"
@@ -48,14 +55,93 @@ def daddMut(options, wdir, project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
-    pass
+    return dGenomeMutAdd(project, options.mutID, options.m,
+                         options.f,
+                         options.k, options.n, options.d)
 
 def dstart(options, wdir, project):
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
-    pass
+    
+    if options.cpu <= 0:
+        logging.warning('How can i use %d cpus?'%options.cpu)
+        return False
+    
+    tmp = os.path.join(wdir,'tmp')
+    if not prepareDir(wdir, 'tmp'):
+        return False
+    
+    proj = Project(project)
+    org = Organism(project)
+    gen = Genome(project)
+    
+    steps = dGetGenomeSteps(project)
+    if 'pangenome' in steps or 'map2ko' in steps:
+        # Prepare the genomic files
+        protdir = os.path.join(tmp,'proteins')
+        if not os.path.exists(protdir):
+            try:
+                os.mkdir(protdir)
+            except:
+                logger.error('Could not create tmp directory %s'%protdir)
+                return False
+        infiles = {}
+        for organism in org.getAll():
+            protfile = os.path.join(protdir, organism.org_id)
+            infiles[organism.org_id] = protfile
+            SeqIO.write(gen.getRecords(organism.org_id),
+                        open(protfile, 'w'), 'fasta')
+        #
+    for step in steps:
+        if step == 'pangenome':
+            if options.s:
+                logger.warning('Skipping pangenome calculation')
+                continue
+            if not doPanGenome(project, infiles, options.cpu):
+                logger.error('PanGenome could not be calculated!')
+                return False
+            proj.setGenome('pangenome')
+        elif step == 'map2ko':
+            if not doMap2KO(project, infiles, local=options.l, keggdb=options.k):
+                logger.error('Genome(s) could not be mapped to ko!')
+                return False
+            if options.l:
+                proj.setGenome('map2kegg')
+                org.setAllGenomeStatus('map2kegg')
+        elif step == 'map2kegg':
+            if not doMap2KEGG(project):
+                logger.error('Genome(s) could not be mapped to kegg!')
+                return False
+            proj.setGenome('map2kegg')
+            org.setAllGenomeStatus('map2kegg')
+        else:
+            logger.warning('Unrecognized analysis %s'%step)
+    
+    return True
+
+def daddKo(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    
+    kegg = Kegg(project)
+    gen = Genome(project)
+    proj = Project(project)
+    org = Organism(project)
+    
+    kaas = OnlineSearch()
+    for filename in options.kofiles:
+        logging.info('Parsing KAAS output %s'%filename)
+        kaas.parseKAAS(filename)
+        # TODO: here check if results are empty
+        kegg.addDraftKOs( set(kaas.results.values()) )
+        gen.addKOs( kaas.results.iteritems() )
+        logger.info('Mapped %d proteins to KO'%len(kaas.results))
+    proj.setGenome('map2kegg')
+    org.setAllGenomeStatus('map2kegg')
 
 def dremove(options, wdir, project):
     if not touchProject(project):
@@ -70,6 +156,73 @@ def dclear(options, wdir, project):
                        __prog__)
         return False
     return dGenomeClear(project)
+
+def doPanGenome(project, infiles, cpu=1):
+    pang = PanGenomer(infiles.values(), ncpus=cpu)
+    
+    if not RunThread(pang):
+        return False
+    
+    gen = Genome(project)
+    gen.addPanGenome(pang.orthologs)
+    
+    logger.info('PanGenome size: %d groups'%len(gen.getPanGenome()))
+    logger.info('Core size: %d groups'%gen.getLenCore())
+    logger.info('Accessory size: %d groups'%gen.getLenAcc())
+    logger.info('Unique size: %d groups'%gen.getLenUni())
+    
+    return True
+
+def doMap2KO(project, infiles, local=False, keggdb='', cpu=1):
+    org = Organism(project)
+    kegg = Kegg(project)
+    gen = Genome(project)
+    
+    if local:
+        for org_id, infile in infiles.iteritems():
+            komap = LocalSearch(infile, keggdb, ncpus=cpu)
+            if not RunThread(komap):
+                return False
+            org.setGenomeStatus(org_id, 'map2ko')
+            kegg.addDraftKOs( set(komap.results.values()) )
+            gen.addKOs( komap.results.iteritems() )
+            logger.info('%s - mapped %d proteins to KO'%
+                        (org_id, len(komap.results)))
+    else:
+        kaas = OnlineSearch()
+        sys.stdout.write(kaas.getExplanation() + '\n')
+        sys.stdout.write('When the analysis are finished launch %s add-ko\n'%
+                         __prog__)
+        kaas.openBrowser()
+        
+    return True
+
+def doMap2KEGG(project):
+    kegg = Kegg(project)
+    kos = [ko.ko_id for ko in kegg.getKO2Analyze()]
+    avoid = [kid for kid in kegg.getAllIDs()]
+    
+    komap = KoMapper(kos,avoid=avoid)
+    
+    if not RunThread(komap):
+        return False
+    
+    # Details
+    kegg.addKOs(komap.result.ko)
+    logger.info('Added %d KO IDs'%len(komap.result.ko))
+    kegg.addReactions(komap.result.react)
+    logger.info('Added %d Re IDs'%len(komap.result.react))
+    kegg.addCompounds(komap.result.comp)
+    logger.info('Added %d Co IDs'%len(komap.result.comp))
+    kegg.addPathways(komap.result.path)
+    logger.info('Added %d Path IDs'%len(komap.result.path))
+    # Links
+    kegg.addKOReacts(komap.result.koreact)
+    kegg.addPathComps(komap.result.pathcomp)
+    kegg.addPathReacts(komap.result.pathreact)
+    logger.info('Added Kegg links')
+    
+    return True
 
 ################################################################################
 # Options
@@ -93,7 +246,8 @@ def getOptions():
     subparsers = parser.add_subparsers()
 
     parser_init = subparsers.add_parser('init', help='Initialize the project')
-    parser_init.add_argument('name', action="store",
+    parser_init.add_argument('-n', action="store",
+                             dest='name',
                              default = 'Project',
                              help='Project name')
     parser_init.add_argument('-d', metavar='descr', action="store",
@@ -150,7 +304,22 @@ def getOptions():
                             type=int,
                             default=1,
                             help='Number of CPUs to be used')
+    parser_start.add_argument('-s', action="store_true",
+                            default=False,
+                            help='Skip pangenome creation')
+    parser_start.add_argument('-l', action="store_true",
+                            default=False,
+                            help='Local map2ko')
+    parser_start.add_argument('-k', action="store",
+                            help='Kegg database location (for local map2ko)')
     parser_start.set_defaults(func=dstart)
+    
+    parser_add_ko = subparsers.add_parser('add-ko',
+                           help='Add a KO map')
+    parser_add_ko.add_argument('kofile', action='store', nargs='+',
+                            dest='kofiles',
+                            help='KO map')
+    parser_add_ko.set_defaults(func=daddKo)
 
     parser_rm = subparsers.add_parser('rm', help='Remove genome analysis')
     parser_rm.add_argument('organisms', metavar='orgID', nargs='+',

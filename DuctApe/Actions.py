@@ -60,6 +60,8 @@ def dGenomeAdd(project, orgID, filename, name='', descr=''):
         org.addOrg(orgID, name=name, description=descr, orgfile=filename)
         gen = Genome(project)
         gen.addProteome(orgID, filename)
+        logger.info('Added genome %s, having %d proteins'%
+                    (orgID, gen.howMany(orgID)))
         return True
 
 def dGenomeRemove(project, organisms):
@@ -127,6 +129,8 @@ def dGenomeMutAdd(project, mutID, mutparent, mutfasta, kind, name='', descr=''):
                    mutant=True, reference=mutparent, mkind=kind)
         gen = Genome(project)
         gen.addProteome(mutID, mutfasta)
+        logger.info('Mutant %s (%s) added, having %d mutated genes'
+                    %(mutID, org.getOrg(mutID).mkind,gen.howMany(mutID)))
         return True
     
 def dGetGenomeSteps(project):
@@ -162,7 +166,7 @@ def dGetGenomeSteps(project):
         if status == 'pangenome':
             return ['map2ko', 'map2kegg']
         elif status == 'map2ko':
-            if len(gen) != 0:
+            if len(gen.getPanGenome()) == 0:
                 return ['pangenome', 'map2kegg']
             else:
                 return ['map2kegg']

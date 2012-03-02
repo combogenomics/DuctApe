@@ -108,8 +108,10 @@ def dstart(options, wdir, project):
                 logger.error('Genome(s) could not be mapped to ko!')
                 return False
             if options.l:
-                proj.setGenome('map2kegg')
-                org.setAllGenomeStatus('map2kegg')
+                proj.setGenome('map2ko')
+                org.setAllGenomeStatus('map2ko')
+            else:
+                break
         elif step == 'map2kegg':
             if not doMap2KEGG(project):
                 logger.error('Genome(s) could not be mapped to kegg!')
@@ -133,15 +135,15 @@ def daddKo(options, wdir, project):
     org = Organism(project)
     
     kaas = OnlineSearch()
-    for filename in options.kofiles:
+    for filename in options.kofile:
         logging.info('Parsing KAAS output %s'%filename)
         kaas.parseKAAS(filename)
         # TODO: here check if results are empty
         kegg.addDraftKOs( set(kaas.results.values()) )
         gen.addKOs( kaas.results.iteritems() )
         logger.info('Mapped %d proteins to KO'%len(kaas.results))
-    proj.setGenome('map2kegg')
-    org.setAllGenomeStatus('map2kegg')
+    proj.setGenome('map2ko')
+    org.setAllGenomeStatus('map2ko')
 
 def dremove(options, wdir, project):
     if not touchProject(project):
@@ -200,6 +202,9 @@ def doMap2KO(project, infiles, local=False, keggdb='', cpu=1):
 def doMap2KEGG(project):
     kegg = Kegg(project)
     kos = [ko.ko_id for ko in kegg.getKO2Analyze()]
+    if len(kos) == 0:
+        logger.warning('No KO entries to be analyzed!')
+        return False
     avoid = [kid for kid in kegg.getAllIDs()]
     
     komap = KoMapper(kos,avoid=avoid)
@@ -298,6 +303,12 @@ def getOptions():
                             default = '',
                             help='Organism description')
     parser_add_mut.set_defaults(func=daddMut)
+    
+    parser_add_ko = subparsers.add_parser('add-ko',
+                           help='Add a KO map')
+    parser_add_ko.add_argument('kofile', action='store', nargs='+',
+                            help='KO map')
+    parser_add_ko.set_defaults(func=daddKo)
 
     parser_start = subparsers.add_parser('start', help='Start the analysis')
     parser_start.add_argument('-n', metavar='cpu', action="store", dest='cpu',
@@ -313,13 +324,6 @@ def getOptions():
     parser_start.add_argument('-k', action="store",
                             help='Kegg database location (for local map2ko)')
     parser_start.set_defaults(func=dstart)
-    
-    parser_add_ko = subparsers.add_parser('add-ko',
-                           help='Add a KO map')
-    parser_add_ko.add_argument('kofile', action='store', nargs='+',
-                            dest='kofiles',
-                            help='KO map')
-    parser_add_ko.set_defaults(func=daddKo)
 
     parser_rm = subparsers.add_parser('rm', help='Remove genome analysis')
     parser_rm.add_argument('organisms', metavar='orgID', nargs='+',
@@ -341,13 +345,8 @@ options = getOptions()
 logger.setLevel(logging.DEBUG)
 
 ch = logging.StreamHandler()
-if options.v == 0:
-    ch.setLevel(logging.WARNING)
-elif options.v == 1:
-    ch.setLevel(logging.INFO)
-elif options.v >= 2:
-    ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - ductgenome - %(message)s',
+ch.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(message)s',
                             '%H:%M:%S')
 ch.setFormatter(formatter)
 logger.addHandler(ch)
@@ -373,106 +372,3 @@ if not os.path.exists(wdir):
 project = os.path.join(wdir, options.project)
 
 options.func(options, wdir, project)
-
-#        
-## TODO: below this part just the input files can be ignored (we have the
-##       proteome locked into the db)
-#
-#genomes = {}
-#protdir = os.path.join(tmp, 'proteins')
-#try:
-#    os.mkdir(protdir)
-#except:
-#    pass
-#for org in orgs.getAll():
-#    protfile = os.path.join(protdir, org.org_id)
-#    genomes[org.org_id] = protfile
-#    SeqIO.write(gen.getRecords(org.org_id), open(protfile, 'w'), 'fasta')
-#
-## PanGenome
-#if len(orgs) > 1 and options.pangenome:
-#    pangenome = PanGenomer(genomes, ncpus=options.cpu)
-#
-#    pangenome.start()
-#    prg = None
-#    while True:
-#        sleep(1)
-#        while not pangenome.msg.empty():
-#            msg = pangenome.msg.get()
-#            if msg:
-#                if msg.status in pangenome.getSubStatuses():
-#                    if prg is None:
-#                        prg = ProgressBar(TerminalController(sys.stdout), msg.msg)
-#                if msg.fail:
-#                    # TODO: print something
-#                    break
-#                elif not msg.substatus:
-#                    # TODO: print something
-#                    prg = None
-#                else:
-#                    prg.update(msg.substatus/float(msg.maxsubstatus),
-#                               'Item %d on %d total'%(msg.substatus,
-#                                                      msg.maxsubstatus))
-#        if not pangenome.isAlive():
-#            break
-#    
-#    gen.addPanGenome(pangenome.orthologs)
-#    
-## KEGG map
-#kegg = Kegg(options.project)
-#if options.local:
-#    for genome in genomes:
-#        if genome in orgsAlready:
-#            continue
-#        gfile = genomes[genome]
-#        localKegg = LocalSearch(gfile,
-#                                options.db,
-#                                 ncpus=options.cpu,
-#                                 buildDB=False,
-#                                 recover=True)
-#        localKegg.start()
-#        prg = None
-#        while True:
-#            sleep(1)
-#            while not localKegg.msg.empty():
-#                msg = localKegg.msg.get()
-#                if msg:
-#                    if msg.status in localKegg.getSubStatuses():
-#                        if prg is None:
-#                            prg = ProgressBar(TerminalController(sys.stdout), msg.msg)
-#                    if msg.fail:
-#                        # TODO: print something
-#                        break
-#                    elif not msg.substatus:
-#                        # TODO: print something
-#                        prg = None
-#                    else:
-#                        prg.update(msg.substatus/float(msg.maxsubstatus),
-#                                   'Item %d on %d total'%(msg.substatus,
-#                                                          msg.maxsubstatus))
-#            if not localKegg.isAlive():
-#                break
-#        kegg.addDraftKOs( set(localKegg.results.values()) )
-#        for t in localKegg.results.iteritems():
-#            print t
-#        gen.addKOs( localKegg.results.iteritems() )
-#else:
-#    kaas = OnlineSearch()
-#    if options.interactive:
-#        print kaas.getExplanation()
-#        test = raw_input('When you are ready press any key to open the KAAS web page')
-#        kaas.openBrowser()
-#        while True:
-#            filename = raw_input('When the analysis is finished type the filename: ')
-#            while True:
-#                if os.path.exists(filename):
-#                    break
-#                raw_input('Wrong filename? Try again: ')
-#            kaas.parseKAAS(filename)
-#        pass
-#
-## KEGG details
-## Once
-#
-## KEGG maps
-## For each genome

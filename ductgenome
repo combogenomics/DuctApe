@@ -145,7 +145,8 @@ def daddKo(options, wdir, project):
         kaas.parseKAAS(filename)
         # TODO: here check if results are empty
         kegg.addDraftKOs( set(kaas.results.values()) )
-        gen.addKOs( kaas.results.iteritems() )
+        prot_ko = [[x,y] for x,y in kaas.results.iteritems()]
+        gen.addKOs( prot_ko )
         logger.info('Mapped %d proteins to KO'%len(kaas.results))
     proj.setGenome('map2ko')
     org.setAllGenomeStatus('map2ko')

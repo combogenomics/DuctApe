@@ -7,7 +7,8 @@ Analyze genome(s) and map them to KEGG
 from Bio import SeqIO
 from DuctApe import __version__
 from DuctApe.Actions import dInit, touchProject, dGenomeClear, dGenomeRemove, \
-    dGenomeAdd, dGenomeDirAdd, dGenomeMutAdd, dGetGenomeSteps, prepareDir
+    dGenomeAdd, dGenomeDirAdd, dGenomeMutAdd, dGetGenomeSteps, prepareDir, \
+    dPanGenomeAdd
 from DuctApe.Common.Database import Organism, Project, Genome, Kegg
 from DuctApe.Genome.Map2KO import LocalSearch, OnlineSearch
 from DuctApe.Genome.PanGenome import PanGenomer
@@ -102,7 +103,6 @@ def dstart(options, wdir, project):
             if not doPanGenome(project, infiles, options.cpu):
                 logger.error('PanGenome could not be calculated!')
                 return False
-            proj.setGenome('pangenome')
         elif step == 'map2ko':
             if not doMap2KO(project, infiles, local=options.l, keggdb=options.k):
                 logger.error('Genome(s) could not be mapped to ko!')
@@ -144,6 +144,13 @@ def daddKo(options, wdir, project):
         logger.info('Mapped %d proteins to KO'%len(kaas.results))
     proj.setGenome('map2ko')
     org.setAllGenomeStatus('map2ko')
+    
+def daddPanGenome(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    return dPanGenomeAdd(project, options.orthfile)
 
 def dremove(options, wdir, project):
     if not touchProject(project):
@@ -168,9 +175,9 @@ def doPanGenome(project, infiles, cpu=1):
     gen = Genome(project)
     gen.addPanGenome(pang.orthologs)
     
-    logger.info('PanGenome size: %d groups'%len(gen.getPanGenome()))
-    logger.info('Core size: %d groups'%gen.getLenCore())
     logger.info('Accessory size: %d groups'%gen.getLenAcc())
+    logger.info('Core size: %d groups'%gen.getLenCore())
+    logger.info('PanGenome size: %d groups'%len(gen.getPanGenome()))
     logger.info('Unique size: %d groups'%gen.getLenUni())
     
     return True
@@ -195,7 +202,6 @@ def doMap2KO(project, infiles, local=False, keggdb='', cpu=1):
         sys.stdout.write(kaas.getExplanation() + '\n')
         sys.stdout.write('When the analysis are finished launch %s add-ko\n'%
                          __prog__)
-        kaas.openBrowser()
         
     return True
 
@@ -305,10 +311,16 @@ def getOptions():
     parser_add_mut.set_defaults(func=daddMut)
     
     parser_add_ko = subparsers.add_parser('add-ko',
-                           help='Add a KO map')
+                           help='Add a KO map (protein code --> KO code)')
     parser_add_ko.add_argument('kofile', action='store', nargs='+',
                             help='KO map')
     parser_add_ko.set_defaults(func=daddKo)
+    
+    parser_add_ko = subparsers.add_parser('add-orth',
+                       help='Add a pangenome (ortholog code --> protein code)')
+    parser_add_ko.add_argument('orthfile', action='store',
+                            help='Orthologs file')
+    parser_add_ko.set_defaults(func=daddPanGenome)
 
     parser_start = subparsers.add_parser('start', help='Start the analysis')
     parser_start.add_argument('-n', metavar='cpu', action="store", dest='cpu',
@@ -372,3 +384,5 @@ if not os.path.exists(wdir):
 project = os.path.join(wdir, options.project)
 
 options.func(options, wdir, project)
+
+touchProject(project)

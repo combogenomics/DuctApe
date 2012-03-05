@@ -98,6 +98,9 @@ class Project(DBBase):
         self.tmp = None
         self.creation = None
         self.last = None
+        self.genome = None
+        self.phenome = None
+        self.pangenome = None
     
     def __str__(self):
         self.getProject()
@@ -200,6 +203,28 @@ class Project(DBBase):
                          [status,self.name,])
         # Update the project
         self.getProject()
+        
+    def donePanGenome(self):
+        '''
+        Update the project informing that the pangenome has been done
+        '''
+        self.getProject()
+        with self.connection as conn:
+            conn.execute('update project set pangenome = 1 where name = ?;',
+                         [self.name,])
+        # Update the project
+        self.getProject()
+        
+    def clearPanGenome(self):
+        '''
+        Update the project informing that the pangenome has been cleared
+        '''
+        self.getProject()
+        with self.connection as conn:
+            conn.execute('update project set pangenome = 0 where name = ?;',
+                         [self.name,])
+        # Update the project
+        self.getProject()
     
 class Organism(DBBase):
     '''
@@ -218,6 +243,7 @@ class Organism(DBBase):
         '''
         # Reset the project statuses
         oProj = Project(self.dbname)
+        oProj.clearPanGenome()
         oProj.setGenome('none')
         oProj.setPhenome('none')
     
@@ -471,6 +497,7 @@ class Genome(DBBase):
         '''
         # Reset the project statuses
         oProj = Project(self.dbname)
+        oProj.clearPanGenome()
         oProj.setGenome('none')
     
     def updateStatus(self, org_id, status):
@@ -505,6 +532,20 @@ class Genome(DBBase):
                                 [prot_id,])
         return bool(cursor.fetchall()[0][0])
     
+    def areProts(self, prots):
+        '''
+        Returns False if at least one prot_id is absent
+        '''
+        with self.connection as conn:
+            for prot_id in prots:
+                cursor=conn.execute('select count(*) from protein where prot_id=?;',
+                                [prot_id,])
+                if not bool(cursor.fetchall()[0][0]):
+                    logger.warning('Protein %s is not present yet!'%prot_id)
+                    return False
+        
+        return True
+    
     def addProteome(self, org_id, pfile):
         '''
         Add a bunch of proteins belonging to org_id (which must be present!)
@@ -530,6 +571,8 @@ class Genome(DBBase):
         logger.debug('Added %d protein to organism %s'%(i,org_id))
         
         self.updateStatus(org_id, 'none')
+        oProj = Project(self.dbname)
+        oProj.clearPanGenome()
              
     def getProt(self, prot_id):
         '''
@@ -598,6 +641,8 @@ class Genome(DBBase):
         self.delPanGenome()
         
         self.resetProject()
+        oProj = Project(self.dbname)
+        oProj.clearPanGenome()
             
     def addKOs(self, kos):
         oCheck = Kegg(self.dbname)
@@ -657,6 +702,9 @@ class Genome(DBBase):
                     conn.execute('insert or replace into ortholog values (?,?);',
                              [group_id,prot_id,])
                 i += 1
+        
+        oProj = Project(self.dbname)
+        oProj.donePanGenome()
         
         logger.debug('Added %d orthologous groups'%(i))
     
@@ -814,6 +862,8 @@ class Genome(DBBase):
             conn.execute('delete from ortholog')
             
         self.resetProject()
+        oProj = Project(self.dbname)
+        oProj.clearPanGenome()
 
 class Kegg(DBBase):
     '''

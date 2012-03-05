@@ -8,7 +8,8 @@ CREATE TABLE project (
     "creation" TEXT,
     "last" TEXT,
     "genome" TEXT   DEFAULT ('none'),
-    "phenome" TEXT   DEFAULT ('none')
+    "phenome" TEXT   DEFAULT ('none'),
+    "pangenome" INTEGER   DEFAULT (0)
 );
 CREATE TABLE organism (
     "org_id" TEXT NOT NULL,

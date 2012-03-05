@@ -132,7 +132,31 @@ def dGenomeMutAdd(project, mutID, mutparent, mutfasta, kind, name='', descr=''):
         logger.info('Mutant %s (%s) added, having %d mutated genes'
                     %(mutID, org.getOrg(mutID).mkind,gen.howMany(mutID)))
         return True
-    
+
+def dPanGenomeAdd(project, orthfile):
+    '''
+    Add an external pangenome
+    '''
+    if not os.path.exists(orthfile):
+        logger.error('Pangenome file %s may not be present'%(orthfile))
+        return False
+    else:
+        orth = {}
+        for l in open(orthfile):
+            s = l.strip().split('\t')
+            if s[0] not in orth:
+                orth[s[0]] = []
+            orth[s[0]].append(s[1])
+        gen = Genome(project)
+        gen.addPanGenome(orth)
+        
+        logger.info('PanGenome size: %d groups'%len(gen.getPanGenome()))
+        logger.info('Core size: %d groups'%gen.getLenCore())
+        logger.info('Accessory size: %d groups'%gen.getLenAcc())
+        logger.info('Unique size: %d groups'%gen.getLenUni())
+        
+        return True
+
 def dGetGenomeSteps(project):
     '''
     Get the analysis that these genomes deserve
@@ -140,8 +164,8 @@ def dGetGenomeSteps(project):
     proj = Project(project)
     proj.getProject()
     status = proj.genome
+    pangenome = bool(proj.pangenome)
     org = Organism(project)
-    gen = Genome(project)
     if org.howManyMutants() > 0:
         logger.info('%d mutants are present'%org.howManyMutants())
         proj.setKind('mutants')
@@ -163,17 +187,18 @@ def dGetGenomeSteps(project):
     else:
         logger.info('%d organisms are present'%org.howMany())
         proj.setKind('pangenome')
-        if status == 'pangenome':
-            return ['map2ko', 'map2kegg']
-        elif status == 'map2ko':
-            if len(gen.getPanGenome()) == 0:
-                return ['pangenome', 'map2kegg']
-            else:
-                return ['map2kegg']
+        steps = []
+        if not pangenome:
+            steps.append('pangenome')
+        if status == 'map2ko':
+            steps.append('map2kegg')
         elif status == 'map2kegg':
-            return []
+            pass
         else:
-            return ['pangenome', 'map2ko', 'map2kegg']
+            steps.append('map2ko')
+            steps.append('pangenome')
+        
+        return steps
     
 def isProject(project):
     '''

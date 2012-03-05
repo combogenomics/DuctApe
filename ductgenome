@@ -78,6 +78,11 @@ def dstart(options, wdir, project):
     org = Organism(project)
     gen = Genome(project)
     
+    if len(org) == 0:
+        logger.warning('No organisms are present yet!')
+        logger.warning('Use %s add or %s add-dir!'%(__prog__, __prog__))
+        return False
+    
     steps = dGetGenomeSteps(project)
     if 'pangenome' in steps or 'map2ko' in steps:
         # Prepare the genomic files

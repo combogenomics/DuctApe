@@ -649,16 +649,17 @@ class Genome(DBBase):
         
         self.boost()
         
+        for prot_id,ko_id in kos:
+            if not self.isProt(prot_id):
+                logger.warning('Protein %s is not present yet!'%prot_id)
+                raise Exception('This Protein (%s) is not present yet!'%prot_id)
+            if not oCheck.isKO('ko:'+ko_id):
+                logger.warning('KO %s is not present yet!'%'ko:'+ko_id)
+                raise Exception('This KO (%s) is not present yet!'%'ko:'+ko_id)
+        
         with self.connection as conn:
             for prot_id,ko_id in kos:
-                if not self.isProt(prot_id):
-                    logger.warning('Protein %s is not present yet!'%prot_id)
-                    raise Exception('This Protein (%s) is not present yet!'%prot_id)
-                if not oCheck.isKO('ko:'+ko_id):
-                    logger.warning('KO %s is not present yet!'%'ko:'+ko_id)
-                    raise Exception('This KO (%s) is not present yet!'%'ko:'+ko_id)
-            
-            conn.execute('insert or replace into mapko values (?,?);',
+                conn.execute('insert or replace into mapko values (?,?);',
                              [prot_id,'ko:'+ko_id,])
     
     def getKO(self, prot_id):
@@ -907,21 +908,24 @@ class Kegg(DBBase):
         '''
         An exception is thrown if such IDs are not present
         '''
+        for ko_id in koreact:
+            if not self.isKO(ko_id):
+                logger.warning('KO %s is not present yet!'
+                                %ko_id)
+                raise Exception('This KO (%s) is not present yet!'
+                                %ko_id)
+            for re_id in koreact[ko_id]:
+                if not self.isReaction(re_id):
+                    logger.warning('Reaction %s is not present yet!'
+                                %re_id)
+                    raise Exception('This reaction (%s) is not present yet!'
+                                %re_id)
+        
         self.boost()
         
         with self.connection as conn:
             for ko_id in koreact:
-#                if not self.isKO(ko_id):
-#                    logger.warning('KO %s is not present yet!'
-#                                    %ko_id)
-#                    raise Exception('This KO (%s) is not present yet!'
-#                                    %ko_id)
                 for re_id in koreact[ko_id]:
-#                    if not self.isReaction(re_id):
-#                        logger.warning('Reaction %s is not present yet!'
-#                                    %re_id)
-#                        raise Exception('This reaction (%s) is not present yet!'
-#                                    %re_id)
                     conn.execute('insert or ignore into ko_react values (?,?);',
                                  (ko_id,re_id,))
     
@@ -1012,21 +1016,24 @@ class Kegg(DBBase):
         '''
         An exception is thrown if such IDs are not present
         '''
+        for re_id in reactcomp:
+            if not self.isReaction(re_id):
+                logger.warning('Reaction %s is not present yet!'
+                                %re_id)
+                raise Exception('This reaction (%s) is not present yet!'
+                                %re_id)
+            for co_id in reactcomp[re_id]:
+                if not self.isCompound(co_id):
+                    logger.warning('Compound %s is not present yet!'
+                                %co_id)
+                    raise Exception('This compound (%s) is not present yet!'
+                                %co_id)
+        
         self.boost()
         
         with self.connection as conn:
             for re_id in reactcomp:
-#                if not self.isReaction(re_id):
-#                    logger.warning('Reaction %s is not present yet!'
-#                                    %re_id)
-#                    raise Exception('This reaction (%s) is not present yet!'
-#                                    %re_id)
                 for co_id in reactcomp[re_id]:
-#                    if not self.isCompound(co_id):
-#                        logger.warning('Compound %s is not present yet!'
-#                                    %co_id)
-#                        raise Exception('This compound (%s) is not present yet!'
-#                                    %co_id)
                     conn.execute('insert or ignore into react_comp values (?,?);',
                                  (re_id,co_id,))
     
@@ -1118,21 +1125,24 @@ class Kegg(DBBase):
         '''
         An exception is thrown if such IDs are not present
         '''
+        for path_id in pathreact:
+            if not self.isPathway(path_id):
+                logger.warning('Pathway %s is not present yet!'
+                                %path_id)
+                raise Exception('This pathway (%s) is not present yet!'
+                                %path_id)
+            for re_id in pathreact[path_id]:
+                if not self.isReaction(re_id):
+                    logger.warning('Reaction %s is not present yet!'
+                                %re_id)
+                    raise Exception('This reaction (%s) is not present yet!'
+                                %re_id)
+        
         self.boost()
         
         with self.connection as conn:
             for path_id in pathreact:
-#                if not self.isPathway(path_id):
-#                    logger.warning('Pathway %s is not present yet!'
-#                                    %path_id)
-#                    raise Exception('This pathway (%s) is not present yet!'
-#                                    %path_id)
                 for re_id in pathreact[path_id]:
-#                    if not self.isReaction(re_id):
-#                        logger.warning('Reaction %s is not present yet!'
-#                                    %re_id)
-#                        raise Exception('This reaction (%s) is not present yet!'
-#                                    %re_id)
                     conn.execute('insert or ignore into react_path values (?,?);',
                                  (re_id,path_id,))
                     
@@ -1140,21 +1150,24 @@ class Kegg(DBBase):
         '''
         An exception is thrown if such IDs are not present
         '''
+        for path_id in pathcomp:
+            if not self.isPathway(path_id):
+                logger.warning('Pathway %s is not present yet!'
+                                %path_id)
+                raise Exception('This pathway (%s) is not present yet!'
+                                %path_id)
+            for co_id in pathcomp[path_id]:
+                if not self.isCompound(co_id):
+                    logger.warning('Compound %s is not present yet!'
+                                %co_id)
+                    raise Exception('This compound (%s) is not present yet!'
+                                %co_id)
+        
         self.boost()
         
         with self.connection as conn:
             for path_id in pathcomp:
-#                if not self.isPathway(path_id):
-#                    logger.warning('Pathway %s is not present yet!'
-#                                    %path_id)
-#                    raise Exception('This pathway (%s) is not present yet!'
-#                                    %path_id)
                 for co_id in pathcomp[path_id]:
-#                    if not self.isCompound(co_id):
-#                        logger.warning('Compound %s is not present yet!'
-#                                    %co_id)
-#                        raise Exception('This compound (%s) is not present yet!'
-#                                    %co_id)
                     conn.execute('insert or ignore into comp_path values (?,?);',
                                  (co_id,path_id,))
                     
@@ -1162,15 +1175,17 @@ class Kegg(DBBase):
         '''
         An exception is thrown if such ID is not present
         '''
+        for path_id in pathmap:
+            if not self.isPathway(path_id):
+                logger.warning('Pathway %s is not present yet!'
+                                %path_id)
+                raise Exception('This pathway (%s) is not present yet!'
+                                %path_id)
+        
         self.boost()
         
         with self.connection as conn:
             for path_id in pathmap:
-#                if not self.isPathway(path_id):
-#                    logger.warning('Pathway %s is not present yet!'
-#                                    %path_id)
-#                    raise Exception('This pathway (%s) is not present yet!'
-#                                    %path_id)
                 conn.execute('insert or ignore into pathmap (path_id, html) values (?,?);',
                                  (path_id,'\n'.join(pathmap[path_id]),))
     
@@ -1178,15 +1193,17 @@ class Kegg(DBBase):
         '''
         An exception is thrown if such ID is not present
         '''
+        for path_id in pathpic:
+            if not self.isPathway(path_id):
+                logger.warning('Pathway %s is not present yet!'
+                                %path_id)
+                raise Exception('This pathway (%s) is not present yet!'
+                                %path_id)
+        
         self.boost()
         
         with self.connection as conn:
             for path_id in pathpic:
-#                if not self.isPathway(path_id):
-#                    logger.warning('Pathway %s is not present yet!'
-#                                    %path_id)
-#                    raise Exception('This pathway (%s) is not present yet!'
-#                                    %path_id)
                 pic = open(pathpic[path_id])
                 conn.execute('update pathmap set png = ? where path_id = ?;',
                                  (sqlite3.Binary(pic.read()),path_id,))

@@ -305,7 +305,7 @@ class OnlineSearch(object):
         
     def getExplanation(self):
         msg = ' '.join(['The only way to access to KAAS annotation service is',
-                'your browser.\nThe program will redirect you to '+self.url+
+                'your browser.\nGo to '+self.url+
                 ', where you can add your fasta file(s).',
                 '\nThe analysis will take less than one hour.'])
         if self.bbh:

@@ -373,7 +373,7 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 
-fh = logging.handlers.RotatingFileHandler('ductape.log', maxBytes=10240)
+fh = logging.handlers.RotatingFileHandler('ductape.log', maxBytes=1000000)
 if options.v == 0:
     ch.setLevel(logging.INFO)
 elif options.v >= 1:

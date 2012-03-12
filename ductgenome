@@ -105,7 +105,7 @@ def dstart(options, wdir, project):
             if options.s:
                 logger.warning('Skipping pangenome calculation')
                 continue
-            if not doPanGenome(project, infiles, options.cpu):
+            if not doPanGenome(project, infiles, options.cpu, options.prefix):
                 logger.error('PanGenome could not be calculated!')
                 return False
         elif step == 'map2ko':
@@ -172,7 +172,7 @@ def dclear(options, wdir, project):
         return False
     return dGenomeClear(project)
 
-def doPanGenome(project, infiles, cpu=1):
+def doPanGenome(project, infiles, cpu=1, prefix=''):
     pang = PanGenomer(infiles.values(), ncpus=cpu)
     
     if not RunThread(pang):
@@ -336,6 +336,9 @@ def getOptions():
     parser_start.add_argument('-s', action="store_true",
                             default=False,
                             help='Skip pangenome creation')
+    parser_start.add_argument('-p', action="store", dest='prefix',
+                            default='',
+                            help='Orthologous groups prefix')
     parser_start.add_argument('-l', action="store_true",
                             default=False,
                             help='Local map2ko')

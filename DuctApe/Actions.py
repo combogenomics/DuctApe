@@ -56,6 +56,7 @@ def dGenomeAdd(project, orgID, filename, name='', descr=''):
         logger.error('Fasta file %s may not be present'%(filename))
         return False
     else:
+        filename = os.path.abspath(filename)
         org = Organism(project)
         org.addOrg(orgID, name=name, description=descr, orgfile=filename)
         gen = Genome(project)

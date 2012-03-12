@@ -101,8 +101,7 @@ class Blaster(object):
         if return_code != 0:
             logger.warning('Blast DB creation failed with error %d'
                             %return_code)
-        else:
-            logger.debug('Blast DB creation successful')
+
         return bool(not return_code)
     
     def retrieveFromDB(self, db, accession, out='out.fsa', isFile=False):
@@ -122,8 +121,7 @@ class Blaster(object):
         if return_code != 0:
             logger.warning('BlastDBcmd failed with error %d'
                             %return_code)
-        else:
-            logger.debug('BlastDBcmd successful')
+
         return bool(not return_code)
     
     def runBlast(self, queryFile, db, outFile, evalue = 10,
@@ -151,8 +149,7 @@ class Blaster(object):
         if return_code != 0:
             logger.warning('Run Blast failed with error %d'
                             %return_code)
-        else:
-            logger.debug('Run Blast successful')
+
         return bool(not return_code)
     
     def parseBlast(self, fileOut):

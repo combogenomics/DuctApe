@@ -6,16 +6,15 @@ Pheenome library
 
 Classes to handle Biolog data
 """
-from DuctApe.Common.CommonThread import CommonThread
-from DuctApe.Common.utils import smooth
-import Queue
-import copy
-import csv
-import logging
 # TODO: this part must be handled somewhere else
 import matplotlib
 matplotlib.use('Agg')
 #
+from DuctApe.Common.CommonThread import CommonThread
+from DuctApe.Common.utils import smooth, compress
+import Queue
+import csv
+import logging
 import matplotlib.pyplot as plt
 import os
 

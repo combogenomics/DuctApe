@@ -391,6 +391,19 @@ class BiologRaw(object):
         else:
             logging.warning('Plate %s, Well %s was already compressed'%
                           (self.plate_id, self.well_id))
+            
+    def calculateParameters(self,
+                            noCompress = False, noSmooth = False):
+        '''
+        Populates the parameters values for the experiment
+        By default compression and smoothing are applied to save some time
+        '''
+        if not self.compressed and not noCompress:
+            self.compress()
+        if not self.smoothed and not noSmooth:
+            self.smooth(window_len=41, window_type='blackman')
+            
+        pass
 
 class BiologParser(CommonThread):
     '''

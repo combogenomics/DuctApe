@@ -106,7 +106,7 @@ class PlotCarrier(object):
     An averaged plate can be added
     '''
     def __init__(self, plate_id, plate_name = '', smooth = True, window = 11,
-                 alpha = 0.5,
+                 alpha = 0.5, compress = 0,
                  linewidth = 2, maxsig = None):
         self.plate_id = plate_id
         self.plate_name = ' '.join( (plate_id, plate_name) ).rstrip()
@@ -119,6 +119,7 @@ class PlotCarrier(object):
         
         self.smooth = bool(smooth)
         self.window = int(window)
+        self.compress = int(compress)
         
         self.alpha = float(alpha)
         self.linewidth = float(linewidth)
@@ -213,6 +214,8 @@ class PlotCarrier(object):
                     break
                 
         times.sort()
+        if self.compress != 0:
+            times = compress(times, self.compress)
         self.times = times
         
         # Get also each plate/well pair
@@ -325,6 +328,8 @@ class BiologRaw(object):
         self.plate_id = plate_id
         self.well_id = well_id.replace(' ','')
         self.signals = {}
+        self.smoothed = False
+        self.compressed = False
         
     def addSignal(self,time,signal):
         self.signals[time] = signal
@@ -335,7 +340,7 @@ class BiologRaw(object):
         '''
         for hour in sorted(times):
             if hour not in self.signals:
-                self.signals[hour] = 0
+                self.signals[hour] = 0.1
     
     def getMax(self):
         '''
@@ -343,18 +348,49 @@ class BiologRaw(object):
         '''
         return max(self.signals.values())
     
-    def smooth(self, window_len = 11, window_type = 'hanning'):
+    def smooth(self, window_len = 11, window_type = 'hanning',
+               forceZero = True):
         '''
         Apply a smoothing algorithm to the signals
         Really useful for clearer plots and other features
+        Available windows: 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
         '''
-        signals = [self.signals[hour] for hour in sorted(self.signals.keys())]
-        smoothed = smooth(signals, window_len = window_len, 
-                          window_type = window_type)
+        if not self.smoothed:
+            signals = [self.signals[hour] for hour in sorted(self.signals.keys())]
+            smoothed = smooth(signals, window_len = window_len, 
+                              window = window_type)
+            
+            for idx in range(len(self.signals)):
+                hour = sorted(self.signals.keys())[idx]
+                if smoothed[idx] < 0 and forceZero:
+                    self.signals[hour] = 0.1
+                else:
+                    self.signals[hour] = smoothed[idx]
+            
+            self.smoothed = True
+        else:
+            logging.warning('Plate %s, Well %s was already smoothed'%
+                          (self.plate_id, self.well_id))
+            
+    def compress(self, span = 3):
+        '''
+        Reduce the amount of signals
+        This function should be called BEFORE smooth
+        '''
+        if not self.smoothed:
+            logging.warning('Plate %s, Well %s should be smoothed AFTER compression'%
+                          (self.plate_id, self.well_id))
         
-        for idx in range(len(self.signals)):
-            hour = sorted(self.signals.keys())[idx]
-            self.signals[hour] = smoothed[idx]
+        if not self.compressed:
+            times = compress( sorted(self.signals.keys()), span = span)
+            toremove = [t for t in self.signals.keys() if t not in times]
+            for t in toremove:
+                del self.signals[t]
+            
+            self.compressed = True
+        else:
+            logging.warning('Plate %s, Well %s was already compressed'%
+                          (self.plate_id, self.well_id))
 
 class BiologParser(CommonThread):
     '''
@@ -454,13 +490,15 @@ class BiologZero(CommonThread):
     
     _substatuses = [1]
     
-    def __init__(self, data, blank=False, blankData=[], queue=Queue.Queue()):
+    def __init__(self, data, blank=False, blankData=[], 
+                 forceZero = True,
+                 queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         # Biolog
-        # TODO: remove this copy?
-        self.data = copy.deepcopy(data)
+        self.data = data
         self.blank = bool(blank)
         self.blankData = blankData
+        self.forceZero = bool(forceZero)
         # Results
         self.results = []
     
@@ -479,8 +517,8 @@ class BiologZero(CommonThread):
                 for hour in sorted(zero.signals.keys()):
                     plate.data[well].signals[hour] -= zero.signals[hour]
                     # Values below zero are forced to zero
-                    if plate.data[well].signals[hour] < 0:
-                        plate.data[well].signals[hour] = 0
+                    if self.forceZero and plate.data[well].signals[hour] <= 0:
+                        plate.data[well].signals[hour] = 0.1
                     
             # Last step: put the zero well to zero
             for hour in zero.signals.keys():
@@ -506,8 +544,8 @@ class BiologZero(CommonThread):
                     try:
                         plate.data[well].signals[hour] -= zplate.data[well].signals[hour]
                         # Values below zero are forced to zero
-                        if plate.data[well].signals[hour] < 0:
-                            plate.data[well].signals[hour] = 0
+                        if self.forceZero and plate.data[well].signals[hour] <= 0:
+                            plate.data[well].signals[hour] = 0.1
                     except:
                         logging.debug('Time %f present in blank plate was not'%(hour)+ 
                                         ' found on plate %s, signal was forced to'%(plate.plate_id)+
@@ -518,7 +556,7 @@ class BiologZero(CommonThread):
                         logging.debug('Time %f present in plate %s was not'%(hour, plate.plate_id)+
                                         ' found on blank plate, signal was forced to'+
                                         ' zero')
-                        plate.data[well].signals[hour] = 0
+                        plate.data[well].signals[hour] = 0.1
             
         if not found:
             logging.warning('Blank plate zero subtraction: could not find'+
@@ -573,6 +611,7 @@ class BiologPlot(CommonThread):
                  expname = 'exp', 
                  plateNames = {}, wellNames = {},
                  colors = {}, smooth = True, window = 11,
+                 compress = 0,
                  maxsig = None, queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         # Biolog
@@ -586,7 +625,8 @@ class BiologPlot(CommonThread):
         self.wellNames = wellNames
         self.smooth = bool(smooth)
         self.window = int(window)
-        self.maxsig = maxsig
+        self.compress = int(compress)
+        self.maxsig = float(maxsig)
         
         # Results
         # PLate_id --> PlotCarrier
@@ -651,6 +691,7 @@ class BiologPlot(CommonThread):
                                                     plate_name = plate_name,
                                                     smooth = self.smooth,
                                                     window = self.window,
+                                                    compress = self.compress,
                                                     maxsig = self.maxsig)
             
             self.results[plate.plate_id].addData(plate.strain, plate)

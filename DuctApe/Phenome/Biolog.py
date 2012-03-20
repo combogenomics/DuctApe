@@ -11,11 +11,13 @@ import matplotlib
 matplotlib.use('Agg')
 #
 from DuctApe.Common.CommonThread import CommonThread
+from DuctApe.Phenome.fitting import fitData
 from DuctApe.Common.utils import smooth, compress
 import Queue
 import csv
 import logging
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 
 __author__ = "Marco Galardini"
@@ -331,6 +333,9 @@ class BiologRaw(object):
         self.smoothed = False
         self.compressed = False
         
+        # Parameters
+        self.max = None
+        
     def addSignal(self,time,signal):
         self.signals[time] = signal
         
@@ -347,6 +352,12 @@ class BiologRaw(object):
         Maximum signal
         '''
         return max(self.signals.values())
+    
+    def getMin(self):
+        '''
+        Minimum signal
+        '''
+        return min(self.signals.values())
     
     def smooth(self, window_len = 11, window_type = 'hanning',
                forceZero = True):
@@ -377,7 +388,7 @@ class BiologRaw(object):
         Reduce the amount of signals
         This function should be called BEFORE smooth
         '''
-        if not self.smoothed:
+        if self.smoothed:
             logging.warning('Plate %s, Well %s should be smoothed AFTER compression'%
                           (self.plate_id, self.well_id))
         
@@ -403,7 +414,27 @@ class BiologRaw(object):
         if not self.smoothed and not noSmooth:
             self.smooth(window_len=41, window_type='blackman')
             
-        pass
+        # Let's start with the easy ones!
+        self.max = self.getMax()
+        
+        self.min = self.getMin()
+        
+        self.avg_height = np.array( self.signals.values() ).mean()
+        
+        # Let's go with the function fitting
+        xdata = np.array( [x for x in sorted(self.signals.keys())] )
+        ydata = np.array( [self.signals[x] for x in xdata] )
+        plateau, slope, inflection, y0 = fitData(xdata, ydata)
+        
+        from scipy.integrate import quad
+        from DuctApe.Phenome import fitting
+        # Some esoteric method for area calculation (to be checked!)
+        if plateau:
+            area = quad(fitting.gompertz, xdata.min(), xdata.max(), args=(plateau, slope, inflection, y0))
+        else:
+            area = 0
+
+        print '\t'.join( [self.plate_id, self.well_id] + [str(x) for x in [area, plateau, slope, inflection, y0]] )
 
 class BiologParser(CommonThread):
     '''

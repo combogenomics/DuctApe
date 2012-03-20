@@ -6,6 +6,7 @@ Phenome library
 
 biolog data fitting functions
 """
+from scipy.optimize.minpack import curve_fit
 import numpy as np
 
 def gompertz(x, A, u, d, y0):
@@ -53,3 +54,26 @@ def getFlex(x, y):
             break
     
     return flex
+
+def fitData(xdata, ydata):
+    '''
+    Fits the provided data to the first working function
+    (first Gompertz, then Logistic)
+
+    Returns a tuple with plateau, slope, inflection point, y0 and model used
+    If no fitting was possible all values are None
+
+    Please note that the plateau may be reached outside the final time point
+    '''
+    # Initial guesses for the output parameters
+    p0 = [xdata.max(), 4.0, getFlex(xdata, ydata), 0]
+    
+    try:
+        params, pcov = curve_fit(gompertz, xdata, ydata, p0 = p0)
+    except:
+        try:
+            params, pcov = curve_fit(logistic, xdata, ydata, p0 = p0)
+        except:
+            params = (None, None, None, None)
+        
+    return params

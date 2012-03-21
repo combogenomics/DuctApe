@@ -90,7 +90,7 @@ class PlateCarrier(object):
         # Added by the system to avoid confusion
         self.strain = None
         
-        # Raw data --> well_id -> BiologRaw objects
+        # Raw data --> well_id -> BiologWell objects
         self.data = {}
         # Used internaly, index in Hours row --> well_id
         self._idx = {}
@@ -322,9 +322,9 @@ class PlotCarrier(object):
         
         return True
 
-class BiologRaw(object):
+class BiologWell(object):
     '''
-    Class BiologRaw
+    Class BiologWell
     Contains signals for a particular plate/well
     '''
     def __init__(self, plate_id, well_id):
@@ -451,18 +451,13 @@ class BiologRaw(object):
         if xplateau > xdata.max():
             self.plateau = ydata.max()
         
-class BiologParser():
+class BiologParser(object):
     '''
     Class BiologParser
     Takes a csv output file and returns a series of objects
-    results [PlateCarrier] --> well_id --> BiologRaw
+    plates [PlateCarrier] --> well_id --> BiologWell
     There could be more than one organism for each biolog file!
     '''
-    _statusDesc = {0:'Not started',
-               1:'Parsing'}
-    
-    _substatuses = []
-    
     _start = 'Data File'
     _plate = 'Plate Type'
     _strainType = 'Strain Type'
@@ -472,12 +467,11 @@ class BiologParser():
     _other = 'Other'
     _dataStart = 'Hour'
     
-    def __init__(self,infile,queue=Queue.Queue()):
-        CommonThread.__init__(self,queue)
+    def __init__(self,infile):
         # Biolog
         self.file = infile
         # Results
-        self.results = []
+        self.plates = []
         
     def parse(self):
         plate = None
@@ -491,7 +485,7 @@ class BiologParser():
             elif self._start in line[0].strip():
                 # Do we have to save the old plate?
                 if plate:
-                    self.results.append(plate)
+                    self.plates.append(plate)
                 data = False
                 wells = []
                 plate = PlateCarrier()
@@ -514,7 +508,7 @@ class BiologParser():
                     if i == 0:continue
                     x = line[i]
                     if x == '':continue
-                    plate.data[x.strip()] = BiologRaw(plate.plate_id, x.strip())
+                    plate.data[x.strip()] = BiologWell(plate.plate_id, x.strip())
                     plate._idx[i] = x.strip()
                     wells.append(x.strip())
             elif data:
@@ -527,39 +521,25 @@ class BiologParser():
                     plate.data[well].addSignal(time, float(x))
         
         return True
-    
-    def run(self):
-        self.updateStatus()
-        
-        if not self.parse():
-            self.sendFailure('Could not parse Biolog file!')
-            return
 
-class BiologZero(CommonThread):
+class BiologZero(object):
     '''
     Class BiologZero
     Takes a list of PlateCarrier objects and subtract the zero signal
     Two modes: 
         - normal (subtract the first well)
         - blank plate (subtract the zero plate --> zero list)
-    results [PlateCarrier] --> well_id --> BiologRaw
+    plates [PlateCarrier] --> well_id --> BiologWell
     '''
-    _statusDesc = {0:'Not started',
-               1:'Zero subtraction'}
-    
-    _substatuses = [1]
-    
     def __init__(self, data, blank=False, blankData=[], 
-                 forceZero = True,
-                 queue=Queue.Queue()):
-        CommonThread.__init__(self,queue)
+                 forceZero = True):
         # Biolog
         self.data = data
         self.blank = bool(blank)
         self.blankData = blankData
         self.forceZero = bool(forceZero)
         # Results
-        self.results = []
+        self.plates = []
     
     def _zeroNormal(self, plate):
         '''
@@ -641,16 +621,9 @@ class BiologZero(CommonThread):
             else:
                 self._zeroNormal(plate)
                 
-        self.results = self.data
+        self.plates = self.data
                 
         return True
-    
-    def run(self):
-        self.updateStatus()
-        if not self.zeroSubTract():
-            self.sendFailure('Zero subtraction failure!')
-            return
-        self.resetSubStatus()
         
 class BiologPlot(CommonThread):
     '''

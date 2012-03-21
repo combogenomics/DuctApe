@@ -13,6 +13,7 @@ matplotlib.use('Agg')
 from DuctApe.Common.CommonThread import CommonThread
 from DuctApe.Phenome.fitting import fitData
 from DuctApe.Common.utils import smooth, compress
+from scipy.integrate import trapz
 import Queue
 import csv
 import logging
@@ -335,6 +336,12 @@ class BiologRaw(object):
         
         # Parameters
         self.max = None
+        self.min = None
+        self.avg_height = None
+        self.plateau = None
+        self.slope = None
+        self.lag = None
+        self.area = None
         
     def addSignal(self,time,signal):
         self.signals[time] = signal
@@ -412,31 +419,39 @@ class BiologRaw(object):
         if not self.compressed and not noCompress:
             self.compress()
         if not self.smoothed and not noSmooth:
-            self.smooth(window_len=41, window_type='blackman')
+            self.smooth(window_len=len(self.signals)/3, window_type='blackman')
             
         # Let's start with the easy ones!
         self.max = self.getMax()
         
         self.min = self.getMin()
         
-        self.avg_height = np.array( self.signals.values() ).mean()
+        self.height = np.array( self.signals.values() ).mean()
         
         # Let's go with the function fitting
         xdata = np.array( [x for x in sorted(self.signals.keys())] )
         ydata = np.array( [self.signals[x] for x in xdata] )
-        plateau, slope, inflection, y0 = fitData(xdata, ydata)
+        self.plateau, self.slope, self.lag, v, y0 = fitData(xdata, ydata)
         
-        from scipy.integrate import quad
-        from DuctApe.Phenome import fitting
-        # Some esoteric method for area calculation (to be checked!)
-        if plateau:
-            area = quad(fitting.gompertz, xdata.min(), xdata.max(), args=(plateau, slope, inflection, y0))
+        # If any of the values are null generate them by hand
+        if not y0:
+            self.plateau = ydata.max()
+            self.slope = 0
+            self.lag = xdata.max()
+
+        # Trapezoid integration for area calculation
+        self.area = trapz(y = ydata, x = xdata)
+        
+        # Check the plateu and lag parameters
+        if self.lag >= 0:
+            y0 = - (self.lag * self.slope)
         else:
-            area = 0
-
-        print '\t'.join( [self.plate_id, self.well_id] + [str(x) for x in [area, plateau, slope, inflection, y0]] )
-
-class BiologParser(CommonThread):
+            y0 = 0
+        xplateau = (self.plateau - y0) / self.slope
+        if xplateau > xdata.max():
+            self.plateau = ydata.max()
+        
+class BiologParser():
     '''
     Class BiologParser
     Takes a csv output file and returns a series of objects

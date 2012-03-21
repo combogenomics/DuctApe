@@ -6,10 +6,23 @@ Phenome library
 
 biolog data fitting functions
 """
+from DuctApe.Common.utils import compress, smooth
 from scipy.optimize.minpack import curve_fit
 import numpy as np
 
-def gompertz(x, A, u, d, y0):
+__author__ = "Marco Galardini"
+
+def logistic(x, A, u, d, v, y0):
+    '''
+    Logistic growth model
+    Taken from: "Modeling of the bacterial growth curve."
+                (Zwietering et al., 1990)
+                PMID: 16348228
+    '''
+    y = (A / (1 + np.exp( ( ((4 * u)/A) * (d - x) ) + 2 ))) + y0
+    return y
+
+def gompertz(x, A, u, d, v, y0):
     '''
     Gompertz growth model
     Taken from: "Modeling of the bacterial growth curve."
@@ -19,14 +32,15 @@ def gompertz(x, A, u, d, y0):
     y = (A * np.exp( -np.exp( (((u * np.e)/A) * (d - x)) + 1 ) ) ) + y0
     return y
 
-def logistic(x, A, u, d, y0):
+def richards(x, A, u, d, v, y0):
     '''
-    Logistic growth model
+    Richards growth model
+    (equivalent to Stannard)
     Taken from: "Modeling of the bacterial growth curve."
                 (Zwietering et al., 1990)
                 PMID: 16348228
     '''
-    y = (A / (1 + np.exp( ( ((4 * u)/A) * (d - x) ) + 2 ))) + y0
+    y = (A * pow(1 + (v + (np.exp(1 + v) * np.exp( (u/A) * (1 + v) * (1 + (1/v)) * (d - x) ) ) ),-(1/v))) + y0
     return y
 
 def getFlex(x, y):
@@ -55,25 +69,48 @@ def getFlex(x, y):
     
     return flex
 
+def rect(x, a, y0):
+    '''
+    yep, that's a rect!
+    '''
+    y = (a * x) + y0
+    return y
+
 def fitData(xdata, ydata):
     '''
     Fits the provided data to the first working function
     (first Gompertz, then Logistic)
 
-    Returns a tuple with plateau, slope, inflection point, y0 and model used
+    Returns a tuple with plateau, slope, lag, y0 and model used
     If no fitting was possible all values are None
 
     Please note that the plateau may be reached outside the final time point
     '''
-    # Initial guesses for the output parameters
-    p0 = [xdata.max(), 4.0, getFlex(xdata, ydata), 0]
+    params = (None, None, None, None, None)
     
-    try:
-        params, pcov = curve_fit(gompertz, xdata, ydata, p0 = p0)
-    except:
+    retries = 3
+    while retries > 0:
+        # Initial guesses for the output parameters
+        p0 = [ydata.max(), 4.0, getFlex(xdata, ydata), 0.1, 0]
+        if retries == 1:
+            p0[2] = 0
         try:
-            params, pcov = curve_fit(logistic, xdata, ydata, p0 = p0)
+            params, pcov = curve_fit(gompertz, xdata, ydata, p0 = p0)
+            break
         except:
-            params = (None, None, None, None)
-        
+            try:
+                params, pcov = curve_fit(logistic, xdata, ydata, p0 = p0)
+                break
+            except:
+                try:
+                    params, pcov = curve_fit(richards, xdata, ydata, p0 = p0)
+                    break
+                except:
+                    retries -= 1
+                    # Compress again the data
+                    xdata = np.array(compress(xdata, span=4))
+                    xdata = np.array(smooth(xdata, window_len = len(xdata)/2, 
+                              window = 'blackman'))
+                    ydata = np.array(compress(ydata, span=4))
+    
     return params

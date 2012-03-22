@@ -2,7 +2,7 @@
 """
 Biolog
 
-Pheenome library
+Phenome library
 
 Classes to handle Biolog data
 """

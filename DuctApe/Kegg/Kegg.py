@@ -415,6 +415,10 @@ class BaseKegg(CommonThread):
         Return False if something goes wrong
         '''
         for i in range(self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return False
+            
             obj = KeggAPI()
             if not obj.connect():
                 return False
@@ -446,6 +450,10 @@ class BaseMapper(BaseKegg):
         
     def getReactDetails(self):
         for piece in get_span(self.reactdet.keys(), self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
             self.cleanHandlers()
             self._substatus += self.numThreads
             if self._substatus > self._maxsubstatus:
@@ -474,6 +482,10 @@ class BaseMapper(BaseKegg):
                 
     def getPathDetails(self):
         for piece in get_span(self.pathdet.keys(), self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
             self.cleanHandlers()
             self._substatus += self.numThreads
             if self._substatus > self._maxsubstatus:
@@ -502,6 +514,10 @@ class BaseMapper(BaseKegg):
     
     def getMapsDetails(self):
         for piece in get_span(self.pathdet.keys(), self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
             self.cleanHandlers()
             self._substatus += self.numThreads
             if self._substatus > self._maxsubstatus:
@@ -531,6 +547,10 @@ class BaseMapper(BaseKegg):
     
     def getPathReactions(self):
         for piece in get_span(self.pathdet.keys(), self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
             self.cleanHandlers()
             self._substatus += self.numThreads
             if self._substatus > self._maxsubstatus:
@@ -562,6 +582,10 @@ class BaseMapper(BaseKegg):
                         
     def getPathCompounds(self):
         for piece in get_span(self.pathdet.keys(), self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
             self.cleanHandlers()
             self._substatus += self.numThreads
             if self._substatus > self._maxsubstatus:
@@ -593,6 +617,10 @@ class BaseMapper(BaseKegg):
                         
     def getCompDetails(self):
         for piece in get_span(self.compdet.keys(), self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
             self.cleanHandlers()
             self._substatus += self.numThreads
             if self._substatus > self._maxsubstatus:
@@ -651,6 +679,10 @@ class KoMapper(BaseMapper):
     
     def getKOdet(self):
         for piece in get_span(self.ko, self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
             self.cleanHandlers()
             self._substatus += self.numThreads
             if self._substatus > self._maxsubstatus:
@@ -679,6 +711,10 @@ class KoMapper(BaseMapper):
                 
     def getReactions(self):
         for piece in get_span(self.ko, self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
             self.cleanHandlers()
             self._substatus += self.numThreads
             if self._substatus > self._maxsubstatus:
@@ -711,6 +747,10 @@ class KoMapper(BaseMapper):
     
     def getPathways(self):
         for piece in get_span(self.reactdet.keys(), self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
             self.cleanHandlers()
             self._substatus += self.numThreads
             if self._substatus > self._maxsubstatus:
@@ -748,6 +788,9 @@ class KoMapper(BaseMapper):
             self.sendFailure('Could not connect to KEGG')
             return
         
+        if self.killed:
+            return
+        
         # Reactions
         self._maxsubstatus = len(self.ko)
         self.updateStatus()
@@ -759,6 +802,9 @@ class KoMapper(BaseMapper):
         self.cleanHandlers()
         self.resetSubStatus()
         
+        if self.killed:
+            return
+        
         # Related pathways...
         self._maxsubstatus = len(self.reactdet)
         self.updateStatus()
@@ -769,6 +815,9 @@ class KoMapper(BaseMapper):
             return
         self.cleanHandlers()
         self.resetSubStatus()
+        
+        if self.killed:
+            return
         
         # Pathways contents...
         # 1. Reactions
@@ -782,6 +831,9 @@ class KoMapper(BaseMapper):
         self.cleanHandlers()
         self.resetSubStatus()
         
+        if self.killed:
+            return
+        
         # 2. Compounds
         self._maxsubstatus = len(self.pathdet)
         try:
@@ -791,6 +843,9 @@ class KoMapper(BaseMapper):
             return
         self.cleanHandlers()
         self.resetSubStatus()
+        
+        if self.killed:
+            return
         
         # KO details
         self._maxsubstatus = len(self.ko)
@@ -803,6 +858,9 @@ class KoMapper(BaseMapper):
         self.cleanHandlers()
         self.resetSubStatus()
         
+        if self.killed:
+            return
+        
         # Pathway details
         self._maxsubstatus = len(self.pathdet)
         try:
@@ -812,6 +870,9 @@ class KoMapper(BaseMapper):
             return
         self.cleanHandlers()
         self.resetSubStatus()
+        
+        if self.killed:
+            return
         
         # Pathway HTML maps (!!!)
         self._maxsubstatus = len(self.pathdet)
@@ -823,6 +884,9 @@ class KoMapper(BaseMapper):
         self.cleanHandlers()
         self.resetSubStatus()
         
+        if self.killed:
+            return
+        
         # Reaction details
         self._maxsubstatus = len(self.reactdet)
         try:
@@ -833,6 +897,9 @@ class KoMapper(BaseMapper):
         self.cleanHandlers()
         self.resetSubStatus()
         
+        if self.killed:
+            return
+        
         # Compound details
         self._maxsubstatus = len(self.compdet)
         try:
@@ -842,6 +909,9 @@ class KoMapper(BaseMapper):
             return
         self.cleanHandlers()
         self.resetSubStatus()
+        
+        if self.killed:
+            return
         
         # Prepare the output object
         self.updateStatus()
@@ -880,6 +950,10 @@ class CompMapper(BaseMapper):
         
     def getPathways(self):
         for piece in get_span(self.co, self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
             self.cleanHandlers()
             self._substatus += self.numThreads
             if self._substatus > self._maxsubstatus:
@@ -917,6 +991,9 @@ class CompMapper(BaseMapper):
             self.sendFailure('Could not connect to KEGG')
             return
         
+        if self.killed:
+            return
+        
         # Related pathways...
         self._maxsubstatus = len(self.co)
         self.updateStatus()
@@ -927,6 +1004,9 @@ class CompMapper(BaseMapper):
             return
         self.cleanHandlers()
         self.resetSubStatus()
+        
+        if self.killed:
+            return
         
         # Pathways contents...
         # 1. Reactions
@@ -940,6 +1020,9 @@ class CompMapper(BaseMapper):
         self.cleanHandlers()
         self.resetSubStatus()
         
+        if self.killed:
+            return
+        
         # 2. Compounds
         self._maxsubstatus = len(self.pathdet)
         try:
@@ -949,6 +1032,9 @@ class CompMapper(BaseMapper):
             return
         self.cleanHandlers()
         self.resetSubStatus()
+        
+        if self.killed:
+            return
         
         # Pathway details
         self._maxsubstatus = len(self.pathdet)
@@ -961,6 +1047,9 @@ class CompMapper(BaseMapper):
         self.cleanHandlers()
         self.resetSubStatus()
         
+        if self.killed:
+            return
+        
         # Pathway HTML maps (!!!)
         self._maxsubstatus = len(self.pathdet)
         try:
@@ -970,6 +1059,9 @@ class CompMapper(BaseMapper):
             return
         self.cleanHandlers()
         self.resetSubStatus()
+        
+        if self.killed:
+            return
         
         # Reaction details
         self._maxsubstatus = len(self.reactdet)
@@ -981,6 +1073,9 @@ class CompMapper(BaseMapper):
         self.cleanHandlers()
         self.resetSubStatus()
         
+        if self.killed:
+            return
+        
         # Compound details
         self._maxsubstatus = len(self.compdet)
         try:
@@ -990,6 +1085,9 @@ class CompMapper(BaseMapper):
             return
         self.cleanHandlers()
         self.resetSubStatus()
+        
+        if self.killed:
+            return
         
         # Prepare the output object
         self.updateStatus()
@@ -1055,6 +1153,10 @@ class MapsFetcher(BaseKegg):
     
     def getMaps(self):
         for piece in get_span(self.colors, self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
             self.cleanHandlers()
             self._substatus += self.numThreads
             if self._substatus > self._maxsubstatus:
@@ -1088,6 +1190,10 @@ class MapsFetcher(BaseKegg):
     
     def getPages(self):
         for piece in get_span(self.colors, self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
             self.cleanHandlers()
             self._substatus += self.numThreads
             if self._substatus > self._maxsubstatus:
@@ -1118,9 +1224,15 @@ class MapsFetcher(BaseKegg):
         self.updateStatus()
         self.makeRoom()
         
+        if self.killed:
+            return
+        
         self.updateStatus()
         if not self.connect():
             self.sendFailure('Could not connect to KEGG')
+            return
+        
+        if self.killed:
             return
         
         if self.pictures:
@@ -1135,6 +1247,9 @@ class MapsFetcher(BaseKegg):
             self.resetSubStatus()
         else:
             self.updateStatus(send=False)
+            
+        if self.killed:
+            return
         
         if self.HTMLs:
             self._maxsubstatus = len(self.colors)

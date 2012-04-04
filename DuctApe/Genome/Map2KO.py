@@ -106,6 +106,10 @@ class LocalSearch(CommonMultiProcess):
             elif not short:lS.append(s)
         self._maxsubstatus = len(lS)
         for seqs in slice_it(lS,10):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return False
+            
             if len(seqs) == 0:
                 continue
             self._substatus += len(seqs)
@@ -151,6 +155,10 @@ class LocalSearch(CommonMultiProcess):
     
     def parseBlast(self):
         for out in self.out:
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return False
+        
             self._blast.parseBlast(out)
             # Catch the exceptions if the XML is dirty
             try:
@@ -193,6 +201,10 @@ class LocalSearch(CommonMultiProcess):
         
         while True:
             while not self._parallelresults.empty():
+                if self.killed:
+                    logger.debug('Exiting for a kill signal')
+                    return False
+                
                 self._substatus += 1
                 self.updateStatus(sub=True)
                 
@@ -209,10 +221,18 @@ class LocalSearch(CommonMultiProcess):
             if self.isTerminated():
                 break
             
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return False
+            
             self.sleeper.sleep(0.1)
             
         # Get the last messages
         while not self._parallelresults.empty():
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return False
+            
             self._substatus += 1
             self.updateStatus(sub=True)
             
@@ -234,6 +254,9 @@ class LocalSearch(CommonMultiProcess):
         self.updateStatus()
         self.makeRoom()
 
+        if self.killed:
+            return
+
         if not self.db:
             self.updateStatus()
             if not self.createDB():
@@ -241,6 +264,9 @@ class LocalSearch(CommonMultiProcess):
                 return
         else:
             self.updateStatus(send=False)
+            
+        if self.killed:
+            return
 
         self.updateStatus()
         if not self.runBlast():
@@ -248,11 +274,17 @@ class LocalSearch(CommonMultiProcess):
             return
         self.resetSubStatus()
         
+        if self.killed:
+            return
+        
         self.updateStatus()
         if not self.runBlast(True):
             self.sendFailure('RunBlast (short) failure')
             return
         self.resetSubStatus()
+        
+        if self.killed:
+            return
         
         self.updateStatus()
         if not self.parseBlast():
@@ -262,6 +294,9 @@ class LocalSearch(CommonMultiProcess):
             logger.warning('No protein in %s with homology to KO!'%self.query)
             self.sendFailure('No protein in %s with homology to KO!'%self.query)
             self.cleanUp()
+            return
+        
+        if self.killed:
             return
         
         if self.bbh:
@@ -278,6 +313,9 @@ class LocalSearch(CommonMultiProcess):
             self.updateStatus(send=False)   
         self.resetSubStatus()
         
+        if self.killed:
+            return
+        
         try:
             del self.results[None]
         except:pass
@@ -289,6 +327,9 @@ class LocalSearch(CommonMultiProcess):
             logger.warning('No protein in %s with BBH to KO!'%self.query)
             self.sendFailure('No protein in %s with BBH to KO!'%self.query)
             self.cleanUp()
+            return
+        
+        if self.killed:
             return
         
         self.updateStatus()

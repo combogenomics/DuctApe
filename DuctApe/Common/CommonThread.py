@@ -60,6 +60,7 @@ class CommonThread(threading.Thread):
         self._substatus = 0
         self._maxsubstatus = 0
         self._room = None
+        self.killed = False
         
     def getStatus(self):
         return self._statusDesc[self._status]
@@ -124,3 +125,6 @@ class CommonThread(threading.Thread):
             msg = Status(status=self._status,msg=self.getStatus(),
                          maxstatus=self.getMaxStatus())
         self.msg.put(msg)
+        
+    def kill(self):
+        self.killed = True

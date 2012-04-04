@@ -168,7 +168,15 @@ class PanGenomer(CommonMultiProcess):
                 self.addPoison()
                 
                 while True:
+                    if self.killed:
+                        logger.debug('Exiting for a kill signal')
+                        return
+                         
                     while not self._parallelresults.empty():
+                        if self.killed:
+                            logger.debug('Exiting for a kill signal')
+                            return
+                        
                         result = self._parallelresults.get()
                         
                         if not result[2]:
@@ -186,6 +194,10 @@ class PanGenomer(CommonMultiProcess):
                     self.sleeper.sleep(0.1)
                     
                 while not self._parallelresults.empty():
+                    if self.killed:
+                        logger.debug('Exiting for a kill signal')
+                        return
+                    
                     result = self._parallelresults.get()
                     
                     if not result[2]:
@@ -244,7 +256,15 @@ class PanGenomer(CommonMultiProcess):
                         self.addPoison()
                         
                         while True:
+                            if self.killed:
+                                logger.debug('Exiting for a kill signal')
+                                return
+                            
                             while not self._parallelresults.empty():
+                                if self.killed:
+                                    logger.debug('Exiting for a kill signal')
+                                    return
+                                
                                 result = self._parallelresults.get()
                                 
                                 if not result[2]:
@@ -262,6 +282,10 @@ class PanGenomer(CommonMultiProcess):
                             self.sleeper.sleep(0.1)
                         
                         while not self._parallelresults.empty():
+                            if self.killed:
+                                logger.debug('Exiting for a kill signal')
+                                return
+                            
                             result = self._parallelresults.get()
                             
                             if not result[2]:
@@ -292,12 +316,18 @@ class PanGenomer(CommonMultiProcess):
         self.updateStatus()
         self.makeRoom()
         
+        if self.killed:
+            return
+        
         self.updateStatus()
         if not self.createDB():
             self.sendFailure('Create DBs failure!')
             self.cleanUp()
             return
         self.resetSubStatus()
+        
+        if self.killed:
+            return
             
         self.updateStatus()
         if not self.serialBBH():
@@ -307,8 +337,14 @@ class PanGenomer(CommonMultiProcess):
             return
         self.resetSubStatus()
         
+        if self.killed:
+            return
+        
         self.updateStatus()
         self.packPanGenome()
+        
+        if self.killed:
+            return
         
         self.updateStatus()
         self.cleanUp()

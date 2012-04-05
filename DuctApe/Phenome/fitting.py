@@ -9,6 +9,10 @@ biolog data fitting functions
 from DuctApe.Common.utils import compress, smooth
 from scipy.optimize.minpack import curve_fit
 import numpy as np
+# No country for warnings
+import scipy as sp
+sp.seterr(all='ignore')
+#
 
 __author__ = "Marco Galardini"
 

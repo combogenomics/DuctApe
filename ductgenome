@@ -275,11 +275,10 @@ def getOptions():
 
     parser_add = subparsers.add_parser('add',
                            help='Add a single genome')
+    parser_add.add_argument('file', action="store",
+                            help='Protein fasta file')
     parser_add.add_argument('orgID', action='store',
                             help='Organism ID')
-    parser_add.add_argument('-f', metavar='file', action="store",
-                            required = True,
-                            help='Protein fasta file')
     parser_add.add_argument('-n', metavar='name', action="store",
                             default = '',
                             help='Organism name')
@@ -296,14 +295,13 @@ def getOptions():
 
     parser_add_mut = subparsers.add_parser('add-mut',
                                help='Add a mutant of an existing genome')
+    parser_add_mut.add_argument('mutfasta', action="store",
+                            help='Mutated genes fasta file')
     parser_add_mut.add_argument('mutID', action='store',
                             help='Mutant organism ID')
     parser_add_mut.add_argument('-m', metavar='mutparent', action="store",
                             required = True,
                             help='This mutant parent orgID')
-    parser_add_mut.add_argument('-f', metavar='mutfasta', action="store",
-                            required = True,
-                            help='Mutated genes fasta file')
     parser_add_mut.add_argument('-k', metavar='kind', action="store",
                             choices = ['deletion', 'insertion'],
                             default = 'deletion',

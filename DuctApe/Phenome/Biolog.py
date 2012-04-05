@@ -613,9 +613,6 @@ class BiologZero(object):
             logging.info('Normal zero subtraction')
         
         for plate in self.data:
-            self._substatus += 1
-            self.updateStatus(sub=True)
-            
             if self.blank:
                 self._zeroBlank(plate)
             else:

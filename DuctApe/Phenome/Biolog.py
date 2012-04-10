@@ -11,7 +11,7 @@ import matplotlib
 matplotlib.use('Agg')
 #
 from DuctApe.Common.CommonThread import CommonThread
-from DuctApe.Phenome.fitting import fitData
+from DuctApe.Phenome.fitting import fitData, getFlex, getPlateau
 from DuctApe.Common.utils import smooth, compress
 from scipy.integrate import trapz
 import Queue
@@ -433,23 +433,42 @@ class BiologWell(object):
         ydata = np.array( [self.signals[x] for x in xdata] )
         self.plateau, self.slope, self.lag, v, y0 = fitData(xdata, ydata)
         
-        # If any of the values are null generate them by hand
-        if not y0:
-            self.plateau = ydata.max()
-            self.slope = 0
-            self.lag = xdata.max()
-
         # Trapezoid integration for area calculation
         self.area = trapz(y = ydata, x = xdata)
         
-        # Check the plateu and lag parameters
-        if self.lag >= 0:
-            y0 = - (self.lag * self.slope)
+        # If any of the values are null generate them by hand
+        if not y0:
+            self.plateau = 0
+            self.slope = 0
+            self.lag = 0
+            return
+        
+        # Check the fitting parameters
+        if self.slope < 0 or self.slope > ydata.max() or self.plateau < 0:
+            self.plateau = 0
+            self.lag = 0
+            self.slope = 0.0
         else:
-            y0 = 0
-        xplateau = (self.plateau - y0) / self.slope
-        if xplateau > xdata.max():
-            self.plateau = ydata.max()
+            if self.lag >= 0:
+                y0 = - (self.lag * self.slope)
+            else:
+                y0 = 0
+                self.lag = 0
+            xplateau = (self.plateau - y0) / self.slope
+            if xplateau > xdata.max():
+                self.plateau = getPlateau(xdata, ydata)
+                self.lag = getFlex(xdata, ydata)
+                
+                xplat = list(xdata)[list(ydata).index(self.plateau)]
+                ylag = list(ydata)[len(xdata) - list(xdata)[::-1].index(self.lag) - 1]
+                
+                self.slope = np.sqrt(pow((xplat - self.lag), 2) +
+                                     pow((self.plateau - ylag), 2))
+                
+                if self.slope < 0 or self.slope > ydata.max() or self.plateau < 0:
+                    self.plateau = 0
+                    self.lag = 0
+                    self.slope = 0.0
         
 class BiologParser(object):
     '''

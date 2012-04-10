@@ -73,6 +73,33 @@ def getFlex(x, y):
     
     return flex
 
+def getPlateau(x, y):
+    '''
+    Given two axes (with the same length!) returns a guess of the plateau point
+    '''
+    if len(x) != len(y):
+        raise ValueError('Axes have different sizes (x: %d, y: %d)'%(len(x),len(y)))
+    
+    ymax = y.max()
+    
+    diffs = []
+    indexes = range(len(y))
+    
+    for i in indexes:
+        if i+1 not in indexes:
+            continue
+        diffs.append(y[i+1] - y[i])
+    diffs = np.array( diffs )
+    
+    ymax = y[-1]
+    for i in indexes:
+        if y[i] > (ymax - diffs.std()) and y[i] < (ymax + diffs.std()):
+            ymax = y[i]
+            break
+    
+    return ymax
+    
+
 def rect(x, a, y0):
     '''
     yep, that's a rect!
@@ -95,7 +122,7 @@ def fitData(xdata, ydata):
     retries = 3
     while retries > 0:
         # Initial guesses for the output parameters
-        p0 = [ydata.max(), 4.0, getFlex(xdata, ydata), 0.1, 0]
+        p0 = [getPlateau(xdata, ydata), 4.0, getFlex(xdata, ydata), 0.1, 0]
         if retries == 1:
             p0[2] = 0
         try:

@@ -139,9 +139,9 @@ def fitData(xdata, ydata):
                 except:
                     retries -= 1
                     # Compress again the data
-                    xdata = np.array(compress(xdata, span=4))
-                    xdata = np.array(smooth(xdata, window_len = len(xdata)/2, 
-                              window = 'blackman'))
                     ydata = np.array(compress(ydata, span=4))
+                    ydata = np.array(smooth(ydata, window_len = len(ydata)/2, 
+                              window = 'blackman'))
+                    xdata = np.array(compress(xdata, span=4))
     
     return params

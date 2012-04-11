@@ -43,7 +43,7 @@ def dadd(options, wdir, project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
-    return dGenomeAdd(project, options.orgID, options.f, options.n, options.d)
+    return dGenomeAdd(project, options.orgID, options.file, options.n, options.d)
 
 def daddDir(options, wdir, project):
     if not touchProject(project):
@@ -58,7 +58,7 @@ def daddMut(options, wdir, project):
                        __prog__)
         return False
     return dGenomeMutAdd(project, options.mutID, options.m,
-                         options.f,
+                         options.mutfasta,
                          options.k, options.n, options.d)
 
 def dstart(options, wdir, project):

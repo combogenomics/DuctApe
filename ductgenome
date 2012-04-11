@@ -9,6 +9,7 @@ from DuctApe import __version__
 from DuctApe.Actions import dInit, touchProject, dGenomeClear, dGenomeRemove, \
     dGenomeAdd, dGenomeDirAdd, dGenomeMutAdd, dGetGenomeSteps, prepareDir, \
     dPanGenomeAdd
+from DuctApe.Common.ColorLog import ColorFormatter
 from DuctApe.Common.Database import Organism, Project, Genome, Kegg
 from DuctApe.Genome.Map2KO import LocalSearch, OnlineSearch
 from DuctApe.Genome.PanGenome import PanGenomer
@@ -365,8 +366,7 @@ logger.setLevel(logging.DEBUG)
 
 ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(message)s',
-                            '%H:%M:%S')
+formatter = ColorFormatter('%(asctime)s - $COLOR%(message)s$RESET','%H:%M:%S')
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 

@@ -59,6 +59,7 @@ zeroWell = 'A01'
 ################################################################################
 # Classes
 
+# TODO: Deprecated?
 class BiologExp(object):
     '''
     Class BiologExp
@@ -73,10 +74,159 @@ class BiologExp(object):
         self.active = bool(active)
         self.prediction = prediction
         self.zero = bool(zero)
+#
 
-class PlateCarrier(object):
+class Well(object):
     '''
-    Class PlateCarrier
+    Class Well
+    Contains signals for a particular plate/well
+    '''
+    def __init__(self, plate_id, well_id):
+        self.plate_id = plate_id
+        self.well_id = well_id.replace(' ','')
+        self.signals = {}
+        self.smoothed = False
+        self.compressed = False
+        
+        # Parameters
+        self.max = None
+        self.min = None
+        self.avg_height = None
+        self.plateau = None
+        self.slope = None
+        self.lag = None
+        self.area = None
+        
+    def addSignal(self,time,signal):
+        self.signals[time] = signal
+        
+    def fillMissing(self, times):
+        '''
+        Given a times list, fills the missing values with 0
+        '''
+        for hour in sorted(times):
+            if hour not in self.signals:
+                self.signals[hour] = 0.1
+    
+    def getMax(self):
+        '''
+        Maximum signal
+        '''
+        return max(self.signals.values())
+    
+    def getMin(self):
+        '''
+        Minimum signal
+        '''
+        return min(self.signals.values())
+    
+    def smooth(self, window_len = 11, window_type = 'hanning',
+               forceZero = True):
+        '''
+        Apply a smoothing algorithm to the signals
+        Really useful for clearer plots and other features
+        Available windows: 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
+        '''
+        if not self.smoothed:
+            signals = [self.signals[hour] for hour in sorted(self.signals.keys())]
+            smoothed = smooth(signals, window_len = window_len, 
+                              window = window_type)
+            
+            for idx in range(len(self.signals)):
+                hour = sorted(self.signals.keys())[idx]
+                if smoothed[idx] < 0 and forceZero:
+                    self.signals[hour] = 0.1
+                else:
+                    self.signals[hour] = smoothed[idx]
+            
+            self.smoothed = True
+        else:
+            logging.warning('Plate %s, Well %s was already smoothed'%
+                          (self.plate_id, self.well_id))
+            
+    def compress(self, span = 3):
+        '''
+        Reduce the amount of signals
+        This function should be called BEFORE smooth
+        '''
+        if self.smoothed:
+            logging.warning('Plate %s, Well %s should be smoothed AFTER compression'%
+                          (self.plate_id, self.well_id))
+        
+        if not self.compressed:
+            times = compress( sorted(self.signals.keys()), span = span)
+            toremove = [t for t in self.signals.keys() if t not in times]
+            for t in toremove:
+                del self.signals[t]
+            
+            self.compressed = True
+        else:
+            logging.warning('Plate %s, Well %s was already compressed'%
+                          (self.plate_id, self.well_id))
+            
+    def calculateParameters(self,
+                            noCompress = False, noSmooth = False):
+        '''
+        Populates the parameters values for the experiment
+        By default compression and smoothing are applied to save some time
+        '''
+        if not self.compressed and not noCompress:
+            self.compress()
+        if not self.smoothed and not noSmooth:
+            self.smooth(window_len=len(self.signals)/3, window_type='blackman')
+            
+        # Let's start with the easy ones!
+        self.max = self.getMax()
+        
+        self.min = self.getMin()
+        
+        self.height = np.array( self.signals.values() ).mean()
+        
+        # Let's go with the function fitting
+        xdata = np.array( [x for x in sorted(self.signals.keys())] )
+        ydata = np.array( [self.signals[x] for x in xdata] )
+        self.plateau, self.slope, self.lag, v, y0 = fitData(xdata, ydata)
+        
+        # Trapezoid integration for area calculation
+        self.area = trapz(y = ydata, x = xdata)
+        
+        # If any of the values are null generate them by hand
+        if not y0:
+            self.plateau = 0
+            self.slope = 0
+            self.lag = 0
+            return
+        
+        # Check the fitting parameters
+        if self.slope < 0 or self.slope > ydata.max() or self.plateau < 0:
+            self.plateau = 0
+            self.lag = 0
+            self.slope = 0.0
+        else:
+            if self.lag >= 0:
+                y0 = - (self.lag * self.slope)
+            else:
+                y0 = 0
+                self.lag = 0
+            xplateau = (self.plateau - y0) / self.slope
+            if xplateau > xdata.max():
+                self.plateau = getPlateau(xdata, ydata)
+                self.lag = getFlex(xdata, ydata)
+                
+                xplat = list(xdata)[list(ydata).index(self.plateau)]
+                ylag = list(ydata)[len(xdata) - list(xdata)[::-1].index(self.lag) - 1]
+                
+                self.slope = np.sqrt(pow((xplat - self.lag), 2) +
+                                     pow((self.plateau - ylag), 2))
+                
+                if self.slope < 0 or self.slope > ydata.max() or self.plateau < 0:
+                    self.plateau = 0
+                    self.lag = 0
+                    self.slope = 0.0
+
+class SinglePlate(object):
+    '''
+    Class SinglePlate
     Contains informations about a particular plate
     '''
     def __init__(self):
@@ -101,12 +251,11 @@ class PlateCarrier(object):
         '''
         return max( [self.data[well].getMax() for well in self.data] )
 
-class PlotCarrier(object):
+class Plate(object):
     '''
-    Class PlotCarrier
+    Class Plate
     Contains all the distinct strains data for a particular plate
     There can be more than one replica for each strain
-    An averaged plate can be added
     '''
     def __init__(self, plate_id, plate_name = '', smooth = True, window = 11,
                  alpha = 0.5, compress = 0,
@@ -321,160 +470,12 @@ class PlotCarrier(object):
         self.strains[strain].append(data)
         
         return True
-
-class BiologWell(object):
-    '''
-    Class BiologWell
-    Contains signals for a particular plate/well
-    '''
-    def __init__(self, plate_id, well_id):
-        self.plate_id = plate_id
-        self.well_id = well_id.replace(' ','')
-        self.signals = {}
-        self.smoothed = False
-        self.compressed = False
-        
-        # Parameters
-        self.max = None
-        self.min = None
-        self.avg_height = None
-        self.plateau = None
-        self.slope = None
-        self.lag = None
-        self.area = None
-        
-    def addSignal(self,time,signal):
-        self.signals[time] = signal
-        
-    def fillMissing(self, times):
-        '''
-        Given a times list, fills the missing values with 0
-        '''
-        for hour in sorted(times):
-            if hour not in self.signals:
-                self.signals[hour] = 0.1
-    
-    def getMax(self):
-        '''
-        Maximum signal
-        '''
-        return max(self.signals.values())
-    
-    def getMin(self):
-        '''
-        Minimum signal
-        '''
-        return min(self.signals.values())
-    
-    def smooth(self, window_len = 11, window_type = 'hanning',
-               forceZero = True):
-        '''
-        Apply a smoothing algorithm to the signals
-        Really useful for clearer plots and other features
-        Available windows: 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
-        '''
-        if not self.smoothed:
-            signals = [self.signals[hour] for hour in sorted(self.signals.keys())]
-            smoothed = smooth(signals, window_len = window_len, 
-                              window = window_type)
-            
-            for idx in range(len(self.signals)):
-                hour = sorted(self.signals.keys())[idx]
-                if smoothed[idx] < 0 and forceZero:
-                    self.signals[hour] = 0.1
-                else:
-                    self.signals[hour] = smoothed[idx]
-            
-            self.smoothed = True
-        else:
-            logging.warning('Plate %s, Well %s was already smoothed'%
-                          (self.plate_id, self.well_id))
-            
-    def compress(self, span = 3):
-        '''
-        Reduce the amount of signals
-        This function should be called BEFORE smooth
-        '''
-        if self.smoothed:
-            logging.warning('Plate %s, Well %s should be smoothed AFTER compression'%
-                          (self.plate_id, self.well_id))
-        
-        if not self.compressed:
-            times = compress( sorted(self.signals.keys()), span = span)
-            toremove = [t for t in self.signals.keys() if t not in times]
-            for t in toremove:
-                del self.signals[t]
-            
-            self.compressed = True
-        else:
-            logging.warning('Plate %s, Well %s was already compressed'%
-                          (self.plate_id, self.well_id))
-            
-    def calculateParameters(self,
-                            noCompress = False, noSmooth = False):
-        '''
-        Populates the parameters values for the experiment
-        By default compression and smoothing are applied to save some time
-        '''
-        if not self.compressed and not noCompress:
-            self.compress()
-        if not self.smoothed and not noSmooth:
-            self.smooth(window_len=len(self.signals)/3, window_type='blackman')
-            
-        # Let's start with the easy ones!
-        self.max = self.getMax()
-        
-        self.min = self.getMin()
-        
-        self.height = np.array( self.signals.values() ).mean()
-        
-        # Let's go with the function fitting
-        xdata = np.array( [x for x in sorted(self.signals.keys())] )
-        ydata = np.array( [self.signals[x] for x in xdata] )
-        self.plateau, self.slope, self.lag, v, y0 = fitData(xdata, ydata)
-        
-        # Trapezoid integration for area calculation
-        self.area = trapz(y = ydata, x = xdata)
-        
-        # If any of the values are null generate them by hand
-        if not y0:
-            self.plateau = 0
-            self.slope = 0
-            self.lag = 0
-            return
-        
-        # Check the fitting parameters
-        if self.slope < 0 or self.slope > ydata.max() or self.plateau < 0:
-            self.plateau = 0
-            self.lag = 0
-            self.slope = 0.0
-        else:
-            if self.lag >= 0:
-                y0 = - (self.lag * self.slope)
-            else:
-                y0 = 0
-                self.lag = 0
-            xplateau = (self.plateau - y0) / self.slope
-            if xplateau > xdata.max():
-                self.plateau = getPlateau(xdata, ydata)
-                self.lag = getFlex(xdata, ydata)
-                
-                xplat = list(xdata)[list(ydata).index(self.plateau)]
-                ylag = list(ydata)[len(xdata) - list(xdata)[::-1].index(self.lag) - 1]
-                
-                self.slope = np.sqrt(pow((xplat - self.lag), 2) +
-                                     pow((self.plateau - ylag), 2))
-                
-                if self.slope < 0 or self.slope > ydata.max() or self.plateau < 0:
-                    self.plateau = 0
-                    self.lag = 0
-                    self.slope = 0.0
         
 class BiologParser(object):
     '''
     Class BiologParser
     Takes a csv output file and returns a series of objects
-    plates [PlateCarrier] --> well_id --> BiologWell
+    plates [SinglePlate] --> well_id --> Well
     There could be more than one organism for each biolog file!
     '''
     _start = 'Data File'
@@ -507,7 +508,7 @@ class BiologParser(object):
                     self.plates.append(plate)
                 data = False
                 wells = []
-                plate = PlateCarrier()
+                plate = SinglePlate()
             elif self._plate in line[0].strip():
                 if line[1].strip() in acceptedPlates:
                     plate.plate_id = line[1].strip()
@@ -527,7 +528,7 @@ class BiologParser(object):
                     if i == 0:continue
                     x = line[i]
                     if x == '':continue
-                    plate.data[x.strip()] = BiologWell(plate.plate_id, x.strip())
+                    plate.data[x.strip()] = Well(plate.plate_id, x.strip())
                     plate._idx[i] = x.strip()
                     wells.append(x.strip())
             elif data:
@@ -544,11 +545,11 @@ class BiologParser(object):
 class BiologZero(object):
     '''
     Class BiologZero
-    Takes a list of PlateCarrier objects and subtract the zero signal
+    Takes a list of SinglePlate objects and subtract the zero signal
     Two modes: 
         - normal (subtract the first well)
         - blank plate (subtract the zero plate --> zero list)
-    plates [PlateCarrier] --> well_id --> BiologWell
+    plates [SinglePlate] --> well_id --> Well
     '''
     def __init__(self, data, blank=False, blankData=[], 
                  forceZero = True):
@@ -644,7 +645,7 @@ class BiologZero(object):
 class BiologPlot(CommonThread):
     '''
     Class BiologPlot
-    Takes a list of PlateCarrier objects and creates some plots
+    Takes a list of SinglePlate objects and creates some plots
     Can work in parallelization
     '''
     _statusDesc = {0:'Not started',
@@ -735,7 +736,7 @@ class BiologPlot(CommonThread):
             else:
                 plate_name = ''
             if plate.plate_id not in self.results:
-                self.results[plate.plate_id] = PlotCarrier(plate.plate_id, 
+                self.results[plate.plate_id] = Plate(plate.plate_id, 
                                                     plate_name = plate_name,
                                                     smooth = self.smooth,
                                                     window = self.window,

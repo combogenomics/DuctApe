@@ -44,7 +44,11 @@ class ColorFormatter(logging.Formatter):
 
     def format(self, record):
         if not self.use_it:
-            return logging.Formatter.format(self, record)
+            message = logging.Formatter.format(self, record)
+            message   = message.replace("$RESET", '')\
+                           .replace("$BOLD",  '')\
+                           .replace("$COLOR", '')
+            return message
         levelname = record.levelname
         color     = COLOR_SEQ % (30 + COLORS[levelname])
         message   = logging.Formatter.format(self, record)

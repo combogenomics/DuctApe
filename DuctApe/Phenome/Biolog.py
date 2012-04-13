@@ -146,8 +146,17 @@ class Well(object):
         else:
             logging.warning('Plate %s, Well %s was already compressed'%
                           (self.plate_id, self.well_id))
+    
+    def getClusterParams(self):
+        '''
+        Get the parameters for the clustering step
+        '''
+        if not self.max:
+            self.calculateParameters()
             
-    def calculateParameters(self,
+        return [self.max, self.area, self.plateau, self.lag, self.slope]
+    
+    def calculateParams(self,
                             noCompress = False, noSmooth = False):
         '''
         Populates the parameters values for the experiment
@@ -223,17 +232,46 @@ class SinglePlate(object):
         # Added by the system to avoid confusion
         self.strain = None
         
-        # Raw data --> well_id -> BiologWell objects
+        # Replica management
+        self.replica = None
+        
+        # Raw data --> well_id -> Well objects
         self.data = {}
-        # Used internaly, index in Hours row --> well_id
+        # Used internally, index in Hours row --> well_id
         self._idx = {}
+        
+    def getWell(self):
+        '''
+        Generator to the single wells
+        '''
+        for well_id, well in self.data.iteritems():
+            yield well
         
     def getMax(self):
         '''
         Maximum signal for the entire plate
         '''
         return max( [self.data[well].getMax() for well in self.data] )
-
+    
+    def calculateParams(self):
+        '''
+        Iterate over each well: calculate parameters and return the
+        A generator is returned
+        '''
+        for well_id, well in self.data.iteritems():
+            if not well.max:
+                well.calculateParams()
+                
+    def getClusterParams(self):
+        '''
+        Generator to the single wells parameters for clustering
+        '''
+        for well_id, well in self.data.iteritems():
+            if not well.max:
+                well.calculateParameters()
+                
+            yield [self.plate_id] + [well.well_id] + [self.strain] + well.getClusterParams()
+            
 class Plate(object):
     '''
     Class Plate
@@ -265,7 +303,31 @@ class Plate(object):
         self.figure = None
         
         self._figidx = 1
+    
+    def getMax(self):
+        return max([plate.getMax() 
+                    for strain, plates in self.strains.iteritems()
+                    for plate in plates])
         
+    def calculateParams(self):
+        '''
+        Iterate over the single wells and calculate the parameters
+        '''
+        for strain, plates in self.strains.iteritems():
+            for plate in plates:
+                plate.calculateParams()
+    
+    def getClusterParams(self):
+        '''
+        Generator to the single well parameters for clustering
+        '''
+        for strain, plates in self.strains.iteritems():
+            for plate in plates:
+                plate.calculateParams()
+                
+                for params in plate.getClusterParams():
+                    yield [plate.replica] + params
+    
     def addWellTitles(self, dWell):
         '''
         Add all the titles of the current plate in the form of a dictionary
@@ -441,7 +503,7 @@ class Plate(object):
     
     def addData(self, strain, data):
         '''
-        Add a PlateCarrier object regarding a particular strain
+        Add a SinglePlate object regarding a particular strain
         A check on the plate_id is performed!
         '''
         if data.plate_id != self.plate_id:
@@ -450,10 +512,21 @@ class Plate(object):
         
         if strain not in self.strains:
             self.strains[strain] = []
+        
+        data.replica = len(self.strains)
+
         self.strains[strain].append(data)
         
         return True
-        
+
+class Experiment(object):
+    '''
+    Class Experiment
+    Contains all the data (including replicas) for a distinct biolog experiment
+    Can perform clusterizzation, replica management
+    '''
+    pass
+
 class BiologParser(object):
     '''
     Class BiologParser
@@ -661,7 +734,7 @@ class BiologPlot(CommonThread):
         self.maxsig = float(maxsig)
         
         # Results
-        # PLate_id --> PlotCarrier
+        # PLate_id --> Plate
         self.results = {}
         # Single well plot
         self.well = None

@@ -59,23 +59,6 @@ zeroWell = 'A01'
 ################################################################################
 # Classes
 
-# TODO: Deprecated?
-class BiologExp(object):
-    '''
-    Class BiologExp
-    General data about a particular well to be stored
-    '''
-    def __init__(self, plate_id, well_id, org_id, replica, active = False,
-               prediction = None, zero = False):
-        self.plate_id = plate_id
-        self.well_id = well_id
-        self.org_id = org_id
-        self.replica = int(replica)
-        self.active = bool(active)
-        self.prediction = prediction
-        self.zero = bool(zero)
-#
-
 class Well(object):
     '''
     Class Well

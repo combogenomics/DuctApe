@@ -523,9 +523,17 @@ class Experiment(object):
     '''
     Class Experiment
     Contains all the data (including replicas) for a distinct biolog experiment
-    Can perform clusterizzation, replica management
+    Can perform clusterization, replica management
+    
+    Input: plates [Plate object] 
     '''
-    pass
+    def __init__(self, exp_id='', name='', plates=[]):
+        self.exp_id = exp_id
+        self.name = name
+        
+        self.plates = plates
+        
+    # TODO getMax, calcParameters, clusterize, checkclusters
 
 class BiologParser(object):
     '''

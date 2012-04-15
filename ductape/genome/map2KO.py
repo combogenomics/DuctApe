@@ -7,9 +7,9 @@ Genome library
 Handle a KO search on a local machine (Blast-BBH) or online (KAAS)
 """
 from Bio import SeqIO
-from DuctApe.Common.CommonMultiProcess import CommonMultiProcess
-from DuctApe.Common.utils import slice_it
-from DuctApe.Genome.Blast import Blaster, RunBBH
+from ductape.common.commonmultiprocess import CommonMultiProcess
+from ductape.common.utils import slice_it
+from ductape.genome.blast import Blaster, RunBBH
 import Queue
 import logging
 import os

@@ -6,7 +6,7 @@ DuctApe Library
 
 Utilities for command line DuctApe programs
 """
-from DuctApe.Common.TerminalProgress import ProgressBar, TerminalController
+from ductape.common.terminalprogress import ProgressBar, TerminalController
 import logging
 import sys
 import time

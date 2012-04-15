@@ -7,8 +7,8 @@ Common Library
 KeggAPI handles the connection to KEGG API through wsdl
 KoMapper handles reactions, pathways and compounds retrieval on Ko IDs 
 """
-from DuctApe.Common.CommonThread import CommonThread
-from DuctApe.Common.utils import get_span
+from ductape.common.commonthread import CommonThread
+from ductape.common.utils import get_span
 from SOAPpy import WSDL
 import Queue
 import logging

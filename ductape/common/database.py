@@ -7,8 +7,8 @@ Common library
 Database wrappers
 """
 from Bio import SeqIO
-from DuctApe.Common.dbstrings import dbcreate, dbboost
-from DuctApe.Common.utils import get_span
+from ductape.common.dbstrings import dbcreate, dbboost
+from ductape.common.utils import get_span
 import logging
 import sqlite3
 import time

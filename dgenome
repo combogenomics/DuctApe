@@ -5,16 +5,16 @@ DuctGenome
 Analyze genome(s) and map them to KEGG
 """
 from Bio import SeqIO
-from DuctApe import __version__
-from DuctApe.Actions import dInit, touchProject, dGenomeClear, dGenomeRemove, \
+from ductape import __version__
+from ductape.actions import dInit, touchProject, dGenomeClear, dGenomeRemove, \
     dGenomeAdd, dGenomeDirAdd, dGenomeMutAdd, dGetGenomeSteps, prepareDir, \
     dPanGenomeAdd
-from DuctApe.Common.ColorLog import ColorFormatter
-from DuctApe.Common.Database import Organism, Project, Genome, Kegg
-from DuctApe.Genome.Map2KO import LocalSearch, OnlineSearch
-from DuctApe.Genome.PanGenome import PanGenomer
-from DuctApe.Kegg.Kegg import KoMapper
-from DuctApe.Terminal import RunThread
+from ductape.common.colorlog import ColorFormatter
+from ductape.common.database import Organism, Project, Genome, Kegg
+from ductape.genome.map2KO import LocalSearch, OnlineSearch
+from ductape.genome.pangenome import PanGenomer
+from ductape.kegg.kegg import KoMapper
+from ductape.terminal import RunThread
 import argparse
 import logging.handlers
 import os

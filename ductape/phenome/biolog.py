@@ -10,9 +10,9 @@ Classes to handle Biolog data
 import matplotlib
 matplotlib.use('Agg')
 #
-from DuctApe.Common.CommonThread import CommonThread
-from DuctApe.Phenome.fitting import fitData, getFlex, getPlateau
-from DuctApe.Common.utils import smooth, compress
+from ductape.common.commonthread import CommonThread
+from ductape.phenome.fitting import fitData, getFlex, getPlateau
+from ductape.common.utils import smooth, compress
 from scipy.integrate import trapz
 import Queue
 import csv

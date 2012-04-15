@@ -6,7 +6,7 @@ Phenome library
 
 biolog data fitting functions
 """
-from DuctApe.Common.utils import compress, smooth
+from ductape.common.utils import compress, smooth
 from scipy.optimize.minpack import curve_fit
 import numpy as np
 # No country for warnings

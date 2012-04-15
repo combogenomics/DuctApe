@@ -6,7 +6,7 @@ Common library
 
 MultiProcess base structure
 """
-from DuctApe.Common.CommonThread import CommonThread
+from ductape.common.commonthread import CommonThread
 from multiprocessing.queues import Queue
 import logging
 import multiprocessing

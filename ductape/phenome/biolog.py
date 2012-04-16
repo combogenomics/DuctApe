@@ -566,7 +566,7 @@ class Experiment(object):
         Get the maximum signal value of the whole experiment
         '''
         return max([plate.getMax()
-                    for plate_id, Plate in self.plates.iteritems()
+                    for Plate in self.plates
                     for strain, plates in Plate.strains.iteritems()
                     for plate in plates])
         

@@ -9,12 +9,15 @@ biolog data fitting functions
 from ductape.common.utils import compress, smooth
 from scipy.optimize.minpack import curve_fit
 import numpy as np
+import logging
 # No country for warnings
 import scipy as sp
 sp.seterr(all='ignore')
 #
 
 __author__ = "Marco Galardini"
+
+logger = logging.getLogger('fitting')
 
 def logistic(x, A, u, d, v, y0):
     '''
@@ -129,15 +132,19 @@ def fitData(xdata, ydata):
             params, pcov = curve_fit(gompertz, xdata, ydata, p0 = p0)
             break
         except:
+            logger.debug('Gompertz fit failed')
             try:
                 params, pcov = curve_fit(logistic, xdata, ydata, p0 = p0)
                 break
             except:
+                logger.debug('Logistic fit failed')
                 try:
                     params, pcov = curve_fit(richards, xdata, ydata, p0 = p0)
                     break
                 except:
+                    logger.debug('Richards fit failed')
                     retries -= 1
+                    logger.debug('%d retries left'%retries)
                     # Compress again the data
                     ydata = np.array(compress(ydata, span=4))
                     ydata = np.array(smooth(ydata, window_len = len(ydata)/2, 

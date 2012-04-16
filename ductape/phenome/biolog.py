@@ -11,8 +11,9 @@ import matplotlib
 matplotlib.use('Agg')
 #
 from ductape.common.commonthread import CommonThread
-from ductape.phenome.fitting import fitData, getFlex, getPlateau
 from ductape.common.utils import smooth, compress
+from ductape.phenome.clustering import mean, kmeans
+from ductape.phenome.fitting import fitData, getFlex, getPlateau
 from scipy.integrate import trapz
 import Queue
 import csv
@@ -79,6 +80,9 @@ class Well(object):
         self.slope = None
         self.lag = None
         self.area = None
+        
+        # Relative activity index
+        self.activity = None
         
     def addSignal(self,time,signal):
         self.signals[time] = signal
@@ -152,9 +156,15 @@ class Well(object):
         Get the parameters for the clustering step
         '''
         if not self.max:
-            self.calculateParameters()
+            self.calculateParams()
             
-        return [self.max, self.area, self.plateau, self.lag, self.slope]
+        return [self.max, self.area, self.height, self.lag]
+    
+    def getFakeParams(self):
+        '''
+        Get some fake zero params
+        '''
+        return [0.0, 0.0, 0.0, 0.0]
     
     def calculateParams(self,
                             noCompress = False, noSmooth = False):
@@ -268,7 +278,7 @@ class SinglePlate(object):
         '''
         for well_id, well in self.data.iteritems():
             if not well.max:
-                well.calculateParameters()
+                well.calculateParams()
                 
             yield [self.plate_id] + [well.well_id] + [self.strain] + well.getClusterParams()
             
@@ -513,7 +523,7 @@ class Plate(object):
         if strain not in self.strains:
             self.strains[strain] = []
         
-        data.replica = len(self.strains)
+        data.replica = len(self.strains[strain])
 
         self.strains[strain].append(data)
         
@@ -525,15 +535,148 @@ class Experiment(object):
     Contains all the data (including replicas) for a distinct biolog experiment
     Can perform clusterization, replica management
     
-    Input: plates [Plate object] 
+    Input: plates [Plate object]
     '''
-    def __init__(self, exp_id='', name='', plates=[]):
+    class well(object):
+        pass
+    
+    def __init__(self, exp_id='', name='', plates=[], zero=False):
         self.exp_id = exp_id
         self.name = name
         
-        self.plates = plates
+        self.zero = zero
         
-    # TODO getMax, calcParameters, clusterize, checkclusters
+        self.plates = {}
+        for plate in plates:
+            if not self.addPlate(plate):
+                self.plates = {}
+                break
+    
+    def addPlate(self, plate):
+        if plate.plate_id not in self.plates:
+            self.plates[plate.plate_id] = plate
+            return True
+        else:
+            logger.warning('Plate %s already present! Please retry...'%
+                                    plate.plate_id)
+            return False
+        
+    def getMax(self):
+        '''
+        Get the maximum signal value of the whole experiment
+        '''
+        return max([plate.getMax()
+                    for Plate in self.plates
+                    for strain, plates in Plate.strains.iteritems()
+                    for plate in plates])
+        
+    def calculateParams(self):
+        '''
+        Generator to the single well parameters for clustering
+        '''
+        for plate_id in self.plates:
+            Plate = self.plates[plate_id]
+            for params in Plate.getClusterParams():
+                yield params
+    
+    def setNoActivity(self):
+        '''
+        All the wells have no activity!
+        '''
+        for plate_id in self.plates:
+            Plate = self.plates[plate_id]
+            for strain, plates in Plate.strains.iteritems():
+                for plate in plates:
+                    for well in plate.data:
+                        well.activity = 0
+    
+    def clusterize(self, save_fig=False):
+        '''
+        Perform the biolog data clusterizzation
+        The data is divided in two chunks if Zero subtraction has been done
+        '''
+        if self.zero:
+            dWells = {'zero':{},
+                      'nonzero':{}}
+            dParams = {'zero':[],
+                       'nonzero':[]}
+            iNonZero = 0
+            iZero = 0
+        else:
+            dWells = {'nonzero':{}}
+            dParams = {'nonzero':[]}
+            iNonZero = 0
+        
+        for param in self.calculateParams():
+            who = self.well()
+            who.replica = param[0]
+            who.plate_id = param[1]
+            who.well_id = param[2]
+            who.strain = param[3]
+            
+            if self.zero and who.plate_id in zeroPlates:
+                dWells['zero'][iZero] = who
+                dParams['zero'].append(param[4:])
+                iZero += 1
+            else:
+                dWells['nonzero'][iNonZero] = who
+                dParams['nonzero'].append(param[4:])
+                iNonZero += 1
+        
+        # Add some fake wells with no signal to make sure we will got a 
+        # "zero cluster"
+        if self.zero  and len(dParams['zero']) >= 1:
+            for i in range(1,97):
+                who = self.well()
+                who.replica = 0
+                who.plate_id = 'fake'
+                who.well_id = 'fake'
+                who.strain = 'fake'
+                dWells['zero'][iZero + i] = who
+                dParams['zero'].append(Well('fake','fake').getFakeParams())
+        
+        if len(dParams['nonzero']) >= 1:
+            for i in range(1,97):
+                who = self.well()
+                who.replica = 0
+                who.plate_id = 'fake'
+                who.well_id = 'fake'
+                who.strain = 'fake'
+                dWells['nonzero'][iNonZero + i] = who
+                dParams['nonzero'].append(Well('fake','fake').getFakeParams())
+        
+        # Perform the actual clusterizzations
+        
+        # "Control" MeanShift
+        # If we will get 1 cluster, we have a real "flat" experiment
+        # Fixed KMeans to get an activity scale
+        if self.zero and len(dParams['zero']) >= 1:
+            xZero = [x for x in dParams['zero']]
+            m_z_labels = mean( xZero, save_fig=save_fig, prefix='zero' )
+            k_z_labels = kmeans( xZero, save_fig=save_fig, prefix='zero' )
+        
+        if len(dParams['nonzero']) >= 1:
+            xNonZero = [x for x in dParams['nonzero']]
+            m_nz_labels = mean( xNonZero, save_fig=save_fig, prefix='nonzero' )
+            k_nz_labels = kmeans( xNonZero, save_fig=save_fig, prefix='nonzero' )
+        
+        if self.zero  and len(dParams['zero']) >= 1:
+            m_z_nclusters = len(np.unique(m_z_labels))
+            if m_z_nclusters == 1:
+                logger.warning('The zero-subtracted subset seems to have no activity!')
+                self.setNoActivity()
+            else:
+                # TODO Check the activities order and set the correspinding activities
+                pass
+        
+        if len(dParams['nonzero']) >= 1:
+            m_nz_nclusters = len(np.unique(m_nz_labels))
+            if m_nz_nclusters == 1:
+                logger.warning('The nonzero-subtracted subset seems to have no activity!')
+                self.setNoActivity()
+            else:
+                # TODO Check the activities order and set the correspinding activities
+                pass
 
 class BiologParser(object):
     '''
@@ -739,7 +882,10 @@ class BiologPlot(CommonThread):
         self.smooth = bool(smooth)
         self.window = int(window)
         self.compress = int(compress)
-        self.maxsig = float(maxsig)
+        if maxsig:
+            self.maxsig = float(maxsig)
+        else:
+            self.maxsig = None
         
         # Results
         # PLate_id --> Plate

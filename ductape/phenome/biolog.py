@@ -780,7 +780,7 @@ class BiologParser(object):
         
         tblreader = csv.reader(open(self.file, 'rbU'), delimiter=',')
         for line in tblreader:
-            if len(line) == 0:
+            if len(line) < 2:
                 continue
             elif self._start in line[0].strip():
                 # Do we have to save the old plate?
@@ -812,6 +812,13 @@ class BiologParser(object):
                     plate._idx[i] = x.strip()
                     wells.append(x.strip())
             elif data:
+                # Workaround for bad-formatted files
+                try: float(line[0])
+                except:
+                    logger.debug('Could not parse this line from biolog file (%s)'%line)
+                    continue
+                #
+                
                 time = float(line[0])
                 for i in range(len(line)):
                     if i == 0:continue

@@ -646,32 +646,23 @@ class Experiment(object):
         The data is divided in two chunks if Zero subtraction has been done
         '''
         if self.zero:
-            dWells = {'zero':{},
-                      'nonzero':{}}
+            dWells = {'zero':[],
+                      'nonzero':[]}
             dParams = {'zero':[],
                        'nonzero':[]}
-            iNonZero = 0
-            iZero = 0
         else:
-            dWells = {'nonzero':{}}
+            dWells = {'nonzero':[]}
             dParams = {'nonzero':[]}
-            iNonZero = 0
         
-        for param in self.calculateParams():
-            who = self.well()
-            who.replica = param[0]
-            who.plate_id = param[1]
-            who.well_id = param[2]
-            who.strain = param[3]
+        for param in self.getClusterParams():
+            who = self.experiment[param[1]][param[2]][param[3]][param[0]]
             
             if self.zero and who.plate_id in zeroPlates:
-                dWells['zero'][iZero] = who
+                dWells['zero'].append(who)
                 dParams['zero'].append(param[4:])
-                iZero += 1
             else:
-                dWells['nonzero'][iNonZero] = who
+                dWells['nonzero'].append(who)
                 dParams['nonzero'].append(param[4:])
-                iNonZero += 1
         
         # Add some fake wells with no signal to make sure we will got a 
         # "zero cluster"
@@ -682,7 +673,7 @@ class Experiment(object):
                 who.plate_id = 'fake'
                 who.well_id = 'fake'
                 who.strain = 'fake'
-                dWells['zero'][iZero + i] = who
+                dWells['zero'].append(who)
                 dParams['zero'].append(Well('fake','fake').getFakeParams())
         
         if len(dParams['nonzero']) >= 1:
@@ -692,7 +683,7 @@ class Experiment(object):
                 who.plate_id = 'fake'
                 who.well_id = 'fake'
                 who.strain = 'fake'
-                dWells['nonzero'][iNonZero + i] = who
+                dWells['nonzero'].append(who)
                 dParams['nonzero'].append(Well('fake','fake').getFakeParams())
         
         # Perform the actual clusterizzations
@@ -712,21 +703,53 @@ class Experiment(object):
         
         if self.zero  and len(dParams['zero']) >= 1:
             m_z_nclusters = len(np.unique(m_z_labels))
+            k_z_nclusters = len(np.unique(k_z_labels))
             if m_z_nclusters == 1:
                 logger.warning('The zero-subtracted subset seems to have no activity!')
                 self.setNoActivity()
             else:
-                # TODO Check the activities order and set the correspinding activities
-                pass
+                # Order the clusters by average area
+                mArea = []
+                dP = np.array(dParams['zero'])
+                for k in range(k_z_nclusters):
+                    my_members = k_z_labels == k
+                    mArea.append((k, dP[my_members, 1].mean()))
+                mArea = sorted(mArea, key=lambda x: x[1])
+                
+                dConvert = {}
+                i = 0
+                for t in mArea:
+                    dConvert[t[0]] = i
+                    i += 1
+                
+                for i in range(len(k_z_labels)):
+                    who = dWells['zero'][i]
+                    who.activity = dConvert[k_z_labels[i]]
         
         if len(dParams['nonzero']) >= 1:
             m_nz_nclusters = len(np.unique(m_nz_labels))
+            k_nz_nclusters = len(np.unique(k_nz_labels))
             if m_nz_nclusters == 1:
                 logger.warning('The nonzero-subtracted subset seems to have no activity!')
                 self.setNoActivity()
             else:
-                # TODO Check the activities order and set the correspinding activities
-                pass
+                # Order the clusters by average area
+                mArea = []
+                dP = np.array(dParams['nonzero'])
+                for k in range(k_nz_nclusters):
+                    my_members = k_nz_labels == k
+                    mArea.append((k, dP[my_members, 1].mean()))
+                mArea = sorted(mArea, key=lambda x: x[1])
+                
+                dConvert = {}
+                i = 0
+                for t in mArea:
+                    dConvert[t[0]] = i
+                    i += 1
+                
+                for i in range(len(k_nz_labels)):
+                    who = dWells['nonzero'][i]
+                    who.activity = k_nz_labels[i]
 
 class BiologParser(object):
     '''

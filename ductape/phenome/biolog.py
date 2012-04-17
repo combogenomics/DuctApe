@@ -162,6 +162,8 @@ class Well(object):
         if not self.max:
             self.calculateParams()
             
+        # WARNING: altering the order of the returned value may alter
+        # something upstream (especially the method clusterize())
         return [self.max, self.area, self.height, self.lag]
     
     def getFakeParams(self):
@@ -609,7 +611,7 @@ class Experiment(object):
                     for strain, plates in Plate.strains.iteritems()
                     for plate in plates])
         
-    def calculateParams(self):
+    def getClusterParams(self):
         '''
         Generator to the single well parameters for clustering
         '''

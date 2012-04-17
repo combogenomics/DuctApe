@@ -84,6 +84,10 @@ class Well(object):
         # Relative activity index
         self.activity = None
         
+        # Additional info added by well parents
+        self.replica = None
+        self.strain = None
+        
     def addSignal(self,time,signal):
         self.signals[time] = signal
         
@@ -281,6 +285,15 @@ class SinglePlate(object):
                 well.calculateParams()
                 
             yield [self.plate_id] + [well.well_id] + [self.strain] + well.getClusterParams()
+    
+    def getWells(self):
+        '''
+        Generator to get the single wells
+        '''
+        for well_id, well in self.data.iteritems():
+            well.replica = self.replica
+            well.strain = self.strain
+            yield well
             
 class Plate(object):
     '''
@@ -337,6 +350,15 @@ class Plate(object):
                 
                 for params in plate.getClusterParams():
                     yield [plate.replica] + params
+                    
+    def getWells(self):
+        '''
+        Generator to get the single wells
+        '''
+        for strain, plates in self.strains.iteritems():
+            for plate in plates:
+                for well in plate.getWells():
+                    yield well
     
     def addWellTitles(self, dWell):
         '''
@@ -548,11 +570,14 @@ class Experiment(object):
         
         self.plates = {}
         for plate in plates:
-            if not self.addPlate(plate):
+            if not self._addPlate(plate):
                 self.plates = {}
                 break
+            
+        self.experiment = {}
+        self._organize()
     
-    def addPlate(self, plate):
+    def _addPlate(self, plate):
         if plate.plate_id not in self.plates:
             self.plates[plate.plate_id] = plate
             return True
@@ -560,6 +585,20 @@ class Experiment(object):
             logger.warning('Plate %s already present! Please retry...'%
                                     plate.plate_id)
             return False
+        
+    def _organize(self):
+        '''
+        Organize the whole experiment in a dictionary-based structure
+        '''
+        for w in self.getWells():
+            if w.plate_id not in self.experiment:
+                self.experiment[w.plate_id] = {}
+            if w.well_id not in self.experiment[w.plate_id]:
+                self.experiment[w.plate_id][w.well_id] = {}
+            if w.strain not in self.experiment[w.plate_id][w.well_id]:
+                self.experiment[w.plate_id][w.well_id][w.strain] = {}
+            
+            self.experiment[w.plate_id][w.well_id][w.strain][w.replica] = w
         
     def getMax(self):
         '''
@@ -578,6 +617,15 @@ class Experiment(object):
             Plate = self.plates[plate_id]
             for params in Plate.getClusterParams():
                 yield params
+                
+    def getWells(self):
+        '''
+        Generator to get the single wells
+        '''
+        for plate_id in self.plates:
+            Plate = self.plates[plate_id]
+            for well in Plate.getWells():
+                yield well
     
     def setNoActivity(self):
         '''

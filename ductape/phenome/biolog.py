@@ -827,6 +827,10 @@ class BiologParser(object):
                     well = plate._idx[i]
                     plate.data[well].addSignal(time, float(x))
         
+        # The last plate should be saved as well!
+        if plate and plate not in self.plates:
+            self.plates.append(plate)
+        
         return True
 
 class BiologZero(object):

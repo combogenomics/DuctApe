@@ -355,6 +355,8 @@ class Plate(object):
         Smooths the signal and plots it
         If there are more than one exp for a strain, the intersection is plotted
         '''
+        # TODO: here (or upstream), let purged exps to be plotted!
+        
         for strain,signals in dWell.iteritems():
             if len(signals) > 1:
                 # Intersect!
@@ -541,7 +543,12 @@ class Experiment(object):
                 break
             
         self.experiment = {}
+        self.sumexp = {}
         self._organize()
+        
+        # Allowed policies for purging of replicas
+        self.policies = ['keep-min', 'keep-max',
+                         'keep-min-one', 'keep-max-one']
     
     def _addPlate(self, plate):
         if plate.plate_id not in self.plates:
@@ -559,13 +566,19 @@ class Experiment(object):
         for w in self.getWells():
             if w.plate_id not in self.experiment:
                 self.experiment[w.plate_id] = {}
+                self.sumexp[w.plate_id] = {}
             if w.well_id not in self.experiment[w.plate_id]:
                 self.experiment[w.plate_id][w.well_id] = {}
+                self.sumexp[w.plate_id][w.well_id] = {}
             if w.strain not in self.experiment[w.plate_id][w.well_id]:
                 self.experiment[w.plate_id][w.well_id][w.strain] = {}
+                
+                fakeWell = Well(w.plate_id, w.well_id)
+                fakeWell.strain = w.strain 
+                self.sumexp[w.plate_id][w.well_id][w.strain] = fakeWell
             
             self.experiment[w.plate_id][w.well_id][w.strain][w.replica] = w
-        
+    
     def getMax(self):
         '''
         Get the maximum signal value of the whole experiment
@@ -605,6 +618,113 @@ class Experiment(object):
                 for plate in plates:
                     for well in plate.data:
                         well.activity = 0
+    
+    def getPurgedWells(self):
+        '''
+        Generator to get the single purged wells
+        '''
+        for plate in self.experiment:
+            for well in self.experiment[plate]:
+                for strain in self.experiment[plate][well]:  
+                    reps = self.experiment[plate][well][strain].values()
+                    for w in reps:
+                        yield w
+    
+    def purgeReplicas(self, policy='keep-min', delta=3):
+        '''
+        Analyze the replicas and remove the outliers using one of the policies
+        
+        keep-min --> keep the replicas around the minimum
+        keep-max --> keep the replicas around the maximum
+        for the above policies, the outliers are delta activity steps over or
+        below the minimum/maximum activity
+        
+        keep-min-one --> keep the smaller replica
+        keep-max-one --> keep the bigger replica
+        
+        The mean activity value is then stored as a Well object inside sumexp
+        '''
+        # Check the provided policy
+        if policy not in self.policies:
+            logger.error('Policy not recognized %s'%policy)
+            return False
+        
+        for plate in self.experiment:
+            for well in self.experiment[plate]:
+                for strain in self.experiment[plate][well]:  
+                    reps = self.experiment[plate][well][strain].values()
+                    act = np.array([x.activity for x in reps])
+                    
+                    if policy == 'keep-min' or policy == 'keep-min-one':
+                        m = act.min()
+                    
+                    if policy == 'keep-max' or policy == 'keep-max-one':
+                        m = act.max()
+                        
+                    # If a keep-one policy is on, choose the replica that
+                    # matches the policy as close as possible
+                    # (i.e. keep-min-one --> replica with smaller average signal)    
+                    if policy == 'keep-min-one' or policy == 'keep-max-one':
+                        candidates = filter(lambda x: x.activity == m, reps)
+                        if len(candidates) == 1:
+                            self.sumexp[plate][well][strain] = candidates[0]
+                        elif len(candidates) == 0:
+                            logger.critical('This shouldn\'t be possible!')
+                            return False
+                        else:
+                            # Keep the best replica according to the policy
+                            if policy == 'keep-min-one':
+                                self.sumexp[plate][well][strain] = sorted(
+                                                              candidates,
+                                                            lambda x: x.area)[0]
+                            else:
+                                self.sumexp[plate][well][strain] = sorted(
+                                                            candidates,
+                                                        lambda x: x.area)[-1]
+                                                                
+                    # Keep those replica distant at max delta from the
+                    # minimum-maximum
+                    if policy == 'keep-min' or policy == 'keep-max':
+                        if policy == 'keep-min':
+                            candidates = filter(lambda x: x.activity <= m + delta,
+                                                reps)
+                            if len(candidates) == 1:
+                                self.sumexp[plate][well][strain] = candidates[0]
+                            elif len(candidates) == 0:
+                                logger.critical('This shouldn\'t be possible!')
+                                return False
+                            else:
+                                # Keep the average activity
+                                self.sumexp[plate][well][strain].activity = np.array(
+                                                             [x.activity
+                                                              for x in candidates]
+                                                                 ).mean()
+                        else:
+                            candidates = filter(lambda x: x.activity >= m - delta,
+                                                reps)
+                            if len(candidates) == 1:
+                                self.sumexp[plate][well][strain] = candidates[0]
+                            elif len(candidates) == 0:
+                                logger.critical('This shouldn\'t be possible!')
+                                return False
+                            else:
+                                # Keep the average activity
+                                self.sumexp[plate][well][strain].activity = np.array(
+                                                             [x.activity
+                                                              for x in candidates]
+                                                                 ).mean()
+                    
+                    # Remove the outliers
+                    for w in reps:
+                        if w not in candidates:
+                            del self.experiment[plate][well][strain][w.replica]
+                            
+                            # TODO: simplify here
+                            rem_p = filter(lambda x: x.replica == w.replica,
+                                        self.plates[plate].strains[strain])[0]
+                            del rem_p.data[well]
+            
+        return True
     
     def clusterize(self, save_fig=False):
         '''

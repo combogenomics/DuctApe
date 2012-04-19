@@ -155,23 +155,6 @@ class Well(object):
             logging.warning('Plate %s, Well %s was already compressed'%
                           (self.plate_id, self.well_id))
     
-    def getClusterParams(self):
-        '''
-        Get the parameters for the clustering step
-        '''
-        if not self.max:
-            self.calculateParams()
-            
-        # WARNING: altering the order of the returned value may alter
-        # something upstream (especially the method clusterize())
-        return [self.max, self.area, self.height, self.lag]
-    
-    def getFakeParams(self):
-        '''
-        Get some fake zero params
-        '''
-        return [0.0, 0.0, 0.0, 0.0]
-    
     def calculateParams(self,
                             noCompress = False, noSmooth = False):
         '''
@@ -277,16 +260,7 @@ class SinglePlate(object):
         for well_id, well in self.data.iteritems():
             if not well.max:
                 well.calculateParams()
-                
-    def getClusterParams(self):
-        '''
-        Generator to the single wells parameters for clustering
-        '''
-        for well_id, well in self.data.iteritems():
-            if not well.max:
-                well.calculateParams()
-                
-            yield [self.plate_id] + [well.well_id] + [self.strain] + well.getClusterParams()
+            yield True
     
     def getWells(self):
         '''
@@ -341,17 +315,7 @@ class Plate(object):
         for strain, plates in self.strains.iteritems():
             for plate in plates:
                 plate.calculateParams()
-    
-    def getClusterParams(self):
-        '''
-        Generator to the single well parameters for clustering
-        '''
-        for strain, plates in self.strains.iteritems():
-            for plate in plates:
-                plate.calculateParams()
-                
-                for params in plate.getClusterParams():
-                    yield [plate.replica] + params
+            yield True
                     
     def getWells(self):
         '''
@@ -611,14 +575,14 @@ class Experiment(object):
                     for strain, plates in Plate.strains.iteritems()
                     for plate in plates])
         
-    def getClusterParams(self):
+    def calculateParams(self):
         '''
         Generator to the single well parameters for clustering
         '''
         for plate_id in self.plates:
             Plate = self.plates[plate_id]
-            for params in Plate.getClusterParams():
-                yield params
+            for res in Plate.calculateParams():
+                yield True
                 
     def getWells(self):
         '''
@@ -627,6 +591,8 @@ class Experiment(object):
         for plate_id in self.plates:
             Plate = self.plates[plate_id]
             for well in Plate.getWells():
+                if not well.max:
+                    well.calculateParams()
                 yield well
     
     def setNoActivity(self):
@@ -654,15 +620,15 @@ class Experiment(object):
             dWells = {'nonzero':[]}
             dParams = {'nonzero':[]}
         
-        for param in self.getClusterParams():
-            who = self.experiment[param[1]][param[2]][param[3]][param[0]]
-            
-            if self.zero and who.plate_id in zeroPlates:
-                dWells['zero'].append(who)
-                dParams['zero'].append(param[4:])
+        for param in self.getWells():
+            if self.zero and param.plate_id in zeroPlates:
+                dWells['zero'].append(param)
+                dParams['zero'].append([param.max, param.area, 
+                                        param.height, param.lag])
             else:
-                dWells['nonzero'].append(who)
-                dParams['nonzero'].append(param[4:])
+                dWells['nonzero'].append(param)
+                dParams['nonzero'].append([param.max, param.area,
+                                           param.height, param.lag])
         
         # Add some fake wells with no signal to make sure we will got a 
         # "zero cluster"
@@ -674,7 +640,7 @@ class Experiment(object):
                 who.well_id = 'fake'
                 who.strain = 'fake'
                 dWells['zero'].append(who)
-                dParams['zero'].append(Well('fake','fake').getFakeParams())
+                dParams['zero'].append([0.0, 0.0, 0.0, 0.0])
         
         if len(dParams['nonzero']) >= 1:
             for i in range(1,97):
@@ -684,7 +650,7 @@ class Experiment(object):
                 who.well_id = 'fake'
                 who.strain = 'fake'
                 dWells['nonzero'].append(who)
-                dParams['nonzero'].append(Well('fake','fake').getFakeParams())
+                dParams['nonzero'].append([0.0, 0.0, 0.0, 0.0])
         
         # Perform the actual clusterizzations
         

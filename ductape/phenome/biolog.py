@@ -75,7 +75,7 @@ class Well(object):
         # Parameters
         self.max = None
         self.min = None
-        self.avg_height = None
+        self.height = None
         self.plateau = None
         self.slope = None
         self.lag = None

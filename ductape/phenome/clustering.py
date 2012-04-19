@@ -5,7 +5,7 @@ clustering
 Phenome library
 
 biolog data clustering functions
-Many thanks to the scikits.learn team for the exaustive documentation
+Many thanks to the scikits.learn team for the exhaustive documentation
 """
 from itertools import cycle, product
 from sklearn.cluster import KMeans, MeanShift, estimate_bandwidth

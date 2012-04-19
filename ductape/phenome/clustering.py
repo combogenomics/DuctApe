@@ -11,6 +11,7 @@ from itertools import cycle, product
 from sklearn.cluster import KMeans, MeanShift, estimate_bandwidth
 import numpy as np
 import logging
+import warnings
 import matplotlib.pyplot as plt
 
 __author__ = "Marco Galardini"
@@ -67,10 +68,13 @@ def mean(X, save_fig=False, params_labels=None, prefix='clusters'):
     
     X = np.array( X )
     
-    bandwidth = estimate_bandwidth(X, quantile=0.2)
-
-    ms = MeanShift(bandwidth=bandwidth, bin_seeding=True)
-    ms.fit(X)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        bandwidth = estimate_bandwidth(X, quantile=0.2)
+    
+        ms = MeanShift(bandwidth=bandwidth, bin_seeding=True)
+        ms.fit(X)
+        
     labels = ms.labels_
     
     if save_fig:
@@ -91,8 +95,12 @@ def kmeans(X, n_clusters=10, save_fig=False, params_labels=None, prefix='cluster
     
     X = np.array( X )
     
-    k_means = KMeans(init='random', k=n_clusters, n_init=100, max_iter=1000)
-    k_means.fit(X)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        
+        k_means = KMeans(init='random', k=n_clusters, n_init=100, max_iter=1000)
+        k_means.fit(X)
+    
     labels = k_means.labels_
     
     if save_fig:

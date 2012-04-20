@@ -174,7 +174,7 @@ def dclear(options, wdir, project):
     return dGenomeClear(project)
 
 def doPanGenome(project, infiles, cpu=1, prefix=''):
-    pang = PanGenomer(infiles.values(), ncpus=cpu)
+    pang = PanGenomer(infiles.values(), ncpus=cpu, prefix=prefix)
     
     if not RunThread(pang):
         return False
@@ -182,9 +182,9 @@ def doPanGenome(project, infiles, cpu=1, prefix=''):
     gen = Genome(project)
     gen.addPanGenome(pang.orthologs)
     
-    logger.info('Accessory size: %d groups'%gen.getLenAcc())
-    logger.info('Core size: %d groups'%gen.getLenCore())
     logger.info('PanGenome size: %d groups'%len(gen.getPanGenome()))
+    logger.info('Core size: %d groups'%gen.getLenCore())
+    logger.info('Accessory size: %d groups'%gen.getLenAcc())
     logger.info('Unique size: %d groups'%gen.getLenUni())
     
     return True

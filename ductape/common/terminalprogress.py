@@ -113,7 +113,7 @@ class TerminalController:
 
 class ProgressBar:
     BAR = '%3d%% ${GREEN}[${BOLD}%s%s${NORMAL}${GREEN}]${NORMAL}\n'
-    HEADER = '${BOLD}${CYAN}%s${NORMAL}\n\n'
+    HEADER = '${BOLD}${BLUE}%s${NORMAL}\n\n'
 
     def __init__(self, term, header):
         self.term = term

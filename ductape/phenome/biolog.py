@@ -97,7 +97,12 @@ class Well(object):
         '''
         for hour in sorted(times):
             if hour not in self.signals:
-                self.signals[hour] = 0.1
+                if sorted(times).index(hour) - 1 >= 0:
+                    self.signals[hour] = self.signals[
+                                          sorted(times)[
+                                                sorted(times).index(hour) - 1]]
+                else:
+                    self.signals[hour] = np.NAN
     
     def getMax(self):
         '''

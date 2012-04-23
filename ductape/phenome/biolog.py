@@ -360,8 +360,6 @@ class Plate(object):
         Smooths the signal and plots it
         If there are more than one exp for a strain, the intersection is plotted
         '''
-        # TODO: here (or upstream), let purged exps to be plotted!
-        
         for strain,signals in dWell.iteritems():
             if len(signals) > 1:
                 # Intersect!
@@ -374,6 +372,8 @@ class Plate(object):
                                  linewidth=self.linewidth,
                                  alpha=self.alpha,
                                  rasterized=True)
+            elif len(signals) == 0:
+                continue
             else:
                 # Single plot!
                 if self.smooth:
@@ -439,15 +439,14 @@ class Plate(object):
         
         for strain, plates in self.strains.iteritems():
             strain_signals[strain] = []
-            try:
-                for plate in plates:
+            for plate in plates:
+                try:
                     strain_signals[strain].append( 
                             [plate.data[well_id].signals[hour]
                              for hour in self.times])
-            except:
-                logging.debug('Something missing: %s, %s, %f'%(
+                except:
+                    logging.debug('Something missing: %s, %s, %f'%(
                                     strain, well_id, hour))
-                pass
             
         return strain_signals
     
@@ -678,14 +677,15 @@ class Experiment(object):
                             return False
                         else:
                             # Keep the best replica according to the policy
+                            candidates = sorted(candidates, key=lambda x: x.area)
                             if policy == 'keep-min-one':
-                                self.sumexp[plate][well][strain] = sorted(
-                                                              candidates,
-                                                            lambda x: x.area)[0]
+                                self.sumexp[plate][well][strain] = candidates[0]
+                                for x in candidates[1:]:
+                                    candidates.remove(x)
                             else:
-                                self.sumexp[plate][well][strain] = sorted(
-                                                            candidates,
-                                                        lambda x: x.area)[-1]
+                                self.sumexp[plate][well][strain] = candidates[-1]
+                                for x in candidates[:-1]:
+                                    candidates.remove(x)
                                                                 
                     # Keep those replica distant at max delta from the
                     # minimum-maximum
@@ -728,6 +728,9 @@ class Experiment(object):
                             rem_p = filter(lambda x: x.replica == w.replica,
                                         self.plates[plate].strains[strain])[0]
                             del rem_p.data[well]
+                            
+                            logger.debug('Purged %s %s %s %d'%(plate, well,
+                                                           strain, w.replica))
             
         return True
     
@@ -1156,5 +1159,4 @@ class BiologPlot(CommonThread):
             self.results[plate_id].figure.savefig(fname, dpi=150)
             self.results[plate_id].figure.clf()
         self.resetSubStatus()
-        
         

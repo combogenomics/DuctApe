@@ -553,6 +553,8 @@ class Experiment(object):
         # Allowed policies for purging of replicas
         self.policies = ['keep-min', 'keep-max',
                          'keep-min-one', 'keep-max-one']
+        
+        self.purged = False
     
     def _addPlate(self, plate):
         if plate.plate_id not in self.plates:
@@ -732,6 +734,7 @@ class Experiment(object):
                             logger.debug('Purged %s %s %s %d'%(plate, well,
                                                            strain, w.replica))
             
+        self.purged = True
         return True
     
     def clusterize(self, save_fig=False):

@@ -87,7 +87,31 @@ class Well(object):
         # Additional info added by well parents
         self.replica = None
         self.strain = None
+
+    def getHeader(self):
+        '''
+        Get the header of the returned value from str(Well)
+        '''
+        return '\t'.join( ['Plate', 'Well', 'Strain',
+                           'Replica', 'Activity', 'Min',
+                           'Max', 'Height', 'Plateau',
+                           'Slope', 'Lag', 'Area'] )
         
+    def __str__(self):
+        '''
+        Note: the header can be retrieved by calling getHeader
+        '''
+        return '\t'.join( [self.plate_id, self.well_id, self.strain] +
+                          [str(x) for x in [self.replica,
+                                            self.activity,
+                                            self.min,
+                                            self.max,
+                                            self.height,
+                                            self.plateau,
+                                            self.slope,
+                                            self.lag,
+                                            self.area]] )
+
     def addSignal(self,time,signal):
         self.signals[time] = signal
         

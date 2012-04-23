@@ -636,7 +636,7 @@ class Experiment(object):
                     for w in reps:
                         yield w
     
-    def purgeReplicas(self, policy='keep-min', delta=3):
+    def purgeReplicas(self, policy='keep-min', delta=1):
         '''
         Analyze the replicas and remove the outliers using one of the policies
         

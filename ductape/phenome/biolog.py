@@ -500,7 +500,7 @@ class Plate(object):
         
         self.fixFigure()
     
-    def plotWell(self, well_id):
+    def plotWell(self, well_id, fig=None):
         '''
         Generates and returns a single well as a figure
         '''
@@ -510,8 +510,12 @@ class Plate(object):
         
         strain_signals = self._prepareSignals(well_id)
         
+        # Temporary increase in the line width
+        self.linewidth += 3 
+        
         # Figure creation
-        fig = plt.figure()
+        if not fig:
+            fig = plt.figure()
         ax = fig.add_subplot(111)
         
         self._plot(well_id, strain_signals, ax)
@@ -520,6 +524,8 @@ class Plate(object):
             ax.set_title(' '.join( [well_id, self.wellNames[well_id]]))
         ax.set_xlabel('Hour')
         ax.set_ylabel('Signal')
+        
+        self.linewidth -= 3
         
         return fig
         
@@ -1064,16 +1070,18 @@ class BiologPlot(CommonThread):
                 1:'Making room',
                 2:'Preparing data',
                 3:'Preparing plots',
-                4:'Creating plates plots'}
+                4:'Creating plates plots',
+                5:'Creating single plots'}
     
-    _substatuses = [2,4]
+    _substatuses = [2,4,5]
     
     def __init__(self, data,
                  expname = 'exp', 
                  plateNames = {}, wellNames = {},
                  colors = {}, smooth = True, window = 11,
                  compress = 0,
-                 maxsig = None, queue=Queue.Queue()):
+                 maxsig = None, plotAll=False,
+                 queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         # Biolog
         self.data = data
@@ -1091,9 +1099,10 @@ class BiologPlot(CommonThread):
             self.maxsig = float(maxsig)
         else:
             self.maxsig = None
+        self.plotAll = bool(plotAll)
         
         # Results
-        # PLate_id --> Plate
+        # Plate_id --> Plate
         self.results = {}
         # Single well plot
         self.well = None
@@ -1132,8 +1141,9 @@ class BiologPlot(CommonThread):
         
         if self.well:
             self.well.clf()
-        
-        self.well = self.results[plate_id].plotWell(well_id)
+            self.well = self.results[plate_id].plotWell(well_id, self.well)
+        else:
+            self.well = self.results[plate_id].plotWell(well_id)
         
         return True
     
@@ -1186,4 +1196,19 @@ class BiologPlot(CommonThread):
             self.results[plate_id].figure.savefig(fname, dpi=150)
             self.results[plate_id].figure.clf()
         self.resetSubStatus()
+        
+        if self.plotAll:
+            self._maxsubstatus = len(self.results)*96
+            self.updateStatus()
+            for plate_id in self.results:
+                for well_id in self.results[plate_id].wells:
+                    if not self.getPlot(plate_id, well_id):
+                        self.sendFailure('Single plot creation failure')
+                        return
+                    fname = os.path.join(self._room,'%s_%s.png'%(plate_id,
+                                                                 well_id))
+                    self.well.savefig(fname, dpi=150)
+                    
+                    self._substatus += 1
+                    self.updateStatus(True)
         

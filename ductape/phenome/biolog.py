@@ -509,7 +509,23 @@ class Plate(object):
         
         self.fixFigure()
     
-    def plotActivity(self):
+    def plotActivity(self, strains=[]):
+        '''
+        Generator:
+        Plots the activity for each strain as heatmaps
+        A strains subset can be provided, otherwise all strains are plotted 
+        in alphabetival order 
+        '''
+        # Reality check on provided strains
+        if len(strains) > 0:
+            strains = set(strains)
+            unknown = set(strains).difference(self.strains.keys())
+            if len( unknown ) > 0:
+                raise ValueError('Unknown strain(s) were provided (%s)'%
+                                 ' '.join(unknown))
+        else:
+            strains = sorted(self.strains.keys())
+        
         # Preparatory steps
         if not self.times and not self.wells:
             self.preparePlot()
@@ -522,13 +538,32 @@ class Plate(object):
                 self.heatfig = plt.figure()
             ax = self.heatfig.add_subplot(8,12,self._figidx)
             
-            # Plot activity matrix
-            # TODO: this is a stub
-#            orderedStrains = ['Rm1021', 'BL225C', 'AK83', 'AK58']
-#            
-#            acts = np.array([self.strains[strain][0].data[well_id].activity for strain in orderedStrains])
-#            acts=acts.reshape(2,2)
-#            ax.matshow(acts, cmap=cm.RdYlGn, vmin=0, vmax=9)
+            # Plot activity matrix (AKA the almighty heatmap)
+            # Array preparation
+            acts = np.array([self.strains[strain][0].data[well_id].activity
+                             for strain in strains])
+            
+            # Array reshape (tricky!)
+            # 1- Finger crossed for a perfect square
+            square = np.sqrt( len(acts) )
+            if square.is_integer():
+                # Yep
+                acts = acts.reshape(square, square)
+            else:
+                # Oh snap!
+                cols = int(square)
+                rows = len(acts) / float(cols)
+                if rows.is_integer():
+                    acts = acts.reshape(rows, cols)
+                else:
+                    # Some fake signals will be added
+                    rows = int(rows) + 1
+                    new = (cols * rows) - len(acts)
+                    acts = np.array( acts.tolist() + [np.nan for i in range(new)] )
+                    acts = acts.reshape(cols, rows)
+                    
+            # TODO: here the vmax value is hard-coded
+            ax.matshow(acts, cmap=cm.RdYlGn, vmin=0, vmax=9)
             
             if self._figidx%12 == 1:
                 ax.set_ylabel(well_id[0], rotation='horizontal')
@@ -1118,7 +1153,7 @@ class BiologPlot(CommonThread):
                 5:'Creating single plots',
                 6:'Creating Heat maps'}
     
-    _substatuses = [2,4,5]
+    _substatuses = [2,4,5,6]
     
     def __init__(self, data,
                  expname = 'exp', 
@@ -1126,6 +1161,7 @@ class BiologPlot(CommonThread):
                  colors = {}, smooth = True, window = 11,
                  compress = 0,
                  maxsig = None, plotAll=False, plotActivity=True,
+                 order = [],
                  queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         # Biolog
@@ -1146,6 +1182,7 @@ class BiologPlot(CommonThread):
             self.maxsig = None
         self.plotAll = bool(plotAll)
         self.plotActivity = bool(plotActivity)
+        self.order = order
         
         # Results
         # Plate_id --> Plate
@@ -1266,7 +1303,7 @@ class BiologPlot(CommonThread):
             self._maxsubstatus = len(self.results)*96
             self.updateStatus()
             for plate_id in self.results:
-                for i in self.results[plate_id].plotActivity():
+                for i in self.results[plate_id].plotActivity(strains=self.order):
                     self._substatus += 1
                     self.updateStatus(True)
                 fname = os.path.join(self._room,'%s_heatmap.png'%plate_id)

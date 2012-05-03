@@ -560,7 +560,7 @@ class Plate(object):
                     rows = int(rows) + 1
                     new = (cols * rows) - len(acts)
                     acts = np.array( acts.tolist() + [np.nan for i in range(new)] )
-                    acts = acts.reshape(cols, rows)
+                    acts = acts.reshape(rows, cols)
                     
             # TODO: here the vmax value is hard-coded
             ax.matshow(acts, cmap=cm.RdYlGn, vmin=0, vmax=9)

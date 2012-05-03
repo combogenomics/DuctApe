@@ -501,7 +501,7 @@ class Plate(object):
             
             if self._figidx%12 == 1:
                 ax.set_ylabel(well_id[0], rotation='horizontal')
-            if abs(96 % self._figidx - 12) <= 12:
+            if (96 - self._figidx < 12) and abs(96 % self._figidx - 12) <= 12:
                 ax.set_xlabel(str(abs(96 % self._figidx - 12)))
             self._figidx += 1
             
@@ -567,7 +567,7 @@ class Plate(object):
             
             if self._figidx%12 == 1:
                 ax.set_ylabel(well_id[0], rotation='horizontal')
-            if abs(96 % self._figidx - 12) <= 12:
+            if (96 - self._figidx < 12) and abs(96 % self._figidx - 12) <= 12:
                 ax.set_xlabel(str(abs(96 % self._figidx - 12)))
             self._figidx += 1
             

@@ -148,7 +148,8 @@ def daddKo(options, wdir, project):
         kegg.addDraftKOs( set(kaas.results.values()) )
         prot_ko = [[x,y] for x,y in kaas.results.iteritems()]
         gen.addKOs( prot_ko )
-        logger.info('Mapped %d proteins to KO'%len(kaas.results))
+    
+    logger.info('Mapped %d proteins to KO'%len(kaas.results))
     proj.setGenome('map2ko')
     org.setAllGenomeStatus('map2ko')
     

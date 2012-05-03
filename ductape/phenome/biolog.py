@@ -15,6 +15,7 @@ from ductape.common.utils import smooth, compress
 from ductape.phenome.clustering import mean, kmeans
 from ductape.phenome.fitting import fitData, getFlex, getPlateau
 from scipy.integrate import trapz
+from matplotlib import cm
 import Queue
 import csv
 import logging
@@ -332,8 +333,9 @@ class Plate(object):
         
         self.maxsignal = maxsig
         
-        # Figures
+        # Figure(s)
         self.figure = None
+        self.heatfig = None
         
         self._figidx = 1
     
@@ -504,6 +506,41 @@ class Plate(object):
             yield well_id, self.wells.index(well_id)
         
         self.fixFigure()
+    
+    def plotActivity(self):
+        # Preparatory steps
+        if not self.times and not self.wells:
+            self.preparePlot()
+        
+        self._figidx = 1
+        
+        # Cycle over each well
+        for well_id in self.wells:            
+            if not self.heatfig:
+                self.heatfig = plt.figure()
+            ax = self.heatfig.add_subplot(8,12,self._figidx)
+            
+            # Plot activity matrix
+            # TODO: this is a stub
+#            orderedStrains = ['Rm1021', 'BL225C', 'AK83', 'AK58']
+#            
+#            acts = np.array([self.strains[strain][0].data[well_id].activity for strain in orderedStrains])
+#            acts=acts.reshape(2,2)
+#            ax.matshow(acts, cmap=cm.RdYlGn, vmin=0, vmax=9)
+            
+            if self._figidx%12 == 1:
+                ax.set_ylabel(well_id[0], rotation='horizontal')
+            if abs(96 % self._figidx - 12) <= 12:
+                ax.set_xlabel(str(abs(96 % self._figidx - 12)))
+            self._figidx += 1
+            
+            yield well_id, self.wells.index(well_id)
+        
+        self.heatfig.subplots_adjust(wspace=0, hspace=0)
+        for ax in self.heatfig.axes:
+            ax.get_xaxis().set_ticks([])
+            ax.get_yaxis().set_ticks([])
+        self.heatfig.suptitle(self.plate_name)
     
     def plotWell(self, well_id, fig=None):
         '''
@@ -1076,7 +1113,8 @@ class BiologPlot(CommonThread):
                 2:'Preparing data',
                 3:'Preparing plots',
                 4:'Creating plates plots',
-                5:'Creating single plots'}
+                5:'Creating single plots',
+                6:'Creating Heat maps'}
     
     _substatuses = [2,4,5]
     
@@ -1085,7 +1123,7 @@ class BiologPlot(CommonThread):
                  plateNames = {}, wellNames = {},
                  colors = {}, smooth = True, window = 11,
                  compress = 0,
-                 maxsig = None, plotAll=False,
+                 maxsig = None, plotAll=False, plotActivity=True,
                  queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         # Biolog
@@ -1105,6 +1143,7 @@ class BiologPlot(CommonThread):
         else:
             self.maxsig = None
         self.plotAll = bool(plotAll)
+        self.plotActivity = bool(plotActivity)
         
         # Results
         # Plate_id --> Plate
@@ -1216,4 +1255,21 @@ class BiologPlot(CommonThread):
                     
                     self._substatus += 1
                     self.updateStatus(True)
+        else:
+            self.updateStatus(send=False)
+        self.resetSubStatus()
         
+        # TODO: this is a STUB!
+        if self.plotActivity:
+            self._maxsubstatus = len(self.results)*96
+            self.updateStatus()
+            for plate_id in self.results:
+                for i in self.results[plate_id].plotActivity():
+                    self._substatus += 1
+                    self.updateStatus(True)
+                fname = os.path.join(self._room,'%s_heatmap.png'%plate_id)
+                self.results[plate_id].heatfig.savefig(fname, dpi=150)
+                self.results[plate_id].heatfig.clf()
+        else:
+            self.updateStatus(send=False)
+        self.resetSubStatus()

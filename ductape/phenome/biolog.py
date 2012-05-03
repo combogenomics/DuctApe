@@ -486,6 +486,8 @@ class Plate(object):
         if not self.times and not self.wells:
             self.preparePlot()
         
+        self._figidx = 1
+        
         # Cycle over each well
         for well_id in self.wells:
             strain_signals = self._prepareSignals(well_id)

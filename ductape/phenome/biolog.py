@@ -207,6 +207,11 @@ class Well(object):
         ydata = np.array( [self.signals[x] for x in xdata] )
         self.plateau, self.slope, self.lag, v, y0 = fitData(xdata, ydata)
         
+        # May be needed for debugging purposes
+        # or to plot some fitting data
+        self.v = v
+        self.y0 = y0
+        
         # Trapezoid integration for area calculation
         self.area = trapz(y = ydata, x = xdata)
         

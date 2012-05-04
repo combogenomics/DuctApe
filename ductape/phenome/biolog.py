@@ -93,6 +93,7 @@ class Well(object):
         # Additional info added by well parents
         self.replica = None
         self.strain = None
+        self.zero = False
 
     def getHeader(self):
         '''
@@ -278,6 +279,9 @@ class SinglePlate(object):
         self.data = {}
         # Used internally, index in Hours row --> well_id
         self._idx = {}
+        
+        # This plate was zero-subtracted?
+        self.zero = False
         
     def getWell(self):
         '''
@@ -1139,6 +1143,10 @@ class BiologZero(object):
                 self._zeroBlank(plate)
             else:
                 self._zeroNormal(plate)
+                
+            plate.zero = True
+            for well in plate.getWell():
+                well.zero = True
                 
         self.plates = self.data
                 

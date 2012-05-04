@@ -1271,8 +1271,6 @@ class BiologPlot(CommonThread):
             self.results[plate_id].preparePlot()
         self.resetSubStatus()
         
-        # TODO: more precise here
-        # TODO: speed up by implementing threading
         self._maxsubstatus = len(self.results)*96
         self.updateStatus()
         for plate_id in self.results:
@@ -1303,7 +1301,6 @@ class BiologPlot(CommonThread):
             self.updateStatus(send=False)
         self.resetSubStatus()
         
-        # TODO: this is a STUB!
         if self.plotActivity:
             self._maxsubstatus = len(self.results)*96
             self.updateStatus()
@@ -1311,7 +1308,7 @@ class BiologPlot(CommonThread):
                 for i in self.results[plate_id].plotActivity(strains=self.order):
                     self._substatus += 1
                     self.updateStatus(True)
-                fname = os.path.join(self._room,'%s_heatmap.png'%plate_id)
+                fname = os.path.join(self._room,'%sheat.png'%plate_id)
                 self.results[plate_id].heatfig.savefig(fname, dpi=150)
                 self.results[plate_id].heatfig.clf()
         else:

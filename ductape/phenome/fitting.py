@@ -113,14 +113,14 @@ def rect(x, a, y0):
 def fitData(xdata, ydata):
     '''
     Fits the provided data to the first working function
-    (first Gompertz, then Logistic)
+    (first Gompertz, then Logistic, then Richards)
 
     Returns a tuple with plateau, slope, lag, y0 and model used
     If no fitting was possible all values are None
 
     Please note that the plateau may be reached outside the final time point
     '''
-    params = (None, None, None, None, None)
+    params = [None, None, None, None, None, None]
     
     retries = 3
     while retries > 0:
@@ -130,16 +130,19 @@ def fitData(xdata, ydata):
             p0[2] = 0
         try:
             params, pcov = curve_fit(gompertz, xdata, ydata, p0 = p0)
+            params + ['gompertz']
             break
         except:
             logger.debug('Gompertz fit failed')
             try:
                 params, pcov = curve_fit(logistic, xdata, ydata, p0 = p0)
+                params + ['logistic']
                 break
             except:
                 logger.debug('Logistic fit failed')
                 try:
                     params, pcov = curve_fit(richards, xdata, ydata, p0 = p0)
+                    params + ['richards']
                     break
                 except:
                     logger.debug('Richards fit failed')

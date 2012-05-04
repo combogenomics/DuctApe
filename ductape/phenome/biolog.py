@@ -81,6 +81,11 @@ class Well(object):
         self.slope = None
         self.lag = None
         self.area = None
+        self.v = None
+        self.y0 = None
+        
+        # Fitting model used
+        self.model = None
         
         # Relative activity index
         self.activity = None
@@ -206,7 +211,7 @@ class Well(object):
         # Let's go with the function fitting
         xdata = np.array( [x for x in sorted(self.signals.keys())] )
         ydata = np.array( [self.signals[x] for x in xdata] )
-        self.plateau, self.slope, self.lag, v, y0 = fitData(xdata, ydata)
+        self.plateau, self.slope, self.lag, v, y0, self.model = fitData(xdata, ydata)
         
         # May be needed for debugging purposes
         # or to plot some fitting data

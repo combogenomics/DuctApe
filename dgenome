@@ -10,7 +10,7 @@ from ductape.actions import dInit, touchProject, dGenomeClear, dGenomeRemove, \
     dGenomeAdd, dGenomeDirAdd, dGenomeMutAdd, dGetGenomeSteps, prepareDir, \
     dPanGenomeAdd
 from ductape.common.colorlog import ColorFormatter
-from ductape.common.database import Organism, Project, Genome, Kegg
+from ductape.storage.SQLite.database import Organism, Project, Genome, Kegg
 from ductape.genome.map2KO import LocalSearch, OnlineSearch
 from ductape.genome.pangenome import PanGenomer
 from ductape.kegg.kegg import KoMapper

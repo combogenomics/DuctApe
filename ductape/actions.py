@@ -6,7 +6,7 @@ DuctApe Library
 
 All the actions required for the analysis
 """
-from ductape.common.database import DBBase, Project, Genome, Organism
+from ductape.storage.SQLite.database import DBBase, Project, Genome, Organism
 import logging
 import os
 

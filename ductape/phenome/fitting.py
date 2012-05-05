@@ -120,29 +120,29 @@ def fitData(xdata, ydata):
 
     Please note that the plateau may be reached outside the final time point
     '''
-    params = [None, None, None, None, None, None]
-    
     retries = 3
     while retries > 0:
+        params = [None, None, None, None, None]
+        model = ''
         # Initial guesses for the output parameters
         p0 = [getPlateau(xdata, ydata), 4.0, getFlex(xdata, ydata), 0.1, 0]
         if retries == 1:
             p0[2] = 0
         try:
             params, pcov = curve_fit(gompertz, xdata, ydata, p0 = p0)
-            params + ['gompertz']
+            model = 'gompertz'
             break
         except:
             logger.debug('Gompertz fit failed')
             try:
                 params, pcov = curve_fit(logistic, xdata, ydata, p0 = p0)
-                params + ['logistic']
+                model = 'logistic'
                 break
             except:
                 logger.debug('Logistic fit failed')
                 try:
                     params, pcov = curve_fit(richards, xdata, ydata, p0 = p0)
-                    params + ['richards']
+                    model = 'richards'
                     break
                 except:
                     logger.debug('Richards fit failed')
@@ -153,5 +153,7 @@ def fitData(xdata, ydata):
                     ydata = np.array(smooth(ydata, window_len = len(ydata)/2, 
                               window = 'blackman'))
                     xdata = np.array(compress(xdata, span=4))
+                    #
+                    params = [None, None, None, None, None]
     
-    return params
+    return params, model

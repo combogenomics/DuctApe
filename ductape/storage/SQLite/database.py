@@ -1417,11 +1417,11 @@ class Biolog(DBBase):
                             (plate_id, well_id, org_id, replica, activity, 
                             zero, min, max, height, plateau, slope, lag,
                             area, v, y0, model)
-                            values'''
+                            values '''
         
         query1 = '''insert or replace into biolog_exp_det
-                        (biolog_id, time, signal)
-                        values'''
+                        (biolog_id, times, signals)
+                        values '''
         
         oCheck = Organism(self.dbname)
         for w in explist:
@@ -1431,31 +1431,43 @@ class Biolog(DBBase):
             if not self.isWell(w.well_id):
                 logger.warning('Well %s is not known!'%w.well_id)
                 raise Exception('This well (%s) is not known!'%w.well_id)
-            if not oCheck.isOrg(w.org_id):
-                logger.warning('Organism %s is not present yet!'%w.org_id)
-                raise Exception('This organism (%s) is not present yet!'%w.org_id)
+            if not oCheck.isOrg(w.strain):
+                logger.warning('Organism %s is not present yet!'%w.strain)
+                raise Exception('This organism (%s) is not present yet!'%w.strain)
+            if w.activity is None:
+                logger.warning('Parameters extraction not yet performed!')
+                raise Exception('Parameters extraction not yet performed!')
         
         self.boost()
         
         with self.connection as conn:
-            blist = ['''(%s,%s,%s,%s,%s,%s,%s)'''
-                     %(w.plate_id,w.well_id,w.org_id,w.replica,
-                              w.activity,w.zero,w.min,w.max,w.height,w.plateau,
+            blist = ['''('%s','%s','%s',%s,
+                        %s,%s,%s,%s,%s,%s,
+                        %s,%s,%s,%s,%s,'%s')'''
+                     %(w.plate_id,w.well_id,w.strain,w.replica,
+                              w.activity,int(w.zero),w.min,w.max,w.height,w.plateau,
                               w.slope,w.lag,w.area,w.v,w.y0,w.model)
                           for w in explist]
+            
+            blist1 = []
             for w in explist:
                 biolog_id = '%s_%s_%s_%s'%(w.plate_id,w.well_id,
-                                           w.org_id,w.replica)
-                blist1 = ['''(%s,%s,%s)'''
-                          %(biolog_id, hour, w.signals(hour))
-                          for hour in w.signals]
+                                           w.strain,w.replica)
+                blist1 = blist1 + ['''('%s','%s','%s')'''
+                  %(biolog_id, '_'.join([str(x) for x in sorted(w.signals.keys())]),
+                   '_'.join([str(w.signals[h]) for h in sorted(w.signals.keys())]))]                
                 
-            for bs in get_span(blist, span=50):
-                insert = query + ','.join(bs)+';'
+            logging.debug('Biolog exp')
+            for bs in get_span(blist, span=1):
+                insert = query + ', '.join(bs)+';'
                 conn.execute(insert)
                 
-            for bs in get_span(blist1, span=100):
-                insert = query1 + ','.join(bs)+';'
+            conn.execute('''update biolog_exp
+                        set model = null where model = '';''')
+            
+            logging.debug('Biolog exp det')    
+            for bs in get_span(blist1, span=1):
+                insert = query1 + ', '.join(bs)+';'
                 conn.execute(insert)
     
     def delWells(self, explist):

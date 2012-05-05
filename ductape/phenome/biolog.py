@@ -33,13 +33,13 @@ logger = logging.getLogger('Biolog')
 ################################################################################
 # Plate ID conversion
 
-dPlates = {'PM 1-':'PM01', 'PM 2-A':'PM02',
+dPlates = {'PM 1-':'PM01', 'PM 2-A':'PM02A',
             'PM 3-B':'PM03B', 'PM 4-A':'PM04A',
             'PM 5-':'PM05', 'PM 6-':'PM06',
             'PM 7-':'PM07', 'PM 8-':'PM08',
             'PM 9-':'PM09', 'PM10-':'PM10',
             'PM11-C':'PM11C', 'PM12-B':'PM12B',
-            'PM13-B':'PM13B', 'PM14-A':'PM14',
+            'PM13-B':'PM13B', 'PM14-A':'PM14A',
             'PM15-B':'PM15B', 'PM16-A':'PM16A',
             'PM17-A':'PM17A', 'PM18-C':'PM18C',
             'PM19-':'PM19', 'PM20-B':'PM20B',
@@ -212,7 +212,7 @@ class Well(object):
         # Let's go with the function fitting
         xdata = np.array( [x for x in sorted(self.signals.keys())] )
         ydata = np.array( [self.signals[x] for x in xdata] )
-        self.plateau, self.slope, self.lag, v, y0, self.model = fitData(xdata, ydata)
+        (self.plateau, self.slope, self.lag, v, y0), self.model = fitData(xdata, ydata)
         
         # May be needed for debugging purposes
         # or to plot some fitting data
@@ -227,6 +227,8 @@ class Well(object):
             self.plateau = 0
             self.slope = 0
             self.lag = 0
+            self.v = 0
+            self.y0 = 0
             return
         
         # Check the fitting parameters
@@ -634,10 +636,10 @@ class Plate(object):
         
         if strain not in self.strains:
             self.strains[strain] = []
-        
-        data.replica = len(self.strains[strain])
 
         self.strains[strain].append(data)
+        
+        data.replica = len(self.strains[strain])
         
         return True
 

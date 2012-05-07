@@ -128,6 +128,28 @@ def dstart(options, wdir, project):
             logger.warning('Unrecognized analysis %s'%step)
     
     return True
+    
+def dmap(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    
+    if len(options.organisms) == 0:
+        # PanGenome or all genomes?
+        proj = Project(project)
+        if proj.isPanGenome():
+            logger.info('Going to generate a pangenomic metabolic map')
+            
+            # Some info
+            logger.info('Single genome maps can be created using %s map orgID1 orgID2 ...'%
+                        __prog__)
+            logger.info('All the single genome maps can be created using %s map -a'%
+                        __prog__)
+            
+            
+    else:
+        pass
 
 def daddKo(options, wdir, project):
     if not touchProject(project):
@@ -347,6 +369,18 @@ def getOptions():
     parser_start.add_argument('-k', action="store",
                             help='Kegg database location (for local map2ko)')
     parser_start.set_defaults(func=dstart)
+    
+    parser_map = subparsers.add_parser('map', help='Fetch genomic metabolic maps')
+    parser_map.add_argument('-p', action="store", metavar='path',
+                            dest='mappath',
+                            required=False,
+                            default=None,
+                            help='Path to store the maps')
+    parser_map.add_argument('organisms', metavar='orgID', nargs='*',
+                            action="store",
+                            default=[],
+                            help='Genome(s) to be mapped')
+    parser_map.set_defaults(func=dmap)
 
     parser_rm = subparsers.add_parser('rm', help='Remove genome analysis')
     parser_rm.add_argument('organisms', metavar='orgID', nargs='+',

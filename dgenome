@@ -21,7 +21,7 @@ import os
 import sys
 
 __author__ = "Marco Galardini"
-__prog__ = "ductgenome"
+__prog__ = "dgenome"
 
 ################################################################################
 # Log setup
@@ -33,7 +33,7 @@ logger = logging.getLogger()
 
 def dinit(options, wdir, project):
     if not dInit(project, wdir, options.name, options.descr):
-        logger.warning('You can remove the old project file or run ductape rm')
+        logger.warning('You can remove the old project file or run dape rm')
         return False
     else:
         return True
@@ -162,7 +162,9 @@ def daddPanGenome(options, wdir, project):
 
 def dremove(options, wdir, project):
     if not touchProject(project):
-        logger.warning('Nothing to be removed')
+        logger.warning('Nothing to be removed!\n'+
+                       'You can setup a new project by running %s init'%
+                       __prog__)
         return False
     return dGenomeRemove(project, options.organisms)
 

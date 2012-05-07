@@ -1128,8 +1128,24 @@ class Kegg(DBBase):
                     description = values[1]
                 else:
                     description = ''
-                conn.execute('insert or ignore into pathway values (?,?,?);',
+                conn.execute('''insert or replace into pathway
+                                (path_id,name,description) values (?,?,?);''',
                      (path_id,name,description,))
+    
+    def addPathHtml(self, path):
+        '''
+        Add pathways HTML (ignoring if the pathways are not present)
+        the input is a dictionary
+        path_id --> html
+        '''
+        self.boost()
+        
+        with self.connection as conn:
+            for path_id, html in path.iteritems():
+                if not html:continue
+                html = '\n'.join(html)
+                conn.execute('''update pathway set html=? where path_id=?;''',
+                     (html,path_id,))
                 
     def addPathReacts(self, pathreact):
         '''

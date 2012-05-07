@@ -55,7 +55,8 @@ CREATE TABLE "compound" (
 CREATE TABLE "pathway" (
     "path_id" TEXT NOT NULL,
     "name" TEXT,
-    "description" TEXT
+    "description" TEXT,
+    "html" TEXT
 );
 CREATE TABLE "ko_react" (
     "ko_id" TEXT NOT NULL,

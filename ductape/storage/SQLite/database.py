@@ -225,6 +225,16 @@ class Project(DBBase):
                          [self.name,])
         # Update the project
         self.getProject()
+        
+    def isPanGenome(self):
+        '''
+        Get the pangenome status
+        '''
+        self.getProject()
+        if self.pangenome == 1:
+            return True
+        else:
+            return False
     
 class Organism(DBBase):
     '''

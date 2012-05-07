@@ -1115,7 +1115,7 @@ class Kegg(DBBase):
     
     def addPathways(self, path):
         '''
-        Add new reactions (ignoring errors if they are already present)
+        Add new pathways (ignoring errors if they are already present)
         the input is a dictionary
         path_id --> name, description
         '''

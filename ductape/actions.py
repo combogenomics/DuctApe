@@ -70,8 +70,13 @@ def dGenomeRemove(project, organisms):
     Remove all the genomic data about specific organism ID(s)
     '''
     gen = Genome(project)
+    oCheck = Organism(project)
     for org in organisms:
+        if not oCheck.isOrg(org):
+            logger.warning('Genome %s is not present: skipping'%org)
+            continue
         gen.delProteome(org)
+        logger.info('Successfully removed genome %s'%org)
     return True
 
 def dGenomeClear(project):
@@ -80,6 +85,7 @@ def dGenomeClear(project):
     '''
     gen = Genome(project)
     gen.clearAllGenome()
+    logger.info('Successfully removed all genomic data')
     return True
 
 def dGenomeDirAdd(project, folder):

@@ -81,7 +81,8 @@ class KeggAPI(object):
             try:
                 self._keggserv = WSDL.Proxy(self._apiurl)
                 logging.debug('Connection to KEGG API successful')
-                return True
+                self.result = True
+                return
             except Exception, e:
                 attempts += 1
                 logging.debug('Connection to KEGG API failed! Attempt %d'
@@ -90,7 +91,8 @@ class KeggAPI(object):
                 time.sleep(2*attempts)
                 if attempts >= retries:
                     logging.warning('Could not connect to KEGG API')
-                    return False
+                    self.result = False
+                    return
 
     def getTitle(self, entry, retries=5):
         '''
@@ -441,15 +443,24 @@ class BaseKegg(CommonThread):
         Return False if something goes wrong
         '''
         for i in range(self.numThreads):
+            obj = KeggAPI()
+            self.handlers.append(obj)
+            
+        self.cleanHandlers()
+        threads = []
+        for i in range(self.numThreads):
+            obj = threading.Thread(target = self.handlers[i].connect)
+            obj.start()
+            threads.append(obj)
+        time.sleep(0.01)
+        while len(threads) > 0:
             if self.killed:
                 logger.debug('Exiting for a kill signal')
                 return False
             
-            obj = KeggAPI()
-            if not obj.connect():
-                return False
-            self.handlers.append(obj)
-        
+            for thread in threads:
+                if not thread.isAlive():
+                    threads.remove(thread)
         return True
     
     def cleanHandlers(self):

@@ -567,7 +567,7 @@ def getOptions():
     parser_add_mut.add_argument('-k', metavar='kind', action="store",
                             choices = ['deletion', 'insertion'],
                             default = 'deletion',
-                            help='This mutant kind')
+                            help='This mutant kind (deletion|insertion)')
     parser_add_mut.add_argument('-n', metavar='name', action="store",
                             default = '',
                             help='Organism name')

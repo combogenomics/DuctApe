@@ -1171,6 +1171,20 @@ class Kegg(DBBase):
                 for re_id in pathreact[path_id]:
                     conn.execute('insert or ignore into react_path values (?,?);',
                                  (re_id,path_id,))
+    
+    def getPathReacts(self):
+        '''
+        Get all the pathway - reaction links
+        '''
+        query = '''select path_id, re_id
+                   from react_path
+                   order by path_id'''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query)
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
                     
     def addPathComps(self, pathcomp):
         '''
@@ -1257,6 +1271,152 @@ class Kegg(DBBase):
             logger.debug('Got error %s on id %s, assuming id is present'%
                          (str(e),path_id))
             return True
+        
+    def getCoreReact(self):
+        '''
+        Get core genome reactions (and numerosity)
+        '''
+        nOrg = Organism(self.dbname).howMany()
+        
+        query = '''
+                select distinct re_id, count(distinct group_id) num
+                from ko_react k, mapko m, ortholog o
+                where k.ko_id = m.ko_id
+                and o.prot_id = m.prot_id
+                and group_id in (select distinct group_id
+                                    from ortholog
+                                    group by group_id
+                                    having count(*) = ?)
+                group by re_id
+                order by num DESC;
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query,
+                                [nOrg,])
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+    
+    def getDispensableReact(self):
+        '''
+        Get dispensable genome reactions (and numerosity)
+        '''
+        nOrg = Organism(self.dbname).howMany()
+        
+        query = '''
+                select distinct re_id, count(distinct group_id) num
+                from ko_react k, mapko m, ortholog o
+                where k.ko_id = m.ko_id
+                and o.prot_id = m.prot_id
+                and group_id in (select distinct group_id
+                                    from ortholog
+                                    group by group_id
+                                    having count(*) < ?)
+                group by re_id
+                order by num DESC;
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query,
+                                [nOrg,])
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+    
+    def getAccessoryReact(self):
+        '''
+        Get accessory genome reactions (and numerosity)
+        '''
+        nOrg = Organism(self.dbname).howMany()
+        
+        query = '''
+                select distinct re_id, count(distinct group_id) num
+                from ko_react k, mapko m, ortholog o
+                where k.ko_id = m.ko_id
+                and o.prot_id = m.prot_id
+                and group_id in (select distinct group_id
+                                    from ortholog
+                                    group by group_id
+                                    having count(*) < ?
+                                    and count(*) > 1)
+                group by re_id
+                order by num DESC;
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query,
+                                [nOrg,])
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+    
+    def getUniqueReact(self):
+        '''
+        Get unique genome reactions (and numerosity)
+        '''
+        query = '''
+                select distinct re_id, count(distinct group_id) num
+                from ko_react k, mapko m, ortholog o
+                where k.ko_id = m.ko_id
+                and o.prot_id = m.prot_id
+                and group_id in (select distinct group_id
+                                    from ortholog
+                                    group by group_id
+                                    having count(*) = 1)
+                group by re_id
+                order by num DESC;
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query)
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+            
+    def getOrgReact(self, org_id):
+        '''
+        Get reactions from a defined organism (and numerosity)
+        '''
+        query = '''
+                select distinct re_id, count(distinct p.prot_id) num
+                from ko_react k, mapko m, protein p
+                where k.ko_id = m.ko_id
+                and p.prot_id = m.prot_id
+                and org_id = ?
+                group by re_id
+                order by num DESC;
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query,[org_id,])
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+            
+    def getReferenceReact(self, mut_id, ref_id):
+        '''
+        Get reactions from a reference organism (and numerosity)
+        The mutated proteins won't be taken into account
+        '''
+        query = '''
+                select distinct re_id, count(distinct p.prot_id) num
+                from ko_react k, mapko m, protein p
+                where k.ko_id = m.ko_id
+                and p.prot_id = m.prot_id
+                and org_id = ?
+                and p.prot_id not in (select prot_id
+                                    from protein
+                                    where org_id = ?)
+                group by re_id
+                order by num DESC;
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query,[ref_id,mut_id,])
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
     
 class Biolog(DBBase):
     '''

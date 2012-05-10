@@ -6,9 +6,18 @@ DuctApe Library
 
 All the actions required for the analysis
 """
-from ductape.storage.SQLite.database import DBBase, Project, Genome, Organism
+# TODO: this part must be handled somewhere else
+import matplotlib
+matplotlib.use('Agg')
+#
+from ductape.common.utils import slice_it, rgb_to_hex
+from ductape.storage.SQLite.database import DBBase, Project, Genome, Organism, \
+    Kegg
 import logging
 import os
+import matplotlib.pyplot as plt
+from matplotlib import cm
+import numpy as np
 
 __author__ = "Marco Galardini"
 
@@ -164,6 +173,26 @@ def dPanGenomeAdd(project, orthfile):
         
         return True
 
+def dGenomeSetKind(project):
+    '''
+    Set the kind of genomic project and return its value
+    '''
+    proj = Project(project)
+    proj.getProject()
+    org = Organism(project)
+    if org.howManyMutants() > 0:
+        logger.info('%d mutants are present'%org.howManyMutants())
+        proj.setKind('mutants')
+        return 'mutants'
+    elif org.howMany() == 1:
+        logger.info('Just one organism is present')
+        proj.setKind('single')
+        return 'single'
+    else:
+        logger.info('%d organisms are present'%org.howMany())
+        proj.setKind('pangenome')
+        return 'pangenome'
+
 def dGetGenomeSteps(project):
     '''
     Get the analysis that these genomes deserve
@@ -172,19 +201,15 @@ def dGetGenomeSteps(project):
     proj.getProject()
     status = proj.genome
     pangenome = bool(proj.pangenome)
-    org = Organism(project)
-    if org.howManyMutants() > 0:
-        logger.info('%d mutants are present'%org.howManyMutants())
-        proj.setKind('mutants')
+    kind = dGenomeSetKind(project)
+    if kind == 'mutants':
         if status == 'map2ko':
             return ['map2kegg']
         elif status == 'map2kegg':
             return []
         else:
             return ['map2ko', 'map2kegg']
-    elif org.howMany() == 1:
-        logger.info('Just one organism is present')
-        proj.setKind('single')
+    elif kind == 'single':
         if status == 'map2ko':
             return ['map2kegg']
         elif status == 'map2kegg':
@@ -192,8 +217,6 @@ def dGetGenomeSteps(project):
         else:
             return ['map2ko', 'map2kegg']
     else:
-        logger.info('%d organisms are present'%org.howMany())
-        proj.setKind('pangenome')
         steps = []
         if not pangenome:
             steps.append('pangenome')
@@ -206,7 +229,117 @@ def dGetGenomeSteps(project):
             steps.append('pangenome')
         
         return steps
+
+def getPathsReacts(project):
+    kegg = Kegg(project)
+    # Get the pathway - reaction links
+    paths = {}
+    for pR in kegg.getPathReacts():
+        if pR.path_id in ['path:rn01100','path:rn01110','path:rn01120']:
+            continue
+        if pR.path_id not in paths:
+            paths[pR.path_id] = []
+        paths[pR.path_id].append(pR.re_id)
+        
+    return paths
+
+def prepareColors(dReacts, colorrange):
+    if len(dReacts) == 0:
+        return {}
     
+    maximum = max([dReacts[x] for x in dReacts])
+    hexs = {}
+    prev = '#FFFFFF'
+    i = 1
+    for color in slice_it(colorrange, cols=maximum):
+        if len(color) == 0:
+            hexs[i] = prev
+        else:
+            hexs[i] = rgb_to_hex(tuple([int(round(x*255))
+                              for x in color[-1][:3]])).upper()
+        prev = hexs[i]
+        i += 1
+    
+    return hexs
+
+def createLegend(kind, compounds=False):
+    '''
+    Create a color scheme legend
+    '''
+    # TODO: a more centralized color scheme
+    fig = plt.figure()
+    fname = 'legend.png'
+    matrix = np.outer(np.arange(0.33,1,0.01),np.ones(7))
+    if kind == 'pangenome':
+        if compounds:
+            pass
+        else:
+            ax = fig.add_subplot(131)
+            ax.imshow(matrix, cmap=cm.Blues, vmin=0, vmax=1)
+            ax.axes.get_xaxis().set_visible(False)
+            ax.axes.get_yaxis().set_visible(False)
+            ax.axes.get_yaxis().set_ticks([])
+            ax.axes.get_xaxis().set_ticks([])
+            ax.set_title('Core')
+            
+            ax = fig.add_subplot(132)
+            ax.imshow(matrix, cmap=cm.Greens, vmin=0, vmax=1)
+            ax.axes.get_xaxis().set_visible(False)
+            ax.axes.get_yaxis().set_visible(False)
+            ax.axes.get_yaxis().set_ticks([])
+            ax.axes.get_xaxis().set_ticks([])
+            ax.set_title('Core and Dispensable')
+            
+            ax = fig.add_subplot(133)
+            ax.imshow(matrix, cmap=cm.Oranges, vmin=0, vmax=1)
+            ax.axes.get_xaxis().set_visible(False)
+            ax.axes.get_yaxis().set_visible(False)
+            ax.axes.get_yaxis().set_ticks([])
+            ax.axes.get_xaxis().set_ticks([])
+            ax.set_title('Dispensable')
+            
+            fig.savefig(fname)
+            
+    elif kind == 'single':
+        ax = fig.add_subplot(111)
+        ax.imshow(matrix, cmap=cm.Greens, vmin=0, vmax=1)
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+        ax.axes.get_yaxis().set_ticks([])
+        ax.axes.get_xaxis().set_ticks([])
+        ax.set_title('Reactions')
+        
+        fig.savefig(fname)
+
+    elif kind == 'mutants':
+        ax = fig.add_subplot(131)
+        ax.imshow(matrix, cmap=cm.Greens, vmin=0, vmax=1)
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+        ax.axes.get_yaxis().set_ticks([])
+        ax.axes.get_xaxis().set_ticks([])
+        ax.set_title('Wild-type')
+        
+        ax = fig.add_subplot(132)
+        ax.imshow(matrix, cmap=cm.copper_r, vmin=0, vmax=1)
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+        ax.axes.get_yaxis().set_ticks([])
+        ax.axes.get_xaxis().set_ticks([])
+        ax.set_title('Wild-type and Mutated')
+        
+        ax = fig.add_subplot(133)
+        ax.imshow(matrix, cmap=cm.Reds, vmin=0, vmax=1)
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+        ax.axes.get_yaxis().set_ticks([])
+        ax.axes.get_xaxis().set_ticks([])
+        ax.set_title('Mutated')
+        
+        fig.savefig(fname)
+        
+    return fname
+
 def isProject(project):
     '''
     Checks if the project file is there

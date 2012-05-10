@@ -8,17 +8,20 @@ from Bio import SeqIO
 from ductape import __version__
 from ductape.actions import dInit, touchProject, dGenomeClear, dGenomeRemove, \
     dGenomeAdd, dGenomeDirAdd, dGenomeMutAdd, dGetGenomeSteps, prepareDir, \
-    dPanGenomeAdd
+    dPanGenomeAdd, dGenomeSetKind, getPathsReacts, prepareColors, createLegend
 from ductape.common.colorlog import ColorFormatter
-from ductape.storage.SQLite.database import Organism, Project, Genome, Kegg
 from ductape.genome.map2KO import LocalSearch, OnlineSearch
 from ductape.genome.pangenome import PanGenomer
-from ductape.kegg.kegg import KoMapper
+from ductape.kegg.kegg import KoMapper, KeggColor, MapsFetcher
+from ductape.storage.SQLite.database import Organism, Project, Genome, Kegg
 from ductape.terminal import RunThread
 import argparse
 import logging.handlers
+import numpy as np
 import os
 import sys
+# TODO: handle this imports somewhere else
+from matplotlib import cm
 
 __author__ = "Marco Galardini"
 __prog__ = "dgenome"
@@ -130,15 +133,41 @@ def dstart(options, wdir, project):
     return True
     
 def dmap(options, wdir, project):
+    # TODO: add the legend
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
     
+    proj = Project(project)
+    proj.getProject()
+    if proj.genome != 'map2kegg':
+        logger.warning('Genome mapping to KEGG has not yet been performed!')
+        logger.warning('Nothing to be mapped')
+        return
+    
+    kegg = Kegg(project)
+    
+    kind = dGenomeSetKind(project)
+    
+    paths = getPathsReacts(project)
+    
     if len(options.organisms) == 0:
         # PanGenome or all genomes?
-        proj = Project(project)
-        if proj.isPanGenome():
+        if kind != 'mutants' and options.all:
+            logger.info('Going to generate all the single genomic maps')
+            
+            organism = Organism(project)
+            for org_id in [x.org_id for x in organism.getAll()]:
+                logger.info('Going to generate the metabolic map for %s'%org_id)
+                
+                # Create the legend
+                legend = createLegend('single')
+                
+                if not doFetchMaps(project, org_id, paths, legend):
+                    return False
+                
+        elif proj.isPanGenome() and kind == 'pangenome':
             logger.info('Going to generate a pangenomic metabolic map')
             
             # Some info
@@ -147,9 +176,178 @@ def dmap(options, wdir, project):
             logger.info('All the single genome maps can be created using %s map -a'%
                         __prog__)
             
+            # Get the reactions in the pangenome space
+            core = {}
+            for cR in kegg.getCoreReact():
+                core[cR.re_id] = cR.num
+            
+            disp = {}
+            for cR in kegg.getDispensableReact():
+                disp[cR.re_id] = cR.num
+                
+            # Get the intersected reactions
+            mix_id = set(core.keys()).intersection(set(disp.keys()))
+            mix = {}
+            for re_id in mix_id:
+                mix[re_id] = core[re_id] + disp[re_id]
+            for re_id in mix_id:
+                del core[re_id]
+                del disp[re_id]
+            
+            # Go for the colors!
+            # Mix
+            hexmix = prepareColors(mix, cm.Greens(np.arange(85,256)))
+            
+            # Core
+            hexcore = prepareColors(core, cm.Blues(np.arange(85,256)))
+                
+            # Dispensable
+            hexdisp = prepareColors(disp, cm.Oranges(np.arange(85,256)))
+            
+            # Create the legend
+            legend = createLegend('pangenome')
+            
+            # Create the input objects
+            colorPaths = []
+            for path in paths:
+                KC = KeggColor(path)
+                dreact = {}
+                for re_id in paths[path]:
+                    if re_id in mix:
+                        dreact[re_id] = hexmix[mix[re_id]]
+                    elif re_id in core:
+                        dreact[re_id] = hexcore[core[re_id]]
+                    elif re_id in disp:
+                        dreact[re_id] = hexdisp[disp[re_id]]
+                    else:
+                        dreact[re_id] = '#FFFFFF'
+                KC.setReactions(dreact)
+                KC.setMap(kegg.getPathway(path).html)
+                colorPaths.append(KC)
+                
+            # Go!
+            kmap = MapsFetcher(colorPaths, prefix='pangenome', legend=legend)
+    
+            if not RunThread(kmap):
+                return False
+            
+            logger.info('%d maps are available in %s'%(len(kmap.pics),
+                                                       kmap._keggroom))
+                
+        elif kind == 'single':
+            logger.info('Going to generate a genomic metabolic map')
+            
+            organism = Organism(project)
+            org_id = [x for x in organism.getAll()][0]
+            
+            # Create the legend
+            legend = createLegend('single')
+            
+            if not doFetchMaps(project, org_id, paths, legend):
+                return False
+        
+        elif kind == 'mutants':
+            logger.info('Going to generate mutants metabolic map')
+        
+            organism = Organism(project)
+        
+            refs = [org.org_id
+                    for org in organism.getAll()
+                    if not organism.isMutant(org.org_id)]
+        
+            for ref_id in refs:
+                logger.info('Going to generate the metabolic map for reference %s'%
+                            ref_id)
+                
+                # Create the legend
+                legend = createLegend('single')
+                
+                if not doFetchMaps(project, ref_id, paths, legend):
+                    return False
+                
+                muts = [x for x in organism.getOrgMutants(ref_id)]
+                for mut_id in muts:
+                    logger.info('Going to generate the metabolic map for mutant %s (parent %s)'%
+                            (mut_id,ref_id))
+                    
+                    # Get the reactions in the mutant space
+                    mut = {}
+                    for mR in kegg.getOrgReact(mut_id):
+                        mut[mR.re_id] = mR.num
+                    
+                    ref = {}
+                    for rR in kegg.getReferenceReact(mut_id, ref_id):
+                        ref[rR.re_id] = rR.num
+                    
+                    # Get the intersected reactions
+                    mix_id = set(mut.keys()).intersection(set(ref.keys()))
+                    mix = {}
+                    for re_id in mix_id:
+                        mix[re_id] = ref[re_id] + mut[re_id]
+                    for re_id in mix_id:
+                        del mut[re_id]
+                        del ref[re_id]
+                    
+                    # Go for the colors!
+                    # Mix
+                    hexmix = prepareColors(mix, cm.copper_r(np.arange(1,170)))
+                    
+                    # mut
+                    hexmut = prepareColors(mut, cm.Reds(np.arange(85,256)))
+                        
+                    # ref
+                    hexref = prepareColors(ref, cm.Greens(np.arange(85,256)))
+                    
+                    # Create the legend
+                    legend = createLegend('mutants')
+                    
+                    # Create the input objects
+                    colorPaths = []
+                    for path in paths:
+                        KC = KeggColor(path)
+                        dreact = {}
+                        for re_id in paths[path]:
+                            if re_id in mix:
+                                dreact[re_id] = hexmix[mix[re_id]]
+                            elif re_id in mut:
+                                dreact[re_id] = hexmut[mut[re_id]]
+                            elif re_id in ref:
+                                dreact[re_id] = hexref[ref[re_id]]
+                            else:
+                                dreact[re_id] = '#FFFFFF'
+                        KC.setReactions(dreact)
+                        KC.setMap(kegg.getPathway(path).html)
+                        colorPaths.append(KC)
+                        
+                    # Go!
+                    kmap = MapsFetcher(colorPaths, prefix=mut_id, legend=legend)
+            
+                    if not RunThread(kmap):
+                        return False
+                    
+                    logger.info('%d maps are available in %s'%(len(kmap.pics),
+                                                               kmap._keggroom))
+        else:
+            logger.warning('Unattended case %s'%kind)
             
     else:
-        pass
+        orgs = set(options.organisms)
+        
+        organism = Organism(project)
+        
+        for org_id in orgs:
+            if not organism.isOrg(org_id):
+                logger.warning('Genome %s is not present: skipping'%org_id)
+                continue
+            
+            logger.info('Going to generate the metabolic map for %s'%org_id)
+            
+            # Create the legend
+            legend = createLegend('single')
+            
+            if not doFetchMaps(project, org_id, paths, legend):
+                return False
+            
 
 def daddKo(options, wdir, project):
     if not touchProject(project):
@@ -270,6 +468,41 @@ def doMap2KEGG(project):
     
     return True
 
+def doFetchMaps(project, org_id, paths, legend=None):
+    kegg = Kegg(project)
+    
+    # Get the reactions in the organism space
+    org = {}
+    for oR in kegg.getOrgReact(org_id):
+        org[oR.re_id] = oR.num
+        
+    # Go for the colors!
+    hexorg = prepareColors(org, cm.Greens(np.arange(85,256)))
+        
+    # Create the input objects
+    colorPaths = []
+    for path in paths:
+        KC = KeggColor(path)
+        dreact = {}
+        for re_id in paths[path]:
+            if re_id in org:
+                dreact[re_id] = hexorg[org[re_id]]
+            else:
+                dreact[re_id] = '#FFFFFF'
+        KC.setReactions(dreact)
+        KC.setMap(kegg.getPathway(path).html)
+        colorPaths.append(KC)
+        
+    # Go!
+    kmap = MapsFetcher(colorPaths, prefix=org_id, legend=legend)
+
+    if not RunThread(kmap):
+        return False
+    
+    logger.info('%d maps are available in %s'%(len(kmap.pics), kmap._keggroom))
+    
+    return True
+
 ################################################################################
 # Options
 
@@ -374,11 +607,9 @@ def getOptions():
     parser_start.set_defaults(func=dstart)
     
     parser_map = subparsers.add_parser('map', help='Fetch genomic metabolic maps')
-    parser_map.add_argument('-p', action="store", metavar='path',
-                            dest='mappath',
-                            required=False,
-                            default=None,
-                            help='Path to store the maps')
+    parser_map.add_argument('-a', '--all', action="store_true",
+                            default=False,
+                            help='Plot all the single genomic maps')
     parser_map.add_argument('organisms', metavar='orgID', nargs='*',
                             action="store",
                             default=[],

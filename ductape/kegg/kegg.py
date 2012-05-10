@@ -7,12 +7,14 @@ Common Library
 KeggAPI handles the connection to KEGG API through wsdl
 KoMapper handles reactions, pathways and compounds retrieval on Ko IDs 
 """
+from SOAPpy import WSDL
 from ductape.common.commonthread import CommonThread
 from ductape.common.utils import get_span
-from SOAPpy import WSDL
+from ductape.kegg.web import kheader
 import Queue
 import logging
 import os
+import shutil
 import threading
 import time
 import urllib
@@ -307,10 +309,14 @@ class KeggColor(object):
     Holds the color information to be passed to MapsFetcher
     One object for each pathway
     '''
-    def __init__(self, path, reactions={}, compounds={}):
+    def __init__(self, path, htmlmap= '', reactions={}, compounds={}):
         self.path = path 
+        self.htmlmap = htmlmap
         self.reactions = reactions
         self.compounds = compounds
+    
+    def setMap(self, htmlmap):
+        self.htmlmap = htmlmap
     
     def setReactions(self, reactions):
         self.reactions = reactions
@@ -1122,33 +1128,37 @@ class MapsFetcher(BaseKegg):
     '''
     Class MapsFetcher
     Download colored Kegg maps (png or URLs)
-    Input: color_objs (KeggColor list), picture, urls, prefix
-    Output: tuple(list of png filenames, list of URLs)
+    Input: color_objs (KeggColor list), picture, htmls, urls, prefix, legend (file)
+    Output: tuple(list of png filenames, list of HTML files, list of URLs)
     '''
     
     _statusDesc = {0:'Not started',
                1:'Making room',
                2:'Connection to KEGG',
                3:'Fetching maps (pictures)',
-               4:'Fetching maps (URLs)'}
+               4:'Generating interactive web pages',
+               5:'Fetching maps (URLs)'}
     
-    _substatuses = [3,4]
+    _substatuses = [3,5]
     
-    def __init__(self, color_objs, pictures=True, URLs=False, prefix='', 
-                 threads=20, queue=Queue.Queue()):
+    def __init__(self, color_objs, pictures=True, html=True, URLs=False, prefix='', 
+                 legend=None, threads=20, queue=Queue.Queue()):
         BaseKegg.__init__(self, threads=threads, queue=queue)
         
         self.colors = color_objs
         self.pictures = bool(pictures)
+        self.web = bool(html)
         self.HTMLs = bool(URLs)
+        self.legend = legend 
         
         self._keggroom = None
         self._prefix = prefix 
         
         # Outputs
         self.pics = []
+        self.webpages = []
         self.pages = []
-        self.result = (self.pics, self.pages)
+        self.result = (self.pics, self.webpages, self.pages)
     
     def makeRoom(self,location=''):
         '''
@@ -1171,7 +1181,18 @@ class MapsFetcher(BaseKegg):
             logger.debug('Temporary directory creation failed! %s'
                           %path)
     
+    def copyLegend(self):
+        '''Copy the legend in the target directory'''
+        if self.legend and os.path.exists(self.legend):
+            legend = os.path.join(self._keggroom, 'legend.png')
+            shutil.copyfile(self.legend, legend)
+            
+            return legend
+        return None
+    
     def getMaps(self):
+        legend = self.copyLegend()
+        
         for piece in get_span(self.colors, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
@@ -1207,6 +1228,76 @@ class MapsFetcher(BaseKegg):
                 fOut.write(handler.result)
                 fOut.close()
                 self.pics.append(fname)
+    
+    def getWebPages(self):
+        # TODO: nicer web pages
+        legend = self.copyLegend()
+        legend = os.path.split(legend)[-1]
+        
+        if legend:
+            fname = os.path.join(self._keggroom,'legend.html')
+            
+            fOut = open(fname,'w')
+            fOut.write('<html>\n<head></head>\n<body>\n')
+            fOut.write('''<div align="center">
+                        <img src="./%s" />
+                        </div>\n'''%
+                       (legend))
+            fOut.write('</body>\n</html>')
+            fOut.close()
+        
+        for path in self.colors:
+            myindex = self.colors.index(path)
+            
+            logger.debug('Writing interactive web page for %s'%path.path)
+            
+            fname = os.path.join(self._keggroom,path.path)
+            fname = fname+'.html'
+            
+            fOut = open(fname,'w')
+            fOut.write('<html>\n%s\n<body>\n'%kheader)
+            
+            # Navigation
+            fOut.write('''<h2 align="center">\n''')
+            fOut.write('''<a href="./%s.html">&laquo;</a>%s'''%(
+                       self.colors[myindex-1].path, path.path))
+            try:
+                next = self.colors[myindex+1]
+            except:
+                next = self.colors[0]
+            fOut.write('''<a href="./%s.html">&raquo;</a>\n</h2>\n'''%
+                       (next.path))
+            
+            if legend:
+                fOut.write('''<h3 align="center">
+                            <a href="./legend.html">Color scheme</a>
+                            </h3>\n''')
+            
+            fOut.write('''<div align="center">
+                        <img src="./%s" usemap="#mapdata" border="0" />
+                        </div>\n'''%
+                       (path.path+'.png'))
+            
+            html = path.htmlmap.split('\n')
+            newhtml = []
+            for line in html:
+                line = line.replace('href="/dbget-bin/www_bget?',
+               'target="_blank" href="http://www.genome.jp/dbget-bin/www_bget?')
+                
+                if '/kegg-bin/show_pathway?' in line:
+                    s = line.split('/kegg-bin/show_pathway?')
+                    s1 = s[1].split('"')
+                    s1[0] += '.html'
+                    line1 = '"'.join(s1)
+                    line = './path:'.join([s[0]] + [line1])
+                
+                newhtml.append(line)
+                
+            fOut.write('%s\n'%'\n'.join(newhtml))
+            fOut.write('<div id="poplay" class="poplay" />\n</body>\n</html>')
+            fOut.close()
+            
+            self.webpages.append(fname)
     
     def getPages(self):
         for piece in get_span(self.colors, self.numThreads):
@@ -1270,6 +1361,16 @@ class MapsFetcher(BaseKegg):
             
         if self.killed:
             return
+        
+        if self.web:
+            self.updateStatus()
+            try:
+                self.getWebPages()
+            except Exception, e:
+                self.sendFailure(e)
+                return
+        else:
+            self.updateStatus(send=False)
         
         if self.HTMLs:
             self._maxsubstatus = len(self.colors)

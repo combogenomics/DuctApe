@@ -84,4 +84,7 @@ def smooth(x,window_len=11,window='hanning'):
 
 def compress(x, span=10):
     return [i[0] for i in get_span(x, span)]
+
+def rgb_to_hex(rgb):
+    return '#%02x%02x%02x' % rgb
         

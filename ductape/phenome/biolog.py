@@ -54,7 +54,7 @@ dPlates = {'PM 1-':'PM01', 'PM 2-A':'PM02A',
 
 acceptedPlates = dPlates.values()
 
-zeroPlates = ['PM01','PM02','PM03','PM04','PM05',
+zeroPlates = ['PM01','PM02A','PM03B','PM04A','PM05',
               'PM06','PM07','PM08','PM03B','PM04A']
 zeroWell = 'A01'
 

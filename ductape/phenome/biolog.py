@@ -755,6 +755,32 @@ class Experiment(object):
                     reps = self.experiment[plate][well][strain].values()
                     for w in reps:
                         yield w
+                        
+    def getAverageWells(self):
+        '''
+        Generator to the single average wells
+        '''
+        for plate in self.sumexp:
+            for well in self.sumexp[plate]:
+                for strain in self.sumexp[plate][well]:  
+                    yield self.experiment[plate][well][strain]
+                    
+    def getAverageSinglePlates(self):
+        '''
+        Generator to the SinglePlates (average)
+        '''
+        for plate in self.sumexp:
+            d = {}
+            for well in self.sumexp[plate]:
+                for strain in  self.sumexp[plate][well]:
+                    if strain not in d:
+                        d[strain] = SinglePlate()
+                        d[strain].plate_id = plate
+                        d[strain].strain = strain
+                    d[strain].data[well] = self.sumexp[plate][well][strain]
+            
+            for strain in d:
+                yield d[strain]
     
     def purgeReplicas(self, policy='keep-min', delta=1):
         '''
@@ -1170,17 +1196,19 @@ class BiologPlot(CommonThread):
     
     _substatuses = [2,4,5,6]
     
-    def __init__(self, data,
+    def __init__(self, data, avgdata = [],
                  expname = 'exp', 
                  plateNames = {}, wellNames = {},
                  colors = {}, smooth = True, window = 11,
                  compress = 0,
-                 maxsig = None, plotAll=False, plotActivity=True,
+                 maxsig = None,
+                 plotPlates=True, plotAll=False, plotActivity=True,
                  order = [],
                  queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         # Biolog
         self.data = data
+        self.avgdata = avgdata
         
         self.expname = expname
         
@@ -1195,6 +1223,7 @@ class BiologPlot(CommonThread):
             self.maxsig = float(maxsig)
         else:
             self.maxsig = None
+        self.plotPlates = bool(plotPlates)
         self.plotAll = bool(plotAll)
         self.plotActivity = bool(plotActivity)
         self.order = order
@@ -1202,6 +1231,7 @@ class BiologPlot(CommonThread):
         # Results
         # Plate_id --> Plate
         self.results = {}
+        self.avgresults = {}
         # Single well plot
         self.well = None
         
@@ -1274,23 +1304,54 @@ class BiologPlot(CommonThread):
             #
             self.results[plate.plate_id].setColor(plate.strain,
                                                   self.colors[plate.strain])
+        
+        for plate in self.avgdata:
+            self._substatus += 1
+            self.updateStatus(True)
+            if plate.plate_id in self.plateNames:
+                plate_name = self.plateNames[plate.plate_id]
+            else:
+                plate_name = ''
+            if plate.plate_id not in self.avgresults:
+                self.avgresults[plate.plate_id] = Plate(plate.plate_id, 
+                                                    plate_name = plate_name,
+                                                    smooth = self.smooth,
+                                                    window = self.window,
+                                                    compress = self.compress,
+                                                    maxsig = self.maxsig)
+            
+            self.avgresults[plate.plate_id].addData(plate.strain, plate)
+            # Sanity check
+            if plate.strain not in self.colors:
+                logging.error('Color code for strain %s is missing'%plate.strain)
+                return
+            #
+            self.avgresults[plate.plate_id].setColor(plate.strain,
+                                                  self.colors[plate.strain])
+        
         self.resetSubStatus()
         
         self.updateStatus()
         for plate_id in self.results:
             self.results[plate_id].preparePlot()
+        for plate_id in self.avgresults:
+            self.avgresults[plate_id].preparePlot()
         self.resetSubStatus()
         
-        self._maxsubstatus = len(self.results)*96
-        self.updateStatus()
-        for plate_id in self.results:
-            for i in self.results[plate_id].plotAll():
-                self._substatus += 1
-                self.updateStatus(True)
-            # TODO: remember qgraphicspixmapitem for GUI clickable!
-            fname = os.path.join(self._room,'%s.png'%plate_id)
-            self.results[plate_id].figure.savefig(fname, dpi=150)
-            self.results[plate_id].figure.clf()
+        if self.plotPlates:
+            self._maxsubstatus = len(self.results)*96
+            self.updateStatus()
+            for plate_id in self.results:
+                for i in self.results[plate_id].plotAll():
+                    self._substatus += 1
+                    self.updateStatus(True)
+                # TODO: remember qgraphicspixmapitem for GUI clickable!
+                fname = os.path.join(self._room,'%s.png'%plate_id)
+                self.results[plate_id].figure.savefig(fname, dpi=150)
+                self.results[plate_id].figure.clf()
+            self.resetSubStatus()
+        else:
+            self.updateStatus(send=False)
         self.resetSubStatus()
         
         if self.plotAll:
@@ -1314,13 +1375,13 @@ class BiologPlot(CommonThread):
         if self.plotActivity:
             self._maxsubstatus = len(self.results)*96
             self.updateStatus()
-            for plate_id in self.results:
-                for i in self.results[plate_id].plotActivity(strains=self.order):
+            for plate_id in self.avgresults:
+                for i in self.avgresults[plate_id].plotActivity(strains=self.order):
                     self._substatus += 1
                     self.updateStatus(True)
                 fname = os.path.join(self._room,'%sheat.png'%plate_id)
-                self.results[plate_id].heatfig.savefig(fname, dpi=150)
-                self.results[plate_id].heatfig.clf()
+                self.avgresults[plate_id].heatfig.savefig(fname, dpi=150)
+                self.avgresults[plate_id].heatfig.clf()
         else:
             self.updateStatus(send=False)
         self.resetSubStatus()

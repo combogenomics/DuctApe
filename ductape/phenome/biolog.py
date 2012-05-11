@@ -901,11 +901,11 @@ class Experiment(object):
             if self.zero and param.plate_id in zeroPlates:
                 dWells['zero'].append(param)
                 dParams['zero'].append([param.max, param.area, 
-                                        param.height, param.lag])
+                                        param.height, param.lag, param.slope])
             else:
                 dWells['nonzero'].append(param)
                 dParams['nonzero'].append([param.max, param.area,
-                                           param.height, param.lag])
+                                           param.height, param.lag, param.slope])
         
         # Add some fake wells with no signal to make sure we will got a 
         # "zero cluster"
@@ -917,7 +917,7 @@ class Experiment(object):
                 who.well_id = 'fake'
                 who.strain = 'fake'
                 dWells['zero'].append(who)
-                dParams['zero'].append([0.0, 0.0, 0.0, 0.0])
+                dParams['zero'].append([0.0, 0.0, 0.0, 0.0, 0.0])
         
         if len(dParams['nonzero']) >= 1:
             for i in range(1,97):
@@ -927,7 +927,7 @@ class Experiment(object):
                 who.well_id = 'fake'
                 who.strain = 'fake'
                 dWells['nonzero'].append(who)
-                dParams['nonzero'].append([0.0, 0.0, 0.0, 0.0])
+                dParams['nonzero'].append([0.0, 0.0, 0.0, 0.0, 0.0])
         
         # Perform the actual clusterizzations
         

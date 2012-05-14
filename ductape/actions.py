@@ -173,6 +173,163 @@ def dPanGenomeAdd(project, orthfile):
         
         return True
 
+def dGenomeStats(project, doPrint=True):
+    # Which project are we talking about?
+    kind = dGenomeSetKind(project)
+    
+    proj = Project(project)
+    organism = Organism(project)
+    genome = Genome(project)
+    kegg = Kegg(project)
+    
+    if kind == 'single' or kind == 'pangenome':
+        logger.info('Single genomes stats')
+        # Single genomes stats
+        # Header
+        header = '\t'.join( ['ID', 'name', 'description', 'proteome size',
+                                'mapped to kegg', 'KEGG orthology IDs',
+                                'pathways', 'reactions'] )
+        if doPrint:
+            print header
+        else:
+            logger.info(header)
+        
+        lOrg = []
+        for org in organism.getAll():
+            org_id = org.org_id
+            name = org.name if org.name else 'NONE'
+            description = org.description if org.description else 'NONE'
+            
+            prots = genome.howMany(org_id)
+            
+            mapped, ko, react, path = (kegg.howManyMapped(org_id),
+                                        kegg.howManyKO(org_id),
+                                        kegg.howManyReactions(org_id),
+                                        kegg.howManyPathways(org_id))
+            
+            stats = '\t'.join( [str(x) for x in [org_id, name, description,
+                                                 prots, mapped, ko, path,
+                                                 react]] )
+            if doPrint:
+                print stats
+            else:
+                logger.info(stats)
+                
+            lOrg.append([org_id, prots, mapped, react])
+            
+        plotMapBars(lOrg, 'Single genomes statistics', 'single')
+        
+        if proj.isPanGenome():
+            logger.info('Pangenome stats')
+            # Pangenome stats
+            # Header
+            header = '\t'.join( ['kind', 'size',
+                                    'mapped to kegg', 'KEGG orthology IDs',
+                                    'pathways', 'reactions'] )
+            if doPrint:
+                print header
+            else:
+                logger.info(header)
+                
+            core, acc, uni = (genome.getLenCore(), genome.getLenAcc(),
+                              genome.getLenUni())
+
+            stats = []
+            stats.append('\t'.join( [str(x) for x in ['core', core,
+                                 kegg.howManyMapped(pangenome='core'),
+                                 kegg.howManyKO(pangenome='core'),
+                                 kegg.howManyPathways(pangenome='core'),
+                                 kegg.howManyReactions(pangenome='core')]]))
+            stats.append('\t'.join( [str(x) for x in ['accessory', acc,
+                                 kegg.howManyMapped(pangenome='accessory'),
+                                 kegg.howManyKO(pangenome='accessory'),
+                                 kegg.howManyPathways(pangenome='accessory'),
+                                 kegg.howManyReactions(pangenome='accessory')]]))
+            stats.append('\t'.join( [str(x) for x in ['unique', uni,
+                                 kegg.howManyMapped(pangenome='unique'),
+                                 kegg.howManyKO(pangenome='unique'),
+                                 kegg.howManyPathways(pangenome='unique'),
+                                 kegg.howManyReactions(pangenome='unique')]]))
+            
+            for stat in stats:
+                if doPrint:
+                    print stat
+                else:
+                    logger.info(stat)
+            
+            lPanGenome = [['Core', core, kegg.howManyMapped(pangenome='core'),
+                           kegg.howManyReactions(pangenome='core')],
+                          ['Accessory', acc,
+                           kegg.howManyMapped(pangenome='accessory'),
+                           kegg.howManyReactions(pangenome='accessory')],
+                          ['Unique', uni,
+                           kegg.howManyMapped(pangenome='unique'),
+                           kegg.howManyReactions(pangenome='unique')]]
+ 
+            plotMapBars(lPanGenome, 'PanGenome statistics', 'pangenome_stats')
+            plotPanGenome(core, acc, uni)
+    
+    elif kind == 'mutants':
+        refs = [org.org_id
+                    for org in organism.getAll()
+                    if not organism.isMutant(org.org_id)]
+        
+        # Header
+        header = '\t'.join( ['ID', 'name', 'description', 'kind', 'proteome size',
+                                'mapped to kegg', 'reactions'] )
+        
+        for ref_id in refs:
+            logger.info('Mutants of %s stats'%ref_id)
+            
+            if doPrint:
+                print header
+            else:
+                logger.info(header)
+            
+            muts = [x for x in organism.getOrgMutants(ref_id)]
+            
+            lOrg = []
+            for org_id in [ref_id] + muts:
+                org = organism.getOrg(org_id)
+                
+                name = org.name if org.name else 'NONE'
+                description = org.description if org.description else 'NONE'
+                
+                mkind = org.mkind if org.mkind in ['deletion', 'insertion'] else 'wild-type'
+                
+                if mkind not in ['deletion', 'insertion']:
+                    prots = genome.howMany(org_id)
+                elif mkind == 'deletion':
+                    prots = genome.howMany(ref_id) - genome.howMany(org_id)
+                elif mkind == 'insertion':
+                    prots = genome.howMany(ref_id) + genome.howMany(org_id)
+                
+                mapped, react = (kegg.howManyMapped(org_id),
+                                kegg.howManyReactions(org_id))
+        
+                if mkind == 'deletion':
+                    mapped = kegg.howManyMapped(ref_id) - mapped
+                    react = kegg.howManyReactions(ref_id) - react
+                elif mkind == 'insertion':
+                    mapped += kegg.howManyMapped(ref_id)
+                    react += kegg.howManyReactions(ref_id)
+                
+                stats = '\t'.join( [str(x) for x in [org_id, name, description,
+                                                 mkind, prots, mapped,
+                                                 react]] )
+                if doPrint:
+                    print stats
+                else:
+                    logger.info(stats)
+                
+                lOrg.append([org_id, prots, mapped, react])
+        
+            plotMapBars(lOrg, 'Wild-type (%s) and mutants statistics'%ref_id,
+                        '%s'%ref_id)
+    
+    else:
+        logger.info('No statistics can be computed at this time')
+        
 def dGenomeSetKind(project):
     '''
     Set the kind of genomic project and return its value
@@ -188,6 +345,9 @@ def dGenomeSetKind(project):
         logger.info('Just one organism is present')
         proj.setKind('single')
         return 'single'
+    elif org.howMany() == 0:
+        logger.info('No organisms are present yet')
+        return None
     else:
         logger.info('%d organisms are present'%org.howMany())
         proj.setKind('pangenome')
@@ -339,6 +499,47 @@ def createLegend(kind, compounds=False):
         fig.savefig(fname)
         
     return fname
+
+def plotMapBars(lOrg, title, fname):
+    '''
+    Plot histograms for Kegg mapping statistics
+    '''
+    plt.clf()
+    space = np.array([0.0, 0.2, 0.4])
+    maxprots = max([x[1] for x in lOrg])
+    
+    for data in lOrg:
+        index = float(lOrg.index(data))
+        patch = plt.bar(space + index, np.array(data[1:]),
+                width=0.2,
+                color=['blue', 'orange', 'red'])
+        if index == 0:
+            patch[0].set_label('Size')
+            patch[1].set_label('Mapped to Kegg')
+            patch[2].set_label('Kegg reactions')
+    
+    plt.xticks([0.2 + 1 * x for x in range(len(lOrg))] , [x[0] for x in lOrg])
+    plt.ylim(0, maxprots + maxprots * 0.33)
+    plt.title(title)
+    plt.legend(loc='best')
+    plt.savefig('%s.png'%fname)
+
+    logger.info('%s graph saved (%s.png)'%(title, fname))
+    
+def plotPanGenome(core, acc, uni):
+    plt.clf()
+    colors=('r','b','g')
+    patches = plt.pie([core, acc, uni], colors=colors,
+                      explode=(0.1,0.01,0.01),
+                      autopct='%1.1f%%',
+                      shadow=True)
+    plt.legend((patches[0][0], patches[0][1], patches[0][2]),
+               ('Core','Accessory','Unique'),
+               loc=(0,-.1))
+    plt.title('PanGenome shape')
+    plt.savefig('pangenome_shape.png')
+    
+    logger.info('PanGenome shape graph saved (pangenome_shape.png)')
 
 def isProject(project):
     '''

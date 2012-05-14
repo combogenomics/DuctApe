@@ -1417,6 +1417,280 @@ class Kegg(DBBase):
             
         for res in cursor:
             yield Row(res, cursor.description)
+            
+    def howManyMapped(self, org_id=None, pangenome=''):
+        '''
+        Returns the number of proteins mapped to kegg
+        If no org_id is provided, the mapped proteins from all organism
+        is returned
+        '''
+        
+        if pangenome in ['core', 'accessory', 'unique']:
+            # How many organisms are present?
+            organism = Organism(self.dbname)
+            nOrg = organism.howMany()
+        
+        if org_id:
+            query = '''
+                select count(distinct  p.prot_id)
+                from mapko m, protein p
+                where m.prot_id = p.prot_id
+                and org_id = ?;
+                '''
+        elif pangenome == 'core':
+            query = '''
+                    select count(distinct  o.group_id)
+                    from mapko m, ortholog o
+                    where m.prot_id = o.prot_id
+                    and group_id in (select o.group_id
+                                        from ortholog o
+                                        group by o.group_id
+                                        having count(*) = ?);
+                    '''
+        elif pangenome == 'accessory':
+            query = '''
+                    select count(distinct  o.group_id)
+                    from mapko m, ortholog o
+                    where m.prot_id = o.prot_id
+                    and group_id in (select o.group_id
+                                        from ortholog o
+                                        group by o.group_id
+                                        having count(*) > 1 and count(*) < ?);
+                    '''
+        elif pangenome == 'unique':
+            query = '''
+                    select count(distinct  o.group_id)
+                    from mapko m, ortholog o
+                    where m.prot_id = o.prot_id
+                    and group_id in (select o.group_id
+                                        from ortholog o
+                                        group by o.group_id
+                                        having count(*) = 1);
+                    '''
+        else:
+            query = '''
+                    select count(distinct  m.prot_id)
+                    from mapko m;
+                    '''
+            
+        with self.connection as conn:
+            if org_id:
+                cursor=conn.execute(query,[org_id,])
+            elif pangenome in ['core', 'accessory']:
+                cursor=conn.execute(query,[nOrg,])
+            else:
+                cursor=conn.execute(query)
+        return int(cursor.fetchall()[0][0])
+    
+    def howManyKO(self, org_id=None, pangenome=''):
+        '''
+        Returns the number of KO mapped
+        If no org_id is provided, the whole number of KO from all organism
+        is returned
+        '''
+        
+        if pangenome in ['core', 'accessory', 'unique']:
+            # How many organisms are present?
+            organism = Organism(self.dbname)
+            nOrg = organism.howMany()
+        
+        if org_id:
+            query = '''
+                select count(distinct ko_id)
+                from mapko m, protein p
+                where m.prot_id = p.prot_id
+                and org_id = ?
+                '''
+        elif pangenome == 'core':
+            query = '''
+                    select count(distinct ko_id)
+                    from mapko m, ortholog o
+                    where m.prot_id = o.prot_id
+                    and o.group_id in (select o.group_id
+                                from ortholog o
+                                group by o.group_id
+                                having count(*) = ?);
+                    '''
+        elif pangenome == 'accessory':
+            query = '''
+                    select count(distinct ko_id)
+                    from mapko m, ortholog o
+                    where m.prot_id = o.prot_id
+                    and o.group_id in (select o.group_id
+                                from ortholog o
+                                group by o.group_id
+                                having count(*) < ? and count(*));
+                    '''
+        elif pangenome == 'unique':
+            query = '''
+                    select count(distinct ko_id)
+                    from mapko m, ortholog o
+                    where m.prot_id = o.prot_id
+                    and o.group_id in (select o.group_id
+                                from ortholog o
+                                group by o.group_id
+                                having count(*) = 1);
+                    '''
+        else:
+            query = '''
+                    select count(distinct ko_id)
+                    from mapko m
+                    '''
+            
+        with self.connection as conn:
+            if org_id:
+                cursor=conn.execute(query,[org_id,])
+            elif pangenome in ['core', 'accessory']:
+                cursor=conn.execute(query,[nOrg,])
+            else:
+                cursor=conn.execute(query)
+        return int(cursor.fetchall()[0][0])
+    
+    def howManyReactions(self, org_id=None, pangenome=''):
+        '''
+        Returns the number of reactions mapped
+        If no org_id is provided, the whole number of reactions from all organism
+        is returned
+        '''
+        
+        if pangenome in ['core', 'accessory', 'unique']:
+            # How many organisms are present?
+            organism = Organism(self.dbname)
+            nOrg = organism.howMany()
+        
+        if org_id:
+            query = '''
+                select count(k.re_id)
+                from mapko m, protein p, ko_react k
+                where m.prot_id = p.prot_id
+                and org_id = ?
+                and m.ko_id = k.ko_id
+                '''
+        elif pangenome == 'core':
+            query = '''
+                    select count(*)
+                    from (select distinct o.group_id, k.re_id
+                        from mapko m, ortholog o, ko_react k
+                        where m.prot_id = o.prot_id
+                        and m.ko_id = k.ko_id
+                        and o.group_id in (select o.group_id
+                                    from ortholog o
+                                    group by o.group_id
+                                    having count(*) = ?));
+                    '''
+        elif pangenome == 'accessory':
+            query = '''
+                    select count(*)
+                    from (select distinct o.group_id, k.re_id
+                        from mapko m, ortholog o, ko_react k
+                        where m.prot_id = o.prot_id
+                        and m.ko_id = k.ko_id
+                        and o.group_id in (select o.group_id
+                                    from ortholog o
+                                    group by o.group_id
+                                    having count(*) < ? and count(*) > 1));
+                    '''
+        elif pangenome == 'unique':
+            query = '''
+                    select count(*)
+                    from (select distinct o.group_id, k.re_id
+                        from mapko m, ortholog o, ko_react k
+                        where m.prot_id = o.prot_id
+                        and m.ko_id = k.ko_id
+                        and o.group_id in (select o.group_id
+                                    from ortholog o
+                                    group by o.group_id
+                                    having count(*) = 1));
+                    '''
+        else:
+            query = '''
+                    select count(k.re_id)
+                    from mapko m, ko_react k
+                    where m.ko_id = k.ko_id
+                    '''
+            
+        with self.connection as conn:
+            if org_id:
+                cursor=conn.execute(query,[org_id,])
+            elif pangenome in ['core', 'accessory']:
+                cursor=conn.execute(query,[nOrg,])
+            else:
+                cursor=conn.execute(query)
+        return int(cursor.fetchall()[0][0])
+    
+    def howManyPathways(self, org_id=None, pangenome=''):
+        '''
+        Returns the number of pathways mapped
+        If no org_id is provided, the whole number of pathways from all organism
+        is returned
+        '''
+        
+        if pangenome in ['core', 'accessory', 'unique']:
+            # How many organisms are present?
+            organism = Organism(self.dbname)
+            nOrg = organism.howMany()
+        
+        if org_id:
+            query = '''
+                select count(distinct  path_id)
+                from mapko m, protein p, ko_react k, react_path r
+                where m.prot_id = p.prot_id
+                and org_id = ?
+                and m.ko_id = k.ko_id
+                and k.re_id = r.re_id
+                '''
+        elif pangenome == 'core':
+            query = '''
+                    select count(distinct  path_id)
+                    from mapko m, ortholog o, ko_react k, react_path r
+                    where m.prot_id = o.prot_id
+                    and m.ko_id = k.ko_id
+                    and k.re_id = r.re_id
+                    and o.group_id  in (select o.group_id
+                                        from ortholog o
+                                        group by o.group_id
+                                        having count(*) = ?);
+                    '''
+        elif pangenome == 'accessory':
+            query = '''
+                    select count(distinct  path_id)
+                    from mapko m, ortholog o, ko_react k, react_path r
+                    where m.prot_id = o.prot_id
+                    and m.ko_id = k.ko_id
+                    and k.re_id = r.re_id
+                    and o.group_id  in (select o.group_id
+                                        from ortholog o
+                                        group by o.group_id
+                                        having count(*) < ? and count(*) > 1);
+                    '''
+        elif pangenome == 'unique':
+            query = '''
+                    select count(distinct  path_id)
+                    from mapko m, ortholog o, ko_react k, react_path r
+                    where m.prot_id = o.prot_id
+                    and m.ko_id = k.ko_id
+                    and k.re_id = r.re_id
+                    and o.group_id  in (select o.group_id
+                                        from ortholog o
+                                        group by o.group_id
+                                        having count(*) = 1);
+                    '''
+        else:
+            query = '''
+                    select count(distinct  path_id)
+                    from mapko m, ko_react k, react_path r
+                    where m.ko_id = k.ko_id
+                    and k.re_id = r.re_id
+                    '''
+            
+        with self.connection as conn:
+            if org_id:
+                cursor=conn.execute(query,[org_id,])
+            elif pangenome in ['core', 'accessory']:
+                cursor=conn.execute(query,[nOrg,])
+            else:
+                cursor=conn.execute(query)
+        return int(cursor.fetchall()[0][0])
     
 class Biolog(DBBase):
     '''

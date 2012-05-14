@@ -8,7 +8,8 @@ from Bio import SeqIO
 from ductape import __version__
 from ductape.actions import dInit, touchProject, dGenomeClear, dGenomeRemove, \
     dGenomeAdd, dGenomeDirAdd, dGenomeMutAdd, dGetGenomeSteps, prepareDir, \
-    dPanGenomeAdd, dGenomeSetKind, getPathsReacts, prepareColors, createLegend
+    dPanGenomeAdd, dGenomeSetKind, getPathsReacts, prepareColors, createLegend,\
+    dGenomeStats
 from ductape.common.colorlog import ColorFormatter
 from ductape.genome.map2KO import LocalSearch, OnlineSearch
 from ductape.genome.pangenome import PanGenomer
@@ -133,7 +134,6 @@ def dstart(options, wdir, project):
     return True
     
 def dmap(options, wdir, project):
-    # TODO: add the legend
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
@@ -348,6 +348,12 @@ def dmap(options, wdir, project):
             if not doFetchMaps(project, org_id, paths, legend):
                 return False
             
+def dstats(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    return dGenomeStats(project)
 
 def daddKo(options, wdir, project):
     if not touchProject(project):
@@ -615,6 +621,9 @@ def getOptions():
                             default=[],
                             help='Genome(s) to be mapped')
     parser_map.set_defaults(func=dmap)
+    
+    parser_map = subparsers.add_parser('stats', help='Print genomic statistics')
+    parser_map.set_defaults(func=dstats)
 
     parser_rm = subparsers.add_parser('rm', help='Remove genome analysis')
     parser_rm.add_argument('organisms', metavar='orgID', nargs='+',

@@ -13,6 +13,7 @@ matplotlib.use('Agg')
 from ductape.common.utils import slice_it, rgb_to_hex
 from ductape.storage.SQLite.database import DBBase, Project, Genome, Organism, \
     Kegg
+from Bio import SeqIO
 import logging
 import os
 import matplotlib.pyplot as plt
@@ -329,7 +330,99 @@ def dGenomeStats(project, doPrint=True):
     
     else:
         logger.info('No statistics can be computed at this time')
+        return False
+
+    return True
         
+def dGenomeExport(project):
+    # Is there something to be exported?
+    organism = Organism(project)
+    
+    if organism.howMany() == 0:
+        logger.info('No genomic data can be exported at this time')
+        return False
+    else:
+        logger.info('Exporting protein data')
+        
+        genome = Genome(project)
+        
+        for org in organism.getAll():
+            nprots = SeqIO.write([x for x in genome.getRecords(org.org_id)],
+                        open('%s.faa'%org.org_id,'w'), 'fasta')
+            logger.info('Saved %d proteins from %s (%s)'%(nprots,
+                                                          org.org_id,
+                                                          '%s.faa'%org.org_id))
+            
+        logger.info('Exporting Kegg data')
+        
+        logger.info('Exporting KO map data')
+        
+        kegg = Kegg(project)
+        
+        for org in organism.getAll():
+            fname = 'ko_%s.tsv'%org.org_id
+            fout = open(fname,'w')
+            fout.write('protein_id\tko_id\n')
+            i = 0
+            for prot_id, ko_id in kegg.getAllKO(org.org_id):
+                fout.write('%s\t%s\n'%(prot_id, ko_id))
+                i += 1
+            fout.close()
+            logger.info('Saved %d KO links for %s (%s)'%(i, org.org_id,
+                                                         fname))
+            
+        logger.info('Exporting Kegg reactions data')
+        
+        for org in organism.getAll():
+            fname = 'reactions_%s.tsv'%org.org_id
+            fout = open(fname,'w')
+            fout.write('protein_id\treaction_id\n')
+            i = 0
+            for prot_id, re_id in kegg.getAllReactions(org.org_id):
+                fout.write('%s\t%s\n'%(prot_id, re_id))
+                i += 1
+            fout.close()
+            logger.info('Saved %d Kegg reactions links for %s (%s)'%
+                        (i, org.org_id, fname))
+            
+        proj = Project(project)
+        
+        if proj.isPanGenome():
+            logger.info('Exporting pangenome data')
+            
+            fname = 'pangenome.tsv'
+            fout = open(fname,'w')
+            fout.write('ortholog_id\tprotein_id\n')
+            dG = genome.getPanGenome()
+            for group, prots in dG.iteritems():
+                for prot in prots:
+                    fout.write('%s\t%s\n'%(group,prot))
+            fout.close()
+            
+            logger.info('Exported %d orthologs (%s)'%(len(dG),fname))
+            
+            fname = 'pangenome_category.tsv'
+            fout = open(fname,'w')
+            fout.write('ortholog_id\tkind\torganisms\n')
+            dG = genome.getPanGenomeOrgs()
+            for group in genome.getCore():
+                fout.write('%s\t%s\t%s\n'%(group.group_id,
+                                           'core',
+                                           '-'.join(dG[group.group_id])))
+            for group in genome.getAcc():
+                fout.write('%s\t%s\t%s\n'%(group.group_id,
+                                           'accessory',
+                                           '-'.join(dG[group.group_id])))
+            for group in genome.getUni():
+                fout.write('%s\t%s\t%s\n'%(group.group_id,
+                                           'unique',
+                                           '-'.join(dG[group.group_id])))
+            fout.close()
+            
+            logger.info('Exported orthologs informations (%s)'%fname)
+    
+    return True
+            
 def dGenomeSetKind(project):
     '''
     Set the kind of genomic project and return its value

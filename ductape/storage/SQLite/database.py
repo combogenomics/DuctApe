@@ -735,6 +735,27 @@ class Genome(DBBase):
             
         return pangenome
         
+    def getPanGenomeOrgs(self):
+        '''
+        Returns a dictionary group_id --> [org_id, ...]
+        '''
+        pangenome = {}
+        with self.connection as conn:
+            cursor = conn.execute('''select distinct o.group_id, org_id
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id;''')
+        
+        for res in cursor:
+            obj = Row(res, cursor.description)
+            if obj.group_id not in pangenome:
+                pangenome[obj.group_id] = []
+            pangenome[obj.group_id].append(obj.org_id)
+        
+        for group in pangenome:
+            pangenome[group] = sorted(pangenome[group])
+            
+        return pangenome
+        
     def alterPanGenome(self):
         pass
         #TODO:
@@ -990,6 +1011,23 @@ class Kegg(DBBase):
             
         return Row(cursor.fetchall()[0], cursor.description)
     
+    def getAllKO(self, org_id):
+        '''
+        Get all the prot_id, ko_id pair iterator from a specific org_id
+        '''
+        query = '''
+                select distinct m.prot_id, ko_id
+                from mapko m, protein p
+                where m.prot_id = p.prot_id
+                and org_id = ?;
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query,[org_id,])
+            
+        for res in cursor:
+            yield res[0], res[1]
+    
     def isKO(self, ko_id):
         '''
         Is this ko_id already present?
@@ -1056,6 +1094,24 @@ class Kegg(DBBase):
                                 [re_id,])
             
         return Row(cursor.fetchall()[0], cursor.description)
+    
+    def getAllReactions(self, org_id):
+        '''
+        Get all the prot_id, re_id pair iterator from a specific org_id
+        '''
+        query = '''
+                select distinct m.prot_id, re_id
+                from mapko m, protein p, ko_react r
+                where m.prot_id = p.prot_id
+                and m.ko_id = r.ko_id
+                and org_id = ?;
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query,[org_id,])
+            
+        for res in cursor:
+            yield res[0], res[1]
     
     def isReaction(self, re_id):
         '''

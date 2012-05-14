@@ -9,7 +9,7 @@ from ductape import __version__
 from ductape.actions import dInit, touchProject, dGenomeClear, dGenomeRemove, \
     dGenomeAdd, dGenomeDirAdd, dGenomeMutAdd, dGetGenomeSteps, prepareDir, \
     dPanGenomeAdd, dGenomeSetKind, getPathsReacts, prepareColors, createLegend,\
-    dGenomeStats
+    dGenomeStats, dGenomeExport
 from ductape.common.colorlog import ColorFormatter
 from ductape.genome.map2KO import LocalSearch, OnlineSearch
 from ductape.genome.pangenome import PanGenomer
@@ -355,6 +355,13 @@ def dstats(options, wdir, project):
         return False
     return dGenomeStats(project)
 
+def dexport(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    return dGenomeExport(project)
+
 def daddKo(options, wdir, project):
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
@@ -624,6 +631,9 @@ def getOptions():
     
     parser_map = subparsers.add_parser('stats', help='Print genomic statistics')
     parser_map.set_defaults(func=dstats)
+    
+    parser_export = subparsers.add_parser('export', help='Export genomic data')
+    parser_export.set_defaults(func=dexport)
 
     parser_rm = subparsers.add_parser('rm', help='Remove genome analysis')
     parser_rm.add_argument('organisms', metavar='orgID', nargs='+',

@@ -1304,7 +1304,10 @@ class BiologPlot(CommonThread):
             #
             self.results[plate.plate_id].setColor(plate.strain,
                                                   self.colors[plate.strain])
+        self.resetSubStatus()
         
+        self._maxsubstatus = len(self.avgdata)
+        self.updateStatus()
         for plate in self.avgdata:
             self._substatus += 1
             self.updateStatus(True)
@@ -1328,7 +1331,6 @@ class BiologPlot(CommonThread):
             #
             self.avgresults[plate.plate_id].setColor(plate.strain,
                                                   self.colors[plate.strain])
-        
         self.resetSubStatus()
         
         self.updateStatus()

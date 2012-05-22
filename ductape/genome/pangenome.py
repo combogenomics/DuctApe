@@ -38,7 +38,7 @@ class PanGenomer(CommonMultiProcess):
     _substatuses = [2,3]
     
     def __init__(self,organisms,
-                 ncpus=1,evalue=1e-50,
+                 ncpus=1,evalue=1e-10,
                  recover=False,prefix='',
                  matrix='BLOSUM80',queue=Queue.Queue()):
         CommonMultiProcess.__init__(self,ncpus,queue)

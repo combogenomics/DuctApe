@@ -380,8 +380,7 @@ class Organism(DBBase):
             # Reset the genomic/phenomic status
             self.setGenomeStatus(org_id, 'none')
             self.setPhenomeStatus(org_id, 'none')
-        
-        self.resetProject()
+            self.resetProject()
     
     def delAllOrgs(self):
         '''

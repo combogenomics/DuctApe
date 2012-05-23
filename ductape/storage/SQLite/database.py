@@ -372,8 +372,7 @@ class Organism(DBBase):
             else:
                 conn.execute('''update organism set name = ?,
                                 description = ?, mutant = ?, reference = ?,
-                                mkind = ?)
-                                where org_id = ?;''',
+                                mkind = ? where org_id = ?;''',
                          (name, description, orgfile, mutant, reference,
                           mkind, org_id))
         

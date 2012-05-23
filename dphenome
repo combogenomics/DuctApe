@@ -1,0 +1,253 @@
+#!/usr/bin/python
+"""
+DuctPhenome
+
+Analyze phenome(s) and map them to KEGG
+"""
+from ductape import __version__
+from ductape.actions import dInit, touchProject, dPhenomeAdd
+from ductape.common.colorlog import ColorFormatter
+from ductape.terminal import RunThread
+import argparse
+import logging.handlers
+import os
+
+__author__ = "Marco Galardini"
+__prog__ = "dphenome"
+
+################################################################################
+# Log setup
+
+logger = logging.getLogger()
+
+################################################################################
+# Methods
+
+def dinit(options, wdir, project):
+    if not dInit(project, wdir, options.name, options.descr):
+        logger.warning('You can remove the old project file or run dape rm')
+        return False
+    else:
+        return True
+
+def dadd(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    return dPhenomeAdd(project, options.orgID, options.file,
+                       name=options.n, descr=options.d)
+
+def daddDir(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    # TODO
+
+def daddMut(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    # TODO
+
+def dstart(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    # TODO
+            
+def dstats(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    # TODO
+
+def dexport(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    # TODO
+
+def dremove(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('Nothing to be removed!\n'+
+                       'You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    # TODO
+
+def dclear(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('Nothing to be cleaned up!\n'+
+                       'You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    # TODO
+
+def doMap2KEGG(project):
+#    kegg = Kegg(project)
+#    kos = [ko.ko_id for ko in kegg.getKO2Analyze()]
+#    if len(kos) == 0:
+#        logger.warning('No KO entries to be analyzed!')
+#        return False
+#    avoid = [kid for kid in kegg.getAllIDs()]
+#    
+#    komap = KoMapper(kos,avoid=avoid)
+#    
+#    if not RunThread(komap):
+#        return False
+#    
+#    # Details
+#    kegg.addKOs(komap.result.ko)
+#    logger.info('Added %d KO IDs'%len(komap.result.ko))
+#    kegg.addReactions(komap.result.react)
+#    logger.info('Added %d Re IDs'%len(komap.result.react))
+#    kegg.addCompounds(komap.result.comp)
+#    logger.info('Added %d Co IDs'%len(komap.result.comp))
+#    kegg.addPathways(komap.result.path)
+#    logger.info('Added %d Path IDs'%len(komap.result.path))
+#    # Links
+#    kegg.addKOReacts(komap.result.koreact)
+#    kegg.addPathComps(komap.result.pathcomp)
+#    kegg.addPathReacts(komap.result.pathreact)
+#    logger.info('Added Kegg links')
+#    # HTML maps
+#    kegg.addPathHtml(komap.result.pathmaps)
+#    logger.info('Added Kegg maps')
+    
+    return True
+
+################################################################################
+# Options
+
+def getOptions():
+    description = "Add and analyze phenomes"
+    parser = argparse.ArgumentParser(description = description,
+                                     prog=__prog__)
+    parser.add_argument('-p', metavar='project', action='store',
+                        dest='project',
+                        default='ductape.db',
+                        help='Project file')
+    parser.add_argument('-w', metavar='workdir', action='store', dest='wdir',
+                        default='.',
+                        help='Working directory')
+    parser.add_argument('-v', action='count',
+                        default=0,
+                        help='Increase verbosity level')
+    parser.add_argument('--version', action='version',
+                        version='%(prog)s '+__version__)
+    subparsers = parser.add_subparsers()
+
+    parser_init = subparsers.add_parser('init', help='Initialize the project')
+    parser_init.add_argument('-n', action="store",
+                             dest='name',
+                             default = 'Project',
+                             help='Project name')
+    parser_init.add_argument('-d', metavar='descr', action="store",
+                            dest='descr',
+                            default = 'DuctApe project',
+                            help='Project description')
+    parser_init.set_defaults(func=dinit)
+
+    parser_add = subparsers.add_parser('add',
+                           help='Add a single phenomic experiment')
+    parser_add.add_argument('file', action="store",
+                            help='Phenomic data file (biolog generated .csv)')
+    parser_add.add_argument('orgID', action='store',
+                            help='Organism ID')
+    parser_add.add_argument('-n', metavar='name', action="store",
+                           default = '',
+                            help='Organism name')
+    parser_add.add_argument('-d', metavar='descr', action="store",
+                            default = '',
+                            help='Organism description')
+    parser_add.set_defaults(func=dadd)
+    
+    parser_add_dir = subparsers.add_parser('add-dir',
+           help='Add a series of phenomes (orgIDs will be guessed)')
+    parser_add_dir.add_argument('folder', action="store",
+                            help='Folder where the phenomic files are stored')
+    parser_add_dir.set_defaults(func=daddDir)
+
+    parser_add_mut = subparsers.add_parser('add-mut',
+                               help='Add a mutant of an existing genome')
+    parser_add_mut.add_argument('mutphenome', action="store",
+                            help='Mutated genes phenomic file')
+    parser_add_mut.add_argument('mutID', action='store',
+                            help='Mutant organism ID')
+    parser_add_mut.add_argument('-m', metavar='mutparent', action="store",
+                            required = True,
+                            help='This mutant parent orgID')
+    parser_add_mut.add_argument('-k', metavar='kind', action="store",
+                            choices = ['deletion', 'insertion'],
+                            default = 'deletion',
+                            help='This mutant kind (deletion|insertion)')
+    parser_add_mut.add_argument('-n', metavar='name', action="store",
+                            default = '',
+                            help='Organism name')
+    parser_add_mut.add_argument('-d', metavar='descr', action="store",
+                            default = '',
+                            help='Organism description')
+    parser_add_mut.set_defaults(func=daddMut)
+
+    parser_start = subparsers.add_parser('start', help='Start the analysis')
+    parser_start.set_defaults(func=dstart)
+    
+    parser_map = subparsers.add_parser('stats', help='Print phenomic statistics')
+    parser_map.set_defaults(func=dstats)
+    
+    parser_export = subparsers.add_parser('export', help='Export phenomic data')
+    parser_export.set_defaults(func=dexport)
+
+    parser_rm = subparsers.add_parser('rm', help='Remove phenome analysis')
+    parser_rm.add_argument('organisms', metavar='orgID', nargs='+',
+                              action="store",
+                            help='Organism(s) to be removed')
+    parser_rm.set_defaults(func=dremove)
+    
+    parser_clear = subparsers.add_parser('clear',
+                                         help='Clear all the phenomic results')
+    parser_clear.set_defaults(func=dclear)
+    
+    return parser.parse_args()
+
+################################################################################
+
+options = getOptions()
+
+logger.setLevel(logging.DEBUG)
+
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+formatter = ColorFormatter('%(asctime)s - $COLOR%(message)s$RESET','%H:%M:%S')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
+
+fh = logging.handlers.RotatingFileHandler('ductape.log', maxBytes=1000000)
+if options.v == 0:
+    ch.setLevel(logging.INFO)
+elif options.v >= 1:
+    ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - ductphenome - [%(levelname)s] - %(message)s',
+                            '%Y-%m-%d %H:%M:%S')
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+
+wdir = os.path.abspath(options.wdir)
+if not os.path.exists(wdir):
+    try:
+        os.mkdir(wdir)
+    except:
+        logger.error('Could not create working directory %s'%wdir)
+    
+project = os.path.join(wdir, options.project)
+
+options.func(options, wdir, project)
+
+touchProject(project)

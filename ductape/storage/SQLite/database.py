@@ -1925,9 +1925,11 @@ class Biolog(DBBase):
         for res in cursor:
             yield Row(res, cursor.description)
     
-    def addWells(self, explist):
+    def addWells(self, explist, clustered=True):
         '''
         Input: a series of Well objects
+        If clustered = True, it is assumed that we have generated the 
+        activity parameters and calculated the activity index
         Checks are performed
         '''
         query = '''insert or replace into biolog_exp 
@@ -1951,20 +1953,21 @@ class Biolog(DBBase):
             if not oCheck.isOrg(w.strain):
                 logger.warning('Organism %s is not present yet!'%w.strain)
                 raise Exception('This organism (%s) is not present yet!'%w.strain)
-            if w.activity is None:
+            if w.activity is None and clustered:
                 logger.warning('Parameters extraction not yet performed!')
                 raise Exception('Parameters extraction not yet performed!')
         
         self.boost()
         
         with self.connection as conn:
-            blist = ['''('%s','%s','%s',%s,
-                        %s,%s,%s,%s,%s,%s,
-                        %s,%s,%s,%s,%s,'%s')'''
-                     %(w.plate_id,w.well_id,w.strain,w.replica,
-                              w.activity,int(w.zero),w.min,w.max,w.height,w.plateau,
-                              w.slope,w.lag,w.area,w.v,w.y0,w.model)
-                          for w in explist]
+            if clustered:
+                blist = ['''('%s','%s','%s',%s,
+                            %s,%s,%s,%s,%s,%s,
+                            %s,%s,%s,%s,%s,'%s')'''
+                         %(w.plate_id,w.well_id,w.strain,w.replica,
+                                  w.activity,int(w.zero),w.min,w.max,w.height,
+                                  w.plateau,w.slope,w.lag,w.area,w.v,w.y0,w.model)
+                              for w in explist]
             
             blist1 = []
             for w in explist:
@@ -1973,13 +1976,14 @@ class Biolog(DBBase):
                 blist1 = blist1 + ['''('%s','%s','%s')'''
                   %(biolog_id, '_'.join([str(x) for x in sorted(w.signals.keys())]),
                    '_'.join([str(w.signals[h]) for h in sorted(w.signals.keys())]))]                
-                
-            for bs in get_span(blist, span=1):
-                insert = query + ', '.join(bs)+';'
-                conn.execute(insert)
-                
-            conn.execute('''update biolog_exp
-                        set model = null where model = '';''')
+            
+            if clustered:
+                for bs in get_span(blist, span=1):
+                    insert = query + ', '.join(bs)+';'
+                    conn.execute(insert)
+                    
+                conn.execute('''update biolog_exp
+                            set model = null where model = '';''')
             
             for bs in get_span(blist1, span=1):
                 insert = query1 + ', '.join(bs)+';'

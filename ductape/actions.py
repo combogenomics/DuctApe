@@ -10,15 +10,16 @@ All the actions required for the analysis
 import matplotlib
 matplotlib.use('Agg')
 #
-from ductape.common.utils import slice_it, rgb_to_hex
-from ductape.storage.SQLite.database import DBBase, Project, Genome, Organism, \
-    Kegg
 from Bio import SeqIO
-import logging
-import os
-import matplotlib.pyplot as plt
+from ductape.common.utils import slice_it, rgb_to_hex
+from ductape.phenome.biolog import BiologParser, Plate
+from ductape.storage.SQLite.database import DBBase, Project, Genome, Organism, \
+    Kegg, Biolog
 from matplotlib import cm
+import logging
+import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 __author__ = "Marco Galardini"
 
@@ -73,6 +74,87 @@ def dGenomeAdd(project, orgID, filename, name='', descr=''):
         gen.addProteome(orgID, filename)
         logger.info('Added genome %s, having %d proteins'%
                     (orgID, gen.howMany(orgID)))
+        return True
+
+def dPhenomeAdd(project, orgID, filename, name='', descr=''):
+    '''
+    Add a single phenome
+    '''
+    if not os.path.exists(filename):
+        logger.error('Phenomic file %s may not be present'%(filename))
+        return False
+    else:
+        filename = os.path.abspath(filename)
+        
+        bparser = BiologParser(filename)
+        bparser.parse()
+        
+        # Check the organisms id inside the biolog files
+        strainNumbers = set([plate.strainNumber for plate in bparser.plates])
+        strainNames = set([plate.strainName for plate in bparser.plates])
+        samples = set([plate.sample for plate in bparser.plates])
+        
+        if orgID not in samples:
+            logger.debug('No sign of %s in sample field'%orgID)
+        if orgID not in strainNames:
+            logger.debug('No sign of %s in strainName field'%orgID)
+        if orgID not in strainNumbers:
+            logger.debug('No sign of %s in strainNumber field'%orgID)
+        
+        # TODO: regular expression search
+        if orgID in samples:
+            if len(samples) > 1:
+                logger.warning('''More than one organism ID may be present in this phenomic data file!''')
+                logger.warning('''%s'''%' '.join(samples))
+                return False
+            
+            for plate in bparser.plates:
+                plate.strain = plate.sample
+                
+        elif orgID in strainNames:
+            if len(strainNames) > 1:
+                logger.warning('''More than one organism ID may be present in this phenomic data file!''')
+                logger.warning('''%s'''%' '.join(strainNames))
+                return False
+            
+            for plate in bparser.plates:
+                plate.strain = plate.strainName
+            
+        elif orgID in strainNumbers:
+            if len(strainNumbers) > 1:
+                logger.warning('''More than one organism ID may be present in this phenomic data file!''')
+                logger.warning('''%s'''%' '.join(strainNumbers))
+                return False
+            
+            for plate in bparser.plates:
+                plate.strain = plate.strainNumber
+            
+        else:
+            logger.warning('''The organism ID you provided was not found inside the phenomic data file''')
+            logger.info('''Using it anyway to add this data''')
+        
+        # Add the organism
+        org = Organism(project)
+        org.addOrg(orgID, name=name, description=descr)
+        
+        # Prepare a series of Plate objects to catch the replicas
+        dPlates={}
+        for plate in bparser.plates:
+            if plate.plate_id not in dPlates:
+                dPlates[plate.plate_id] = Plate(plate.plate_id)
+            dPlates[plate.plate_id].addData(plate.strain, plate)
+        
+        # Grep the wells
+        wells = [w for w in plate.getWells()
+                         for plate in dPlates.itervalues()]
+        
+        # Add to the project
+        biolog = Biolog(project)
+        biolog.addWells(wells, clustered=False)
+        
+        logger.info('Added phenome %s, having %d biolog plates (%d wells)'%
+                    (orgID, len(dPlates), len(wells)))
+        
         return True
 
 def dGenomeRemove(project, organisms):

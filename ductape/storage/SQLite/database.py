@@ -404,7 +404,8 @@ class Organism(DBBase):
         oDel = Genome(self.dbname)
         oDel.delProteome(org_id)
         
-        # TODO: remove Biolog related entries
+        oBDel = Biolog(self.dbname)
+        oBDel.delOrg(org_id)
         
         self.resetProject()
         
@@ -757,8 +758,8 @@ class Genome(DBBase):
         return pangenome
         
     def alterPanGenome(self):
-        pass
-        #TODO:
+        # TODO
+        raise NotImplementedError
     
     def _getCore(self):
         '''
@@ -1973,7 +1974,6 @@ class Biolog(DBBase):
                   %(biolog_id, '_'.join([str(x) for x in sorted(w.signals.keys())]),
                    '_'.join([str(w.signals[h]) for h in sorted(w.signals.keys())]))]                
                 
-            logging.debug('Biolog exp')
             for bs in get_span(blist, span=1):
                 insert = query + ', '.join(bs)+';'
                 conn.execute(insert)
@@ -1981,7 +1981,6 @@ class Biolog(DBBase):
             conn.execute('''update biolog_exp
                         set model = null where model = '';''')
             
-            logging.debug('Biolog exp det')    
             for bs in get_span(blist1, span=1):
                 insert = query1 + ', '.join(bs)+';'
                 conn.execute(insert)
@@ -2002,6 +2001,32 @@ class Biolog(DBBase):
                 conn.execute('''delete from biolog_exp_det 
                             where biolog_id=?;''',
                             [biolog_id,])
+                
+    def delOrg(self, org_id):
+        '''
+        Remove all data about a specific organism
+        '''
+        with self.connection as conn:
+            conn.execute('''delete from biolog_exp 
+                        where org_id=?;''',
+                        [org_id,])
+            
+            conn.execute('''delete from biolog_exp_det 
+                        where biolog_id like "%_%_?_%";''',
+                        [org_id,])
+    
+    def getWellsByOrg(self, org_id):
+        '''
+        Get all the wells from a certain organism
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select * from biolog_exp  
+                        where org_id=?
+                        order by replica;''',
+                        [org_id,])
+        
+        for res in cursor:
+            yield Row(res, cursor.description)
     
     def getReplicas(self, plate_id, well_id, org_id):
         with self.connection as conn:
@@ -2066,9 +2091,3 @@ class Biolog(DBBase):
                                     where activity>=?
                                     and org_id=?;''',[activity,org_id,])
         return int(cursor.fetchall()[0][0])
-    
-    def setPics(self):
-        pass
-    
-    def getPics(self):
-        pass

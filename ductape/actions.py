@@ -368,7 +368,12 @@ def dGenomeExport(project):
                 fout.write('%s\t%s\n'%(prot_id, ko_id))
                 i += 1
             fout.close()
-            logger.info('Saved %d KO links for %s (%s)'%(i, org.org_id,
+            
+            if i == 0:
+                os.remove(fname)
+                logger.warning('No KO links available for %s'%org.org_id)
+            else:
+                logger.info('Saved %d KO links for %s (%s)'%(i, org.org_id,
                                                          fname))
             
         logger.info('Exporting Kegg reactions data')
@@ -382,7 +387,12 @@ def dGenomeExport(project):
                 fout.write('%s\t%s\n'%(prot_id, re_id))
                 i += 1
             fout.close()
-            logger.info('Saved %d Kegg reactions links for %s (%s)'%
+            
+            if i == 0:
+                os.remove(fname)
+                logger.warning('No Kegg reactions available for %s'%org.org_id)
+            else:
+                logger.info('Saved %d Kegg reactions links for %s (%s)'%
                         (i, org.org_id, fname))
             
         proj = Project(project)
@@ -390,36 +400,39 @@ def dGenomeExport(project):
         if proj.isPanGenome():
             logger.info('Exporting pangenome data')
             
-            fname = 'pangenome.tsv'
-            fout = open(fname,'w')
-            fout.write('ortholog_id\tprotein_id\n')
             dG = genome.getPanGenome()
-            for group, prots in dG.iteritems():
-                for prot in prots:
-                    fout.write('%s\t%s\n'%(group,prot))
-            fout.close()
-            
-            logger.info('Exported %d orthologs (%s)'%(len(dG),fname))
-            
-            fname = 'pangenome_category.tsv'
-            fout = open(fname,'w')
-            fout.write('ortholog_id\tkind\torganisms\n')
-            dG = genome.getPanGenomeOrgs()
-            for group in genome.getCore():
-                fout.write('%s\t%s\t%s\n'%(group.group_id,
-                                           'core',
-                                           '-'.join(dG[group.group_id])))
-            for group in genome.getAcc():
-                fout.write('%s\t%s\t%s\n'%(group.group_id,
-                                           'accessory',
-                                           '-'.join(dG[group.group_id])))
-            for group in genome.getUni():
-                fout.write('%s\t%s\t%s\n'%(group.group_id,
-                                           'unique',
-                                           '-'.join(dG[group.group_id])))
-            fout.close()
-            
-            logger.info('Exported orthologs informations (%s)'%fname)
+            if len(dG) == 0:
+                logging.warning('No pangenome available')
+            else:
+                fname = 'pangenome.tsv'
+                fout = open(fname,'w')
+                fout.write('ortholog_id\tprotein_id\n')
+                for group, prots in dG.iteritems():
+                    for prot in prots:
+                        fout.write('%s\t%s\n'%(group,prot))
+                fout.close()
+                
+                logger.info('Exported %d orthologs (%s)'%(len(dG),fname))
+                
+                fname = 'pangenome_category.tsv'
+                fout = open(fname,'w')
+                fout.write('ortholog_id\tkind\torganisms\n')
+                dG = genome.getPanGenomeOrgs()
+                for group in genome.getCore():
+                    fout.write('%s\t%s\t%s\n'%(group.group_id,
+                                               'core',
+                                               '-'.join(dG[group.group_id])))
+                for group in genome.getAcc():
+                    fout.write('%s\t%s\t%s\n'%(group.group_id,
+                                               'accessory',
+                                               '-'.join(dG[group.group_id])))
+                for group in genome.getUni():
+                    fout.write('%s\t%s\t%s\n'%(group.group_id,
+                                               'unique',
+                                               '-'.join(dG[group.group_id])))
+                fout.close()
+                
+                logger.info('Exported orthologs informations (%s)'%fname)
     
     return True
             

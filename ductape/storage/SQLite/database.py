@@ -362,12 +362,20 @@ class Organism(DBBase):
                     raise Exception('This reference (%s) is not present yet!'%reference)
         
         with self.connection as conn:
-            conn.execute('''insert or replace into organism (`org_id`, `name`,
-                                `description`, `file`, `mutant`, `reference`,
-                                mkind)
-                            values (?,?,?,?,?,?,?);''',
-                     (org_id, name, description, orgfile, mutant, reference,
-                      mkind))
+            if not already:
+                conn.execute('''insert into organism (`org_id`, `name`,
+                                    `description`, `file`, `mutant`, `reference`,
+                                    mkind)
+                                values (?,?,?,?,?,?,?);''',
+                         (org_id, name, description, orgfile, mutant, reference,
+                          mkind))
+            else:
+                conn.execute('''update organism set name = ?,
+                                description = ?, mutant = ?, reference = ?,
+                                mkind = ?)
+                                where org_id = ?;''',
+                         (name, description, orgfile, mutant, reference,
+                          mkind, org_id))
         
         if not already:
             # Reset the genomic/phenomic status

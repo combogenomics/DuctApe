@@ -66,15 +66,15 @@ def dGenomeAdd(project, orgID, filename, name='', descr=''):
     if not os.path.exists(filename):
         logger.error('Fasta file %s may not be present'%(filename))
         return False
-    else:
-        filename = os.path.abspath(filename)
-        org = Organism(project)
-        org.addOrg(orgID, name=name, description=descr, orgfile=filename)
-        gen = Genome(project)
-        gen.addProteome(orgID, filename)
-        logger.info('Added genome %s, having %d proteins'%
-                    (orgID, gen.howMany(orgID)))
-        return True
+    
+    filename = os.path.abspath(filename)
+    org = Organism(project)
+    org.addOrg(orgID, name=name, description=descr, orgfile=filename)
+    gen = Genome(project)
+    gen.addProteome(orgID, filename)
+    logger.info('Added genome %s, having %d proteins'%
+                (orgID, gen.howMany(orgID)))
+    return True
 
 def dPhenomeAdd(project, orgID, filename, name='', descr=''):
     '''
@@ -313,6 +313,8 @@ def dGenomeMutAdd(project, mutID, mutparent, mutfasta, kind, name='', descr=''):
     '''
     Check and add a mutant
     '''
+    # TODO: if the mutant is already there?
+    
     if not os.path.exists(mutfasta):
         logger.error('Fasta file %s may not be present'%(mutfasta))
         return False

@@ -180,7 +180,7 @@ def dGenomeClear(project):
     logger.info('Successfully removed all genomic data')
     return True
 
-def dGenomeDirAdd(project, folder):
+def dGenomeDirAdd(project, folder, extension):
     '''
     Add a series of genomes contained in a directory
     '''
@@ -188,8 +188,14 @@ def dGenomeDirAdd(project, folder):
         logger.error('Fasta folder %s may not be present'%(folder))
         return False
     else:
+        logger.info('Looking for files with extension %s'%extension)
+        
         added = 0
         for infile in os.listdir(folder):
+            if infile.split('.')[-1] != extension:
+                logger.debug('Skipping file %s'%infile)
+                continue
+            
             orgID = infile.split('.')[0]
             filename = os.path.join(folder, infile)
             if os.path.isdir(filename):
@@ -203,6 +209,36 @@ def dGenomeDirAdd(project, folder):
                     (added, folder))
         else:
             logger.warning('No genomes were added from %s'%folder)
+        return True
+    
+def dPhenomeDirAdd(project, folder, extension):
+    '''
+    Add a series of phenomes contained in a directory
+    '''
+    if not os.path.exists(folder):
+        logger.error('Phenomes folder %s may not be present'%(folder))
+        return False
+    else:
+        logger.info('Looking for files with extension %s'%extension)
+        
+        added = 0
+        for infile in os.listdir(folder):
+            if infile.split('.')[-1] != extension:
+                logger.debug('Skipping file %s'%infile)
+                continue
+            
+            filename = os.path.join(folder, infile)
+            if os.path.isdir(filename):
+                continue
+            
+            if dPhenomeMultiAdd(project, filename):
+                added += 1
+        
+        if added > 0:
+            logger.info('Added %d phenomic data files from %s'%
+                    (added, folder))
+        else:
+            logger.warning('No phenomes were added from %s'%folder)
         return True
 
 def dGenomeMutAdd(project, mutID, mutparent, mutfasta, kind, name='', descr=''):

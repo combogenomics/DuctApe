@@ -43,7 +43,7 @@ def daddDir(options, wdir, project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
-    # TODO
+    return dPhenomeDirAdd(project, options.folder, options.e)
 
 def daddMut(options, wdir, project):
     if not touchProject(project):
@@ -172,6 +172,9 @@ def getOptions():
            help='Add a series of phenomes (orgIDs will be guessed)')
     parser_add_dir.add_argument('folder', action="store",
                             help='Folder where the phenomic files are stored')
+    parser_add_dir.add_argument('-e', metavar='extension', action="store",
+                            default = 'csv',
+                            help='Phenomic files extension')
     parser_add_dir.set_defaults(func=daddDir)
 
     parser_add_mut = subparsers.add_parser('add-mut',

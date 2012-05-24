@@ -54,7 +54,7 @@ def daddDir(options, wdir, project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
-    return dGenomeDirAdd(project, options.folder)
+    return dGenomeDirAdd(project, options.folder, options.e)
 
 def daddMut(options, wdir, project):
     if not touchProject(project):
@@ -566,6 +566,9 @@ def getOptions():
            help='Add a series of genomes (orgIDs will be guessed)')
     parser_add_dir.add_argument('folder', action="store",
                             help='Folder where the genomes fasta are stored')
+    parser_add_dir.add_argument('-e', metavar='extension', action="store",
+                            default = 'faa',
+                            help='Fasta files extension')
     parser_add_dir.set_defaults(func=daddDir)
 
     parser_add_mut = subparsers.add_parser('add-mut',
@@ -648,7 +651,6 @@ def getOptions():
     return parser.parse_args()
 
 ################################################################################
-# 
 
 options = getOptions()
 

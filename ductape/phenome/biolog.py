@@ -1043,6 +1043,8 @@ class BiologParser(object):
                 plate.sample = line[1].strip()
             elif self._strainNumber in line[0].strip():
                 plate.strainNumber = line[1].strip()
+            elif self._strainName in line[0].strip():
+                plate.strainName = line[1].strip()
             elif self._other in line[0].strip():
                 plate.other = line[1].strip()
             elif self._dataStart in line[0].strip():

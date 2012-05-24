@@ -5,7 +5,8 @@ DuctPhenome
 Analyze phenome(s) and map them to KEGG
 """
 from ductape import __version__
-from ductape.actions import dInit, touchProject, dPhenomeAdd
+from ductape.actions import dInit, touchProject, dPhenomeAdd, dPhenomeMultiAdd, \
+    dPhenomeDirAdd
 from ductape.common.colorlog import ColorFormatter
 from ductape.terminal import RunThread
 import argparse
@@ -37,6 +38,13 @@ def dadd(options, wdir, project):
         return False
     return dPhenomeAdd(project, options.orgID, options.file,
                        name=options.n, descr=options.d)
+
+def daddMulti(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    return dPhenomeMultiAdd(project, options.file)
 
 def daddDir(options, wdir, project):
     if not touchProject(project):
@@ -168,6 +176,12 @@ def getOptions():
                             help='Organism description')
     parser_add.set_defaults(func=dadd)
     
+    parser_add_multi = subparsers.add_parser('add-multi',
+                           help='Add a single phenomic file (with multiple strains)')
+    parser_add_multi.add_argument('file', action="store",
+                            help='Phenomic data file (biolog generated .csv)')
+    parser_add_multi.set_defaults(func=daddMulti)
+    
     parser_add_dir = subparsers.add_parser('add-dir',
            help='Add a series of phenomes (orgIDs will be guessed)')
     parser_add_dir.add_argument('folder', action="store",
@@ -180,7 +194,7 @@ def getOptions():
     parser_add_mut = subparsers.add_parser('add-mut',
                                help='Add a mutant of an existing genome')
     parser_add_mut.add_argument('mutphenome', action="store",
-                            help='Mutated genes phenomic file')
+                            help='Mutated organism phenomic file')
     parser_add_mut.add_argument('mutID', action='store',
                             help='Mutant organism ID')
     parser_add_mut.add_argument('-m', metavar='mutparent', action="store",

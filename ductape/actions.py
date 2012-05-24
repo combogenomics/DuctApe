@@ -83,66 +83,134 @@ def dPhenomeAdd(project, orgID, filename, name='', descr=''):
     if not os.path.exists(filename):
         logger.error('Phenomic file %s may not be present'%(filename))
         return False
+    
+    filename = os.path.abspath(filename)
+    
+    bparser = BiologParser(filename)
+    bparser.parse()
+    
+    if len(bparser.plates) == 0:
+        logger.warning('No biolog data was found!')
+        return False
+    
+    # Check the organisms id inside the biolog files
+    strainNumbers = set([plate.strainNumber for plate in bparser.plates])
+    strainNames = set([plate.strainName for plate in bparser.plates])
+    samples = set([plate.sample for plate in bparser.plates])
+    
+    if orgID not in samples:
+        logger.debug('No sign of %s in sample field'%orgID)
+    if orgID not in strainNames:
+        logger.debug('No sign of %s in strainName field'%orgID)
+    if orgID not in strainNumbers:
+        logger.debug('No sign of %s in strainNumber field'%orgID)
+    
+    # TODO: regular expression search
+    if orgID in samples:
+        if len(samples) > 1:
+            logger.warning('''More than one organism ID may be present in this phenomic data file!''')
+            logger.warning('''%s'''%' '.join(samples))
+            return False
+        
+        for plate in bparser.plates:
+            plate.strain = plate.sample
+            
+    elif orgID in strainNames:
+        if len(strainNames) > 1:
+            logger.warning('''More than one organism ID may be present in this phenomic data file!''')
+            logger.warning('''%s'''%' '.join(strainNames))
+            return False
+        
+        for plate in bparser.plates:
+            plate.strain = plate.strainName
+        
+    elif orgID in strainNumbers:
+        if len(strainNumbers) > 1:
+            logger.warning('''More than one organism ID may be present in this phenomic data file!''')
+            logger.warning('''%s'''%' '.join(strainNumbers))
+            return False
+        
+        for plate in bparser.plates:
+            plate.strain = plate.strainNumber
+        
     else:
-        filename = os.path.abspath(filename)
+        logger.warning('''The organism ID you provided was not found inside the phenomic data file''')
+        logger.info('''Using it anyway to add this data''')
+    
+    # Add the organism
+    org = Organism(project)
+    org.addOrg(orgID, name=name, description=descr)
+    
+    # Prepare a series of Plate objects to catch the replicas
+    dPlates={}
+    for plate in bparser.plates:
+        if plate.plate_id not in dPlates:
+            dPlates[plate.plate_id] = Plate(plate.plate_id)
+        dPlates[plate.plate_id].addData(plate.strain, plate)
+    
+    # Grep the wells
+    wells = [w for w in plate.getWells()
+                     for plate in dPlates.itervalues()]
+    
+    # Add to the project
+    biolog = Biolog(project)
+    biolog.addWells(wells, clustered=False)
+    
+    logger.info('Added phenome %s, having %d biolog plates (%d wells)'%
+                (orgID, len(dPlates), len(wells)))
+    
+    return True
+
+def dPhenomeMultiAdd(project, filename):
+    '''
+    Add a single phenomic file with multiple organisms in it
+    '''
+    if not os.path.exists(filename):
+        logger.error('Phenomic file %s may not be present'%(filename))
+        return False
+    
+    filename = os.path.abspath(filename)
+    
+    bparser = BiologParser(filename)
+    bparser.parse()
+    
+    if len(bparser.plates) == 0:
+        logger.warning('No biolog data was found!')
+        return False
+    
+    # Check the organism ids inside the biolog files
+    # Assuming the names are correct AND stored inside the strainName field
+    logger.debug('Assuming organism IDs are correct and inside the field strainName')
+    strainNames = set([plate.strainName for plate in bparser.plates])
+    
+    strainNames.discard(None)
+    strainNames.discard('')
+    
+    if len(strainNames) == 0:
+        logger.warning('''Field strainName doesn't contain any value (%s)'''%filename)
+        return False
         
-        bparser = BiologParser(filename)
-        bparser.parse()
-        
-        # Check the organisms id inside the biolog files
-        strainNumbers = set([plate.strainNumber for plate in bparser.plates])
-        strainNames = set([plate.strainName for plate in bparser.plates])
-        samples = set([plate.sample for plate in bparser.plates])
-        
-        if orgID not in samples:
-            logger.debug('No sign of %s in sample field'%orgID)
-        if orgID not in strainNames:
-            logger.debug('No sign of %s in strainName field'%orgID)
-        if orgID not in strainNumbers:
-            logger.debug('No sign of %s in strainNumber field'%orgID)
-        
-        # TODO: regular expression search
-        if orgID in samples:
-            if len(samples) > 1:
-                logger.warning('''More than one organism ID may be present in this phenomic data file!''')
-                logger.warning('''%s'''%' '.join(samples))
-                return False
-            
-            for plate in bparser.plates:
-                plate.strain = plate.sample
-                
-        elif orgID in strainNames:
-            if len(strainNames) > 1:
-                logger.warning('''More than one organism ID may be present in this phenomic data file!''')
-                logger.warning('''%s'''%' '.join(strainNames))
-                return False
-            
-            for plate in bparser.plates:
-                plate.strain = plate.strainName
-            
-        elif orgID in strainNumbers:
-            if len(strainNumbers) > 1:
-                logger.warning('''More than one organism ID may be present in this phenomic data file!''')
-                logger.warning('''%s'''%' '.join(strainNumbers))
-                return False
-            
-            for plate in bparser.plates:
-                plate.strain = plate.strainNumber
-            
-        else:
-            logger.warning('''The organism ID you provided was not found inside the phenomic data file''')
-            logger.info('''Using it anyway to add this data''')
-        
+    logger.info('Found the following organism IDs: %s'%' '.join(strainNames))
+    
+    for plate in bparser.plates:
+        plate.strain = plate.strainName
+    
+    # TODO: regular expressions verification
+    
+    orgs = strainNames
+    
+    for orgID in orgs:
         # Add the organism
         org = Organism(project)
-        org.addOrg(orgID, name=name, description=descr)
+        org.addOrg(orgID)
         
         # Prepare a series of Plate objects to catch the replicas
         dPlates={}
         for plate in bparser.plates:
-            if plate.plate_id not in dPlates:
-                dPlates[plate.plate_id] = Plate(plate.plate_id)
-            dPlates[plate.plate_id].addData(plate.strain, plate)
+            if plate.strain == orgID:
+                if plate.plate_id not in dPlates:
+                    dPlates[plate.plate_id] = Plate(plate.plate_id)
+                dPlates[plate.plate_id].addData(plate.strain, plate)
         
         # Grep the wells
         wells = [w for w in plate.getWells()
@@ -154,8 +222,8 @@ def dPhenomeAdd(project, orgID, filename, name='', descr=''):
         
         logger.info('Added phenome %s, having %d biolog plates (%d wells)'%
                     (orgID, len(dPlates), len(wells)))
-        
-        return True
+    
+    return True
 
 def dGenomeRemove(project, organisms):
     '''
@@ -267,6 +335,103 @@ def dGenomeMutAdd(project, mutID, mutparent, mutfasta, kind, name='', descr=''):
         logger.info('Mutant %s (%s) added, having %d mutated genes'
                     %(mutID, org.getOrg(mutID).mkind,gen.howMany(mutID)))
         return True
+    
+def dPhenomeMutAdd(project, mutID, mutparent, mutphenome, kind, name='', descr=''):
+    '''
+    Check and add a mutant
+    '''
+    # TODO: if the mutant is already there?
+    
+    if not os.path.exists(mutphenome):
+        logger.error('Fasta file %s may not be present'%(mutphenome))
+        return False
+    
+    org = Organism(project)
+    if not org.isOrg(mutparent):
+        logger.error('Parent organism %s not present!'%mutparent)
+        return False
+    elif org.isMutant(mutparent):
+        logger.error('Parent organism %s cannot be a mutant!'%mutparent)
+        return False
+    parents = len(org) - org.howManyMutants()
+    if parents != 1:
+        logger.error('Only one parent is allowed!')
+        return False
+    org.addOrg(mutID, name=name, description=descr,
+               mutant=True, reference=mutparent, mkind=kind)
+    
+    filename = os.path.abspath(mutphenome)
+    
+    bparser = BiologParser(filename)
+    bparser.parse()
+    
+    if len(bparser.plates) == 0:
+        logger.warning('No biolog data was found!')
+        return False
+    
+    # Check the organisms id inside the biolog files
+    strainNumbers = set([plate.strainNumber for plate in bparser.plates])
+    strainNames = set([plate.strainName for plate in bparser.plates])
+    samples = set([plate.sample for plate in bparser.plates])
+    
+    if mutID not in samples:
+        logger.debug('No sign of %s in sample field'%mutID)
+    if mutID not in strainNames:
+        logger.debug('No sign of %s in strainName field'%mutID)
+    if mutID not in strainNumbers:
+        logger.debug('No sign of %s in strainNumber field'%mutID)
+    
+    # TODO: regular expression search
+    if mutID in samples:
+        if len(samples) > 1:
+            logger.warning('''More than one organism ID may be present in this phenomic data file!''')
+            logger.warning('''%s'''%' '.join(samples))
+            return False
+        
+        for plate in bparser.plates:
+            plate.strain = plate.sample
+            
+    elif mutID in strainNames:
+        if len(strainNames) > 1:
+            logger.warning('''More than one organism ID may be present in this phenomic data file!''')
+            logger.warning('''%s'''%' '.join(strainNames))
+            return False
+        
+        for plate in bparser.plates:
+            plate.strain = plate.strainName
+        
+    elif mutID in strainNumbers:
+        if len(strainNumbers) > 1:
+            logger.warning('''More than one organism ID may be present in this phenomic data file!''')
+            logger.warning('''%s'''%' '.join(strainNumbers))
+            return False
+        
+        for plate in bparser.plates:
+            plate.strain = plate.strainNumber
+        
+    else:
+        logger.warning('''The organism ID you provided was not found inside the phenomic data file''')
+        logger.info('''Using it anyway to add this data''')
+        
+    # Prepare a series of Plate objects to catch the replicas
+    dPlates={}
+    for plate in bparser.plates:
+        if plate.plate_id not in dPlates:
+            dPlates[plate.plate_id] = Plate(plate.plate_id)
+        dPlates[plate.plate_id].addData(plate.strain, plate)
+    
+    # Grep the wells
+    wells = [w for w in plate.getWells()
+                     for plate in dPlates.itervalues()]
+    
+    # Add to the project
+    biolog = Biolog(project)
+    biolog.addWells(wells, clustered=False)
+    
+    logger.info('Added phenome %s (mutant), having %d biolog plates (%d wells)'%
+                (mutID, len(dPlates), len(wells)))
+    
+    return True
 
 def dPanGenomeAdd(project, orthfile):
     '''

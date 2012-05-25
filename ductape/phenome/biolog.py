@@ -317,6 +317,18 @@ class SinglePlate(object):
             well.strain = self.strain
             yield well
             
+    def addWell(self,well):
+        '''
+        Add a Well object
+        If it is already present, a warning will pop-up but it will be replaced
+        '''
+        if well.well_id in self.data:
+            logger.warning('Replacing an already existing well (%s, %s, %s, %s)'
+                            %(self.plate_id, well.well_id, self.strain,
+                              self.replica))
+        
+        self.data[well.well_id] = well
+            
 class Plate(object):
     '''
     Class Plate
@@ -1155,14 +1167,12 @@ class BiologZero(object):
             
         if not found:
             logging.warning('Blank plate zero subtraction: could not find'+
-                                'blank plate %s'%plate.plate_id)
+                                ' blank plate %s'%plate.plate_id)
     
     def zeroSubTract(self):
         '''
         Zero subtraction
         '''
-        self._maxsubstatus = len(self.data)
-        
         if self.blank:
             logging.info('Zero subtraction with blank plate')
         else:
@@ -1389,3 +1399,40 @@ class BiologPlot(CommonThread):
         else:
             self.updateStatus(send=False)
         self.resetSubStatus()
+        
+def getSinglePlates(signals):
+    '''
+    Takes a bunch of signals taken from the DB and returns a series of 
+    SinglePlates objects
+    NB it is a generator
+    '''
+    dExp = {}
+    
+    for well in signals:
+        plate_id, well_id, org_id, replica = well.biolog_id.split('_')
+        
+        lT = well.times.split('_')
+        lS = well.signals.split('_')
+        
+        if plate_id not in dExp:
+            dExp[plate_id] = {}
+        if org_id not in dExp[plate_id]:
+            dExp[plate_id][org_id] = {}
+        if replica not in dExp[plate_id][org_id]:
+            dExp[plate_id][org_id][replica] = SinglePlate()
+            dExp[plate_id][org_id][replica].plate_id = plate_id
+            dExp[plate_id][org_id][replica].strain = org_id
+            dExp[plate_id][org_id][replica].replica = replica
+        if well_id not in dExp[plate_id][org_id][replica].data:
+            dExp[plate_id][org_id][replica].data[well_id] = Well(plate_id,
+                                                                 well_id)
+        
+        for i in range(len(lT)):
+            dExp[plate_id][org_id][replica].data[well_id].addSignal(float(lT[i]),
+                                                                    float(lS[i]))
+        
+    # Return all the SinglePlates objects 
+    for orgs in dExp.itervalues():
+        for replicas in orgs.itervalues():
+            for splate in replicas.itervalues():
+                yield splate

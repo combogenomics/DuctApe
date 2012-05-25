@@ -1781,6 +1781,20 @@ class Biolog(DBBase):
                                 [well_id,])
         return bool(cursor.fetchall()[0][0])
     
+    def isZeroSubtracted(self, plate_id, well_id, org_id, replica):
+        '''
+        Is this particular well zero-subtracted?
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select zero from biolog_exp 
+                                where plate_id=?
+                                and well_id=?
+                                and org_id=?
+                                and replica=?;''',
+                                [plate_id,well_id,org_id,replica,])
+            
+        return bool(cursor.fetchall()[0][0])
+    
     def getPlates(self):
         with self.connection as conn:
             cursor=conn.execute('select distinct plate_id from biolog order by plate_id;')
@@ -1943,6 +1957,10 @@ class Biolog(DBBase):
                             zero, min, max, height, plateau, slope, lag,
                             area, v, y0, model)
                             values '''
+        query1a = '''insert or replace into biolog_exp 
+                            (plate_id, well_id, org_id, replica, 
+                            zero)
+                            values '''
         
         query1 = '''insert or replace into biolog_exp_det
                         (biolog_id, times, signals)
@@ -1974,6 +1992,10 @@ class Biolog(DBBase):
                                   w.activity,int(w.zero),w.min,w.max,w.height,
                                   w.plateau,w.slope,w.lag,w.area,w.v,w.y0,w.model)
                               for w in explist]
+            else:
+                blist = ['''('%s','%s','%s','%s','%s')'''
+                         %(w.plate_id,w.well_id,w.strain,w.replica,int(w.zero))
+                         for w in explist]
             
             blist1 = []
             for w in explist:
@@ -1987,9 +2009,13 @@ class Biolog(DBBase):
                 for bs in get_span(blist, span=1):
                     insert = query + ', '.join(bs)+';'
                     conn.execute(insert)
-                    
-                conn.execute('''update biolog_exp
-                            set model = null where model = '';''')
+            else:
+                for bs in get_span(blist, span=1):
+                    insert = query1a + ', '.join(bs)+';'
+                    conn.execute(insert)
+                
+            conn.execute('''update biolog_exp
+                        set model = null where model = '';''')
             
             for bs in get_span(blist1, span=1):
                 insert = query1 + ', '.join(bs)+';'
@@ -2101,3 +2127,32 @@ class Biolog(DBBase):
                                     where activity>=?
                                     and org_id=?;''',[activity,org_id,])
         return int(cursor.fetchall()[0][0])
+    
+    def getAllSignals(self):
+        '''
+        Get all the signals from the storage
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select * from biolog_exp_det;''')
+        
+        for res in cursor:
+            yield Row(res, cursor.description)
+    
+    def getZeroSubtractableSignals(self):
+        '''
+        Get all the signals that can be zero-subtracted
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select * from biolog_exp where zero = 0;''')
+        
+        notYet = [Row(res, cursor.description) for res in cursor]
+        for well in notYet:
+            biolog_id = '%s_%s_%s_%s'%(well.plate_id, well.well_id,
+                                       well.org_id,well.replica)
+            with self.connection as conn:
+                cursor=conn.execute('''select * from biolog_exp_det
+                                    where biolog_id = ?;''',
+                                    [biolog_id,])
+            for res in cursor:
+                yield Row(res, cursor.description)
+            

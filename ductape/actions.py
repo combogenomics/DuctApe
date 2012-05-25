@@ -12,7 +12,8 @@ matplotlib.use('Agg')
 #
 from Bio import SeqIO
 from ductape.common.utils import slice_it, rgb_to_hex
-from ductape.phenome.biolog import BiologParser, Plate
+from ductape.phenome.biolog import BiologParser, Plate, getSinglePlates, \
+    BiologZero, zeroPlates
 from ductape.storage.SQLite.database import DBBase, Project, Genome, Organism, \
     Kegg, Biolog
 from matplotlib import cm
@@ -458,6 +459,69 @@ def dPanGenomeAdd(project, orthfile):
         logger.info('Unique size: %d groups'%gen.getLenUni())
         
         return True
+
+def dPhenomeZero(project, blankfile=None):
+    '''
+    Takes all the biolog data available and performs the signals zero subtraction
+    If blankfile is provided, "blank plates" are parsed and then may be used
+    for zero subtraction
+    '''
+    if blankfile:
+        logger.info('Going to use a blank file for zero subtraction')
+        
+        if not os.path.exists(blankfile):
+            logger.error('Blank file %s may not be present'%(blankfile))
+            return False
+        
+        bparser = BiologParser(blankfile)
+        bparser.parse()
+        
+        if len(bparser.plates) == 0:
+            logger.warning('The blank file contains no plates!')
+            return False
+    
+    biolog = Biolog(project)
+    # Fetch the signals to be subtracted, then convert them
+    # to appropriate objects
+    sigs = [s for s in biolog.getZeroSubtractableSignals()]
+    plates = []
+    discarded = set()
+    for p in getSinglePlates(sigs):
+        if p.plate_id in zeroPlates:
+            if blankfile:
+                for zp in bparser.plates:
+                    if zp.plate_id == p.plate_id:
+                        plates.append(p) 
+            else:
+                plates.append(p)
+        else:
+            discarded.add(p.plate_id)
+    
+    if len(plates) == 0:
+        logger.warning('No plates can be zero subtracted!')
+        logger.warning('Found these plates: %s'%' '.join(discarded))
+        return False
+    
+    if blankfile:
+        zsub = BiologZero(plates, blank = True, blankData=bparser.plates)
+    else:
+        zsub = BiologZero(plates)
+        
+    if not zsub.zeroSubTract():
+        logger.warning('Zero subtraction failed!')
+        return False
+    
+    # Grep the wells
+    wells = [w for plate in zsub.plates for w in plate.getWells()]
+    
+    # Add to the project
+    biolog = Biolog(project)
+    biolog.addWells(wells, clustered=False)
+    
+    logger.info('Zero subtraction done on %d plates'%len(plates))
+    logger.info('The parameters of the subtracted plate must be recalculated')
+    
+    return True
 
 def dGenomeStats(project, doPrint=True):
     # Which project are we talking about?

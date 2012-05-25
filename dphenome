@@ -6,7 +6,7 @@ Analyze phenome(s) and map them to KEGG
 """
 from ductape import __version__
 from ductape.actions import dInit, touchProject, dPhenomeAdd, dPhenomeMultiAdd, \
-    dPhenomeDirAdd
+    dPhenomeDirAdd, dPhenomeMutAdd, dPhenomeZero
 from ductape.common.colorlog import ColorFormatter
 from ductape.terminal import RunThread
 import argparse
@@ -58,7 +58,16 @@ def daddMut(options, wdir, project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
-    # TODO
+    return dPhenomeMutAdd(project, options.mutID, options.m,
+                         options.mutphenome,
+                         options.k, options.n, options.d)
+
+def dzero(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    return dPhenomeZero(project, options.b)
 
 def dstart(options, wdir, project):
     if not touchProject(project):
@@ -211,6 +220,12 @@ def getOptions():
                             default = '',
                             help='Organism description')
     parser_add_mut.set_defaults(func=daddMut)
+
+    parser_zero = subparsers.add_parser('zero', help='Biolog signals zero subtraction')
+    parser_zero.add_argument('-b', metavar='blankfile', action="store",
+                            default = None,
+                            help='Blank plate(s) phenomic file')
+    parser_zero.set_defaults(func=dzero)
 
     parser_start = subparsers.add_parser('start', help='Start the analysis')
     parser_start.set_defaults(func=dstart)

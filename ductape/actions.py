@@ -150,8 +150,7 @@ def dPhenomeAdd(project, orgID, filename, name='', descr=''):
         dPlates[plate.plate_id].addData(plate.strain, plate)
     
     # Grep the wells
-    wells = [w for w in plate.getWells()
-                     for plate in dPlates.itervalues()]
+    wells = [w for plate in dPlates.itervalues() for w in plate.getWells()]
     
     # Add to the project
     biolog = Biolog(project)
@@ -214,8 +213,8 @@ def dPhenomeMultiAdd(project, filename):
                 dPlates[plate.plate_id].addData(plate.strain, plate)
         
         # Grep the wells
-        wells = [w for w in plate.getWells()
-                         for plate in dPlates.itervalues()]
+        wells = [w for plate in dPlates.itervalues() 
+                 for w in plate.getWells()]
         
         # Add to the project
         biolog = Biolog(project)
@@ -424,8 +423,8 @@ def dPhenomeMutAdd(project, mutID, mutparent, mutphenome, kind, name='', descr='
         dPlates[plate.plate_id].addData(plate.strain, plate)
     
     # Grep the wells
-    wells = [w for w in plate.getWells()
-                     for plate in dPlates.itervalues()]
+    wells = [w for plate in dPlates.itervalues()
+                 for w in plate.getWells()]
     
     # Add to the project
     biolog = Biolog(project)

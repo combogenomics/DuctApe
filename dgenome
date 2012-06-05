@@ -72,7 +72,7 @@ def dstart(options, wdir, project):
         return False
     
     if options.cpu <= 0:
-        logging.warning('How can i use %d cpus?'%options.cpu)
+        logger.warning('How can i use %d cpus?'%options.cpu)
         return False
     
     tmp = os.path.join(wdir,'tmp')
@@ -375,7 +375,7 @@ def daddKo(options, wdir, project):
     
     kaas = OnlineSearch()
     for filename in options.kofile:
-        logging.info('Parsing KAAS output %s'%filename)
+        logger.info('Parsing KAAS output %s'%filename)
         kaas.parseKAAS(filename)
         # TODO: here check if results are empty
         kegg.addDraftKOs( set(kaas.results.values()) )

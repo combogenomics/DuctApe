@@ -19,7 +19,7 @@ __author__ = "Marco Galardini"
 ################################################################################
 # Log setup
 
-logger = logging.getLogger('PanGenome')
+logger = logging.getLogger('ductape.pangenome')
 
 ################################################################################
 # Classes

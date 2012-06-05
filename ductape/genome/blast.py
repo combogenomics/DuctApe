@@ -16,7 +16,7 @@ __author__ = "Marco Galardini"
 ################################################################################
 # Log setup
 
-logger = logging.getLogger('Blast')
+logger = logging.getLogger('ductape.blast')
 
 ################################################################################
 # Classes

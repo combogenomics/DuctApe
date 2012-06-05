@@ -15,7 +15,7 @@ import time
 # Consumer borrowed from http://broadcast.oreilly.com/
 # EINTR fix borrowed from Boyd Waters
 
-logger = logging.getLogger('CommonMultiProcess')
+logger = logging.getLogger('ductape.commonmultiprocess')
 
 class SafeSleep(object):
     '''

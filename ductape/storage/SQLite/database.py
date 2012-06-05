@@ -18,7 +18,7 @@ __author__ = "Marco Galardini"
 ################################################################################
 # Log setup
 
-logger = logging.getLogger('Database')
+logger = logging.getLogger('ductape.database')
 
 ################################################################################
 # Classes

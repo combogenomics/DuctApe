@@ -27,7 +27,7 @@ __author__ = "Marco Galardini"
 ################################################################################
 # Log setup
 
-logger = logging.getLogger('Actions')
+logger = logging.getLogger('ductape.actions')
 
 ################################################################################
 # Methods

@@ -18,7 +18,7 @@ __author__ = "Marco Galardini"
 ################################################################################
 # Log setup
 
-logger = logging.getLogger('CommonThread')
+logger = logging.getLogger('ductape.commonthread')
 
 ################################################################################
 # Classes

@@ -28,7 +28,7 @@ __author__ = "Marco Galardini"
 ################################################################################
 # Log setup
 
-logger = logging.getLogger('Biolog')
+logger = logging.getLogger('ductape.biolog')
 
 ################################################################################
 # Plate ID conversion

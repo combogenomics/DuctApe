@@ -20,7 +20,7 @@ __author__ = "Marco Galardini"
 ################################################################################
 # Log setup
 
-logger = logging.getLogger('Map2KO')
+logger = logging.getLogger('ductape.map2KO')
 
 ################################################################################
 # Classes

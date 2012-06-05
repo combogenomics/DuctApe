@@ -17,7 +17,7 @@ sp.seterr(all='ignore')
 
 __author__ = "Marco Galardini"
 
-logger = logging.getLogger('fitting')
+logger = logging.getLogger('ductape.fitting')
 
 def logistic(x, A, u, d, v, y0):
     '''

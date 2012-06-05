@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 __author__ = "Marco Galardini"
 
-logger = logging.getLogger('clustering')
+logger = logging.getLogger('ductape.clustering')
 
 def plotClusters(X, clust, params=None, method='', prefix='clusters'):
     labels = clust.labels_

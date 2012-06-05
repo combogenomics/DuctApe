@@ -24,7 +24,7 @@ __author__ = "Marco Galardini"
 ################################################################################
 # Log setup
 
-logger = logging.getLogger('Kegg')
+logger = logging.getLogger('ductape.kegg')
 
 ################################################################################
 # Classes
@@ -75,22 +75,22 @@ class KeggAPI(object):
         If it fails it tries again (retries)
         Returns True if it worked, False otherwise
         '''
-        logging.debug('KEPP API url: %s'%self._apiurl)
+        logger.debug('KEPP API url: %s'%self._apiurl)
         attempts = 0
         while True:
             try:
                 self._keggserv = WSDL.Proxy(self._apiurl)
-                logging.debug('Connection to KEGG API successful')
+                logger.debug('Connection to KEGG API successful')
                 self.result = True
                 return
             except Exception, e:
                 attempts += 1
-                logging.debug('Connection to KEGG API failed! Attempt %d'
+                logger.debug('Connection to KEGG API failed! Attempt %d'
                               %attempts)
-                logging.debug('%s'%str(e))
+                logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
-                    logging.warning('Could not connect to KEGG API')
+                    logger.warning('Could not connect to KEGG API')
                     self.result = False
                     return
 
@@ -102,7 +102,7 @@ class KeggAPI(object):
         while True:
             try:
                 self.input = entry
-                logging.debug('Looking for title for KEGG entry %s'%entry)
+                logger.debug('Looking for title for KEGG entry %s'%entry)
                 res = self._keggserv.btit(entry).strip()
                 start = res.split(';')
                 name = ' '.join(start[0].split(' ')[1:])
@@ -113,12 +113,12 @@ class KeggAPI(object):
                 return
             except Exception, e:
                 attempts += 1
-                logging.debug('btit failed! Attempt %d'
+                logger.debug('btit failed! Attempt %d'
                               %attempts)
-                logging.debug('%s'%str(e))
+                logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
-                    logging.warning('btit failed!')
+                    logger.warning('btit failed!')
                     raise Exception('btit request failed')
     
     def getReactions(self, ko_id, retries=5):
@@ -129,17 +129,17 @@ class KeggAPI(object):
         while True:
             try:
                 self.input = ko_id
-                logging.debug('Looking for KEGG reactions from %s'%ko_id)
+                logger.debug('Looking for KEGG reactions from %s'%ko_id)
                 self.result = self._keggserv.get_linkdb_by_entry(ko_id, 'reaction')
                 return
             except Exception, e:
                 attempts += 1
-                logging.debug('get_linkdb_by_entry failed! Attempt %d'
+                logger.debug('get_linkdb_by_entry failed! Attempt %d'
                               %attempts)
-                logging.debug('%s'%str(e))
+                logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
-                    logging.warning('get_linkdb_by_entry failed!')
+                    logger.warning('get_linkdb_by_entry failed!')
                     raise Exception('get_linkdb_by_entry request failed')
                 
     def getPathways(self, re_id, retries=5):
@@ -150,17 +150,17 @@ class KeggAPI(object):
         while True:
             try:
                 self.input = re_id
-                logging.debug('Looking for KEGG pathways from %s'%re_id)
+                logger.debug('Looking for KEGG pathways from %s'%re_id)
                 self.result = list(self._keggserv.get_pathways_by_reactions([re_id]))
                 return
             except Exception, e:
                 attempts += 1
-                logging.debug('get_pathways_by_reactions failed! Attempt %d'
+                logger.debug('get_pathways_by_reactions failed! Attempt %d'
                               %attempts)
-                logging.debug('%s'%str(e))
+                logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
-                    logging.warning('get_pathways_by_reactions failed!')
+                    logger.warning('get_pathways_by_reactions failed!')
                     raise Exception('get_pathways_by_reactions request failed')
     
     def getPathwaysByComp(self, co_id, retries=5):
@@ -176,9 +176,9 @@ class KeggAPI(object):
                 return
             except Exception, e:
                 attempts += 1
-                logging.debug('get_pathways_by_compounds failed! Attempt %d'
+                logger.debug('get_reactions_by_compound failed! Attempt %d'
                               %attempts)
-                logging.debug('%s'%str(e))
+                logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
                     logging.warning('get_pathways_by_compounds failed!')
@@ -213,17 +213,17 @@ class KeggAPI(object):
         while True:
             try:
                 self.input = path_id
-                logging.debug('Looking for KEGG compounds from %s'%path_id)
+                logger.debug('Looking for KEGG compounds from %s'%path_id)
                 self.result = list(self._keggserv.get_compounds_by_pathway(path_id))
                 return
             except Exception, e:
                 attempts += 1
-                logging.debug('get_compounds_by_pathway failed! Attempt %d'
+                logger.debug('get_compounds_by_pathway failed! Attempt %d'
                               %attempts)
-                logging.debug('%s'%str(e))
+                logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
-                    logging.warning('get_compounds_by_pathway failed!')
+                    logger.warning('get_compounds_by_pathway failed!')
                     raise Exception('get_compounds_by_pathway request failed')
                     
     def getColoredPathway(self, path_id, obj_list, color_list, retries=5):
@@ -235,7 +235,7 @@ class KeggAPI(object):
         while True:
             try:
                 self.input = path_id
-                logging.debug('Looking for KEGG colored map from %s'%path_id)
+                logger.debug('Looking for KEGG colored map from %s'%path_id)
                 url = self._keggserv.color_pathway_by_objects(path_id,
                                                       obj_list,[],color_list)
                 sock=urllib.urlopen(url)
@@ -245,12 +245,12 @@ class KeggAPI(object):
                 return
             except Exception, e:
                 attempts += 1
-                logging.debug('color_pathway_by_objects failed! Attempt %d'
+                logger.debug('color_pathway_by_objects failed! Attempt %d'
                               %attempts)
-                logging.debug('%s'%str(e))
+                logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
-                    logging.warning('color_pathway_by_objects failed!')
+                    logger.warning('color_pathway_by_objects failed!')
                     raise Exception('color_pathway_by_objects request failed')
     
     def getURLColoredPathway(self, path_id, obj_list, color_list, retries=5):
@@ -262,7 +262,7 @@ class KeggAPI(object):
         while True:
             try:
                 self.input = path_id
-                logging.debug('Looking for KEGG colored map URL from %s'%path_id)
+                logger.debug('Looking for KEGG colored map URL from %s'%path_id)
                 url =  self._keggserv.get_html_of_colored_pathway_by_objects(
                                                       path_id,
                                                       obj_list,[],color_list)
@@ -270,12 +270,12 @@ class KeggAPI(object):
                 return
             except Exception, e:
                 attempts += 1
-                logging.debug('get_html_of_colored_pathway_by_objects failed! Attempt %d'
+                logger.debug('get_html_of_colored_pathway_by_objects failed! Attempt %d'
                               %attempts)
-                logging.debug('%s'%str(e))
+                logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
-                    logging.warning('get_html_of_colored_pathway_by_objects failed!')
+                    logger.warning('get_html_of_colored_pathway_by_objects failed!')
                     raise Exception('get_html_of_colored_pathway_by_objects request failed')
                 
     def getHTMLColoredPathway(self, path_id, obj_list, color_list, retries=5):
@@ -287,7 +287,7 @@ class KeggAPI(object):
         while True:
             try:
                 self.input = path_id
-                logging.debug('Looking for KEGG colored map URL from %s'%path_id)
+                logger.debug('Looking for KEGG colored map URL from %s'%path_id)
                 url =  self._keggserv.get_html_of_colored_pathway_by_objects(
                                                       path_id,
                                                       obj_list,[],color_list)
@@ -297,12 +297,12 @@ class KeggAPI(object):
                 return
             except Exception, e:
                 attempts += 1
-                logging.debug('get_html_of_colored_pathway_by_objects failed! Attempt %d'
+                logger.debug('get_html_of_colored_pathway_by_objects failed! Attempt %d'
                               %attempts)
-                logging.debug('%s'%str(e))
+                logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
-                    logging.warning('get_html_of_colored_pathway_by_objects failed!')
+                    logger.warning('get_html_of_colored_pathway_by_objects failed!')
                     raise Exception('get_html_of_colored_pathway_by_objects request failed')
 
 class KeggColor(object):

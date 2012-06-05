@@ -30,7 +30,7 @@ __prog__ = "dgenome"
 ################################################################################
 # Log setup
 
-logger = logging.getLogger()
+logger = logging.getLogger('ductape')
 
 ################################################################################
 # Methods
@@ -668,7 +668,7 @@ if options.v == 0:
     ch.setLevel(logging.INFO)
 elif options.v >= 1:
     ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - ductgenome - [%(levelname)s] - %(message)s',
+formatter = logging.Formatter('%(asctime)s - %(name)s - [%(levelname)s] - %(message)s',
                             '%Y-%m-%d %H:%M:%S')
 fh.setFormatter(formatter)
 logger.addHandler(fh)

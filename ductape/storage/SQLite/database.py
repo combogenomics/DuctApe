@@ -1091,6 +1091,31 @@ class Kegg(DBBase):
                 for co_id in reactcomp[re_id]:
                     conn.execute('insert or ignore into react_comp values (?,?);',
                                  (re_id,co_id,))
+                    
+    def addCompReacts(self, compreact):
+        '''
+        An exception is thrown if such IDs are not present
+        '''
+        for co_id in compreact:
+            if not self.isCompound(co_id):
+                logger.warning('Compound %s is not present yet!'
+                                %co_id)
+                raise Exception('This compound (%s) is not present yet!'
+                                %co_id)
+            for re_id in compreact[co_id]:
+                if not self.isReaction(re_id):
+                    logger.warning('Reaction %s is not present yet!'
+                                %re_id)
+                    raise Exception('This reaction (%s) is not present yet!'
+                                %re_id)
+        
+        self.boost()
+        
+        with self.connection as conn:
+            for co_id in compreact:
+                for re_id in compreact[co_id]:
+                    conn.execute('insert or ignore into react_comp values (?,?);',
+                                 (re_id,co_id,))
     
     def getReaction(self, re_id):
         if not self.isReaction(re_id):

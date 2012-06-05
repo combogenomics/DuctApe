@@ -163,16 +163,16 @@ class KeggAPI(object):
                     logger.warning('get_pathways_by_reactions failed!')
                     raise Exception('get_pathways_by_reactions request failed')
     
-    def getPathwaysByComp(self, co_id, retries=5):
+    def getReactionsByComp(self, co_id, retries=5):
         '''
-        Get the pathway IDs for a given compound
+        Get the reactions IDs for a given compound
         '''
         attempts = 0
         while True:
             try:
                 self.input = co_id
-                logging.debug('Looking for KEGG pathways from %s'%co_id)
-                self.result = list(self._keggserv.get_pathways_by_compounds([co_id]))
+                logger.debug('Looking for KEGG reactions from %s'%co_id)
+                self.result = list(self._keggserv.get_reactions_by_compound(co_id))
                 return
             except Exception, e:
                 attempts += 1
@@ -181,8 +181,8 @@ class KeggAPI(object):
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
-                    logging.warning('get_pathways_by_compounds failed!')
-                    raise Exception('get_pathways_by_compounds request failed')
+                    logger.warning('get_reactions_by_compound failed!')
+                    raise Exception('get_reactions_by_compound request failed')
     
     def getReactionsFromPath(self, path_id, retries=5):
         '''
@@ -192,19 +192,40 @@ class KeggAPI(object):
         while True:
             try:
                 self.input = path_id
-                logging.debug('Looking for KEGG reactions from %s'%path_id)
+                logger.debug('Looking for KEGG reactions from %s'%path_id)
                 self.result = list(self._keggserv.get_reactions_by_pathway(path_id))
                 return
             except Exception, e:
                 attempts += 1
-                logging.debug('get_reactions_by_pathway failed! Attempt %d'
+                logger.debug('get_reactions_by_pathway failed! Attempt %d'
                               %attempts)
-                logging.debug('%s'%str(e))
+                logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
-                    logging.warning('get_reactions_by_pathway failed!')
+                    logger.warning('get_reactions_by_pathway failed!')
                     raise Exception('get_reactions_by_pathway request failed')
-                
+    
+    def getCompoundsFromReaction(self, re_id, retries=5):
+        '''
+        Get the compound IDs for a given reaction
+        '''
+        attempts = 0
+        while True:
+            try:
+                self.input = re_id
+                logger.debug('Looking for KEGG compounds from %s'%re_id)
+                self.result = list(self._keggserv.get_compounds_by_reaction(re_id))
+                return
+            except Exception, e:
+                attempts += 1
+                logger.debug('get_compounds_by_reaction failed! Attempt %d'
+                              %attempts)
+                logger.debug('%s'%str(e))
+                time.sleep(2*attempts)
+                if attempts >= retries:
+                    logger.warning('get_compounds_by_reaction failed!')
+                    raise Exception('get_compounds_by_reaction request failed')
+    
     def getCompoundsFromPath(self, path_id, retries=5):
         '''
         Get the compound IDs for a given pathway
@@ -350,14 +371,18 @@ class KeggDetails(object):
         self.path = None
         # Links
         self.koreact = None
-        self.comppath = None
         self.pathreact = None
         self.pathcomp = None
+        self.compreact = None
+        self.reactcomp = None
         # Maps
         self.pathmaps = None
     
     def _purgeDetails(self,det):
         erase = []
+        if not det:
+            return det
+        
         for key, value in det.iteritems():
             if not value:
                 erase.append(key)
@@ -373,20 +398,14 @@ class KeggDetails(object):
         self.comp = self._purgeDetails(comp)
         self.path = self._purgeDetails(path)
         
-    def setLinks(self, koreact=None, comppath=None, pathreact=None, pathcomp=None):
+    def setLinks(self, koreact=None, pathreact=None, pathcomp=None,
+                 compreact=None, reactcomp=None):
         self.koreact = {}
         if koreact:
             for k,v in koreact.iteritems():
                 self.koreact[k] = []
                 for i in v:
                     self.koreact[k].append(str(i))
-        
-        self.comppath = {}
-        if comppath:
-            for k,v in comppath.iteritems():
-                self.comppath[k] = []
-                for i in v:
-                    self.comppath[k].append(str(i))
 
         self.pathreact = {}
         if pathreact:
@@ -401,6 +420,22 @@ class KeggDetails(object):
                 self.pathcomp[k] = []
                 for i in v:
                     self.pathcomp[k].append(str(i))
+                    
+        self.compreact = {}
+        if compreact:
+            for k,v in compreact.iteritems():
+                self.compreact[k] = []
+                for i in v:
+                    self.compreact[k].append(str(i))
+                    
+                self.compreact = {}
+        
+        self.reactcomp = {}
+        if reactcomp:
+            for k,v in reactcomp.iteritems():
+                self.reactcomp[k] = []
+                for i in v:
+                    self.reactcomp[k].append(str(i))
     
     def setMaps(self, maps):
         self.pathmaps = maps
@@ -481,6 +516,9 @@ class BaseMapper(BaseKegg):
         self.pathcomp = {}
         self.pathmap = {}
         self.compdet = {}
+        self.reactpath = {}
+        self.reactcomp = {}
+        self.compreact = {}
         
         # Output
         self.result = None
@@ -666,9 +704,6 @@ class BaseMapper(BaseKegg):
             
             threads = []
             for comp in piece:
-                if comp in self.avoid:
-                    continue
-                
                 obj = threading.Thread(
                             target = self.handlers[piece.index(comp)].getTitle,
                             args = (comp,))
@@ -683,6 +718,123 @@ class BaseMapper(BaseKegg):
                 if not handler.result:
                     continue
                 self.compdet[handler.input] = handler.result
+    
+    def getPathways(self):
+        for piece in get_span(self.reactdet.keys(), self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
+            self.cleanHandlers()
+            self._substatus += self.numThreads
+            if self._substatus > self._maxsubstatus:
+                self._substatus = self._maxsubstatus
+            self.updateStatus(sub=True)
+            
+            threads = []
+            for react in piece:
+                obj = threading.Thread(
+                            target = self.handlers[piece.index(react)].getPathways,
+                            args = (react,))
+                obj.start()
+                threads.append(obj)
+            time.sleep(0.01)
+            while len(threads) > 0:
+                for thread in threads:
+                    if not thread.isAlive():
+                        threads.remove(thread)
+            for handler in self.handlers:
+                if not handler.result:
+                    continue
+                if len(handler.result) == 0:
+                    continue
+                if handler.input not in self.reactpath:
+                    self.reactpath[handler.input] = []
+                for path in handler.result:
+                    self.reactpath[handler.input].append(path)
+                    # A new pathway?
+                    if path not in self.pathdet:
+                        self.pathdet[path] = None
+                        
+    def getReactCompounds(self):
+        for piece in get_span(self.reactdet.keys(), self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
+            self.cleanHandlers()
+            self._substatus += self.numThreads
+            if self._substatus > self._maxsubstatus:
+                self._substatus = self._maxsubstatus
+            self.updateStatus(sub=True)
+            
+            threads = []
+            for react in piece:
+                if react in self.avoid:
+                    continue
+                
+                obj = threading.Thread(
+                            target = self.handlers[piece.index(react)].getCompoundsFromReaction,
+                            args = (react,))
+                obj.start()
+                threads.append(obj)
+            time.sleep(0.01)
+            while len(threads) > 0:
+                for thread in threads:
+                    if not thread.isAlive():
+                        threads.remove(thread)
+            for handler in self.handlers:
+                if not handler.result:
+                    continue
+                if len(handler.result) == 0:
+                    continue
+                if handler.input not in self.reactcomp:
+                    self.reactcomp[handler.input] = []
+                for co_id in handler.result:
+                    self.reactcomp[handler.input].append(co_id)
+                    # A new compound?
+                    if co_id not in self.compdet:
+                        self.compdet[co_id] = None
+                        
+    def getCompoundReacts(self):
+        for piece in get_span(self.compdet.keys(), self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
+            self.cleanHandlers()
+            self._substatus += self.numThreads
+            if self._substatus > self._maxsubstatus:
+                self._substatus = self._maxsubstatus
+            self.updateStatus(sub=True)
+            
+            threads = []
+            for co_id in piece:
+                if co_id in self.avoid:
+                    continue
+                
+                obj = threading.Thread(
+                            target = self.handlers[piece.index(co_id)].getReactionsByComp,
+                            args = (co_id,))
+                obj.start()
+                threads.append(obj)
+            time.sleep(0.01)
+            while len(threads) > 0:
+                for thread in threads:
+                    if not thread.isAlive():
+                        threads.remove(thread)
+            for handler in self.handlers:
+                if not handler.result:
+                    continue
+                if len(handler.result) == 0:
+                    continue
+                if handler.input not in self.compreact:
+                    self.compreact[handler.input] = []
+                for re_id in handler.result:
+                    self.compreact[handler.input].append(re_id)
+                    # A new reaction?
+                    if re_id not in self.reactdet:
+                        self.reactdet[re_id] = None
 
 class KoMapper(BaseMapper):
     '''
@@ -699,10 +851,11 @@ class KoMapper(BaseMapper):
                2:'Fetching reactions',
                3:'Fetching pathways',
                4:'Fetching pathways content',
-               5:'Fetching details on KEGG entries',
-               6:'Crafting results'}
+               5:'Fetching reactions - compounds links',
+               6:'Fetching details on KEGG entries',
+               7:'Crafting results'}
     
-    _substatuses = [2,3,4,5]
+    _substatuses = [2,3,4,5,6]
     
     def __init__(self, ko_list, threads=20, avoid=[], queue=Queue.Queue()):
         BaseMapper.__init__(self, threads=threads, avoid=avoid, queue=queue)
@@ -712,7 +865,6 @@ class KoMapper(BaseMapper):
         # Results
         self.kodet = {}
         self.koreact = {}
-        self.reactpath = {}
     
     def getKOdet(self):
         for piece in get_span(self.ko, self.numThreads):
@@ -760,6 +912,9 @@ class KoMapper(BaseMapper):
             
             threads = []
             for ko in piece:
+                if ko in self.avoid:
+                    continue
+                
                 obj = threading.Thread(
                             target = self.handlers[piece.index(ko)].getReactions,
                             args = (ko,))
@@ -781,43 +936,6 @@ class KoMapper(BaseMapper):
                         # Is this reaction new?
                         if react.entry_id2 not in self.reactdet:
                             self.reactdet[react.entry_id2] = None
-    
-    def getPathways(self):
-        for piece in get_span(self.reactdet.keys(), self.numThreads):
-            if self.killed:
-                logger.debug('Exiting for a kill signal')
-                return
-            
-            self.cleanHandlers()
-            self._substatus += self.numThreads
-            if self._substatus > self._maxsubstatus:
-                self._substatus = self._maxsubstatus
-            self.updateStatus(sub=True)
-            
-            threads = []
-            for react in piece:
-                obj = threading.Thread(
-                            target = self.handlers[piece.index(react)].getPathways,
-                            args = (react,))
-                obj.start()
-                threads.append(obj)
-            time.sleep(0.01)
-            while len(threads) > 0:
-                for thread in threads:
-                    if not thread.isAlive():
-                        threads.remove(thread)
-            for handler in self.handlers:
-                if not handler.result:
-                    continue
-                if len(handler.result) == 0:
-                    continue
-                if handler.input not in self.reactpath:
-                    self.reactpath[handler.input] = []
-                for path in handler.result:
-                    self.reactpath[handler.input].append(path)
-                    # A new pathway?
-                    if path not in self.pathdet:
-                        self.pathdet[path] = None
     
     def run(self):
         self.updateStatus()
@@ -875,6 +993,33 @@ class KoMapper(BaseMapper):
         self._maxsubstatus = len(self.pathdet)
         try:
             self.getPathCompounds()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        # Compunds for each reaction
+        self._maxsubstatus = len(self.reactdet)
+        self.updateStatus()
+        try:
+            self.getReactCompounds()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        # Reactions for each compund
+        self._maxsubstatus = len(self.compdet)
+        try:
+            self.getCompoundReacts()
         except Exception, e:
             self.sendFailure(e.message)
             return
@@ -956,7 +1101,8 @@ class KoMapper(BaseMapper):
         self.result.setDetails(self.kodet, self.reactdet,
                                self.compdet, self.pathdet)
         self.result.setLinks(koreact=self.koreact, pathreact=self.pathreact, 
-                             pathcomp=self.pathcomp)
+                             pathcomp=self.pathcomp, reactcomp=self.reactcomp,
+                             compreact=self.compreact)
         self.result.setMaps(self.pathmap)
 
 class CompMapper(BaseMapper):
@@ -970,12 +1116,14 @@ class CompMapper(BaseMapper):
     
     _statusDesc = {0:'Not started',
                1:'Connection to KEGG',
-               2:'Fetching pathways',
-               3:'Fetching pathways content',
-               4:'Fetching details on KEGG entries',
-               5:'Crafting results'}
+               2:'Fetching reactions',
+               3:'Fetching pathways',
+               4:'Fetching pathways content',
+               5:'Fetching reactions - compounds links',
+               6:'Fetching details on KEGG entries',
+               7:'Crafting results'}
     
-    _substatuses = [2,3,4]
+    _substatuses = [2,3,4,5,6]
     
     def __init__(self, co_list, threads=20, avoid=[], queue=Queue.Queue()):
         BaseMapper.__init__(self, threads=threads, avoid=avoid, queue=queue)
@@ -984,43 +1132,6 @@ class CompMapper(BaseMapper):
         
         # Results
         self.comppath = {}
-        
-    def getPathways(self):
-        for piece in get_span(self.co, self.numThreads):
-            if self.killed:
-                logger.debug('Exiting for a kill signal')
-                return
-            
-            self.cleanHandlers()
-            self._substatus += self.numThreads
-            if self._substatus > self._maxsubstatus:
-                self._substatus = self._maxsubstatus
-            self.updateStatus(sub=True)
-            
-            threads = []
-            for co_id in piece:
-                obj = threading.Thread(
-                            target = self.handlers[piece.index(co_id)].getPathwaysByComp,
-                            args = (co_id,))
-                obj.start()
-                threads.append(obj)
-            time.sleep(0.01)
-            while len(threads) > 0:
-                for thread in threads:
-                    if not thread.isAlive():
-                        threads.remove(thread)
-            for handler in self.handlers:
-                if not handler.result:
-                    continue
-                if len(handler.result) == 0:
-                    continue
-                if handler.input not in self.comppath:
-                    self.comppath[handler.input] = []
-                for path in handler.result:
-                    self.comppath[handler.input].append(path)
-                    # A new pathway?
-                    if path not in self.pathdet:
-                        self.pathdet[path] = None
     
     def run(self):
         self.updateStatus()
@@ -1031,8 +1142,24 @@ class CompMapper(BaseMapper):
         if self.killed:
             return
         
+        # Reactions
+        for co_id in self.co:
+            self.compdet[co_id] = None
+        self._maxsubstatus = len(self.compdet)
+        self.updateStatus()
+        try:
+            self.getCompoundReacts()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
         # Related pathways...
-        self._maxsubstatus = len(self.co)
+        self._maxsubstatus = len(self.reactdet)
         self.updateStatus()
         try:
             self.getPathways()
@@ -1064,6 +1191,33 @@ class CompMapper(BaseMapper):
         self._maxsubstatus = len(self.pathdet)
         try:
             self.getPathCompounds()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        # Compunds for each reaction
+        self._maxsubstatus = len(self.reactdet)
+        self.updateStatus()
+        try:
+            self.getReactCompounds()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        # Reactions for each compund
+        self._maxsubstatus = len(self.compdet)
+        try:
+            self.getCompoundReacts()
         except Exception, e:
             self.sendFailure(e.message)
             return
@@ -1131,8 +1285,9 @@ class CompMapper(BaseMapper):
         self.result = KeggDetails()
         self.result.setDetails(react=self.reactdet,
                                comp=self.compdet, path=self.pathdet)
-        self.result.setLinks(comppath= self.comppath, pathreact=self.pathreact, 
-                             pathcomp=self.pathcomp)
+        self.result.setLinks(pathreact=self.pathreact, 
+                             pathcomp=self.pathcomp, compreact=self.compreact,
+                             reactcomp=self.reactcomp)
         self.result.setMaps(self.pathmap)
 
 class MapsFetcher(BaseKegg):

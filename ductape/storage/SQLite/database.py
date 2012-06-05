@@ -2180,4 +2180,24 @@ class Biolog(DBBase):
                                     [biolog_id,])
             for res in cursor:
                 yield Row(res, cursor.description)
+                
+    def atLeastOneZeroSubtracted(self):
+        '''
+        Is there at least one well that is zero subtracted?
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('select count(*) from biolog_exp where zero=1;')
+        return bool(cursor.fetchall()[0][0])
+    
+    def getCompounds2Analyse(self):
+        '''
+        Get all the biolog compounds ID yet to be anlysed
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select distinct co_id from biolog
+                                 where co_id is not null
+                                 and co_id not in (select co_id
+                                                 from compound);''')
             
+        for res in cursor:
+            yield Row(res, cursor.description)

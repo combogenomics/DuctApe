@@ -701,7 +701,7 @@ class Experiment(object):
         '''
         Organize the whole experiment in a dictionary-based structure
         '''
-        for w in self.getWells():
+        for w in self.getWells(params=False):
             if w.plate_id not in self.experiment:
                 self.experiment[w.plate_id] = {}
                 self.sumexp[w.plate_id] = {}
@@ -735,14 +735,16 @@ class Experiment(object):
             for res in Plate.calculateParams():
                 yield True
                 
-    def getWells(self):
+    def getWells(self, params=True):
         '''
         Generator to get the single wells
+        if params is set to False, it just gives you the wells,
+        otherwise it calculates them
         '''
         for plate_id in self.plates:
             Plate = self.plates[plate_id]
             for well in Plate.getWells():
-                if not well.max:
+                if not well.max and params:
                     well.calculateParams()
                 yield well
     
@@ -1436,3 +1438,18 @@ def getSinglePlates(signals):
         for replicas in orgs.itervalues():
             for splate in replicas.itervalues():
                 yield splate
+                
+def getPlates(signals):
+    '''
+    Takes a bunch of signals taken from the DB and returns a series of 
+    Plates objects
+    NB it is a generator
+    '''
+    dExp = {}
+    for splate in getSinglePlates(signals):
+        if splate.plate_id not in dExp:
+            dExp[splate.plate_id] = Plate(splate.plate_id)
+        dExp[splate.plate_id].addData(splate.strain, splate)
+    
+    for plate in dExp.itervalues():
+        yield plate

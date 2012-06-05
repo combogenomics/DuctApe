@@ -474,6 +474,8 @@ def doMap2KEGG(project):
     kegg.addKOReacts(komap.result.koreact)
     kegg.addPathComps(komap.result.pathcomp)
     kegg.addPathReacts(komap.result.pathreact)
+    kegg.addReactComps(komap.result.reactcomp)
+    kegg.addCompReacts(komap.result.compreact)
     logger.info('Added Kegg links')
     # HTML maps
     kegg.addPathHtml(komap.result.pathmaps)

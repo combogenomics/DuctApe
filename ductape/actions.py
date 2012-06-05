@@ -750,7 +750,7 @@ def dGenomeExport(project):
             
             dG = genome.getPanGenome()
             if len(dG) == 0:
-                logging.warning('No pangenome available')
+                logger.warning('No pangenome available')
             else:
                 fname = 'pangenome.tsv'
                 fout = open(fname,'w')

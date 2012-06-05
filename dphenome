@@ -8,6 +8,9 @@ from ductape import __version__
 from ductape.actions import dInit, touchProject, dPhenomeAdd, dPhenomeMultiAdd, \
     dPhenomeDirAdd, dPhenomeMutAdd, dPhenomeZero
 from ductape.common.colorlog import ColorFormatter
+from ductape.kegg.kegg import CompMapper
+from ductape.phenome.biolog import Experiment, getPlates
+from ductape.storage.SQLite.database import Biolog, Kegg
 from ductape.terminal import RunThread
 import argparse
 import logging.handlers
@@ -74,8 +77,66 @@ def dstart(options, wdir, project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
+    
+    biolog = Biolog(project)
+    
+    # Get Plate Objects
+    # TODO: here check the zero subtraction state? (it may be mixed up)
+    sigs = [s for s in biolog.getAllSignals()]
+    plates = [p for p in getPlates(sigs)]
+    isZero = biolog.atLeastOneZeroSubtracted()
+
+    exp = Experiment(plates=plates, zero=isZero)
+    
+    # Calculate parameters
+    #for well in exp.getWells():
+    #    print well.plate_id, well.well_id
+  
+    # Clusterize!
+    #exp.clusterize()
+    
+    # Map biolog compunds to kegg
+    compounds = ['cpd:'+co.co_id for co in biolog.getCompounds2Analyse()]
+    kegg = Kegg(project)
+    avoid = [kid for kid in kegg.getAllIDs()]
+    
+    komap = CompMapper(compounds,avoid=avoid)
+    
+    if not RunThread(komap):
+        return False
+    
+    kegg.addCompounds(komap.result.comp)
+    logger.info('Added %d Co IDs'%len(komap.result.comp))
+    kegg.addReactions(komap.result.react)
+    logger.info('Added %d Re IDs'%len(komap.result.react))
+    kegg.addPathways(komap.result.path)
+    logger.info('Added %d Path IDs'%len(komap.result.path))
+    # Links
+    kegg.addPathComps(komap.result.pathcomp)
+    kegg.addPathReacts(komap.result.pathreact)
+    kegg.addReactComps(komap.result.reactcomp)
+    kegg.addCompReacts(komap.result.compreact)
+    logger.info('Added Kegg links')
+    # HTML maps
+    kegg.addPathHtml(komap.result.pathmaps)
+    logger.info('Added Kegg maps')
+    
+    return True
+
+def dplot(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
     # TODO
-            
+    
+def dpurge(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    # TODO
+  
 def dstats(options, wdir, project):
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
@@ -229,6 +290,12 @@ def getOptions():
 
     parser_start = subparsers.add_parser('start', help='Start the analysis')
     parser_start.set_defaults(func=dstart)
+    
+    parser_plot = subparsers.add_parser('plot', help='Plot the phenomic data')
+    parser_plot.set_defaults(func=dplot)
+    
+    parser_purge = subparsers.add_parser('purge', help='Remove inconsistent replicas')
+    parser_purge.set_defaults(func=dpurge)
     
     parser_map = subparsers.add_parser('stats', help='Print phenomic statistics')
     parser_map.set_defaults(func=dstats)

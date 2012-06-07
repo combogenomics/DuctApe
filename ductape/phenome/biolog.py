@@ -10,6 +10,7 @@ Classes to handle Biolog data
 import matplotlib
 matplotlib.use('Agg')
 #
+from ductape.common.commonmultiprocess import CommonMultiProcess
 from ductape.common.commonthread import CommonThread
 from ductape.common.utils import smooth, compress
 from ductape.phenome.clustering import mean, kmeans
@@ -1395,13 +1396,116 @@ class BiologPlot(CommonThread):
                 for i in self.avgresults[plate_id].plotActivity(strains=self.order):
                     self._substatus += 1
                     self.updateStatus(True)
+                    
+                    if self.killed:
+                        return
                 fname = os.path.join(self._room,'%sheat.png'%plate_id)
                 self.avgresults[plate_id].heatfig.savefig(fname, dpi=150)
                 self.avgresults[plate_id].heatfig.clf()
         else:
             self.updateStatus(send=False)
         self.resetSubStatus()
+
+class CalcParams(object):
+    def __init__(self, well):
+        self.well = well
+    
+    def __call__(self):
+        if not self.well.max:
+            try:
+                logger.debug('Calculating parameters for %s - %s'%
+                             (self.well.plate_id, self.well.well_id))
+                self.well.calculateParams()
+            except:
+                return False
         
+        return True
+
+class BiologCluster(CommonMultiProcess):
+    '''
+    Class BiologCluster
+    '''
+    _statusDesc = {0:'Not started',
+               1:'Calculating parameters',
+               2:'Clustering'}
+    
+    _substatuses = [1]
+    
+    def __init__(self,experiment,
+                 ncpus=1,queue=Queue.Queue()):
+        CommonMultiProcess.__init__(self,ncpus,queue)
+        # Experiment
+        self.exp = experiment
+    
+    def calculateParams(self):
+        wellcount = 0
+        for w in self.exp.getWells(params=False):
+            wellcount += 1
+            
+        self._maxsubstatus = wellcount
+        
+        self.initiateParallel()
+        
+        for well in self.exp.getWells(params=False):
+            obj = CalcParams(well)
+            self._paralleltasks.put(obj)
+                    
+        # Poison pill to stop the workers
+        self.addPoison()
+        
+        while True:
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
+            while not self._parallelresults.empty():
+                if self.killed:
+                    logger.debug('Exiting for a kill signal')
+                    return
+                
+                result = self._parallelresults.get()
+                self._substatus += 1
+                self.updateStatus(sub=True)
+                
+                if not result:
+                    logger.error('An error occurred while calculating parameters')
+                    return False
+                    
+            if self.isTerminated():
+                break
+            
+            self.sleeper.sleep(0.1)
+            
+        while not self._parallelresults.empty():
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
+            result = self._parallelresults.get()
+            self._substatus += 1
+            self.updateStatus(sub=True)
+            
+            if not result:
+                logger.error('An error occurred while calculating parameters')
+                return False
+        
+        self.killParallel()
+        
+        return True
+    
+    def run(self):
+        self.updateStatus()
+        if not self.calculateParams():
+            self.sendFailure('Calculate parameters failure!')
+            return
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        self.updateStatus()
+        self.exp.clusterize()
+
 def getSinglePlates(signals):
     '''
     Takes a bunch of signals taken from the DB and returns a series of 

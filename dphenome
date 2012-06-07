@@ -10,7 +10,7 @@ from ductape.actions import dInit, touchProject, dPhenomeAdd, dPhenomeMultiAdd, 
 from ductape.common.colorlog import ColorFormatter
 from ductape.kegg.kegg import CompMapper
 from ductape.phenome.biolog import Experiment, BiologCluster, getPlates
-from ductape.storage.SQLite.database import Biolog, Kegg
+from ductape.storage.SQLite.database import Biolog, Kegg, Project, Organism
 from ductape.terminal import RunThread
 import argparse
 import logging.handlers
@@ -83,10 +83,20 @@ def dstart(options, wdir, project):
         logger.error('Phenome experiment could not be clustered!')
         return False
     
+    # We have to map 2 KEGG?
+    proj = Project(project)
+    proj.getProject()
+    
+    if proj.phenome == 'map2kegg':
+        logger.info('Skipping mapping to KEGG')
+        return True
+    
     # Map biolog compunds to kegg
     if not doMap2KEGG(project):
         logger.error('Phenomic compounds could not be mapped to kegg!')
         return False
+    
+    proj.setPhenome('map2kegg')
     
     return True
 

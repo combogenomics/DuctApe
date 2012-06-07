@@ -169,7 +169,7 @@ class Well(object):
             
             self.smoothed = True
         else:
-            logging.warning('Plate %s, Well %s was already smoothed'%
+            logger.warning('Plate %s, Well %s was already smoothed'%
                           (self.plate_id, self.well_id))
             
     def compress(self, span = 3):
@@ -178,7 +178,7 @@ class Well(object):
         This function should be called BEFORE smooth
         '''
         if self.smoothed:
-            logging.warning('Plate %s, Well %s should be smoothed AFTER compression'%
+            logger.warning('Plate %s, Well %s should be smoothed AFTER compression'%
                           (self.plate_id, self.well_id))
         
         if not self.compressed:
@@ -189,7 +189,7 @@ class Well(object):
             
             self.compressed = True
         else:
-            logging.warning('Plate %s, Well %s was already compressed'%
+            logger.warning('Plate %s, Well %s was already compressed'%
                           (self.plate_id, self.well_id))
     
     def calculateParams(self,
@@ -457,7 +457,7 @@ class Plate(object):
         # Check colors
         for strain in self.strains:
             if strain not in self.colors:
-                logging.error('Color code for strain %s is missing!'%strain)
+                logger.error('Color code for strain %s is missing!'%strain)
                 return
                 
         # Check time concordance
@@ -500,7 +500,7 @@ class Plate(object):
                             [plate.data[well_id].signals[hour]
                              for hour in self.times])
                 except:
-                    logging.debug('Something missing: %s, %s, %f'%(
+                    logger.debug('Something missing: %s, %s, %f'%(
                                     strain, well_id, hour))
             
         return strain_signals
@@ -644,7 +644,7 @@ class Plate(object):
         A check on the plate_id is performed!
         '''
         if data.plate_id != self.plate_id:
-            logging.error('Expecting %s, got %s'%(self.plate_id,data.plate_id))
+            logger.error('Expecting %s, got %s'%(self.plate_id,data.plate_id))
             return False
         
         if strain not in self.strains:
@@ -1157,19 +1157,19 @@ class BiologZero(object):
                         if self.forceZero and plate.data[well].signals[hour] <= 0:
                             plate.data[well].signals[hour] = 0.1
                     except:
-                        logging.debug('Time %f present in blank plate was not'%(hour)+ 
+                        logger.debug('Time %f present in blank plate was not'%(hour)+ 
                                         ' found on plate %s, signal was forced to'%(plate.plate_id)+
                                         ' zero')
                 # Reset those hours that are not present in the blank plate
                 for hour in sorted(plate.data[well].signals.keys()):
                     if hour not in zplate.data[well].signals:
-                        logging.debug('Time %f present in plate %s was not'%(hour, plate.plate_id)+
+                        logger.debug('Time %f present in plate %s was not'%(hour, plate.plate_id)+
                                         ' found on blank plate, signal was forced to'+
                                         ' zero')
                         plate.data[well].signals[hour] = 0.1
             
         if not found:
-            logging.warning('Blank plate zero subtraction: could not find'+
+            logger.warning('Blank plate zero subtraction: could not find'+
                                 ' blank plate %s'%plate.plate_id)
     
     def zeroSubTract(self):
@@ -1177,9 +1177,9 @@ class BiologZero(object):
         Zero subtraction
         '''
         if self.blank:
-            logging.info('Zero subtraction with blank plate')
+            logger.info('Zero subtraction with blank plate')
         else:
-            logging.info('Normal zero subtraction')
+            logger.info('Normal zero subtraction')
         
         for plate in self.data:
             if self.blank:
@@ -1276,10 +1276,10 @@ class BiologPlot(CommonThread):
         Returns True/False
         '''
         if plate_id not in self.results:
-            logging.warning('Plate %s was not found!'%plate_id)
+            logger.warning('Plate %s was not found!'%plate_id)
             return False
         if well_id not in self.results[plate_id].wells:
-            logging.warning('Well %s was not found!'%well_id)
+            logger.warning('Well %s was not found!'%well_id)
             return False
         
         if self.well:
@@ -1293,6 +1293,9 @@ class BiologPlot(CommonThread):
     def run(self):
         self.updateStatus()
         self.makeRoom()
+        
+        if self.killed:
+            return
         
         self._maxsubstatus = len(self.data)
         self.updateStatus()
@@ -1314,12 +1317,15 @@ class BiologPlot(CommonThread):
             self.results[plate.plate_id].addData(plate.strain, plate)
             # Sanity check
             if plate.strain not in self.colors:
-                logging.error('Color code for strain %s is missing'%plate.strain)
+                logger.error('Color code for strain %s is missing'%plate.strain)
                 return
             #
             self.results[plate.plate_id].setColor(plate.strain,
                                                   self.colors[plate.strain])
         self.resetSubStatus()
+        
+        if self.killed:
+            return
         
         self._maxsubstatus = len(self.avgdata)
         self.updateStatus()
@@ -1341,12 +1347,15 @@ class BiologPlot(CommonThread):
             self.avgresults[plate.plate_id].addData(plate.strain, plate)
             # Sanity check
             if plate.strain not in self.colors:
-                logging.error('Color code for strain %s is missing'%plate.strain)
+                logger.error('Color code for strain %s is missing'%plate.strain)
                 return
             #
             self.avgresults[plate.plate_id].setColor(plate.strain,
                                                   self.colors[plate.strain])
         self.resetSubStatus()
+        
+        if self.killed:
+            return
         
         self.updateStatus()
         for plate_id in self.results:
@@ -1355,6 +1364,9 @@ class BiologPlot(CommonThread):
             self.avgresults[plate_id].preparePlot()
         self.resetSubStatus()
         
+        if self.killed:
+            return
+        
         if self.plotPlates:
             self._maxsubstatus = len(self.results)*96
             self.updateStatus()
@@ -1362,6 +1374,10 @@ class BiologPlot(CommonThread):
                 for i in self.results[plate_id].plotAll():
                     self._substatus += 1
                     self.updateStatus(True)
+                    
+                    if self.killed:
+                        return
+                    
                 # TODO: remember qgraphicspixmapitem for GUI clickable!
                 fname = os.path.join(self._room,'%s.png'%plate_id)
                 self.results[plate_id].figure.savefig(fname, dpi=150)
@@ -1370,6 +1386,9 @@ class BiologPlot(CommonThread):
         else:
             self.updateStatus(send=False)
         self.resetSubStatus()
+        
+        if self.killed:
+            return
         
         if self.plotAll:
             self._maxsubstatus = len(self.results)*96
@@ -1385,9 +1404,15 @@ class BiologPlot(CommonThread):
                     
                     self._substatus += 1
                     self.updateStatus(True)
+                    
+                    if self.killed:
+                        return
         else:
             self.updateStatus(send=False)
         self.resetSubStatus()
+        
+        if self.killed:
+            return
         
         if self.plotActivity:
             self._maxsubstatus = len(self.results)*96

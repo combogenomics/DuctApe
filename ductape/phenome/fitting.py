@@ -133,21 +133,21 @@ def fitData(xdata, ydata):
             model = 'gompertz'
             break
         except:
-            logger.debug('Gompertz fit failed')
+            #logger.debug('Gompertz fit failed')
             try:
                 params, pcov = curve_fit(logistic, xdata, ydata, p0 = p0)
                 model = 'logistic'
                 break
             except:
-                logger.debug('Logistic fit failed')
+                #logger.debug('Logistic fit failed')
                 try:
                     params, pcov = curve_fit(richards, xdata, ydata, p0 = p0)
                     model = 'richards'
                     break
                 except:
-                    logger.debug('Richards fit failed')
+                    #logger.debug('Richards fit failed')
                     retries -= 1
-                    logger.debug('%d retries left'%retries)
+                    #logger.debug('%d retries left'%retries)
                     # Compress again the data
                     ydata = np.array(compress(ydata, span=4))
                     ydata = np.array(smooth(ydata, window_len = len(ydata)/2, 

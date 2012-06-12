@@ -20,7 +20,8 @@ CREATE TABLE organism (
     "reference" TEXT,
     "genome" TEXT   DEFAULT ('none'),
     "phenome" TEXT   DEFAULT ('none'),
-    "mkind" TEXT
+    "mkind" TEXT,
+	"color" TEXT
 );
 CREATE TABLE "protein" (
     "prot_id" TEXT NOT NULL,

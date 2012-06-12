@@ -40,7 +40,7 @@ def dadd(options, wdir, project):
                        __prog__)
         return False
     return dPhenomeAdd(project, options.orgID, options.file,
-                       name=options.n, descr=options.d)
+                       name=options.n, descr=options.d, color=options.c)
 
 def daddMulti(options, wdir, project):
     if not touchProject(project):
@@ -63,7 +63,7 @@ def daddMut(options, wdir, project):
         return False
     return dPhenomeMutAdd(project, options.mutID, options.m,
                          options.mutphenome,
-                         options.k, options.n, options.d)
+                         options.k, options.n, options.d, options.c)
 
 def dzero(options, wdir, project):
     if not touchProject(project):
@@ -251,6 +251,9 @@ def getOptions():
     parser_add.add_argument('-d', metavar='descr', action="store",
                             default = '',
                             help='Organism description')
+	parser_add.add_argument('-c', metavar='color', action="store",
+                            default = '',
+                            help='Organism color')
     parser_add.set_defaults(func=dadd)
     
     parser_add_multi = subparsers.add_parser('add-multi',
@@ -287,6 +290,9 @@ def getOptions():
     parser_add_mut.add_argument('-d', metavar='descr', action="store",
                             default = '',
                             help='Organism description')
+	parser_add_mut.add_argument('-c', metavar='color', action="store",
+                            default = '',
+                            help='Organism color')
     parser_add_mut.set_defaults(func=daddMut)
 
     parser_zero = subparsers.add_parser('zero', help='Biolog signals zero subtraction')

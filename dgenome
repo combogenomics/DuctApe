@@ -47,7 +47,7 @@ def dadd(options, wdir, project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
-    return dGenomeAdd(project, options.orgID, options.file, options.n, options.d)
+    return dGenomeAdd(project, options.orgID, options.file, options.n, options.d, options.c)
 
 def daddDir(options, wdir, project):
     if not touchProject(project):
@@ -63,7 +63,7 @@ def daddMut(options, wdir, project):
         return False
     return dGenomeMutAdd(project, options.mutID, options.m,
                          options.mutfasta,
-                         options.k, options.n, options.d)
+                         options.k, options.n, options.d, options.c)
 
 def dstart(options, wdir, project):
     if not touchProject(project):
@@ -562,6 +562,9 @@ def getOptions():
     parser_add.add_argument('-d', metavar='descr', action="store",
                             default = '',
                             help='Organism description')
+	parser_add.add_argument('-c', metavar='color', action="store",
+                            default = '',
+                            help='Organism color')
     parser_add.set_defaults(func=dadd)
     
     parser_add_dir = subparsers.add_parser('add-dir',
@@ -592,6 +595,9 @@ def getOptions():
     parser_add_mut.add_argument('-d', metavar='descr', action="store",
                             default = '',
                             help='Organism description')
+	parser_add_mut.add_argument('-c', metavar='color', action="store",
+                            default = '',
+                            help='Organism color')
     parser_add_mut.set_defaults(func=daddMut)
     
     parser_add_ko = subparsers.add_parser('add-ko',

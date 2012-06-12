@@ -60,7 +60,7 @@ def dRemove(project):
         logger.error('Could not remove project %s'%project)
         return False
 
-def dGenomeAdd(project, orgID, filename, name='', descr=''):
+def dGenomeAdd(project, orgID, filename, name='', descr='', color=None):
     '''
     Add a single genome
     '''
@@ -70,14 +70,17 @@ def dGenomeAdd(project, orgID, filename, name='', descr=''):
     
     filename = os.path.abspath(filename)
     org = Organism(project)
-    org.addOrg(orgID, name=name, description=descr, orgfile=filename)
+	if not color:
+		org.addOrg(orgID, name=name, description=descr, orgfile=filename)
+	else:
+		org.addOrg(orgID, name=name, description=descr, orgfile=filename, color=color)
     gen = Genome(project)
     gen.addProteome(orgID, filename)
     logger.info('Added genome %s, having %d proteins'%
                 (orgID, gen.howMany(orgID)))
     return True
 
-def dPhenomeAdd(project, orgID, filename, name='', descr=''):
+def dPhenomeAdd(project, orgID, filename, name='', descr='', color=None):
     '''
     Add a single phenome
     '''
@@ -140,7 +143,10 @@ def dPhenomeAdd(project, orgID, filename, name='', descr=''):
     
     # Add the organism
     org = Organism(project)
-    org.addOrg(orgID, name=name, description=descr)
+	if not color:
+		org.addOrg(orgID, name=name, description=descr)
+	else:
+		org.addOrg(orgID, name=name, description=descr, color=color)
     
     # Prepare a series of Plate objects to catch the replicas
     dPlates={}
@@ -309,7 +315,7 @@ def dPhenomeDirAdd(project, folder, extension):
             logger.warning('No phenomes were added from %s'%folder)
         return True
 
-def dGenomeMutAdd(project, mutID, mutparent, mutfasta, kind, name='', descr=''):
+def dGenomeMutAdd(project, mutID, mutparent, mutfasta, kind, name='', descr='', color=None):
     '''
     Check and add a mutant
     '''
@@ -330,15 +336,19 @@ def dGenomeMutAdd(project, mutID, mutparent, mutfasta, kind, name='', descr=''):
         if parents != 1:
             logger.error('Only one parent is allowed!')
             return False
-        org.addOrg(mutID, name=name, description=descr, orgfile=mutfasta,
+		if not color:
+			org.addOrg(mutID, name=name, description=descr, orgfile=mutfasta,
                    mutant=True, reference=mutparent, mkind=kind)
+		else:
+			org.addOrg(mutID, name=name, description=descr, orgfile=mutfasta,
+                   mutant=True, reference=mutparent, mkind=kind, color=color)
         gen = Genome(project)
         gen.addProteome(mutID, mutfasta)
         logger.info('Mutant %s (%s) added, having %d mutated genes'
                     %(mutID, org.getOrg(mutID).mkind,gen.howMany(mutID)))
         return True
     
-def dPhenomeMutAdd(project, mutID, mutparent, mutphenome, kind, name='', descr=''):
+def dPhenomeMutAdd(project, mutID, mutparent, mutphenome, kind, name='', descr='', color=None):
     '''
     Check and add a mutant
     '''
@@ -359,8 +369,12 @@ def dPhenomeMutAdd(project, mutID, mutparent, mutphenome, kind, name='', descr='
     if parents != 1:
         logger.error('Only one parent is allowed!')
         return False
-    org.addOrg(mutID, name=name, description=descr,
+	if not color:
+		org.addOrg(mutID, name=name, description=descr,
                mutant=True, reference=mutparent, mkind=kind)
+	else:
+		org.addOrg(mutID, name=name, description=descr,
+               mutant=True, reference=mutparent, mkind=kind, color=color)
     
     filename = os.path.abspath(mutphenome)
     
@@ -857,6 +871,32 @@ def getPathsReacts(project):
         
     return paths
 
+def getOrganismsColors(project):
+	'''
+	Check the colors assigned to the organisms and return a dictionary
+	If no colors are assigned, they are assigned automatically
+	'''
+	organism = Organism(project)
+	
+	color = {}
+	for org in organism.getAll():
+		if not org.color or org.color == '':
+			color[org.org_id] = None
+		else:
+			color[org.org_id] = org.color
+			
+	orgs = colors.keys()
+	for org, color in colors.iteritems():
+		# Automatic assignment, probably not the best choiche
+		# if we got some organism assigned and some others not
+		if not color:
+			autocolor = plt.get_cmap('jet')(float( orgs.index(org) )/(len(orgs)-1))
+			colors[org] = autocolor
+			organism.setColor(org_id, color)
+			logger.info('Automatically assigned color to %s'%org)
+	
+	return colors
+	
 def prepareColors(dReacts, colorrange):
     if len(dReacts) == 0:
         return {}

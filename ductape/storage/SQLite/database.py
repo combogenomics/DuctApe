@@ -345,7 +345,7 @@ class Organism(DBBase):
         return Row(cursor.fetchall()[0], cursor.description)
     
     def addOrg(self, org_id, name=None, description=None,
-                    orgfile=None, mutant=False, reference=None, mkind=''):
+                    orgfile=None, mutant=False, reference=None, mkind='', color=None):
         '''
         Adds a new organism to the db
         Performs some checks on the fields mutant and reference
@@ -375,6 +375,10 @@ class Organism(DBBase):
                                 mkind = ? where org_id = ?;''',
                          (name, description, mutant, reference,
                           mkind, org_id))
+			
+			if color != None:
+				conn.execute('''update organism set color = ? where org_id = ?;''',
+                         (color, org_id))
         
         if not already:
             # Reset the genomic/phenomic status
@@ -453,7 +457,24 @@ class Organism(DBBase):
         with self.connection as conn:
             conn.execute('update organism set mutant = ? where org_id = ?;',
                          [mutant,org_id,])
-    
+						 
+	def setColor(self, org_id, color):
+		'''
+		Set the color of this organism (i.e. used for phenomic plots)
+		'''
+		# Check how many organisms have the same color
+		with self.connection as conn:
+            conn.execute('select count(*) from organism where color = ?;',
+						[color,])
+		howmany = int(cursor.fetchall()[0][0])
+		# We issue just a warning
+		if howmany != 0:
+			logger.warning('%d organism(s) already use this color (%s)',(howmany, color))
+			
+		with self.connection as conn:
+            conn.execute('update organism set color = ? where org_id = ?;',
+                         [color,org_id,])
+	
     def resetGenomes(self):
         '''
         Reset each organism genomic status

@@ -1199,17 +1199,17 @@ class BiologPlot(CommonThread):
     '''
     Class BiologPlot
     Takes a list of SinglePlate objects and creates some plots
-    Can work in parallelization
     '''
     _statusDesc = {0:'Not started',
                 1:'Making room',
                 2:'Preparing data',
-                3:'Preparing plots',
-                4:'Creating plates plots',
-                5:'Creating single plots',
-                6:'Creating Heat maps'}
+                3:'Preparing data (average)',
+                4:'Preparing plots',
+                5:'Creating plates plots',
+                6:'Creating single plots',
+                7:'Creating Heat maps'}
     
-    _substatuses = [2,4,5,6]
+    _substatuses = [2,3,5,6,7]
     
     def __init__(self, data, avgdata = [],
                  expname = 'exp', 

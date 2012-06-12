@@ -9,7 +9,8 @@ from ductape.actions import dInit, touchProject, dPhenomeAdd, dPhenomeMultiAdd, 
     dPhenomeDirAdd, dPhenomeMutAdd, dPhenomeZero
 from ductape.common.colorlog import ColorFormatter
 from ductape.kegg.kegg import CompMapper
-from ductape.phenome.biolog import Experiment, BiologCluster, getPlates
+from ductape.phenome.biolog import Experiment, BiologCluster, getPlates, \
+    getSinglePlates, BiologPlot
 from ductape.storage.SQLite.database import Biolog, Kegg, Project, Organism
 from ductape.terminal import RunThread
 import argparse
@@ -105,7 +106,17 @@ def dplot(options, wdir, project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
-    # TODO
+    
+    biolog = Biolog(project)
+    sigs = [s for s in biolog.getAllSignals()]
+    plates = [p for p in getSinglePlates(sigs)]
+    
+    bplot = BiologPlot(plates, colors={'Rm1021':'red', 'AK83':'blue',
+        'BL225C':'green','AK58':'orange'},
+               maxsig=400, plotAll=True)
+
+    if not RunThread(bplot):
+        return False
     
 def dpurge(options, wdir, project):
     if not touchProject(project):

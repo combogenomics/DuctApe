@@ -2173,7 +2173,17 @@ class Biolog(DBBase):
                                     where activity>=?
                                     and org_id=?;''',[activity,org_id,])
         return int(cursor.fetchall()[0][0])
-    
+	
+	def getAllWells(self):
+        '''
+        Get all the wells from the storage
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select * from biolog_exp;''')
+        
+        for res in cursor:
+            yield Row(res, cursor.description)
+	
     def getAllSignals(self):
         '''
         Get all the signals from the storage

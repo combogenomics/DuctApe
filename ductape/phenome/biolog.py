@@ -1531,7 +1531,22 @@ class BiologCluster(CommonMultiProcess):
         self.updateStatus()
         self.exp.clusterize()
 
-def getSinglePlates(signals):
+def getSinglePlates(input):
+	'''
+	Takes signals or wells from the storage and transforms them into SinglePlates
+	NB it is a generator
+	'''
+	if len(input) == 0:
+		return
+	
+	if hasattr(input[0], "biolog_id"):
+		for splate in getSinglePlatesFromSignals(input):
+			yield splate
+	else:
+		for splate in getSinglePlatesFromActivity(input):
+			yield splate
+			
+def getSinglePlatesFromSignals(signals):
     '''
     Takes a bunch of signals taken from the DB and returns a series of 
     SinglePlates objects
@@ -1567,7 +1582,42 @@ def getSinglePlates(signals):
         for replicas in orgs.itervalues():
             for splate in replicas.itervalues():
                 yield splate
-                
+
+def getSinglePlatesFromActivity(wells):
+    '''
+    Takes a bunch of wells taken from the DB and returns a series of 
+    SinglePlates objects
+    NB it is a generator
+    '''
+    dExp = {}
+    
+    for well in wells:
+        plate_id = well.plate_id
+		well_id = well.well_id
+		org_id = well.org_id
+		replica = well.replica
+        
+        if plate_id not in dExp:
+            dExp[plate_id] = {}
+        if org_id not in dExp[plate_id]:
+            dExp[plate_id][org_id] = {}
+        if replica not in dExp[plate_id][org_id]:
+            dExp[plate_id][org_id][replica] = SinglePlate()
+            dExp[plate_id][org_id][replica].plate_id = plate_id
+            dExp[plate_id][org_id][replica].strain = org_id
+            dExp[plate_id][org_id][replica].replica = replica
+        if well_id not in dExp[plate_id][org_id][replica].data:
+            dExp[plate_id][org_id][replica].data[well_id] = Well(plate_id,
+                                                                 well_id)
+        
+		dExp[plate_id][org_id][replica].data[well_id].activity = well.activity
+        
+    # Return all the SinglePlates objects 
+    for orgs in dExp.itervalues():
+        for replicas in orgs.itervalues():
+            for splate in replicas.itervalues():
+                yield splate
+				
 def getPlates(signals):
     '''
     Takes a bunch of signals taken from the DB and returns a series of 

@@ -6,12 +6,12 @@ Analyze phenome(s) and map them to KEGG
 """
 from ductape import __version__
 from ductape.actions import dInit, touchProject, dPhenomeAdd, dPhenomeMultiAdd, \
-    dPhenomeDirAdd, dPhenomeMutAdd, dPhenomeZero
+    dPhenomeDirAdd, dPhenomeMutAdd, dPhenomeZero, getOrganismsColors
 from ductape.common.colorlog import ColorFormatter
 from ductape.kegg.kegg import CompMapper
 from ductape.phenome.biolog import Experiment, BiologCluster, getPlates, \
     getSinglePlates, BiologPlot
-from ductape.storage.SQLite.database import Biolog, Kegg, Project, Organism
+from ductape.storage.SQLite.database import Biolog, Kegg, Project
 from ductape.terminal import RunThread
 import argparse
 import logging.handlers
@@ -110,10 +110,17 @@ def dplot(options, wdir, project):
     biolog = Biolog(project)
     sigs = [s for s in biolog.getAllSignals()]
     plates = [p for p in getSinglePlates(sigs)]
+    wells = [s for s in biolog.getAllWells()]
+    avgplates = [p for p in getSinglePlates(wells)]
+    titles = {}
+    for title in biolog.getAllTitles():
+        if title.plate_id not in titles:
+            titles[title.plate_id] = {}
+        titles[title.plate_id][title.well_id] = title.chemical
     
-    bplot = BiologPlot(plates, colors={'Rm1021':'red', 'AK83':'blue',
-        'BL225C':'green','AK58':'orange'},
-               maxsig=400, plotAll=True)
+    bplot = BiologPlot(plates, colors=getOrganismsColors(project),
+                avgdata=avgplates, wellNames=titles,
+               maxsig=biolog.maxSignal(), plotAll=True)
 
     if not RunThread(bplot):
         return False
@@ -262,7 +269,7 @@ def getOptions():
     parser_add.add_argument('-d', metavar='descr', action="store",
                             default = '',
                             help='Organism description')
-	parser_add.add_argument('-c', metavar='color', action="store",
+    parser_add.add_argument('-c', metavar='color', action="store",
                             default = '',
                             help='Organism color')
     parser_add.set_defaults(func=dadd)
@@ -301,7 +308,7 @@ def getOptions():
     parser_add_mut.add_argument('-d', metavar='descr', action="store",
                             default = '',
                             help='Organism description')
-	parser_add_mut.add_argument('-c', metavar='color', action="store",
+    parser_add_mut.add_argument('-c', metavar='color', action="store",
                             default = '',
                             help='Organism color')
     parser_add_mut.set_defaults(func=daddMut)

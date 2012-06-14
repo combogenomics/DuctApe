@@ -360,6 +360,7 @@ class Plate(object):
         # Figure(s)
         self.figure = None
         self.heatfig = None
+        self.legend = None
         
         self._figidx = 1
     
@@ -533,6 +534,28 @@ class Plate(object):
         
         self.fixFigure()
     
+    def arrayReshape(self, acts, strains):
+        # Array reshape (tricky!)
+        # 1- Finger crossed for a perfect square
+        square = np.sqrt( len(acts) )
+        if square.is_integer():
+            # Yep
+            acts = acts.reshape(square, square)
+        else:
+            # Oh snap!
+            cols = int(square)
+            rows = len(acts) / float(cols)
+            if rows.is_integer():
+                acts = acts.reshape(rows, cols)
+            else:
+                # Some fake signals will be added
+                rows = int(rows) + 1
+                new = (cols * rows) - len(acts)
+                acts = np.array( acts.tolist() + [np.nan for i in range(new)] )
+                acts = acts.reshape(rows, cols)
+        
+        return acts
+    
     def plotActivity(self, strains=[]):
         '''
         Generator:
@@ -565,26 +588,8 @@ class Plate(object):
             # Plot activity matrix (AKA the almighty heatmap)
             # Array preparation
             acts = np.array([self.strains[strain][0].data[well_id].activity
-                             for strain in strains])
-            
-            # Array reshape (tricky!)
-            # 1- Finger crossed for a perfect square
-            square = np.sqrt( len(acts) )
-            if square.is_integer():
-                # Yep
-                acts = acts.reshape(square, square)
-            else:
-                # Oh snap!
-                cols = int(square)
-                rows = len(acts) / float(cols)
-                if rows.is_integer():
-                    acts = acts.reshape(rows, cols)
-                else:
-                    # Some fake signals will be added
-                    rows = int(rows) + 1
-                    new = (cols * rows) - len(acts)
-                    acts = np.array( acts.tolist() + [np.nan for i in range(new)] )
-                    acts = acts.reshape(rows, cols)
+                         for strain in strains])
+            acts = self.arrayReshape(acts, strains)
                     
             # TODO: here the vmax value is hard-coded
             ax.matshow(acts, cmap=cm.RdYlGn, vmin=0, vmax=9)
@@ -602,6 +607,51 @@ class Plate(object):
             ax.get_xaxis().set_ticks([])
             ax.get_yaxis().set_ticks([])
         self.heatfig.suptitle(self.plate_name)
+    
+    def plotLegend(self, plate_id, strains=[]):
+        '''
+        Generate a plot with the position of the strains in the activity plots
+        and the color reference
+        '''
+        # Reality check on provided strains
+        if len(strains) > 0:
+            strains = set(strains)
+            unknown = set(strains).difference(self.strains.keys())
+            if len( unknown ) > 0:
+                raise ValueError('Unknown strain(s) were provided (%s)'%
+                                 ' '.join(unknown))
+        else:
+            strains = sorted(self.strains.keys())
+        
+        array = np.array([strain for strain in strains])
+        array = self.arrayReshape(array, strains)
+        
+        self.legend = plt.figure()
+        ax = self.legend.add_subplot(111)
+        
+        # Show the array
+        acts = np.array([np.nan for strain in strains])
+        acts = self.arrayReshape(acts, strains)
+        
+        # Setup the legend
+        ax.matshow(acts)
+        for i in range(acts.shape[0] - 1):
+            ax.axhline(y=i+0.5, color='black')
+        
+        for i in range(acts.shape[0] - 1):
+            ax.axvline(x=i+0.5, color='black')
+        
+        # Plot the strains names in the proper order
+        for i in range(len(array)):
+            for j in range(len(array[i])):
+                ax.text(j, i, array[i,j], color=self.colors[array[i,j]],
+                        fontsize='x-large', fontweight='bold', ha='center')
+        
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+        ax.axes.get_yaxis().set_ticks([])
+        ax.axes.get_xaxis().set_ticks([])
+        ax.set_title('Strains color codes and order in heatmap (%s)'%plate_id)
     
     def plotWell(self, well_id, fig=None):
         '''
@@ -1205,11 +1255,12 @@ class BiologPlot(CommonThread):
                 2:'Preparing data',
                 3:'Preparing data (average)',
                 4:'Preparing plots',
-                5:'Creating plates plots',
-                6:'Creating single plots',
-                7:'Creating Heat maps'}
+                5:'Creating the legend',
+                6:'Creating plates plots',
+                7:'Creating single plots',
+                8:'Creating Heat maps'}
     
-    _substatuses = [2,3,5,6,7]
+    _substatuses = [2,3,5,6,7,8]
     
     def __init__(self, data, avgdata = [],
                  expname = 'exp', 
@@ -1249,7 +1300,7 @@ class BiologPlot(CommonThread):
         self.avgresults = {}
         # Single well plot
         self.well = None
-        
+    
     def makeRoom(self,location=''):
         '''
         Creates a tmp directory in the desired location
@@ -1293,6 +1344,8 @@ class BiologPlot(CommonThread):
     def run(self):
         self.updateStatus()
         self.makeRoom()
+        self.startCleanUp()
+        self.makeRoom()
         
         if self.killed:
             return
@@ -1302,6 +1355,8 @@ class BiologPlot(CommonThread):
         for plate in self.data:
             self._substatus += 1
             self.updateStatus(True)
+            logger.debug('Adding plate %s'%plate.plate_id)
+            
             if plate.plate_id in self.plateNames:
                 plate_name = self.plateNames[plate.plate_id]
             else:
@@ -1332,6 +1387,8 @@ class BiologPlot(CommonThread):
         for plate in self.avgdata:
             self._substatus += 1
             self.updateStatus(True)
+            logger.debug('Adding average plate %s'%plate.plate_id)
+            
             if plate.plate_id in self.plateNames:
                 plate_name = self.plateNames[plate.plate_id]
             else:
@@ -1359,18 +1416,40 @@ class BiologPlot(CommonThread):
         
         self.updateStatus()
         for plate_id in self.results:
+            logger.debug('Preparing plate %s'%plate.plate_id)
             self.results[plate_id].preparePlot()
         for plate_id in self.avgresults:
+            logger.debug('Preparing average plate %s'%plate.plate_id)
             self.avgresults[plate_id].preparePlot()
         self.resetSubStatus()
         
         if self.killed:
             return
         
+        # Plot the legend
+        self._maxsubstatus = len(self.results)
+        self.updateStatus()
+        for plate_id in self.results:
+            self._substatus += 1
+            self.updateStatus(True)
+            logger.debug('Preparing legend for plate %s'%plate_id)
+            
+            self.results[plate_id].plotLegend(plate_id, strains=self.order)
+            
+            fname = os.path.join(self._room,'%s_legend.png'%plate_id)
+            self.results[plate_id].legend.savefig(fname, dpi=150)
+            self.results[plate_id].legend.clf()
+            
+            if self.killed:
+                return
+            
+        self.resetSubStatus()
+        
         if self.plotPlates:
             self._maxsubstatus = len(self.results)*96
             self.updateStatus()
             for plate_id in self.results:
+                logger.debug('Plotting plate %s'%plate_id)
                 for i in self.results[plate_id].plotAll():
                     self._substatus += 1
                     self.updateStatus(True)
@@ -1382,7 +1461,6 @@ class BiologPlot(CommonThread):
                 fname = os.path.join(self._room,'%s.png'%plate_id)
                 self.results[plate_id].figure.savefig(fname, dpi=150)
                 self.results[plate_id].figure.clf()
-            self.resetSubStatus()
         else:
             self.updateStatus(send=False)
         self.resetSubStatus()
@@ -1394,7 +1472,12 @@ class BiologPlot(CommonThread):
             self._maxsubstatus = len(self.results)*96
             self.updateStatus()
             for plate_id in self.results:
+                if plate_id in self.wellNames:
+                    self.results[plate_id].addWellTitles(self.wellNames[plate_id])
+                    
                 for well_id in self.results[plate_id].wells:
+                    logger.debug('Plotting %s %s'%(plate_id, well_id))
+                    
                     if not self.getPlot(plate_id, well_id):
                         self.sendFailure('Single plot creation failure')
                         return
@@ -1418,6 +1501,8 @@ class BiologPlot(CommonThread):
             self._maxsubstatus = len(self.results)*96
             self.updateStatus()
             for plate_id in self.avgresults:
+                logger.debug('Plotting heatmap %s'%plate_id)
+                
                 for i in self.avgresults[plate_id].plotActivity(strains=self.order):
                     self._substatus += 1
                     self.updateStatus(True)
@@ -1532,20 +1617,20 @@ class BiologCluster(CommonMultiProcess):
         self.exp.clusterize()
 
 def getSinglePlates(input):
-	'''
-	Takes signals or wells from the storage and transforms them into SinglePlates
-	NB it is a generator
-	'''
-	if len(input) == 0:
-		return
-	
-	if hasattr(input[0], "biolog_id"):
-		for splate in getSinglePlatesFromSignals(input):
-			yield splate
-	else:
-		for splate in getSinglePlatesFromActivity(input):
-			yield splate
-			
+    '''
+    Takes signals or wells from the storage and transforms them into SinglePlates
+    NB it is a generator
+    '''
+    if len(input) == 0:
+        return
+    
+    if hasattr(input[0], "biolog_id"):
+        for splate in getSinglePlatesFromSignals(input):
+            yield splate
+    else:
+        for splate in getSinglePlatesFromActivity(input):
+            yield splate
+            
 def getSinglePlatesFromSignals(signals):
     '''
     Takes a bunch of signals taken from the DB and returns a series of 
@@ -1593,9 +1678,9 @@ def getSinglePlatesFromActivity(wells):
     
     for well in wells:
         plate_id = well.plate_id
-		well_id = well.well_id
-		org_id = well.org_id
-		replica = well.replica
+        well_id = well.well_id
+        org_id = well.org_id
+        replica = well.replica
         
         if plate_id not in dExp:
             dExp[plate_id] = {}
@@ -1610,14 +1695,14 @@ def getSinglePlatesFromActivity(wells):
             dExp[plate_id][org_id][replica].data[well_id] = Well(plate_id,
                                                                  well_id)
         
-		dExp[plate_id][org_id][replica].data[well_id].activity = well.activity
+        dExp[plate_id][org_id][replica].data[well_id].activity = well.activity
         
     # Return all the SinglePlates objects 
     for orgs in dExp.itervalues():
         for replicas in orgs.itervalues():
             for splate in replicas.itervalues():
                 yield splate
-				
+                
 def getPlates(signals):
     '''
     Takes a bunch of signals taken from the DB and returns a series of 

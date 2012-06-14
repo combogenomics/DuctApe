@@ -91,6 +91,15 @@ class CommonThread(threading.Thread):
             logger.debug('Temporary directory creation failed! %s'
                           %path)
     
+    def startCleanUp(self):
+        '''
+        Removes the temporary directory
+        '''
+        if os.path.exists(self._room):
+            logger.debug('Removing the old results directory (%s)'%
+                         self._room)
+            shutil.rmtree(self._room, True)
+    
     def cleanUp(self):
         '''
         Removes the temporary directory

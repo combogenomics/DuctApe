@@ -375,9 +375,9 @@ class Organism(DBBase):
                                 mkind = ? where org_id = ?;''',
                          (name, description, mutant, reference,
                           mkind, org_id))
-			
-			if color != None:
-				conn.execute('''update organism set color = ? where org_id = ?;''',
+            
+            if color != None:
+                conn.execute('''update organism set color = ? where org_id = ?;''',
                          (color, org_id))
         
         if not already:
@@ -457,24 +457,24 @@ class Organism(DBBase):
         with self.connection as conn:
             conn.execute('update organism set mutant = ? where org_id = ?;',
                          [mutant,org_id,])
-						 
-	def setColor(self, org_id, color):
-		'''
-		Set the color of this organism (i.e. used for phenomic plots)
-		'''
-		# Check how many organisms have the same color
-		with self.connection as conn:
-            conn.execute('select count(*) from organism where color = ?;',
-						[color,])
-		howmany = int(cursor.fetchall()[0][0])
-		# We issue just a warning
-		if howmany != 0:
-			logger.warning('%d organism(s) already use this color (%s)',(howmany, color))
-			
-		with self.connection as conn:
+                         
+    def setColor(self, org_id, color):
+        '''
+        Set the color of this organism (i.e. used for phenomic plots)
+        '''
+        # Check how many organisms have the same color
+        with self.connection as conn:
+            cursor=conn.execute('select count(*) from organism where color = ?;',
+                        [color,])
+        howmany = int(cursor.fetchall()[0][0])
+        # We issue just a warning
+        if howmany != 0:
+            logger.warning('%d organism(s) already use this color (%s)',(howmany, color))
+            
+        with self.connection as conn:
             conn.execute('update organism set color = ? where org_id = ?;',
                          [color,org_id,])
-	
+    
     def resetGenomes(self):
         '''
         Reset each organism genomic status
@@ -1876,6 +1876,17 @@ class Biolog(DBBase):
             return None
         else:
             return Row(data[0], cursor.description)
+        
+    def getAllTitles(self):
+        '''
+        Get the titles for each well
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select distinct plate_id, well_id, chemical
+                                from biolog;''')
+        
+        for res in cursor:
+            yield Row(res, cursor.description)
     
     def isMulti(self, plate_id, well_id):
         '''
@@ -2173,8 +2184,8 @@ class Biolog(DBBase):
                                     where activity>=?
                                     and org_id=?;''',[activity,org_id,])
         return int(cursor.fetchall()[0][0])
-	
-	def getAllWells(self):
+    
+    def getAllWells(self):
         '''
         Get all the wells from the storage
         '''
@@ -2183,7 +2194,15 @@ class Biolog(DBBase):
         
         for res in cursor:
             yield Row(res, cursor.description)
-	
+    
+    def maxSignal(self):
+        '''
+        Get the maximum signal value
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('select max(max) from biolog_exp;')
+        return int(cursor.fetchall()[0][0])
+    
     def getAllSignals(self):
         '''
         Get all the signals from the storage

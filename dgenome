@@ -562,7 +562,7 @@ def getOptions():
     parser_add.add_argument('-d', metavar='descr', action="store",
                             default = '',
                             help='Organism description')
-	parser_add.add_argument('-c', metavar='color', action="store",
+    parser_add.add_argument('-c', metavar='color', action="store",
                             default = '',
                             help='Organism color')
     parser_add.set_defaults(func=dadd)
@@ -595,7 +595,7 @@ def getOptions():
     parser_add_mut.add_argument('-d', metavar='descr', action="store",
                             default = '',
                             help='Organism description')
-	parser_add_mut.add_argument('-c', metavar='color', action="store",
+    parser_add_mut.add_argument('-c', metavar='color', action="store",
                             default = '',
                             help='Organism color')
     parser_add_mut.set_defaults(func=daddMut)

@@ -2020,7 +2020,7 @@ class Biolog(DBBase):
                             values '''
         
         query1 = '''insert or replace into biolog_exp_det
-                        (biolog_id, times, signals)
+                        (plate_id, well_id, org_id, replica, times, signals)
                         values '''
         
         oCheck = Organism(self.dbname)
@@ -2056,10 +2056,9 @@ class Biolog(DBBase):
             
             blist1 = []
             for w in explist:
-                biolog_id = '%s_%s_%s_%s'%(w.plate_id,w.well_id,
-                                           w.strain,w.replica)
-                blist1 = blist1 + ['''('%s','%s','%s')'''
-                  %(biolog_id, '_'.join([str(x) for x in sorted(w.signals.keys())]),
+                blist1 = blist1 + ['''('%s', '%s', '%s', '%s', '%s', '%s')'''
+                  %(w.plate_id,w.well_id,w.strain,w.replica,
+                   '_'.join([str(x) for x in sorted(w.signals.keys())]),
                    '_'.join([str(w.signals[h]) for h in sorted(w.signals.keys())]))]                
             
             if clustered:
@@ -2084,16 +2083,15 @@ class Biolog(DBBase):
         '''
         with self.connection as conn:
             for w in explist:
-                biolog_id = '%s_%s_%s_%s'%(w.plate_id,w.well_id,
-                                           w.org_id,w.replica)
                 conn.execute('''delete from biolog_exp 
                             where plate_id=? and well_id=? and org_id=?
                             and replica=?;''',
                             [w.plate_id,w.well_id,w.org_id,w.replica,])
                 
                 conn.execute('''delete from biolog_exp_det 
-                            where biolog_id=?;''',
-                            [biolog_id,])
+                            where plate_id=? and well_id=? and org_id=?
+                            and replica=?;''',
+                            [w.plate_id,w.well_id,w.org_id,w.replica,])
                 
     def delOrg(self, org_id):
         '''
@@ -2105,7 +2103,7 @@ class Biolog(DBBase):
                         [org_id,])
             
             conn.execute('''delete from biolog_exp_det 
-                        where biolog_id like "%_%_?_%";''',
+                        where org_id=?;''',
                         [org_id,])
     
     def getWellsByOrg(self, org_id):
@@ -2222,12 +2220,12 @@ class Biolog(DBBase):
         
         notYet = [Row(res, cursor.description) for res in cursor]
         for well in notYet:
-            biolog_id = '%s_%s_%s_%s'%(well.plate_id, well.well_id,
-                                       well.org_id,well.replica)
             with self.connection as conn:
                 cursor=conn.execute('''select * from biolog_exp_det
-                                    where biolog_id = ?;''',
-                                    [biolog_id,])
+                                    where plate_id=? and well_id=? and org_id=?
+                                    and replica=?;''',
+                                    [well.plate_id,well.well_id,
+                                     well.org_id,well.replica,])
             for res in cursor:
                 yield Row(res, cursor.description)
                 
@@ -2299,16 +2297,19 @@ class Biolog(DBBase):
         
         with self.connection as conn:
             for w in wells:
-                bid = '%s_%s_%s_%s'%(w[0],w[1],w[2],w[3])
-                
                 cursor = conn.execute('''select * from biolog_exp_det
-                                where biolog_id = ?;''',[bid,])
+                                where plate_id=? and well_id=? and org_id=?
+                                    and replica=?;''',
+                                    [w[0],w[1],w[2],w[3],])
                 
                 well = Row(cursor.fetchall()[0], cursor.description)
                 conn.execute('''insert into biolog_purged_exp_det
-                        values (?,?,?);''',[bid, well.times, well.signals])
+                        values (?,?,?,?,?,?);''',[w[0],w[1],w[2],w[3],
+                                                  well.times, well.signals])
                 conn.execute('''delete from biolog_exp_det
-                        where biolog_id = ?;''',[bid,])
+                        where plate_id=? and well_id=? and org_id=?
+                        and replica=?;''',
+                            [w[0],w[1],w[2],w[3],])
                     
                 p, w, o, r = w
                 cursor = conn.execute('''select * from biolog_exp
@@ -2346,20 +2347,27 @@ class Biolog(DBBase):
                 well = Row(res, exp_det)
                 
                 conn.execute('''insert into biolog_exp_det
-                        values (?,?,?);''',[well.biolog_id, well.times, well.signals])
+                        values (?,?,?,?,?,?);''',[well.plate_id, well.well_id,
+                                                  well.org_id, well.replica,
+                                                  well.times, well.signals])
                 conn.execute('''delete from biolog_purged_exp_det
-                        where biolog_id = ?;''',[well.biolog_id,])
+                        where plate_id=? and well_id=? and org_id=?
+                        and replica=?;''',
+                            [well.plate_id, well.well_id,
+                              well.org_id, well.replica,])
                     
-                p, w, o, r = well.biolog_id.split('_')
                 cursor = conn.execute('''select * from biolog_purged_exp
                                 where plate_id = ?
                                 and well_id = ?
                                 and org_id = ?
-                                and replica = ?;''',[p,w,o,r,])
+                                and replica = ?;''',[well.plate_id, well.well_id,
+                                                  well.org_id, well.replica,])
                 well = Row(cursor.fetchall()[0], cursor.description)
                 conn.execute('''insert into biolog_exp
                         values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);''',
-                        [p,w,o,r,well.activity, well.zero,well.min,
+                        [well.plate_id, well.well_id,
+                         well.org_id, well.replica,
+                         well.activity, well.zero,well.min,
                          well.max,well.height,well.plateau,
                          well.slope,well.lag,well.area,
                          well.v,well.y0,well.model])
@@ -2367,4 +2375,5 @@ class Biolog(DBBase):
                                 where plate_id = ?
                                 and well_id = ?
                                 and org_id = ?
-                                and replica = ?;''',[p,w,o,r,])
+                                and replica = ?;''',[well.plate_id, well.well_id,
+                                                  well.org_id, well.replica,])

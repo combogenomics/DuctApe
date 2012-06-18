@@ -545,7 +545,7 @@ def dPhenomePurge(project, policy, delta=1):
     biolog = Biolog(project)
     
     sigs = [s for s in biolog.getAllWells()]
-    plates = [p for p in getPlates(sigs)]
+    plates = [p for p in getPlates(sigs, nonmean=True)]
     isZero = biolog.atLeastOneZeroSubtracted()
 
     if len(plates) == 0:

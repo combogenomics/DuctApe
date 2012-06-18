@@ -1626,19 +1626,19 @@ class BiologCluster(CommonMultiProcess):
         self.updateStatus()
         self.exp.clusterize()
 
-def getSinglePlates(input):
+def getSinglePlates(binput, nonmean=False):
     '''
     Takes signals or wells from the storage and transforms them into SinglePlates
     NB it is a generator
     '''
-    if len(input) == 0:
+    if len(binput) == 0:
         return
     
-    if hasattr(input[0], "biolog_id"):
-        for splate in getSinglePlatesFromSignals(input):
+    if hasattr(binput[0], "times"):
+        for splate in getSinglePlatesFromSignals(binput):
             yield splate
     else:
-        for splate in getSinglePlatesFromActivity(input):
+        for splate in getSinglePlatesFromActivity(binput, nonmean):
             yield splate
             
 def getSinglePlatesFromSignals(signals):
@@ -1650,7 +1650,8 @@ def getSinglePlatesFromSignals(signals):
     dExp = {}
     
     for well in signals:
-        plate_id, well_id, org_id, replica = well.biolog_id.split('_')
+        plate_id, well_id, org_id, replica = (well.plate_id, well.well_id,
+                                              well.org_id, well.replica)
         
         lT = well.times.split('_')
         lS = well.signals.split('_')
@@ -1678,7 +1679,7 @@ def getSinglePlatesFromSignals(signals):
             for splate in replicas.itervalues():
                 yield splate
 
-def getSinglePlatesFromActivity(wells):
+def getSinglePlatesFromActivity(wells, nonmean=False):
     '''
     Takes a bunch of wells taken from the DB and returns a series of 
     SinglePlates objects
@@ -1686,41 +1687,69 @@ def getSinglePlatesFromActivity(wells):
     '''
     dExp = {}
     
-    for well in wells:
-        plate_id = well.plate_id
-        well_id = well.well_id
-        org_id = well.org_id
+    if nonmean:
+        for well in wells:
+            plate_id = well.plate_id
+            well_id = well.well_id
+            org_id = well.org_id
+            replica = well.replica
+            
+            if plate_id not in dExp:
+                dExp[plate_id] = {}
+            if org_id not in dExp[plate_id]:
+                dExp[plate_id][org_id] = {}
+            if replica not in dExp[plate_id][org_id]:
+                dExp[plate_id][org_id][replica] = SinglePlate()
+                dExp[plate_id][org_id][replica].plate_id = plate_id
+                dExp[plate_id][org_id][replica].strain = org_id
+                dExp[plate_id][org_id][replica].replica = replica
+            if well_id not in dExp[plate_id][org_id][replica].data:
+                dExp[plate_id][org_id][replica].data[well_id] = Well(plate_id,
+                                                                     well_id)
+            
+            dExp[plate_id][org_id][replica].data[well_id].activity = well.activity
+            
+        # Return all the SinglePlates objects 
+        for orgs in dExp.itervalues():
+            for replicas in orgs.itervalues():
+                for splate in replicas.itervalues():
+                    yield splate
+    else:
+        for well in wells:
+            plate_id = well.plate_id
+            well_id = well.well_id
+            org_id = well.org_id
+            
+            if plate_id not in dExp:
+                dExp[plate_id] = {}
+            if org_id not in dExp[plate_id]:
+                dExp[plate_id][org_id] = {}
+            if well_id not in dExp[plate_id][org_id]:
+                dExp[plate_id][org_id][well_id] = []
+            
+            dExp[plate_id][org_id][well_id].append(well.activity)
         
-        if plate_id not in dExp:
-            dExp[plate_id] = {}
-        if org_id not in dExp[plate_id]:
-            dExp[plate_id][org_id] = {}
-        if well_id not in dExp[plate_id][org_id]:
-            dExp[plate_id][org_id][well_id] = []
-        
-        dExp[plate_id][org_id][well_id].append(well.activity)
-    
-    # Return all the SinglePlates objects
-    # After the calculation of the mean activity index
-    for plate_id in dExp:
-        for org_id in dExp[plate_id]:
-            splate = SinglePlate()
-            splate.plate_id = plate_id
-            splate.strain = org_id
-            splate.replica = 0
-            for well_id in dExp[plate_id][org_id]:
-                splate.data[well_id] = Well(plate_id, well_id)
-                splate.data[well_id].activity = np.array(dExp[plate_id][org_id][well_id]).mean()
-            yield splate
+        # Return all the SinglePlates objects
+        # After the calculation of the mean activity index
+        for plate_id in dExp:
+            for org_id in dExp[plate_id]:
+                splate = SinglePlate()
+                splate.plate_id = plate_id
+                splate.strain = org_id
+                splate.replica = 0
+                for well_id in dExp[plate_id][org_id]:
+                    splate.data[well_id] = Well(plate_id, well_id)
+                    splate.data[well_id].activity = np.array(dExp[plate_id][org_id][well_id]).mean()
+                yield splate
                 
-def getPlates(signals):
+def getPlates(signals, nonmean=False):
     '''
     Takes a bunch of signals taken from the DB and returns a series of 
     Plates objects
     NB it is a generator
     '''
     dExp = {}
-    for splate in getSinglePlates(signals):
+    for splate in getSinglePlates(signals, nonmean):
         if splate.plate_id not in dExp:
             dExp[splate.plate_id] = Plate(splate.plate_id)
         dExp[splate.plate_id].addData(splate.strain, splate)

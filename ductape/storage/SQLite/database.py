@@ -2239,6 +2239,26 @@ class Biolog(DBBase):
             cursor=conn.execute('select count(*) from biolog_exp where zero=1;')
         return bool(cursor.fetchall()[0][0])
     
+    def atLeastOneParameter(self):
+        '''
+        Is there at least one well with the parameters already calculated?
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select count(*)
+                                    from biolog_exp
+                                    where activity is not null;''')
+        return bool(cursor.fetchall()[0][0])
+    
+    def atLeastOneNoParameter(self):
+        '''
+        Is there at least one well with no parameters already calculated?
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select count(*)
+                                    from biolog_exp
+                                    where activity is null;''')
+        return bool(cursor.fetchall()[0][0])
+    
     def getCompounds2Analyse(self):
         '''
         Get all the biolog compounds ID yet to be anlysed
@@ -2251,3 +2271,100 @@ class Biolog(DBBase):
             
         for res in cursor:
             yield Row(res, cursor.description)
+    
+    def atLeastOnePurged(self):
+        '''
+        Is there at least one well discarded?
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select count(*)
+                                    from biolog_purged_exp;''')
+        return bool(cursor.fetchall()[0][0])
+    
+    def howManyPurged(self):
+        '''
+        How many discarded wells?
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select count(*)
+                                    from biolog_purged_exp;''')
+        return int(cursor.fetchall()[0][0])
+       
+    def moveDiscardedWells(self, wells):
+        '''
+        Get a list of biolog_ids and move them to the
+        "purged wells" zone
+        '''
+        self.boost()
+        
+        with self.connection as conn:
+            for w in wells:
+                bid = '%s_%s_%s_%s'%(w[0],w[1],w[2],w[3])
+                
+                cursor = conn.execute('''select * from biolog_exp_det
+                                where biolog_id = ?;''',[bid,])
+                
+                well = Row(cursor.fetchall()[0], cursor.description)
+                conn.execute('''insert into biolog_purged_exp_det
+                        values (?,?,?);''',[bid, well.times, well.signals])
+                conn.execute('''delete from biolog_exp_det
+                        where biolog_id = ?;''',[bid,])
+                    
+                p, w, o, r = w
+                cursor = conn.execute('''select * from biolog_exp
+                                where plate_id = ?
+                                and well_id = ?
+                                and org_id = ?
+                                and replica = ?;''',[p,w,o,r,])
+                well = Row(cursor.fetchall()[0], cursor.description)
+                conn.execute('''insert into biolog_purged_exp
+                        values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);''',
+                        [p,w,o,r,well.activity, well.zero,well.min,
+                         well.max,well.height,well.plateau,
+                         well.slope,well.lag,well.area,
+                         well.v,well.y0,well.model])
+                conn.execute('''delete from biolog_exp
+                                where plate_id = ?
+                                and well_id = ?
+                                and org_id = ?
+                                and replica = ?;''',[p,w,o,r,])
+        
+    def restoreDiscardedWells(self):
+        '''
+        Restore all the discarded wells
+        '''
+        import copy
+        
+        self.boost()
+        
+        with self.connection as conn:
+            cursor = conn.execute('''select * from biolog_purged_exp_det;''')
+            
+            exp_det = copy.deepcopy(cursor.description)
+            
+            for res in cursor:
+                well = Row(res, exp_det)
+                
+                conn.execute('''insert into biolog_exp_det
+                        values (?,?,?);''',[well.biolog_id, well.times, well.signals])
+                conn.execute('''delete from biolog_purged_exp_det
+                        where biolog_id = ?;''',[well.biolog_id,])
+                    
+                p, w, o, r = well.biolog_id.split('_')
+                cursor = conn.execute('''select * from biolog_purged_exp
+                                where plate_id = ?
+                                and well_id = ?
+                                and org_id = ?
+                                and replica = ?;''',[p,w,o,r,])
+                well = Row(cursor.fetchall()[0], cursor.description)
+                conn.execute('''insert into biolog_exp
+                        values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);''',
+                        [p,w,o,r,well.activity, well.zero,well.min,
+                         well.max,well.height,well.plateau,
+                         well.slope,well.lag,well.area,
+                         well.v,well.y0,well.model])
+                conn.execute('''delete from biolog_purged_exp
+                                where plate_id = ?
+                                and well_id = ?
+                                and org_id = ?
+                                and replica = ?;''',[p,w,o,r,])

@@ -13,15 +13,18 @@ matplotlib.use('Agg')
 from Bio import SeqIO
 from ductape.common.utils import slice_it, rgb_to_hex
 from ductape.phenome.biolog import BiologParser, Plate, getSinglePlates, \
-    BiologZero, zeroPlates
+    BiologZero, zeroPlates, getPlates, Experiment
 from ductape.storage.SQLite.database import DBBase, Project, Genome, Organism, \
     Kegg, Biolog
 from matplotlib import cm
 import logging
-import matplotlib.pyplot as plt
 import matplotlib.colors as pltcls
+import matplotlib.pyplot as plt
 import numpy as np
 import os
+# No country for warnings
+np.seterr(all='ignore')
+#
 
 __author__ = "Marco Galardini"
 
@@ -533,7 +536,46 @@ def dPhenomeZero(project, blankfile=None):
     biolog.addWells(wells, clustered=False)
     
     logger.info('Zero subtraction done on %d plates'%len(plates))
-    logger.info('The parameters of the subtracted plate must be recalculated')
+    if biolog.atLeastOneParameter():
+        logger.warning('The activity must be recalculated')
+    
+    return True
+
+def dPhenomePurge(project, policy, delta=1):
+    biolog = Biolog(project)
+    
+    sigs = [s for s in biolog.getAllWells()]
+    plates = [p for p in getPlates(sigs)]
+    isZero = biolog.atLeastOneZeroSubtracted()
+
+    if len(plates) == 0:
+        logger.warning('No phenomic data available, skipping purging')
+        return True
+
+    exp = Experiment(plates=plates, zero=isZero)
+    
+    if not exp.purgeReplicas(delta=delta,policy=policy):
+        logger.error('Could not purge the phenomic experiment')
+        return False
+
+    # Move the discarded wells
+    biolog.moveDiscardedWells(exp.discarded)
+    logger.info('Purged %d phenomic experiments'%len(exp.discarded))
+    
+    return True
+
+def dPhenomeRestore(project):
+    biolog = Biolog(project)
+    
+    if not biolog.atLeastOnePurged():
+        logger.warning('No phenomic experiment to be restored')
+        return True
+    
+    howmany = biolog.howManyPurged()
+    
+    biolog.restoreDiscardedWells()
+    
+    logger.info('Restored %d phenomic experiments'%howmany)
     
     return True
 

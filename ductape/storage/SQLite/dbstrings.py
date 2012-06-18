@@ -113,6 +113,29 @@ CREATE TABLE biolog_exp_det (
     "times" TEXT,
     "signals" TEXT
 );
+CREATE TABLE biolog_purged_exp (
+    "plate_id" TEXT NOT NULL,
+    "well_id" TEXT NOT NULL,
+    "org_id" TEXT NOT NULL,
+    "replica" INTEGER NOT NULL,
+    "activity" INTEGER,
+    "zero" INTEGER,
+    "min" REAL,
+    "max" REAL,
+    "height" REAL,
+    "plateau" REAL,
+    "slope" REAL,
+    "lag" REAL,
+    "area" REAL,
+    "v" REAL,
+    "y0" REAL,
+    "model" TEXT
+);
+CREATE TABLE biolog_purged_exp_det (
+    "biolog_id" TEXT NOT NULL,
+    "times" TEXT,
+    "signals" TEXT
+);
 CREATE UNIQUE INDEX project_id ON project(name ASC);
 CREATE UNIQUE INDEX "organism_id" on organism (org_id ASC);
 CREATE UNIQUE INDEX "protein_id" on protein (prot_id ASC, org_id ASC);
@@ -130,6 +153,8 @@ CREATE UNIQUE INDEX "pathmap_id" on pathmap (path_id ASC);
 CREATE UNIQUE INDEX "biolog_id" on biolog (plate_id ASC, well_id ASC);
 CREATE UNIQUE INDEX "biologexp_id" on biolog_exp (plate_id ASC, well_id ASC, org_id ASC, replica ASC);
 CREATE UNIQUE INDEX "biologexpdet_id" on biolog_exp_det (biolog_id ASC);
+CREATE UNIQUE INDEX "biologpurgedexp_id" on biolog_purged_exp (plate_id ASC, well_id ASC, org_id ASC, replica ASC);
+CREATE UNIQUE INDEX "biologpurgedexpdet_id" on biolog_purged_exp_det (biolog_id ASC);
 INSERT INTO "biolog" VALUES('PM01','A01',0,'Negative Control','',NULL,'C-Source, negative control','carbon');
 INSERT INTO "biolog" VALUES('PM01','A02',0,'L-Arabinose','CAS 87-72-9','C00259','C-Source, carbohydrate','carbon');
 INSERT INTO "biolog" VALUES('PM01','A03',0,'N-Acetyl-D-Glucosamine','CAS 7512-17-6','C00140','C-Source, carbohydrate','carbon');

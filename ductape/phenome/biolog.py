@@ -22,6 +22,9 @@ import csv
 import logging
 import matplotlib.pyplot as plt
 import numpy as np
+# No country for warnings
+np.seterr(all='ignore')
+#
 import os
 
 __author__ = "Marco Galardini"
@@ -738,6 +741,8 @@ class Experiment(object):
                          'keep-min-one', 'keep-max-one']
         
         self.purged = False
+        
+        self.discarded = set()
     
     def _addPlate(self, plate):
         if plate.plate_id not in self.plates:
@@ -860,6 +865,8 @@ class Experiment(object):
         keep-max-one --> keep the bigger replica
         
         The mean activity value is then stored as a Well object inside sumexp
+        
+        The discarded wells are stored as biolog_ids in a set (discarded)
         '''
         # Check the provided policy
         if policy not in self.policies:
@@ -935,6 +942,9 @@ class Experiment(object):
                     # Remove the outliers
                     for w in reps:
                         if w not in candidates:
+                            self.discarded.add((plate, well,
+                                                strain, w.replica))
+                            
                             del self.experiment[plate][well][strain][w.replica]
                             
                             # TODO: simplify here
@@ -1415,10 +1425,10 @@ class BiologPlot(CommonThread):
             return
         
         self.updateStatus()
-        for plate_id in self.results:
+        for plate_id in sorted(self.results.keys()):
             logger.debug('Preparing plate %s'%plate.plate_id)
             self.results[plate_id].preparePlot()
-        for plate_id in self.avgresults:
+        for plate_id in sorted(self.avgresults.keys()):
             logger.debug('Preparing average plate %s'%plate.plate_id)
             self.avgresults[plate_id].preparePlot()
         self.resetSubStatus()
@@ -1429,7 +1439,7 @@ class BiologPlot(CommonThread):
         # Plot the legend
         self._maxsubstatus = len(self.results)
         self.updateStatus()
-        for plate_id in self.results:
+        for plate_id in sorted(self.results.keys()):
             self._substatus += 1
             self.updateStatus(True)
             logger.debug('Preparing legend for plate %s'%plate_id)
@@ -1448,7 +1458,7 @@ class BiologPlot(CommonThread):
         if self.plotPlates:
             self._maxsubstatus = len(self.results)*96
             self.updateStatus()
-            for plate_id in self.results:
+            for plate_id in sorted(self.results.keys()):
                 logger.debug('Plotting plate %s'%plate_id)
                 for i in self.results[plate_id].plotAll():
                     self._substatus += 1
@@ -1471,11 +1481,11 @@ class BiologPlot(CommonThread):
         if self.plotAll:
             self._maxsubstatus = len(self.results)*96
             self.updateStatus()
-            for plate_id in self.results:
+            for plate_id in sorted(self.results.keys()):
                 if plate_id in self.wellNames:
                     self.results[plate_id].addWellTitles(self.wellNames[plate_id])
                     
-                for well_id in self.results[plate_id].wells:
+                for well_id in sorted(self.results[plate_id].wells):
                     logger.debug('Plotting %s %s'%(plate_id, well_id))
                     
                     if not self.getPlot(plate_id, well_id):
@@ -1500,7 +1510,7 @@ class BiologPlot(CommonThread):
         if self.plotActivity:
             self._maxsubstatus = len(self.results)*96
             self.updateStatus()
-            for plate_id in self.avgresults:
+            for plate_id in sorted(self.avgresults.keys()):
                 logger.debug('Plotting heatmap %s'%plate_id)
                 
                 for i in self.avgresults[plate_id].plotActivity(strains=self.order):
@@ -1680,28 +1690,28 @@ def getSinglePlatesFromActivity(wells):
         plate_id = well.plate_id
         well_id = well.well_id
         org_id = well.org_id
-        replica = well.replica
         
         if plate_id not in dExp:
             dExp[plate_id] = {}
         if org_id not in dExp[plate_id]:
             dExp[plate_id][org_id] = {}
-        if replica not in dExp[plate_id][org_id]:
-            dExp[plate_id][org_id][replica] = SinglePlate()
-            dExp[plate_id][org_id][replica].plate_id = plate_id
-            dExp[plate_id][org_id][replica].strain = org_id
-            dExp[plate_id][org_id][replica].replica = replica
-        if well_id not in dExp[plate_id][org_id][replica].data:
-            dExp[plate_id][org_id][replica].data[well_id] = Well(plate_id,
-                                                                 well_id)
+        if well_id not in dExp[plate_id][org_id]:
+            dExp[plate_id][org_id][well_id] = []
         
-        dExp[plate_id][org_id][replica].data[well_id].activity = well.activity
-        
-    # Return all the SinglePlates objects 
-    for orgs in dExp.itervalues():
-        for replicas in orgs.itervalues():
-            for splate in replicas.itervalues():
-                yield splate
+        dExp[plate_id][org_id][well_id].append(well.activity)
+    
+    # Return all the SinglePlates objects
+    # After the calculation of the mean activity index
+    for plate_id in dExp:
+        for org_id in dExp[plate_id]:
+            splate = SinglePlate()
+            splate.plate_id = plate_id
+            splate.strain = org_id
+            splate.replica = 0
+            for well_id in dExp[plate_id][org_id]:
+                splate.data[well_id] = Well(plate_id, well_id)
+                splate.data[well_id].activity = np.array(dExp[plate_id][org_id][well_id]).mean()
+            yield splate
                 
 def getPlates(signals):
     '''

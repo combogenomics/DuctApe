@@ -2330,13 +2330,15 @@ class Biolog(DBBase):
                                 and org_id = ?
                                 and replica = ?;''',[p,w,o,r,])
         
-    def restoreDiscardedWells(self):
+    def restoreDiscardedWells(self, plates=[]):
         '''
         Restore all the discarded wells
         '''
         import copy
         
         self.boost()
+        
+        restored = 0
         
         with self.connection as conn:
             cursor = conn.execute('''select * from biolog_purged_exp_det;''')
@@ -2345,6 +2347,13 @@ class Biolog(DBBase):
             
             for res in cursor:
                 well = Row(res, exp_det)
+                
+                if len(plates) > 0:
+                    if well.plate_id not in plates:
+                        logger.debug('Skipping restoring of %s'%well.plate_id)
+                        continue
+                    
+                restored += 1
                 
                 conn.execute('''insert into biolog_exp_det
                         values (?,?,?,?,?,?);''',[well.plate_id, well.well_id,
@@ -2377,3 +2386,4 @@ class Biolog(DBBase):
                                 and org_id = ?
                                 and replica = ?;''',[well.plate_id, well.well_id,
                                                   well.org_id, well.replica,])
+        return restored

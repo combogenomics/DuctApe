@@ -149,14 +149,15 @@ def dpurge(options, wdir, project):
                        __prog__)
         return False
     
-    return dPhenomePurge(project, options.policy, options.delta)
+    return dPhenomePurge(project, options.policy, options.delta, options.plates)
     
 def drestore(options, wdir, project):
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
-    return dPhenomeRestore(project)
+    
+    return dPhenomeRestore(project, options.plates)
   
 def dstats(options, wdir, project):
     if not touchProject(project):
@@ -363,14 +364,22 @@ def getOptions():
         choices = ['keep-max', 'keep-min', 'keep-min-one',
                    'keep-max-one'],
         help='Policy to be applied')
+    parser_purge.add_argument('plates', metavar='plateID', nargs='*',
+                            action="store",
+                            default=[],
+                            help='Plate(s) to be purged')
     parser_purge.add_argument('-d', metavar='delta', action="store", dest='delta',
         type=int,
         default=1,
         help='Maximum activity delta')
     parser_purge.set_defaults(func=dpurge)
     
-    parser_map = subparsers.add_parser('restore', help='Restore the purged data')
-    parser_map.set_defaults(func=drestore)
+    parser_restore = subparsers.add_parser('restore', help='Restore the purged data')
+    parser_restore.add_argument('plates', metavar='plateID', nargs='*',
+                            action="store",
+                            default=[],
+                            help='Plate(s) to be purged')
+    parser_restore.set_defaults(func=drestore)
     
     parser_map = subparsers.add_parser('stats', help='Print phenomic statistics')
     parser_map.set_defaults(func=dstats)

@@ -541,16 +541,24 @@ def dPhenomeZero(project, blankfile=None):
     
     return True
 
-def dPhenomePurge(project, policy, delta=1):
+def dPhenomePurge(project, policy, delta=1, filterplates=[]):
     biolog = Biolog(project)
     
     sigs = [s for s in biolog.getAllWells()]
     plates = [p for p in getPlates(sigs, nonmean=True)]
+    # The user may want to purge only some plates
+    if len(filterplates) > 0:
+        for p in plates:
+            if p.plate_id not in filterplates:
+                while p in plates:
+                    plates.remove(p)
     isZero = biolog.atLeastOneZeroSubtracted()
 
     if len(plates) == 0:
         logger.warning('No phenomic data available, skipping purging')
         return True
+    else:
+        logger.info('Purging %d phenomic plates'%len(plates))
 
     exp = Experiment(plates=plates, zero=isZero)
     
@@ -564,16 +572,14 @@ def dPhenomePurge(project, policy, delta=1):
     
     return True
 
-def dPhenomeRestore(project):
+def dPhenomeRestore(project, plates=[]):
     biolog = Biolog(project)
     
     if not biolog.atLeastOnePurged():
         logger.warning('No phenomic experiment to be restored')
         return True
     
-    howmany = biolog.howManyPurged()
-    
-    biolog.restoreDiscardedWells()
+    howmany = biolog.restoreDiscardedWells(plates)
     
     logger.info('Restored %d phenomic experiments'%howmany)
     

@@ -6,8 +6,8 @@ Analyze phenome(s) and map them to KEGG
 """
 from ductape import __version__
 from ductape.actions import dInit, touchProject, dPhenomeAdd, dPhenomeMultiAdd, \
-    dPhenomeDirAdd, dPhenomeMutAdd, dPhenomeZero, getOrganismsColors, \
-    dPhenomePurge, dPhenomeRestore
+    dPhenomeDirAdd, dPhenomeMutAdd, dPhenomeZero, getOrganismsColors, dPhenomePurge, \
+    dPhenomeRestore, dPhenomeRemove, dPhenomeClear
 from ductape.common.colorlog import ColorFormatter
 from ductape.kegg.kegg import CompMapper
 from ductape.phenome.biolog import Experiment, BiologCluster, getPlates, \
@@ -179,7 +179,7 @@ def dremove(options, wdir, project):
                        'You can setup a new project by running %s init'%
                        __prog__)
         return False
-    # TODO
+    return dPhenomeRemove(project, options.organisms)
 
 def dclear(options, wdir, project):
     if not touchProject(project):
@@ -187,7 +187,7 @@ def dclear(options, wdir, project):
                        'You can setup a new project by running %s init'%
                        __prog__)
         return False
-    # TODO
+    return dPhenomeClear(project)
 
 def doClusterPhenome(project, cpu=1):
     biolog = Biolog(project)

@@ -258,6 +258,30 @@ def dGenomeClear(project):
     logger.info('Successfully removed all genomic data')
     return True
 
+def dPhenomeRemove(project, organisms):
+    '''
+    Remove all the phenomic data about specific organism ID(s)
+    '''
+    biolog = Biolog(project)
+    oCheck = Organism(project)
+    for org in organisms:
+        if not oCheck.isOrg(org):
+            logger.warning('Phenome %s is not present: skipping'%org)
+            continue
+        biolog.delOrg(org)
+        logger.info('Successfully removed phenome %s'%org)
+        
+    return True
+
+def dPhenomeClear(project):
+    '''
+    Clear the phenomic tables
+    '''
+    biolog = Biolog(project)
+    biolog.clearAllPhenome()
+    logger.info('Successfully removed all phenomic data')
+    return True
+
 def dGenomeDirAdd(project, folder, extension):
     '''
     Add a series of genomes contained in a directory

@@ -1809,6 +1809,31 @@ class Biolog(DBBase):
     def __init__(self, dbname='storage'):
         DBBase.__init__(self, dbname)
     
+    def resetProject(self):
+        '''
+        Reset the project Phenomic statuses
+        '''
+        # Reset the project statuses
+        oProj = Project(self.dbname)
+        oProj.setPhenome('none')
+        
+    def clearAllPhenome(self):
+        '''
+        Truncate all the tables about the phenomic data
+        '''
+        logger.debug('Clearing phenomic data')
+        
+        with self.connection as conn:
+            conn.execute('delete from biolog_exp;')
+            conn.execute('delete from biolog_exp_det;')
+            conn.execute('delete from biolog_purged_exp;')
+            conn.execute('delete from biolog_purged_exp_det;')
+            
+        oOrg = Organism(self.dbname)
+        oOrg.resetPhenomes()
+        
+        self.resetProject()
+    
     def isPlate(self, plate_id):
         '''
         Is this plate present?
@@ -2105,6 +2130,17 @@ class Biolog(DBBase):
             conn.execute('''delete from biolog_exp_det 
                         where org_id=?;''',
                         [org_id,])
+            
+            conn.execute('''delete from biolog_purged_exp 
+                        where org_id=?;''',
+                        [org_id,])
+            
+            conn.execute('''delete from biolog_purged_exp_det 
+                        where org_id=?;''',
+                        [org_id,])
+        
+        org = Organism(self.dbname)
+        org.setPhenomeStatus(org_id, 'none')
     
     def getWellsByOrg(self, org_id):
         '''

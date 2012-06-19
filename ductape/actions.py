@@ -271,6 +271,9 @@ def dPhenomeRemove(project, organisms):
         biolog.delOrg(org)
         logger.info('Successfully removed phenome %s'%org)
         
+    if biolog.atLeastOneParameter():
+        logger.warning('The activity must be recalculated')
+        
     return True
 
 def dPhenomeClear(project):

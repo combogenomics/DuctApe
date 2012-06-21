@@ -8,7 +8,7 @@ from Bio import SeqIO
 from ductape import __version__
 from ductape.actions import dInit, touchProject, dGenomeClear, dGenomeRemove, \
     dGenomeAdd, dGenomeDirAdd, dGenomeMutAdd, dGetGenomeSteps, prepareDir, \
-    dPanGenomeAdd, dGenomeSetKind, getPathsReacts, prepareColors, createLegend,\
+    dPanGenomeAdd, dSetKind, getPathsReacts, prepareColors, createLegend,\
     dGenomeStats, dGenomeExport
 from ductape.common.colorlog import ColorFormatter
 from ductape.genome.map2KO import LocalSearch, OnlineSearch
@@ -37,7 +37,7 @@ logger = logging.getLogger('ductape')
 
 def dinit(options, wdir, project):
     if not dInit(project, wdir, options.name, options.descr):
-        logger.warning('You can remove the old project file or run dape rm')
+        logger.warning('You can remove or rename the old project file')
         return False
     else:
         return True
@@ -148,7 +148,7 @@ def dmap(options, wdir, project):
     
     kegg = Kegg(project)
     
-    kind = dGenomeSetKind(project)
+    kind = dSetKind(project)
     
     paths = getPathsReacts(project)
     
@@ -665,17 +665,15 @@ options = getOptions()
 logger.setLevel(logging.DEBUG)
 
 ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-formatter = ColorFormatter('%(asctime)s - $COLOR%(message)s$RESET','%H:%M:%S')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
-
-
-fh = logging.handlers.RotatingFileHandler('ductape.log', maxBytes=2000000)
 if options.v == 0:
     ch.setLevel(logging.INFO)
 elif options.v >= 1:
     ch.setLevel(logging.DEBUG)
+formatter = ColorFormatter('%(asctime)s - $COLOR%(message)s$RESET','%H:%M:%S')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
+fh = logging.handlers.RotatingFileHandler('ductape.log', maxBytes=2000000)
 formatter = logging.Formatter('%(asctime)s - %(name)s - [%(levelname)s] - %(message)s',
                             '%Y-%m-%d %H:%M:%S')
 fh.setFormatter(formatter)

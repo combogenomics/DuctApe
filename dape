@@ -1,0 +1,143 @@
+#!/usr/bin/python
+"""
+DuctApe
+
+Analyze genome(s) and phenome(s)
+"""
+from ductape import __version__
+from ductape.actions import dInit, touchProject, dGenomeRemove, dPhenomeRemove, \
+    dGenomeClear, dPhenomeClear
+from ductape.common.colorlog import ColorFormatter
+import argparse
+import logging.handlers
+import os
+
+__author__ = "Marco Galardini"
+__prog__ = "dape"
+
+################################################################################
+# Log setup
+
+logger = logging.getLogger('ductape')
+
+################################################################################
+# Methods
+
+def dinit(options, wdir, project):
+    if not dInit(project, wdir, options.name, options.descr):
+        logger.warning('You can remove or rename the old project file')
+        return False
+    else:
+        return True
+    
+def dremove(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('Nothing to be removed!\n'+
+                       'You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    
+    rflag = True
+    if not dGenomeRemove(project, options.organisms):
+        logger.error('Could not remove genomic data')
+        rflag = False
+    if not dPhenomeRemove(project, options.organisms):
+        logger.error('Could not remove phenomic data')
+        rflag = False
+        
+    return rflag
+
+def dclear(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('Nothing to be cleaned up!\n'+
+                       'You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    
+    rflag = True
+    if not dGenomeClear(project):
+        logger.error('Could not remove genomic data')
+        rflag = False
+    if not dPhenomeClear(project):
+        logger.error('Could not remove phenomic data')
+        rflag = False
+        
+    return rflag
+
+################################################################################
+# Options
+
+def getOptions():
+    description = "Analyze genomes & phenomes"
+    parser = argparse.ArgumentParser(description = description,
+                                     prog=__prog__)
+    parser.add_argument('-p', metavar='project', action='store',
+                        dest='project',
+                        default='ductape.db',
+                        help='Project file')
+    parser.add_argument('-w', metavar='workdir', action='store', dest='wdir',
+                        default='.',
+                        help='Working directory')
+    parser.add_argument('-v', action='count',
+                        default=0,
+                        help='Increase verbosity level')
+    parser.add_argument('--version', action='version',
+                        version='%(prog)s '+__version__)
+    subparsers = parser.add_subparsers()
+
+    parser_init = subparsers.add_parser('init', help='Initialize the project')
+    parser_init.add_argument('-n', action="store",
+                             dest='name',
+                             default = 'Project',
+                             help='Project name')
+    parser_init.add_argument('-d', metavar='descr', action="store",
+                            dest='descr',
+                            default = 'DuctApe project',
+                            help='Project description')
+    parser_init.set_defaults(func=dinit)
+    
+    parser_rm = subparsers.add_parser('rm', help='Completely remove an organism')
+    parser_rm.add_argument('organisms', metavar='orgID', nargs='+',
+                              action="store",
+                            help='Organism(s) to be removed')
+    parser_rm.set_defaults(func=dremove)
+    
+    parser_clear = subparsers.add_parser('clear',
+                                         help='Clear all the results')
+    parser_clear.set_defaults(func=dclear)
+    
+    return parser.parse_args()
+
+################################################################################
+
+options = getOptions()
+
+logger.setLevel(logging.DEBUG)
+
+ch = logging.StreamHandler()
+if options.v == 0:
+    ch.setLevel(logging.INFO)
+elif options.v >= 1:
+    ch.setLevel(logging.DEBUG)
+formatter = ColorFormatter('%(asctime)s - $COLOR%(message)s$RESET','%H:%M:%S')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
+fh = logging.handlers.RotatingFileHandler('ductape.log', maxBytes=2000000)
+formatter = logging.Formatter('%(asctime)s - %(name)s - [%(levelname)s] - %(message)s',
+                            '%Y-%m-%d %H:%M:%S')
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+
+wdir = os.path.abspath(options.wdir)
+if not os.path.exists(wdir):
+    try:
+        os.mkdir(wdir)
+    except:
+        logger.error('Could not create working directory %s'%wdir)
+    
+project = os.path.join(wdir, options.project)
+
+options.func(options, wdir, project)
+
+touchProject(project)

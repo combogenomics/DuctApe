@@ -22,6 +22,15 @@ logger = logging.getLogger('ductape.terminal')
 # Methods
 
 def RunThread(obj):
+    # Check terminal log state: if lower then INFO
+    # Do not display the progressbars
+    progress = True
+    for hand in logger.parent.handlers:
+        if type(hand) == logging.StreamHandler:
+            if hand.level < logging.INFO:
+                progress = False
+                break
+    
     obj.start()
     
     prg = None
@@ -38,7 +47,10 @@ def RunThread(obj):
                             substatus = msg.status
                             sub = True
                             logger.info('%s - %s'%(msg.status, msg.msg))
-                            prg = ProgressBar(TerminalController(sys.stdout), msg.msg)
+                            if progress:
+                                prg = ProgressBar(TerminalController(sys.stdout), msg.msg)
+                            else:
+                                prg = ''
                     if msg.fail:
                         logger.error('Failure! %s'%msg.msg)
                         return False
@@ -46,7 +58,7 @@ def RunThread(obj):
                         logger.info('%s - %s'%(msg.status, msg.msg))
                         prg = None
                     else:
-                        if msg.maxsubstatus != 0:
+                        if msg.maxsubstatus != 0 and progress:
                             prg.update(msg.substatus/float(msg.maxsubstatus),
                                 'Item %d on %d total'%(msg.substatus, msg.maxsubstatus))
                     sub = False

@@ -7,12 +7,12 @@ Analyze phenome(s) and map them to KEGG
 from ductape import __version__
 from ductape.actions import dInit, touchProject, dPhenomeAdd, dPhenomeMultiAdd, \
     dPhenomeDirAdd, dPhenomeMutAdd, dPhenomeZero, getOrganismsColors, dPhenomePurge, \
-    dPhenomeRestore, dPhenomeRemove, dPhenomeClear
+    dPhenomeRestore, dPhenomeRemove, dPhenomeClear, dSetKind
 from ductape.common.colorlog import ColorFormatter
 from ductape.kegg.kegg import CompMapper
 from ductape.phenome.biolog import Experiment, BiologCluster, getPlates, \
     getSinglePlates, BiologPlot
-from ductape.storage.SQLite.database import Biolog, Kegg, Project
+from ductape.storage.SQLite.database import Biolog, Kegg, Project, Organism
 from ductape.terminal import RunThread
 import argparse
 import logging.handlers
@@ -31,7 +31,7 @@ logger = logging.getLogger('ductape')
 
 def dinit(options, wdir, project):
     if not dInit(project, wdir, options.name, options.descr):
-        logger.warning('You can remove the old project file or run dape rm')
+        logger.warning('You can remove or rename the old project file')
         return False
     else:
         return True
@@ -126,10 +126,21 @@ def dplot(options, wdir, project):
             titles[title.plate_id] = {}
         titles[title.plate_id][title.well_id] = title.chemical
     
+    # If we have a mutants experiment the first organis to be shown is the wild-type
+    order = []
+    if dSetKind(project) == 'mutants':
+        organism = Organism(project)
+        for org in organism.getAll():
+            if not organism.isMutant(org.org_id):
+                order.append(org.org_id)
+                
+                for x in organism.getOrgMutants(org.org_id):
+                    order.append(x)
+    
     bplot = BiologPlot(plates, colors=getOrganismsColors(project),
                 avgdata=avgplates, wellNames=titles,
                maxsig=biolog.maxSignal(), plotAll=True,
-               expname=options.n)
+               expname=options.n, order=order)
 
     if not RunThread(bplot):
         return False
@@ -406,17 +417,15 @@ options = getOptions()
 logger.setLevel(logging.DEBUG)
 
 ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-formatter = ColorFormatter('%(asctime)s - $COLOR%(message)s$RESET','%H:%M:%S')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
-
-
-fh = logging.handlers.RotatingFileHandler('ductape.log', maxBytes=2000000)
 if options.v == 0:
     ch.setLevel(logging.INFO)
 elif options.v >= 1:
     ch.setLevel(logging.DEBUG)
+formatter = ColorFormatter('%(asctime)s - $COLOR%(message)s$RESET','%H:%M:%S')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
+fh = logging.handlers.RotatingFileHandler('ductape.log', maxBytes=2000000)
 formatter = logging.Formatter('%(asctime)s - %(name)s - [%(levelname)s] - %(message)s',
                             '%Y-%m-%d %H:%M:%S')
 fh.setFormatter(formatter)

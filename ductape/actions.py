@@ -614,7 +614,7 @@ def dPhenomeRestore(project, plates=[]):
 
 def dGenomeStats(project, doPrint=True):
     # Which project are we talking about?
-    kind = dGenomeSetKind(project)
+    kind = dSetKind(project)
     
     proj = Project(project)
     organism = Organism(project)
@@ -800,10 +800,9 @@ def dGenomeExport(project):
         for org in organism.getAll():
             fname = 'ko_%s.tsv'%org.org_id
             fout = open(fname,'w')
-            fout.write('protein_id\tko_id\n')
             i = 0
             for prot_id, ko_id in kegg.getAllKO(org.org_id):
-                fout.write('%s\t%s\n'%(prot_id, ko_id))
+                fout.write('%s\t%s\n'%(prot_id, ko_id.lstrip('ko:')))
                 i += 1
             fout.close()
             
@@ -819,10 +818,9 @@ def dGenomeExport(project):
         for org in organism.getAll():
             fname = 'reactions_%s.tsv'%org.org_id
             fout = open(fname,'w')
-            fout.write('protein_id\treaction_id\n')
             i = 0
             for prot_id, re_id in kegg.getAllReactions(org.org_id):
-                fout.write('%s\t%s\n'%(prot_id, re_id))
+                fout.write('%s\t%s\n'%(prot_id, re_id.lstrip('rn:')))
                 i += 1
             fout.close()
             
@@ -844,7 +842,6 @@ def dGenomeExport(project):
             else:
                 fname = 'pangenome.tsv'
                 fout = open(fname,'w')
-                fout.write('ortholog_id\tprotein_id\n')
                 for group, prots in dG.iteritems():
                     for prot in prots:
                         fout.write('%s\t%s\n'%(group,prot))
@@ -854,7 +851,6 @@ def dGenomeExport(project):
                 
                 fname = 'pangenome_category.tsv'
                 fout = open(fname,'w')
-                fout.write('ortholog_id\tkind\torganisms\n')
                 dG = genome.getPanGenomeOrgs()
                 for group in genome.getCore():
                     fout.write('%s\t%s\t%s\n'%(group.group_id,
@@ -874,7 +870,7 @@ def dGenomeExport(project):
     
     return True
             
-def dGenomeSetKind(project):
+def dSetKind(project):
     '''
     Set the kind of genomic project and return its value
     '''
@@ -905,7 +901,7 @@ def dGetGenomeSteps(project):
     proj.getProject()
     status = proj.genome
     pangenome = bool(proj.pangenome)
-    kind = dGenomeSetKind(project)
+    kind = dSetKind(project)
     if kind == 'mutants':
         if status == 'map2ko':
             return ['map2kegg']
@@ -1083,7 +1079,7 @@ def plotMapBars(lOrg, title, fname):
         index = float(lOrg.index(data))
         patch = plt.bar(space + index, np.array(data[1:]),
                 width=0.2,
-                color=['blue', 'orange', 'red'])
+                color=['#3366CC', 'orange', '#D32626'])
         if index == 0:
             patch[0].set_label('Size')
             patch[1].set_label('Mapped to Kegg')
@@ -1099,7 +1095,7 @@ def plotMapBars(lOrg, title, fname):
     
 def plotPanGenome(core, acc, uni):
     plt.clf()
-    colors=('r','b','g')
+    colors=('#D32626','#3366CC','#33CC33')
     patches = plt.pie([core, acc, uni], colors=colors,
                       explode=(0.1,0.01,0.01),
                       autopct='%1.1f%%',

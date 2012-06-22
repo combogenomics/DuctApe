@@ -29,7 +29,22 @@ def dinit(options, wdir, project):
         return False
     else:
         return True
-    
+
+def dadd(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    return dAdd(project, options.orgID, options.n, options.d, options.c)
+
+def daddMut(options, wdir, project):
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    return dMutAdd(project, options.mutID, options.m,
+                     options.k, options.n, options.d, options.c)
+
 def dremove(options, wdir, project):
     if not touchProject(project):
         logger.warning('Nothing to be removed!\n'+
@@ -95,6 +110,43 @@ def getOptions():
                             default = 'DuctApe project',
                             help='Project description')
     parser_init.set_defaults(func=dinit)
+    
+    parser_add = subparsers.add_parser('add',
+                           help='Add an organism')
+    parser_add.add_argument('orgID', action='store',
+                            help='Organism ID')
+    parser_add.add_argument('-n', metavar='name', action="store",
+                            default = '',
+                            help='Organism name')
+    parser_add.add_argument('-d', metavar='descr', action="store",
+                            default = '',
+                            help='Organism description')
+    parser_add.add_argument('-c', metavar='color', action="store",
+                            default = '',
+                            help='Organism color')
+    parser_add.set_defaults(func=dadd)
+    
+    parser_add_mut = subparsers.add_parser('add-mut',
+                               help='Add a mutant of an existing organism')
+    parser_add_mut.add_argument('mutID', action='store',
+                            help='Mutant organism ID')
+    parser_add_mut.add_argument('-m', metavar='mutparent', action="store",
+                            required = True,
+                            help='This mutant parent orgID')
+    parser_add_mut.add_argument('-k', metavar='kind', action="store",
+                            choices = ['deletion', 'insertion'],
+                            default = 'deletion',
+                            help='This mutant kind (deletion|insertion)')
+    parser_add_mut.add_argument('-n', metavar='name', action="store",
+                            default = '',
+                            help='Organism name')
+    parser_add_mut.add_argument('-d', metavar='descr', action="store",
+                            default = '',
+                            help='Organism description')
+    parser_add_mut.add_argument('-c', metavar='color', action="store",
+                            default = '',
+                            help='Organism color')
+    parser_add_mut.set_defaults(func=daddMut)
     
     parser_rm = subparsers.add_parser('rm', help='Completely remove an organism')
     parser_rm.add_argument('organisms', metavar='orgID', nargs='+',

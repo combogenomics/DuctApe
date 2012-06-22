@@ -52,19 +52,29 @@ def dInit(project, wdir='.', name='', descr=''):
         projshort = os.path.split(project)[1]
         logger.warning('Project %s is already present in %s'%(projshort,wdir))
         return False
-    
-def dRemove(project):
-    '''
-    Completely removes a project
-    '''
-    try:
-        os.remove(project)
-        return True
-    except:
-        logger.error('Could not remove project %s'%project)
-        return False
 
-def dGenomeAdd(project, orgID, filename, name='', descr='', color=None):
+def dAdd(project, orgID, name='', descr='', color=None):
+    '''
+    Add a single organism
+    '''
+    org = Organism(project)
+    
+    # If trying to override a present organism, throw an error
+    if org.isOrg(orgID):
+        logger.warning('Organism %s is already present'%orgID)
+        logger.warning('Remove it before addition')
+        return False
+    
+    if not color:
+        org.addOrg(orgID, name=name, description=descr)
+    else:
+        org.addOrg(orgID, name=name, description=descr, color=color)
+    
+    logger.info('Added organism %s'%orgID)
+    
+    return True
+
+def dGenomeAdd(project, orgID, filename):
     '''
     Add a single genome
     '''
@@ -74,22 +84,27 @@ def dGenomeAdd(project, orgID, filename, name='', descr='', color=None):
     
     filename = os.path.abspath(filename)
     org = Organism(project)
-    if not color:
-        org.addOrg(orgID, name=name, description=descr, orgfile=filename)
-    else:
-        org.addOrg(orgID, name=name, description=descr, orgfile=filename, color=color)
+    if not org.isOrg(orgID):
+        logger.warning('Organism %s is not present yet!'%orgID)
+        return False
+    
     gen = Genome(project)
     gen.addProteome(orgID, filename)
     logger.info('Added genome %s, having %d proteins'%
                 (orgID, gen.howMany(orgID)))
     return True
 
-def dPhenomeAdd(project, orgID, filename, name='', descr='', color=None):
+def dPhenomeAdd(project, orgID, filename):
     '''
     Add a single phenome
     '''
     if not os.path.exists(filename):
         logger.error('Phenomic file %s may not be present'%(filename))
+        return False
+    
+    org = Organism(project)
+    if not org.isOrg(orgID):
+        logger.warning('Organism %s is not present yet!'%orgID)
         return False
     
     filename = os.path.abspath(filename)
@@ -144,13 +159,6 @@ def dPhenomeAdd(project, orgID, filename, name='', descr='', color=None):
     else:
         logger.warning('''The organism ID you provided was not found inside the phenomic data file''')
         logger.info('''Using it anyway to add this data''')
-    
-    # Add the organism
-    org = Organism(project)
-    if not color:
-        org.addOrg(orgID, name=name, description=descr)
-    else:
-        org.addOrg(orgID, name=name, description=descr, color=color)
     
     # Prepare a series of Plate objects to catch the replicas
     dPlates={}
@@ -210,9 +218,10 @@ def dPhenomeMultiAdd(project, filename):
     orgs = strainNames
     
     for orgID in orgs:
-        # Add the organism
         org = Organism(project)
-        org.addOrg(orgID)
+        if not org.isOrg(orgID):
+            logger.warning('Organism %s is not present yet! Skipping...'%orgID)
+            continue
         
         # Prepare a series of Plate objects to catch the replicas
         dPlates={}
@@ -235,6 +244,24 @@ def dPhenomeMultiAdd(project, filename):
     
     return True
 
+def dRemove(project, organisms):
+    '''
+    Remove all the organism info regarding a particular organism ID(s)
+    '''
+    org = Organism(project)
+    for orgID in organisms:
+        if not org.isOrg(orgID):
+            logger.warning('Organism %s is not present: skipping'%orgID)
+            continue
+        
+        muts = [mutID for mutID in org.getOrgMutants(orgID)]
+        
+        org.delOrg(orgID, True)
+        logger.info('Successfully removed organism %s'%orgID)
+        if len(muts) > 0:
+            logger.info('Removed also %d %s mutant(s)'%(len(muts),orgID))
+    return True
+
 def dGenomeRemove(project, organisms):
     '''
     Remove all the genomic data about specific organism ID(s)
@@ -247,6 +274,15 @@ def dGenomeRemove(project, organisms):
             continue
         gen.delProteome(org)
         logger.info('Successfully removed genome %s'%org)
+    return True
+
+def dClear(project):
+    '''
+    Clear all the organisms data
+    '''
+    org = Organism(project)
+    org.delAllOrgs(True)
+    logger.info('Successfully removed all organisms data')
     return True
 
 def dGenomeClear(project):
@@ -292,29 +328,40 @@ def dGenomeDirAdd(project, folder, extension):
     if not os.path.exists(folder):
         logger.error('Fasta folder %s may not be present'%(folder))
         return False
-    else:
-        logger.info('Looking for files with extension %s'%extension)
+    logger.info('Looking for files with extension %s'%extension)
+    
+    org = Organism(project)
+    
+    added = 0
+    for infile in os.listdir(folder):
+        if infile.split('.')[-1] != extension:
+            logger.debug('Skipping file %s'%infile)
+            continue
         
-        added = 0
-        for infile in os.listdir(folder):
-            if infile.split('.')[-1] != extension:
-                logger.debug('Skipping file %s'%infile)
-                continue
-            
-            orgID = infile.split('.')[0]
-            filename = os.path.join(folder, infile)
-            if os.path.isdir(filename):
-                continue
+        orgID = infile.split('.')[0]
+        filename = os.path.join(folder, infile)
+        if os.path.isdir(filename):
+            continue
+        
+        if not org.isOrg(orgID):
+            logger.warning('Organism %s is not present yet! Skipping...'%orgID)
+            continue
+        
+        if not org.isMutant(orgID):
             if not dGenomeAdd(project, orgID, filename):
                 logger.error('Could not add genome %s'%infile)
                 return False
-            added += 1
-        if added > 0:
-            logger.info('Added %d genomes from %s'%
-                    (added, folder))
         else:
-            logger.warning('No genomes were added from %s'%folder)
-        return True
+            if not dGenomeMutAdd(project, orgID, filename):
+                logger.error('Could not add genome %s'%infile)
+                return False
+        added += 1
+    if added > 0:
+        logger.info('Added %d genomes from %s'%
+                (added, folder))
+    else:
+        logger.warning('No genomes were added from %s'%folder)
+    return True
     
 def dPhenomeDirAdd(project, folder, extension):
     '''
@@ -346,50 +393,16 @@ def dPhenomeDirAdd(project, folder, extension):
             logger.warning('No phenomes were added from %s'%folder)
         return True
 
-def dGenomeMutAdd(project, mutID, mutparent, mutfasta, kind, name='', descr='', color=None):
+def dMutAdd(project, mutID, mutparent,kind, name='', descr='', color=None):
     '''
     Check and add a mutant
     '''
-    # TODO: if the mutant is already there?
-    
-    if not os.path.exists(mutfasta):
-        logger.error('Fasta file %s may not be present'%(mutfasta))
-        return False
-    else:
-        org = Organism(project)
-        if not org.isOrg(mutparent):
-            logger.error('Parent organism %s not present!'%mutparent)
-            return False
-        elif org.isMutant(mutparent):
-            logger.error('Parent organism %s cannot be a mutant!'%mutparent)
-            return False
-        parents = len(org) - org.howManyMutants()
-        if parents != 1:
-            logger.error('Only one parent is allowed!')
-            return False
-        if not color:
-            org.addOrg(mutID, name=name, description=descr, orgfile=mutfasta,
-                   mutant=True, reference=mutparent, mkind=kind)
-        else:
-            org.addOrg(mutID, name=name, description=descr, orgfile=mutfasta,
-                   mutant=True, reference=mutparent, mkind=kind, color=color)
-        gen = Genome(project)
-        gen.addProteome(mutID, mutfasta)
-        logger.info('Mutant %s (%s) added, having %d mutated genes'
-                    %(mutID, org.getOrg(mutID).mkind,gen.howMany(mutID)))
-        return True
-    
-def dPhenomeMutAdd(project, mutID, mutparent, mutphenome, kind, name='', descr='', color=None):
-    '''
-    Check and add a mutant
-    '''
-    # TODO: if the mutant is already there?
-    
-    if not os.path.exists(mutphenome):
-        logger.error('Fasta file %s may not be present'%(mutphenome))
-        return False
-    
     org = Organism(project)
+    
+    if org.isOrg(mutID):
+        logger.warning('Organism %s is already present'%mutID)
+        logger.warning('Remove it before addition')
+        return False
     if not org.isOrg(mutparent):
         logger.error('Parent organism %s not present!'%mutparent)
         return False
@@ -407,77 +420,27 @@ def dPhenomeMutAdd(project, mutID, mutparent, mutphenome, kind, name='', descr='
         org.addOrg(mutID, name=name, description=descr,
                mutant=True, reference=mutparent, mkind=kind, color=color)
     
-    filename = os.path.abspath(mutphenome)
-    
-    bparser = BiologParser(filename)
-    bparser.parse()
-    
-    if len(bparser.plates) == 0:
-        logger.warning('No biolog data was found!')
+    logger.info('Mutant %s (%s) added'
+                %(mutID, org.getOrg(mutID).mkind))
+    return True
+
+def dGenomeMutAdd(project, mutID, mutfasta):
+    '''
+    Check and add a mutant
+    '''
+    if not os.path.exists(mutfasta):
+        logger.error('Fasta file %s may not be present'%(mutfasta))
         return False
     
-    # Check the organisms id inside the biolog files
-    strainNumbers = set([plate.strainNumber for plate in bparser.plates])
-    strainNames = set([plate.strainName for plate in bparser.plates])
-    samples = set([plate.sample for plate in bparser.plates])
+    org = Organism(project)
+    if not org.isOrg(mutID):
+        logger.warning('Organism %s is not present yet!'%mutID)
+        return False
     
-    if mutID not in samples:
-        logger.debug('No sign of %s in sample field'%mutID)
-    if mutID not in strainNames:
-        logger.debug('No sign of %s in strainName field'%mutID)
-    if mutID not in strainNumbers:
-        logger.debug('No sign of %s in strainNumber field'%mutID)
-    
-    # TODO: regular expression search
-    if mutID in samples:
-        if len(samples) > 1:
-            logger.warning('''More than one organism ID may be present in this phenomic data file!''')
-            logger.warning('''%s'''%' '.join(samples))
-            return False
-        
-        for plate in bparser.plates:
-            plate.strain = plate.sample
-            
-    elif mutID in strainNames:
-        if len(strainNames) > 1:
-            logger.warning('''More than one organism ID may be present in this phenomic data file!''')
-            logger.warning('''%s'''%' '.join(strainNames))
-            return False
-        
-        for plate in bparser.plates:
-            plate.strain = plate.strainName
-        
-    elif mutID in strainNumbers:
-        if len(strainNumbers) > 1:
-            logger.warning('''More than one organism ID may be present in this phenomic data file!''')
-            logger.warning('''%s'''%' '.join(strainNumbers))
-            return False
-        
-        for plate in bparser.plates:
-            plate.strain = plate.strainNumber
-        
-    else:
-        logger.warning('''The organism ID you provided was not found inside the phenomic data file''')
-        logger.info('''Using it anyway to add this data''')
-        
-    # Prepare a series of Plate objects to catch the replicas
-    dPlates={}
-    for plate in bparser.plates:
-        if plate.plate_id not in dPlates:
-            dPlates[plate.plate_id] = Plate(plate.plate_id)
-        dPlates[plate.plate_id].addData(plate.strain, plate)
-    
-    # Grep the wells
-    wells = [w for plate in dPlates.itervalues()
-                 for w in plate.getWells()]
-    
-    # Add to the project
-    biolog = Biolog(project)
-    biolog.addWells(wells, clustered=False)
-    
-    logger.info('Added phenome %s (mutant), having %d biolog plates (%d wells)'%
-                (mutID, len(dPlates), len(wells)))
-    
+    gen = Genome(project)
+    gen.addProteome(mutID, mutfasta)
+    logger.info('Mutant %s (%s) added, having %d mutated genes'
+                %(mutID, org.getOrg(mutID).mkind,gen.howMany(mutID)))
     return True
 
 def dPanGenomeAdd(project, orthfile):

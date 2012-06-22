@@ -279,9 +279,6 @@ class Organism(DBBase):
         '''
         Get the list of org_id that are mutants of this organism 
         '''
-        if not self.isOrg(org_id):
-            return
-        
         query = '''
                 select distinct org_id
                 from organism
@@ -300,7 +297,7 @@ class Organism(DBBase):
         Get the overall number of mutants
         '''
         query = '''
-                select distinct org_id
+                select count(distinct org_id)
                 from organism
                 where mutant = 1;
                 '''
@@ -308,10 +305,7 @@ class Organism(DBBase):
         with self.connection as conn:
             cursor = conn.execute(query)
         
-        muts = 0
-        for mut in cursor:
-            muts += 1
-        return muts
+        return int(cursor.fetchall()[0][0])
     
     def howMany(self):
         '''
@@ -386,13 +380,13 @@ class Organism(DBBase):
             self.setPhenomeStatus(org_id, 'none')
             self.resetProject()
     
-    def delAllOrgs(self):
+    def delAllOrgs(self, cascade=True):
         '''
         Delete all the organsim from the db
         (including all dependent tables)
         '''
         for org in self.getAll():
-            self.delOrg(org.org_id)
+            self.delOrg(org.org_id, cascade)
             
         self.resetProject()
     
@@ -407,14 +401,16 @@ class Organism(DBBase):
         with self.connection as conn:
             conn.execute('delete from organism where org_id=?;', (org_id,))
         
-        if self.howManyMutants(org_id) > 0 and cascade:
+        oDel = Genome(self.dbname)
+        oBDel = Biolog(self.dbname)
+        
+        if self.howManyMutants() > 0 and cascade:
             for mut_id in self.getOrgMutants(org_id):
                 self.delOrg(mut_id, cascade=True)
-        
-        oDel = Genome(self.dbname)
+                oDel.delProteome(mut_id)
+                oBDel.delOrg(mut_id)
+                
         oDel.delProteome(org_id)
-        
-        oBDel = Biolog(self.dbname)
         oBDel.delOrg(org_id)
         
         self.resetProject()

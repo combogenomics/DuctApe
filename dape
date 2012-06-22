@@ -5,8 +5,8 @@ DuctApe
 Analyze genome(s) and phenome(s)
 """
 from ductape import __version__
-from ductape.actions import dInit, touchProject, dGenomeRemove, dPhenomeRemove, \
-    dGenomeClear, dPhenomeClear
+from ductape.actions import dInit, touchProject, dAdd, dMutAdd, dRemove, \
+    dClear
 from ductape.common.colorlog import ColorFormatter
 import argparse
 import logging.handlers
@@ -51,16 +51,7 @@ def dremove(options, wdir, project):
                        'You can setup a new project by running %s init'%
                        __prog__)
         return False
-    
-    rflag = True
-    if not dGenomeRemove(project, options.organisms):
-        logger.error('Could not remove genomic data')
-        rflag = False
-    if not dPhenomeRemove(project, options.organisms):
-        logger.error('Could not remove phenomic data')
-        rflag = False
-        
-    return rflag
+    return dRemove(project, options.organisms)
 
 def dclear(options, wdir, project):
     if not touchProject(project):
@@ -68,16 +59,7 @@ def dclear(options, wdir, project):
                        'You can setup a new project by running %s init'%
                        __prog__)
         return False
-    
-    rflag = True
-    if not dGenomeClear(project):
-        logger.error('Could not remove genomic data')
-        rflag = False
-    if not dPhenomeClear(project):
-        logger.error('Could not remove phenomic data')
-        rflag = False
-        
-    return rflag
+    return dClear(project)
 
 ################################################################################
 # Options

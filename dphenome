@@ -6,7 +6,7 @@ Analyze phenome(s) and map them to KEGG
 """
 from ductape import __version__
 from ductape.actions import dInit, touchProject, dPhenomeAdd, dPhenomeMultiAdd, \
-    dPhenomeDirAdd, dPhenomeMutAdd, dPhenomeZero, getOrganismsColors, dPhenomePurge, \
+    dPhenomeDirAdd, dPhenomeZero, getOrganismsColors, dPhenomePurge, \
     dPhenomeRestore, dPhenomeRemove, dPhenomeClear, dSetKind
 from ductape.common.colorlog import ColorFormatter
 from ductape.kegg.kegg import CompMapper
@@ -41,8 +41,7 @@ def dadd(options, wdir, project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
-    return dPhenomeAdd(project, options.orgID, options.file,
-                       name=options.n, descr=options.d, color=options.c)
+    return dPhenomeAdd(project, options.orgID, options.file)
 
 def daddMulti(options, wdir, project):
     if not touchProject(project):
@@ -57,15 +56,6 @@ def daddDir(options, wdir, project):
                        __prog__)
         return False
     return dPhenomeDirAdd(project, options.folder, options.e)
-
-def daddMut(options, wdir, project):
-    if not touchProject(project):
-        logger.warning('You can setup a new project by running %s init'%
-                       __prog__)
-        return False
-    return dPhenomeMutAdd(project, options.mutID, options.m,
-                         options.mutphenome,
-                         options.k, options.n, options.d, options.c)
 
 def dzero(options, wdir, project):
     if not touchProject(project):
@@ -301,15 +291,6 @@ def getOptions():
                             help='Phenomic data file (biolog generated .csv)')
     parser_add.add_argument('orgID', action='store',
                             help='Organism ID')
-    parser_add.add_argument('-n', metavar='name', action="store",
-                           default = '',
-                            help='Organism name')
-    parser_add.add_argument('-d', metavar='descr', action="store",
-                            default = '',
-                            help='Organism description')
-    parser_add.add_argument('-c', metavar='color', action="store",
-                            default = '',
-                            help='Organism color')
     parser_add.set_defaults(func=dadd)
     
     parser_add_multi = subparsers.add_parser('add-multi',
@@ -326,30 +307,6 @@ def getOptions():
                             default = 'csv',
                             help='Phenomic files extension')
     parser_add_dir.set_defaults(func=daddDir)
-
-    parser_add_mut = subparsers.add_parser('add-mut',
-                               help='Add a mutant of an existing genome')
-    parser_add_mut.add_argument('mutphenome', action="store",
-                            help='Mutated organism phenomic file')
-    parser_add_mut.add_argument('mutID', action='store',
-                            help='Mutant organism ID')
-    parser_add_mut.add_argument('-m', metavar='mutparent', action="store",
-                            required = True,
-                            help='This mutant parent orgID')
-    parser_add_mut.add_argument('-k', metavar='kind', action="store",
-                            choices = ['deletion', 'insertion'],
-                            default = 'deletion',
-                            help='This mutant kind (deletion|insertion)')
-    parser_add_mut.add_argument('-n', metavar='name', action="store",
-                            default = '',
-                            help='Organism name')
-    parser_add_mut.add_argument('-d', metavar='descr', action="store",
-                            default = '',
-                            help='Organism description')
-    parser_add_mut.add_argument('-c', metavar='color', action="store",
-                            default = '',
-                            help='Organism color')
-    parser_add_mut.set_defaults(func=daddMut)
 
     parser_zero = subparsers.add_parser('zero', help='Biolog signals zero subtraction')
     parser_zero.add_argument('-b', metavar='blankfile', action="store",

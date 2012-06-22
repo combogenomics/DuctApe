@@ -47,7 +47,16 @@ def dadd(options, wdir, project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
-    return dGenomeAdd(project, options.orgID, options.file, options.n, options.d, options.c)
+    
+    org = Organism(project)
+    if org.isOrg(options.orgID):
+        if not org.isMutant(options.orgID):
+            return dGenomeAdd(project, options.orgID, options.file)
+        else:
+            return dGenomeMutAdd(project, options.orgID, options.file)
+    else:
+        logger.warning('Organism %s is not present yet!'%options.orgID)
+        return False
 
 def daddDir(options, wdir, project):
     if not touchProject(project):
@@ -55,15 +64,6 @@ def daddDir(options, wdir, project):
                        __prog__)
         return False
     return dGenomeDirAdd(project, options.folder, options.e)
-
-def daddMut(options, wdir, project):
-    if not touchProject(project):
-        logger.warning('You can setup a new project by running %s init'%
-                       __prog__)
-        return False
-    return dGenomeMutAdd(project, options.mutID, options.m,
-                         options.mutfasta,
-                         options.k, options.n, options.d, options.c)
 
 def dstart(options, wdir, project):
     if not touchProject(project):
@@ -556,15 +556,6 @@ def getOptions():
                             help='Protein fasta file')
     parser_add.add_argument('orgID', action='store',
                             help='Organism ID')
-    parser_add.add_argument('-n', metavar='name', action="store",
-                            default = '',
-                            help='Organism name')
-    parser_add.add_argument('-d', metavar='descr', action="store",
-                            default = '',
-                            help='Organism description')
-    parser_add.add_argument('-c', metavar='color', action="store",
-                            default = '',
-                            help='Organism color')
     parser_add.set_defaults(func=dadd)
     
     parser_add_dir = subparsers.add_parser('add-dir',
@@ -575,30 +566,6 @@ def getOptions():
                             default = 'faa',
                             help='Fasta files extension')
     parser_add_dir.set_defaults(func=daddDir)
-
-    parser_add_mut = subparsers.add_parser('add-mut',
-                               help='Add a mutant of an existing genome')
-    parser_add_mut.add_argument('mutfasta', action="store",
-                            help='Mutated genes fasta file')
-    parser_add_mut.add_argument('mutID', action='store',
-                            help='Mutant organism ID')
-    parser_add_mut.add_argument('-m', metavar='mutparent', action="store",
-                            required = True,
-                            help='This mutant parent orgID')
-    parser_add_mut.add_argument('-k', metavar='kind', action="store",
-                            choices = ['deletion', 'insertion'],
-                            default = 'deletion',
-                            help='This mutant kind (deletion|insertion)')
-    parser_add_mut.add_argument('-n', metavar='name', action="store",
-                            default = '',
-                            help='Organism name')
-    parser_add_mut.add_argument('-d', metavar='descr', action="store",
-                            default = '',
-                            help='Organism description')
-    parser_add_mut.add_argument('-c', metavar='color', action="store",
-                            default = '',
-                            help='Organism color')
-    parser_add_mut.set_defaults(func=daddMut)
     
     parser_add_ko = subparsers.add_parser('add-ko',
                            help='Add a KO map (protein code --> KO code)')

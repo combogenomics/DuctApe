@@ -1953,7 +1953,15 @@ class Biolog(DBBase):
         
         for res in cursor:
             yield Row(res, cursor.description)
-            
+    
+    def getPlateCategs(self):
+        with self.connection as conn:
+            cursor=conn.execute('''select distinct plate_id, category
+                                from biolog order by plate_id;''')
+        
+        for res in cursor:
+            yield Row(res, cursor.description)
+    
     def getCategByPlate(self, plate_id):
         with self.connection as conn:
             cursor=conn.execute('select category from biolog where plate_id=?;',

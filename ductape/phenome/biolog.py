@@ -1279,7 +1279,7 @@ class BiologPlot(CommonThread):
                  compress = 0,
                  maxsig = None,
                  plotPlates=True, plotAll=False, plotActivity=True,
-                 order = [],
+                 order = [], category ={},
                  queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         # Biolog
@@ -1303,6 +1303,7 @@ class BiologPlot(CommonThread):
         self.plotAll = bool(plotAll)
         self.plotActivity = bool(plotActivity)
         self.order = order
+        self.category = category
         
         # Results
         # Plate_id --> Plate
@@ -1325,7 +1326,15 @@ class BiologPlot(CommonThread):
             except:pass
             path = os.path.join(path, self.expname)
             self._room = path
-            os.mkdir(path)
+            try:os.mkdir(path)
+            except:pass
+            
+            # Prepare the categories directories
+            if len(self.category) > 0:
+                for c in set(self.category.values()):
+                    path = os.path.join(self._room, c)
+                    try:os.mkdir(path)
+                    except:pass
         except:
             logger.debug('Temporary directory creation failed! %s'
                           %path)
@@ -1446,7 +1455,11 @@ class BiologPlot(CommonThread):
             
             self.results[plate_id].plotLegend(plate_id, strains=self.order)
             
-            fname = os.path.join(self._room,'%s_legend.png'%plate_id)
+            if plate_id in self.category:
+                path = os.path.join(self._room,self.category[plate_id])
+            else:
+                path = self._room
+            fname = os.path.join(path,'%s_legend.png'%plate_id)
             self.results[plate_id].legend.savefig(fname, dpi=150)
             self.results[plate_id].legend.clf()
             
@@ -1468,7 +1481,11 @@ class BiologPlot(CommonThread):
                         return
                     
                 # TODO: remember qgraphicspixmapitem for GUI clickable!
-                fname = os.path.join(self._room,'%s.png'%plate_id)
+                if plate_id in self.category:
+                    path = os.path.join(self._room,self.category[plate_id])
+                else:
+                    path = self._room
+                fname = os.path.join(path,'%s.png'%plate_id)
                 self.results[plate_id].figure.savefig(fname, dpi=150)
                 self.results[plate_id].figure.clf()
         else:
@@ -1491,7 +1508,11 @@ class BiologPlot(CommonThread):
                     if not self.getPlot(plate_id, well_id):
                         self.sendFailure('Single plot creation failure')
                         return
-                    fname = os.path.join(self._room,'%s_%s.png'%(plate_id,
+                    if plate_id in self.category:
+                        path = os.path.join(self._room,self.category[plate_id])
+                    else:
+                        path = self._room
+                    fname = os.path.join(path,'%s_%s.png'%(plate_id,
                                                                  well_id))
                     self.well.savefig(fname, dpi=150)
                     
@@ -1519,7 +1540,11 @@ class BiologPlot(CommonThread):
                     
                     if self.killed:
                         return
-                fname = os.path.join(self._room,'%sheat.png'%plate_id)
+                if plate_id in self.category:
+                    path = os.path.join(self._room,self.category[plate_id])
+                else:
+                    path = self._room
+                fname = os.path.join(path,'%sheat.png'%plate_id)
                 self.avgresults[plate_id].heatfig.savefig(fname, dpi=150)
                 self.avgresults[plate_id].heatfig.clf()
         else:

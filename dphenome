@@ -115,6 +115,9 @@ def dplot(options, wdir, project):
         if title.plate_id not in titles:
             titles[title.plate_id] = {}
         titles[title.plate_id][title.well_id] = title.chemical
+    category = {}
+    for c in biolog.getPlateCategs():
+        category[c.plate_id] = c.category.replace(' ','_').replace('&','and')
     
     # If we have a mutants experiment the first organis to be shown is the wild-type
     order = []
@@ -130,7 +133,7 @@ def dplot(options, wdir, project):
     bplot = BiologPlot(plates, colors=getOrganismsColors(project),
                 avgdata=avgplates, wellNames=titles,
                maxsig=biolog.maxSignal(), plotAll=True,
-               expname=options.n, order=order)
+               expname=options.n, order=order, category=category)
 
     if not RunThread(bplot):
         return False

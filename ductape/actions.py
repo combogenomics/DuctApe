@@ -575,7 +575,7 @@ def dPhenomeRestore(project, plates=[]):
     
     return True
 
-def dGenomeStats(project, doPrint=True):
+def dGenomeStats(project, svg=False, doPrint=True):
     # Which project are we talking about?
     kind = dSetKind(project)
     
@@ -619,7 +619,7 @@ def dGenomeStats(project, doPrint=True):
                 
             lOrg.append([org_id, prots, mapped, react])
             
-        plotMapBars(lOrg, 'Single genomes statistics', 'single')
+        plotMapBars(lOrg, 'Single genomes statistics', 'single', svg)
         
         if proj.isPanGenome():
             logger.info('Pangenome stats')
@@ -668,8 +668,9 @@ def dGenomeStats(project, doPrint=True):
                            kegg.howManyMapped(pangenome='unique'),
                            kegg.howManyReactions(pangenome='unique')]]
  
-            plotMapBars(lPanGenome, 'PanGenome statistics', 'pangenome_stats')
-            plotPanGenome(core, acc, uni)
+            plotMapBars(lPanGenome, 'PanGenome statistics', 'pangenome_stats',
+                        svg)
+            plotPanGenome(core, acc, uni, svg)
     
     elif kind == 'mutants':
         refs = [org.org_id
@@ -727,7 +728,7 @@ def dGenomeStats(project, doPrint=True):
                 lOrg.append([org_id, prots, mapped, react])
         
             plotMapBars(lOrg, 'Wild-type (%s) and mutants statistics'%ref_id,
-                        '%s'%ref_id)
+                        '%s'%ref_id, svg)
     
     else:
         logger.info('No statistics can be computed at this time')
@@ -1030,7 +1031,7 @@ def createLegend(kind, compounds=False):
         
     return fname
 
-def plotMapBars(lOrg, title, fname):
+def plotMapBars(lOrg, title, fname, svg=False):
     '''
     Plot histograms for Kegg mapping statistics
     '''
@@ -1052,11 +1053,17 @@ def plotMapBars(lOrg, title, fname):
     plt.ylim(0, maxprots + maxprots * 0.33)
     plt.title(title)
     plt.legend(loc='best')
-    plt.savefig('%s.png'%fname)
-
-    logger.info('%s graph saved (%s.png)'%(title, fname))
     
-def plotPanGenome(core, acc, uni):
+    if svg:
+        fname += '.svg'
+    else:
+        fname += '.png'
+    
+    plt.savefig(fname)
+
+    logger.info('%s graph saved (%s)'%(title, fname))
+    
+def plotPanGenome(core, acc, uni, svg=False):
     plt.clf()
     colors=('#D32626','#3366CC','#33CC33')
     patches = plt.pie([core, acc, uni], colors=colors,
@@ -1067,9 +1074,15 @@ def plotPanGenome(core, acc, uni):
                ('Core','Accessory','Unique'),
                loc=(0,-.1))
     plt.title('PanGenome shape')
-    plt.savefig('pangenome_shape.png')
     
-    logger.info('PanGenome shape graph saved (pangenome_shape.png)')
+    if svg:
+        fname = 'pangenome_shape.svg'
+    else:
+        fname = 'pangenome_shape.png'
+    
+    plt.savefig(fname)
+    
+    logger.info('PanGenome shape graph saved (%s)'%fname)
 
 def isProject(project):
     '''

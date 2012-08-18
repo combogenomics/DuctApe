@@ -26,10 +26,10 @@ Requirements
 
 Installation
 ------------
-sudo python setup.py install
+* sudo python setup.py install
 OR
-python setup.py sdist
-sudo pip install dist/DuctApe-X.X.X.tar.gz
+* python setup.py sdist
+* sudo pip install dist/DuctApe-X.X.X.tar.gz
 
 Quick how-to
 ------------
@@ -54,64 +54,64 @@ Three command line utilities will be installed
 Examples
 --------
 * Single organism experiment
-dape init (initializes the project)
-dape add MyOrg (adds my organism using the ID MyOrg)
+    * dape init (initializes the project)
+    * dape add MyOrg (adds my organism using the ID MyOrg)
 
-dgenome add MyOrg.faa MyOrg (adds the proteome of MyOrg)
-dgenome add-ko MyOrg.tab (adds the output of KAAS, a KEGG mapper)
-dgenome start (maps the proteome to KEGG)
-dgenome map (outputs the KEGG metabolic maps)
-dgenome stats (statistic and graphics)
-dgenome export (exports the genomic data)
+    * dgenome add MyOrg.faa MyOrg (adds the proteome of MyOrg)
+    * dgenome add-ko MyOrg.tab (adds the output of KAAS, a KEGG mapper)
+    * dgenome start (maps the proteome to KEGG)
+    * dgenome map (outputs the KEGG metabolic maps)
+    * dgenome stats (statistic and graphics)
+    * dgenome export (exports the genomic data)
 
-dphenome add MyOrg.csv MyOrg (adds the phenomic experiment, BIOLOG data)
-dphenome zero (performs control subtraction)
-dphenome start -n 4 (calculates the growth parameters and performs the clusterization, using 4 CPUs)
-dphenome plot (plots the growth curves)
-dphenome purge -d 3 keep-max (removes inconsistent replicas: keep the highest replicas when there is an activity index delta >= 3)
-dphenome plot (plots only those curves that are not purged)
-dphenome restore (restore the purged replicas)
-dphenome stats
-dphenome export
+    * dphenome add MyOrg.csv MyOrg (adds the phenomic experiment, BIOLOG data)
+    * dphenome zero (performs control subtraction)
+    * dphenome start -n 4 (calculates the growth parameters and performs the clusterization, using 4 CPUs)
+    * dphenome plot (plots the growth curves)
+    * dphenome purge -d 3 keep-max (removes inconsistent replicas: keep the highest replicas when there is an activity index delta >= 3)
+    * dphenome plot (plots only those curves that are not purged)
+    * dphenome restore (restore the purged replicas)
+    * dphenome stats
+    * dphenome export
 
-(dape map)
+    * (dape map)
 
 * Mutant experiment
-dape init
-dape add MyOrg
-dape add-mut -m MyOrg -k deletion MyMut (adds mutant MyMut, a deletion mutant of MyOrg)
+    * dape init
+    * dape add MyOrg
+    * dape add-mut -m MyOrg -k deletion MyMut (adds mutant MyMut, a deletion mutant of MyOrg)
 
-dgenome add-dir MyFolder (adds the proteins files found in this directory)
-dgenome add-ko MyOrg.tab
-dgenome start
-dgenome map MyMut (plots only tha maps of the mutant)
+    * dgenome add-dir MyFolder (adds the proteins files found in this directory)
+    * dgenome add-ko MyOrg.tab
+    * dgenome start
+    * dgenome map MyMut (plots only tha maps of the mutant)
 
-dphenome add-dir MyPhenomicFolder (adds the phenomic files found in this directory)
-dphenome zero
-dphenome start -n 4
-dphenome purge -d 3 keep-max
-dphenome plot
+    * dphenome add-dir MyPhenomicFolder (adds the phenomic files found in this directory)
+    * dphenome zero
+    * dphenome start -n 4
+    * dphenome purge -d 3 keep-max
+    * dphenome plot
 
-(dape map)
+    * (dape map)
 
 * Pangenomic experiment
-dape init
-dape add MyOrg
-dape add MyOrg2
-dape add MyOrg3
+    * dape init
+    * dape add MyOrg
+    * dape add MyOrg2
+    * dape add MyOrg3
 
-dgenome add-dir MyFolder
-dgenome add-ko MyOrg.tab MyOrg2.tab MyOrg3.tab
-dgenome start -n 4 (also performs pangenome creation using 4 CPUs)
-dgenome map (plots the maps for the whole pangenome)
+    * dgenome add-dir MyFolder
+    * dgenome add-ko MyOrg.tab MyOrg2.tab MyOrg3.tab
+    * dgenome start -n 4 (also performs pangenome creation using 4 CPUs)
+    * dgenome map (plots the maps for the whole pangenome)
 
-dphenome add-dir MyPhenomicFolder
-dphenome zero
-dphenome start -n 4
-dphenome purge -d 3 keep-max
-dphenome plot
+    * dphenome add-dir MyPhenomicFolder
+    * dphenome zero
+    * dphenome start -n 4
+    * dphenome purge -d 3 keep-max
+    * dphenome plot
 
-(dape map)
+    * (dape map)
 
 More informations
 -----------------

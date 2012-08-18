@@ -1,0 +1,4 @@
+include *.txt
+exclude MANIFEST
+exclude MANIFEST.in
+prune dist

@@ -27,7 +27,7 @@ Requirements
 Installation
 ------------
 * sudo python setup.py install
-OR
+
 * python setup.py sdist
 * sudo pip install dist/DuctApe-X.X.X.tar.gz
 

@@ -1,1 +1,183 @@
-Under construction
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>DuctApe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Analyze and link genomics and phenomics experiments">
+    <meta name="author" content="Marco Galardini" >
+    
+    <!-- Le meta tag to refresh the cache -->
+    <meta http-equiv="last-modified" content="Sun, 19 Aug 2012 17:00:00 GMT" />
+
+    <!-- Le styles -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+	<link href="css/custom.css" rel="stylesheet">
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+    </style>
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le fav and touch icons -->
+    <link rel="shortcut icon" href="favicon.ico">
+  </head>
+
+  <body>
+
+    <div class="container">
+      <div id="home">
+        <!--<div class="hero-unit">-->
+		<div class="row">
+			<noscript>
+			  <div class="alert alert-error">
+				<strong>Whoops! You have javascript disabled</strong>
+				<br/>                
+				You may be unable to enjoy this site, sorry :(
+			  </div>
+			 </noscript>
+			 
+			<div class="span6">
+				<div align="center">
+					<img alt="The almighty gorilla" src="img/logo.png" />
+				</div>
+			</div>
+
+			<div class="span6">
+				<div class="hero-unit">
+					<h3>Analyze and link genomics and phenomics experiments</h3>
+					<p>
+						DuctApe is a python library with a series of command-line programs that will help
+						bioinformaticians to analyze genomes AND phenomic experiments. <br> The final purpose
+						of the program is to combine the genomic informations (encoded as KEGG pathways)
+						with the results of phenomic experiments (for now the Phenotype microarrays are supported) 
+						and highlight the genes that may be responsible for phenotypic variations.
+					</p>
+					<br>
+					<a href="https://github.com/downloads/combogenomics/DuctApe/DuctApe-0.3.0.tar.gz" class="btn btn-huge">
+					<i class="icon-download"></i> Download &raquo;</a>
+					<a href="https://github.com/combogenomics/DuctApe" class="btn btn-huge">
+					<i class="icon-eye-open"></i> Look at the code &raquo;</a>
+				</div>
+			</div>
+			 
+		</div>
+		
+		<br>
+		
+		<div class="row">
+			<div class="span5">
+				<div class="hero-unit">
+					<h3>Features</h3>
+					<!--<dl>
+						<dt>Unix-based</dt>
+							<dd>RunnerPyzza runs in unix based environments, as most of the bioinformatic softwares</dd>
+						<dt>A flexible Client - Server model</dt>
+							<dd>The beta version has a simple command line client, but thanks to our PyzzaProtocol,
+							any kind of client can be created: GUIs and web interfaces, anything to simplify the tedious
+							and repetitives bioinformatics tasks!</dd>
+						<dt>Make your own cloud</dt>
+							<dd>The jobs can run on as many machines you want: they just need to
+							use a <a href="http://it.wikipedia.org/wiki/Network_File_System">NFS (network file system)</a>
+							to exchange files.</dd>
+						<dt>Why the logo is a pizza?</dt>
+							<dd>Because we saw the similarity between a protocol (a series of single tasks)
+							and a pizza (which can be divided in slices). Oh, and because we are italian!</dd>
+					</dl>-->
+				</div>
+				
+				<br>
+				
+				<div class="hero-unit">
+					<h3>Brought to you by</h3>
+					<p>
+						<p>
+							<div class="bio">
+								<img align="left" src="img/marco.png" width="50px"><b> Marco Galardini</b>
+								<br>
+								Phd student @ <a href="http://www.unifi.it/">unifi</a>
+								<br>
+								marco.galardini AT unifi DOT it
+							</div>
+						</p>
+						
+						<div class="bio">
+							<a href="http://www.unifi.it/dbefcb/"><img src="img/combo.png" width="100px"/></a>
+							DuctApe is a <a href="http://www.unifi.it/dbefcb/">Combo</a> project
+						</div>
+						
+					</p>
+				</div>
+				
+			</div>
+			
+			<div class="span7">
+				<div class="hero-unit">
+					<h3>Quick how-to</h3>
+					<!--<p>
+						<ol>
+							<li>RunnerPyzza server installation on the main machine</li>
+							<pre>python setup.py sdist
+sudo pip install dist/RunnerPyzza-X.X.X.tar.gz
+sudo RPadduser
+sudo RPaddservice</pre>
+
+							<li>Cloud setup (edit /etc/runnerpyzza/RPdaemon.conf and check that all the machines are connected through NFS)</li>
+							<code>sudo service runnerpyzza restart</code>
+
+							<li>Recipe creation
+							(no tool available for now, but you can start from the <a href="https://github.com/RunnerPyzza/RunnerPyzza/blob/master/test/ScriptChain.xml">example file</a>)</li>
+
+							<li>Order your beloved pyzza!</li>
+							<code>RPlauncher auto YourRecipe.xml</code>
+							
+							<li>RPlauncher offers also the opportunity to launch single commands</li>
+							<pre>RPlauncher init YourRecipe.xml
+RPlauncher start Margherita_XXXX
+RPlauncher status Margherita_XXXX
+RPlauncher results Margherita_XXXX
+RPlauncher clean Margherita_XXXX</pre>
+							
+							<li>If something goes wrong you can check the main server log (/etc/runnerpyzza/log/RPdaemon.log</li>
+						</ol>
+					</p>-->
+				</div>
+			</div>
+		</div>
+		
+      </div>
+      
+      <footer class="footer">
+	  </footer>
+    
+    </div>
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.js"></script>
+    
+    <!-- Le Google analytics -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34201518-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+  </body>
+</html>

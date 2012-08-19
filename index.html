@@ -46,8 +46,12 @@
 			<div class="span6">
 				<div align="center">
 					<img alt="The almighty gorilla" src="img/logo.png" />
+					<br>
+					<img src="img/scotch.png" width="350px"/>
 				</div>
 			</div>
+			
+			<br>
 
 			<div class="span6">
 				<div class="hero-unit">
@@ -72,28 +76,87 @@
 		<br>
 		
 		<div class="row">
-			<div class="span5">
+			<div class="span4">
 				<div class="hero-unit">
 					<h3>Features</h3>
-					<!--<dl>
-						<dt>Unix-based</dt>
-							<dd>RunnerPyzza runs in unix based environments, as most of the bioinformatic softwares</dd>
-						<dt>A flexible Client - Server model</dt>
-							<dd>The beta version has a simple command line client, but thanks to our PyzzaProtocol,
-							any kind of client can be created: GUIs and web interfaces, anything to simplify the tedious
-							and repetitives bioinformatics tasks!</dd>
-						<dt>Make your own cloud</dt>
-							<dd>The jobs can run on as many machines you want: they just need to
-							use a <a href="http://it.wikipedia.org/wiki/Network_File_System">NFS (network file system)</a>
-							to exchange files.</dd>
-						<dt>Why the logo is a pizza?</dt>
-							<dd>Because we saw the similarity between a protocol (a series of single tasks)
-							and a pizza (which can be divided in slices). Oh, and because we are italian!</dd>
-					</dl>-->
+					<dl>
+						<dt>Powerful</dt>
+							<dd>Many kind of experiment are supported:
+							single organism, mutants, pangenome</dd>
+						<dt>Flexible</dt>
+							<dd>Three command-line tools with git-like syntax, to allow maximum 
+							flexibility in the analysis</dd>
+						<dt>Modular</dt>
+							<dd>Each component of DuctApe is encapsulated in a thread, to simplify further 
+							developments of client applications (i.e. GUIs or web interfaces)</dd>
+						<dt>Portable</dt>
+							<dd>All the analysis are saved in a single file (a SQLite database), 
+							to avoid complexity and to encourage exchange of data</dd>
+					</dl>
 				</div>
-				
-				<br>
-				
+			</div>
+			
+			<div class="span8">
+				<div class="hero-unit">
+					<h3>The three modules of DuctApe</h3>
+					<p>
+						<ul>
+							<h3>
+								<li>
+									dape <img src="img/scotch.png" height="60px"/>
+								</li>
+							</h3>
+							
+							<ul>
+								<li>Used to initialize the project and add/remove the organism</li>
+								<li>Performs the combination of genomics and phenomics experiments (*)</li>
+							</ul>
+							
+							<br>
+							
+							<h3>
+								<li>
+									dgenome <img src="img/scotchgenome.png" height="60px"/>
+								</li>
+							</h3>
+							
+							<ul>
+								<li>Handles protein sequences for each organism of the project</li>
+								<li>For pangenomic studies it can build the pangenome using 
+								the BBH algorithm (user-defined pangenomes can be added)</li>
+								<li>The proteins are mapped to KEGG metabolic pathways</li>
+							</ul>
+							
+							<br>
+							
+							<h3>
+								<li>
+									dphenome <img src="img/scotchphenome.png" height="60px"/>
+								</li>
+							</h3>
+							
+							<ul>
+								<li>Handles phenomic experiments for each organism of the project (Phenotype microarray experiments)</li>
+								<li>Performs zero-subtraction on the biolog plates</li>
+								<li>Calculates the growth parameters</li>
+								<li>Ranks the single experiments with a clusterization over growth parameters</li>
+								<li>The compounds from the phenomic experiments are mapped to KEGG</li>
+							</ul>
+						</ul>
+						
+					</p>
+					
+					<br>
+						
+					<div class="bio">
+						(*) not implemented yet
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="row">
+			<div class="span4">
 				<div class="hero-unit">
 					<h3>Brought to you by</h3>
 					<p>
@@ -114,39 +177,132 @@
 						
 					</p>
 				</div>
-				
 			</div>
 			
-			<div class="span7">
+			<div class="span8">
 				<div class="hero-unit">
 					<h3>Quick how-to</h3>
-					<!--<p>
-						<ol>
-							<li>RunnerPyzza server installation on the main machine</li>
-							<pre>python setup.py sdist
-sudo pip install dist/RunnerPyzza-X.X.X.tar.gz
-sudo RPadduser
-sudo RPaddservice</pre>
-
-							<li>Cloud setup (edit /etc/runnerpyzza/RPdaemon.conf and check that all the machines are connected through NFS)</li>
-							<code>sudo service runnerpyzza restart</code>
-
-							<li>Recipe creation
-							(no tool available for now, but you can start from the <a href="https://github.com/RunnerPyzza/RunnerPyzza/blob/master/test/ScriptChain.xml">example file</a>)</li>
-
-							<li>Order your beloved pyzza!</li>
-							<code>RPlauncher auto YourRecipe.xml</code>
+					
+						<br>
+						
+						<h3>Requirements</h3>
+						<div class="bio">
+							DuctApe has a few python library dependencies:
+						</div>
+						<ul>
+							<li>Biopython</li>
+							<li>NumPy</li>
+							<li>SciPy</li>
+							<li>matplotlib</li>
+							<li>scikits.learn</li>
+							<li>SOAPpy</li>
+							<li>multiprocessing</li>
+							<li>networkx (*)</li>
+						</ul>
+						
+						<br>
+						
+						<h3>Installation</h3>
+							<ul>
+								<li>Method 1 (dependencies won't be checked)</li>
+									<code>sudo python setup.py install</code>
+								
+								<li>Method 2 (missing dependencies will be downloaded)</li>
+									<code>sudo pip install DuctApe-X.X.X.tar.gz</code>
+								
+							</ul>
 							
-							<li>RPlauncher offers also the opportunity to launch single commands</li>
-							<pre>RPlauncher init YourRecipe.xml
-RPlauncher start Margherita_XXXX
-RPlauncher status Margherita_XXXX
-RPlauncher results Margherita_XXXX
-RPlauncher clean Margherita_XXXX</pre>
+						<br>
+						
+						<h3>Usage examples</h3>
+							<ol>
+								<h4><li>Single organism experiment</li></h4>
+								<pre># Initialize the project
+dape init
+# add my organism using the ID MyOrg
+dape add MyOrg
+
+# add the proteome of MyOrg
+dgenome add MyOrg.faa MyOrg
+# adds the output of KAAS, a KEGG mapper
+dgenome add-ko MyOrg.tab
+# map the proteome to KEGG
+dgenome start
+# output the KEGG metabolic maps
+dgenome map
+# statistics and graphics 
+dgenome stats
+# export the genomic data
+dgenome export
+
+# add the phenomic experiment, BIOLOG data
+dphenome add MyOrg.csv MyOrg
+# perform control subtraction
+dphenome zero
+# calculate the growth parameters and perform the clusterization, using 4 CPUs
+dphenome start -n 4
+# plot the growth curves
+dphenome plot
+# remove inconsistent replicas: keep the highest replicas when there is an activity index delta >= 3
+dphenome purge -d 3 keep-max
+# plot only those curves that are not purged
+dphenome plot
+# restore the purged replicas
+dphenome restore
+dphenome stats
+dphenome export
+
+dape map (*)</pre>
+								<br>
+
+								<h4><li>Mutant experiment</li></h4>
+								<pre>dape init
+dape add MyOrg
+# add mutant MyMut, a deletion mutant of MyOrg
+dape add-mut -m MyOrg -k deletion MyMut
+
+# add the proteins files found in this directory
+dgenome add-dir MyFolder
+dgenome add-ko MyOrg.tab
+dgenome start
+# plot only tha maps of the mutant
+dgenome map MyMut
+# add the phenomic files found in this directory
+dphenome add-dir MyPhenomicFolder
+dphenome zero
+dphenome start -n 4
+dphenome purge -d 3 keep-max
+dphenome plot
+
+dape map (*)</pre>
+
+								<h4><li>Pangenomic experiment</li></h4>
+								<pre>dape init
+dape add MyOrg
+dape add MyOrg2
+dape add MyOrg3
+
+dgenome add-dir MyFolder
+dgenome add-ko MyOrg.tab MyOrg2.tab MyOrg3.tab
+# also perform pangenome creation using 4 CPUs
+dgenome start -n 4
+# plot the maps for the whole pangenome
+dgenome map
+
+dphenome add-dir MyPhenomicFolder
+dphenome zero
+dphenome start -n 4
+dphenome purge -d 3 keep-max
+dphenome plot
+
+dape map (*)</pre>
+							</ol>
 							
-							<li>If something goes wrong you can check the main server log (/etc/runnerpyzza/log/RPdaemon.log</li>
-						</ol>
-					</p>-->
+							<br>
+						
+					<div class="bio">
+						(*) not implemented yet
+					</div>
 				</div>
 			</div>
 		</div>

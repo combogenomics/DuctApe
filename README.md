@@ -26,10 +26,11 @@ Requirements
 
 Installation
 ------------
-* sudo python setup.py install
+* Method 1 (the dependencies won't be checked)
+    * sudo python setup.py install
 
-* python setup.py sdist
-* sudo pip install dist/DuctApe-X.X.X.tar.gz
+* Method 2 (missing dependencies will be downloaded)
+    * sudo pip install DuctApe-X.X.X.tar.gz
 
 Quick how-to
 ------------

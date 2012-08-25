@@ -79,7 +79,12 @@ class KeggAPI(object):
         attempts = 0
         while True:
             try:
-                self._keggserv = WSDL.Proxy(self._apiurl)
+                # Avoid deprecation warnings due to the nature of the wsdl file
+                import warnings
+                with warnings.catch_warnings():
+                    warnings.filterwarnings("ignore",category=DeprecationWarning)
+                    
+                    self._keggserv = WSDL.Proxy(self._apiurl)
                 logger.debug('Connection to KEGG API successful')
                 self.result = True
                 return

@@ -6,8 +6,6 @@ Common library
 
 Spare parts
 """
-from numpy.core.numeric import ones
-import numpy
 
 # Borrowed from: www.garyrobinson.net
 def slice_it(li, cols=10):
@@ -54,6 +52,9 @@ def smooth(x,window_len=11,window='hanning'):
 
     TODO: the window parameter could be the window itself if an array instead of a string
     """
+    from numpy.core.numeric import ones
+    import numpy
+    
     x = numpy.array(x)
 
     if x.ndim != 1:

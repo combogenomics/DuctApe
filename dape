@@ -5,8 +5,7 @@ DuctApe
 Analyze genome(s) and phenome(s)
 """
 from ductape import __version__
-from ductape.actions import dInit, touchProject, dAdd, dMutAdd, dRemove, \
-    dClear
+from ductape.actions import touchProject
 from ductape.common.colorlog import ColorFormatter
 import argparse
 import logging.handlers
@@ -24,6 +23,7 @@ logger = logging.getLogger('ductape')
 # Methods
 
 def dinit(options, wdir, project):
+    from ductape.actions import dInit
     if not dInit(project, wdir, options.name, options.descr):
         logger.warning('You can remove or rename the old project file')
         return False
@@ -31,6 +31,7 @@ def dinit(options, wdir, project):
         return True
 
 def dadd(options, wdir, project):
+    from ductape.actions import dAdd
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
@@ -38,6 +39,7 @@ def dadd(options, wdir, project):
     return dAdd(project, options.orgID, options.n, options.d, options.c)
 
 def daddMut(options, wdir, project):
+    from ductape.actions import dMutAdd
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
@@ -46,6 +48,7 @@ def daddMut(options, wdir, project):
                      options.k, options.n, options.d, options.c)
 
 def dremove(options, wdir, project):
+    from ductape.actions import dRemove
     if not touchProject(project):
         logger.warning('Nothing to be removed!\n'+
                        'You can setup a new project by running %s init'%
@@ -54,6 +57,7 @@ def dremove(options, wdir, project):
     return dRemove(project, options.organisms)
 
 def dclear(options, wdir, project):
+    from ductape.actions import dClear
     if not touchProject(project):
         logger.warning('Nothing to be cleaned up!\n'+
                        'You can setup a new project by running %s init'%

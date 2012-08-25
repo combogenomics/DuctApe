@@ -5,11 +5,8 @@ DuctPhenome
 Analyze phenome(s) and map them to KEGG
 """
 from ductape import __version__
-from ductape.actions import dInit, touchProject, dPhenomeAdd, dPhenomeMultiAdd, \
-    dPhenomeDirAdd, dPhenomeZero, getOrganismsColors, dPhenomePurge, \
-    dPhenomeRestore, dPhenomeRemove, dPhenomeClear, dSetKind
+from ductape.actions import touchProject
 from ductape.common.colorlog import ColorFormatter
-from ductape.kegg.kegg import CompMapper
 from ductape.phenome.biolog import Experiment, BiologCluster, getPlates, \
     getSinglePlates, BiologPlot
 from ductape.storage.SQLite.database import Biolog, Kegg, Project, Organism
@@ -30,6 +27,7 @@ logger = logging.getLogger('ductape')
 # Methods
 
 def dinit(options, wdir, project):
+    from ductape.actions import dInit
     if not dInit(project, wdir, options.name, options.descr):
         logger.warning('You can remove or rename the old project file')
         return False
@@ -37,6 +35,7 @@ def dinit(options, wdir, project):
         return True
 
 def dadd(options, wdir, project):
+    from ductape.actions import dPhenomeAdd
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
@@ -44,6 +43,7 @@ def dadd(options, wdir, project):
     return dPhenomeAdd(project, options.orgID, options.file)
 
 def daddMulti(options, wdir, project):
+    from ductape.actions import dPhenomeMultiAdd
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
@@ -51,6 +51,7 @@ def daddMulti(options, wdir, project):
     return dPhenomeMultiAdd(project, options.file)
 
 def daddDir(options, wdir, project):
+    from ductape.actions import dPhenomeDirAdd
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
@@ -58,6 +59,7 @@ def daddDir(options, wdir, project):
     return dPhenomeDirAdd(project, options.folder, options.e)
 
 def dzero(options, wdir, project):
+    from ductape.actions import dPhenomeZero
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
@@ -93,6 +95,8 @@ def dstart(options, wdir, project):
     return True
 
 def dplot(options, wdir, project):
+    from ductape.actions import getOrganismsColors, dSetKind
+    
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
@@ -141,6 +145,7 @@ def dplot(options, wdir, project):
     logger.info('Successefully generated phenomic plots (%s)'%bplot._room)
     
 def dpurge(options, wdir, project):
+    from ductape.actions import dPhenomePurge
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
@@ -156,6 +161,7 @@ def dpurge(options, wdir, project):
     return dPhenomePurge(project, options.policy, options.delta, options.plates)
     
 def drestore(options, wdir, project):
+    from ductape.actions import dPhenomeRestore
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
@@ -178,6 +184,7 @@ def dexport(options, wdir, project):
     # TODO
 
 def dremove(options, wdir, project):
+    from ductape.actions import dPhenomeRemove
     if not touchProject(project):
         logger.warning('Nothing to be removed!\n'+
                        'You can setup a new project by running %s init'%
@@ -186,6 +193,7 @@ def dremove(options, wdir, project):
     return dPhenomeRemove(project, options.organisms)
 
 def dclear(options, wdir, project):
+    from ductape.actions import dPhenomeClear
     if not touchProject(project):
         logger.warning('Nothing to be cleaned up!\n'+
                        'You can setup a new project by running %s init'%
@@ -224,6 +232,7 @@ def doClusterPhenome(project, cpu=1):
     return True
 
 def doMap2KEGG(project):
+    from ductape.kegg.kegg import CompMapper
     biolog = Biolog(project)
     compounds = ['cpd:'+co.co_id for co in biolog.getCompounds2Analyse()]
     if len(compounds) == 0:

@@ -6,7 +6,6 @@ Storage library
 
 SQLite Database wrappers
 """
-from Bio import SeqIO
 from ductape.storage.SQLite.dbstrings import dbcreate, dbboost
 from ductape.common.utils import get_span
 import logging
@@ -587,6 +586,8 @@ class Genome(DBBase):
         already been added, no warnings are thrown
         An exception is raised if the org_id is not present in the database
         '''
+        from Bio import SeqIO
+        
         # Is the organism present?
         oCheck = Organism(self.dbname)
         if not oCheck.isOrg(org_id):

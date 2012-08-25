@@ -10,7 +10,6 @@ All the actions required for the analysis
 import matplotlib
 matplotlib.use('Agg')
 #
-from Bio import SeqIO
 from ductape.common.utils import slice_it, rgb_to_hex
 from ductape.phenome.biolog import BiologParser, Plate, getSinglePlates, \
     BiologZero, zeroPlates, getPlates, Experiment
@@ -737,6 +736,8 @@ def dGenomeStats(project, svg=False, doPrint=True):
     return True
         
 def dGenomeExport(project):
+    from Bio import SeqIO
+    
     # Is there something to be exported?
     organism = Organism(project)
     

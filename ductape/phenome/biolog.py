@@ -13,9 +13,6 @@ matplotlib.use('Agg')
 from ductape.common.commonmultiprocess import CommonMultiProcess
 from ductape.common.commonthread import CommonThread
 from ductape.common.utils import smooth, compress
-from ductape.phenome.clustering import mean, kmeans
-from ductape.phenome.fitting import fitData, getFlex, getPlateau
-from scipy.integrate import trapz
 from matplotlib import cm
 import Queue
 import csv
@@ -201,6 +198,9 @@ class Well(object):
         Populates the parameters values for the experiment
         By default compression and smoothing are applied to save some time
         '''
+        from scipy.integrate import trapz
+        from ductape.phenome.fitting import fitData, getFlex, getPlateau
+        
         if not self.compressed and not noCompress:
             self.compress()
         if not self.smoothed and not noSmooth:
@@ -963,6 +963,8 @@ class Experiment(object):
         Perform the biolog data clusterizzation
         The data is divided in two chunks if Zero subtraction has been done
         '''
+        from ductape.phenome.clustering import mean, kmeans
+        
         if self.zero:
             dWells = {'zero':[],
                       'nonzero':[]}

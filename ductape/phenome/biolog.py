@@ -1074,7 +1074,7 @@ class Experiment(object):
                 
                 for i in range(len(k_nz_labels)):
                     who = dWells['nonzero'][i]
-                    who.activity = k_nz_labels[i]
+                    who.activity = dConvert[k_nz_labels[i]]
 
 class BiologParser(object):
     '''

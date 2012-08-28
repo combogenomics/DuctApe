@@ -2100,12 +2100,12 @@ class Biolog(DBBase):
                     insert = query1a + ', '.join(bs)+';'
                     conn.execute(insert)
                 
-            conn.execute('''update biolog_exp
-                        set model = null where model = '';''')
+                for bs in get_span(blist1, span=1):
+                    insert = query1 + ', '.join(bs)+';'
+                    conn.execute(insert)
             
-            for bs in get_span(blist1, span=1):
-                insert = query1 + ', '.join(bs)+';'
-                conn.execute(insert)
+            conn.execute('''update biolog_exp
+                            set model = null where model = '';''')
     
     def delWells(self, explist):
         '''

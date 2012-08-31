@@ -808,6 +808,7 @@ class Experiment(object):
         '''
         All the wells have no activity!
         '''
+        # TODO: distinguish between zero and nonzero
         for plate_id in self.plates:
             Plate = self.plates[plate_id]
             for strain, plates in Plate.strains.iteritems():

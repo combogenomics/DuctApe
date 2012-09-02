@@ -73,7 +73,8 @@ def dstart(options, wdir, project):
         return False
     
     # Clusterize the biolog experiment
-    if not doClusterPhenome(project, cpu=options.cpu):
+    if not doClusterPhenome(project, cpu=options.cpu,
+                            save_fig_clusters=options.f):
         logger.error('Phenome experiment could not be clustered!')
         return False
     
@@ -202,7 +203,7 @@ def dclear(options, wdir, project):
         return False
     return dPhenomeClear(project)
 
-def doClusterPhenome(project, cpu=1):
+def doClusterPhenome(project, cpu=1, save_fig_clusters=False):
     biolog = Biolog(project)
     # Get Plate Objects
     # TODO: here check the zero subtraction state? (it may be mixed up)
@@ -216,7 +217,7 @@ def doClusterPhenome(project, cpu=1):
 
     exp = Experiment(plates=plates, zero=isZero)
     
-    bclust = BiologCluster(exp, ncpus=cpu)
+    bclust = BiologCluster(exp, ncpus=cpu, save_fig_clusters=save_fig_clusters)
 
     if not RunThread(bclust):
         return False
@@ -332,6 +333,9 @@ def getOptions():
                             type=int,
                             default=1,
                             help='Number of CPUs to be used')
+    parser_start.add_argument('-f', action="store_true",
+                            default=False,
+                            help='Save intermediate clusters figures')
     parser_start.set_defaults(func=dstart)
     
     parser_plot = subparsers.add_parser('plot', help='Plot the phenomic data')

@@ -57,7 +57,7 @@ def plotClusters(X, clust, params=None, method='', prefix='clusters'):
     for ax in fig.axes:
         ax.get_xaxis().set_ticks([])
         ax.get_yaxis().set_ticks([])
-    fig.suptitle('Clusters: %d' % n_clusters_)
+    fig.suptitle('Clusters (%s, %s): %d' % (prefix, method, n_clusters_))
     fig.savefig('%s_%s.png'%(prefix,method),dpi=300)
 
 def mean(X, save_fig=False, params_labels=None, prefix='clusters'):
@@ -78,7 +78,8 @@ def mean(X, save_fig=False, params_labels=None, prefix='clusters'):
     labels = ms.labels_
     
     if save_fig:
-        plotClusters(X, ms, method='mean', prefix=prefix)
+        plotClusters(X, ms, method='mean', prefix=prefix,
+                     params=params_labels)
     
     labels_unique = np.unique(labels)
     n_clusters_ = len(labels_unique)
@@ -104,7 +105,8 @@ def kmeans(X, n_clusters=10, save_fig=False, params_labels=None, prefix='cluster
     labels = k_means.labels_
     
     if save_fig:
-        plotClusters(X, k_means, method='kmeans', prefix=prefix)
+        plotClusters(X, k_means, method='kmeans', prefix=prefix,
+                     params=params_labels)
     
     labels_unique = np.unique(labels)
     n_clusters_ = len(labels_unique)

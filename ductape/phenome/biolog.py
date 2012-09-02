@@ -974,6 +974,7 @@ class Experiment(object):
             dWells = {'nonzero':[]}
             dParams = {'nonzero':[]}
         
+        params_labels = ['max', 'area', 'height', 'lag', 'slope']
         for param in self.getWells():
             if self.zero and param.plate_id in zeroPlates:
                 dWells['zero'].append(param)
@@ -1013,13 +1014,17 @@ class Experiment(object):
         # Fixed KMeans to get an activity scale
         if self.zero and len(dParams['zero']) >= 1:
             xZero = [x for x in dParams['zero']]
-            m_z_labels = mean( xZero, save_fig=save_fig, prefix='zero' )
-            k_z_labels = kmeans( xZero, save_fig=save_fig, prefix='zero' )
+            m_z_labels = mean(xZero, save_fig=save_fig, prefix='zero',
+                               params_labels=params_labels)
+            k_z_labels = kmeans(xZero, save_fig=save_fig, prefix='zero',
+                                 params_labels=params_labels)
         
         if len(dParams['nonzero']) >= 1:
             xNonZero = [x for x in dParams['nonzero']]
-            m_nz_labels = mean( xNonZero, save_fig=save_fig, prefix='nonzero' )
-            k_nz_labels = kmeans( xNonZero, save_fig=save_fig, prefix='nonzero' )
+            m_nz_labels = mean(xNonZero, save_fig=save_fig, prefix='nonzero',
+                               params_labels=params_labels)
+            k_nz_labels = kmeans(xNonZero, save_fig=save_fig, prefix='nonzero',
+                                 params_labels=params_labels)
         
         if self.zero  and len(dParams['zero']) >= 1:
             m_z_nclusters = len(np.unique(m_z_labels))
@@ -1069,7 +1074,7 @@ class Experiment(object):
                 
                 for i in range(len(k_nz_labels)):
                     who = dWells['nonzero'][i]
-                    who.activity = k_nz_labels[i]
+                    who.activity = dConvert[k_nz_labels[i]]
 
 class BiologParser(object):
     '''
@@ -1579,10 +1584,13 @@ class BiologCluster(CommonMultiProcess):
     _substatuses = [1]
     
     def __init__(self,experiment,
-                 ncpus=1,queue=Queue.Queue()):
+                 ncpus=1,save_fig_clusters=False,queue=Queue.Queue()):
         CommonMultiProcess.__init__(self,ncpus,queue)
         # Experiment
         self.exp = experiment
+        
+        # Save clusters figure?
+        self.save_fig = bool(save_fig_clusters)
     
     def calculateParams(self):
         wellcount = 0
@@ -1651,7 +1659,7 @@ class BiologCluster(CommonMultiProcess):
             return
         
         self.updateStatus()
-        self.exp.clusterize()
+        self.exp.clusterize(self.save_fig)
 
 def getSinglePlates(binput, nonmean=False):
     '''

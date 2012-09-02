@@ -177,11 +177,12 @@ def dstats(options, wdir, project):
     # TODO
 
 def dexport(options, wdir, project):
+    from ductape.actions import dPhenomeExport
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
-    # TODO
+    return dPhenomeExport(project)
 
 def dremove(options, wdir, project):
     from ductape.actions import dPhenomeRemove

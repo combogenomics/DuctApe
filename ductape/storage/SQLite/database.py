@@ -1904,7 +1904,7 @@ class Biolog(DBBase):
         Get the titles for each well
         '''
         with self.connection as conn:
-            cursor=conn.execute('''select distinct plate_id, well_id, chemical
+            cursor=conn.execute('''select *
                                 from biolog;''')
         
         for res in cursor:

@@ -744,96 +744,115 @@ def dGenomeExport(project):
     if organism.howMany() == 0:
         logger.info('No genomic data can be exported at this time')
         return False
-    else:
-        logger.info('Exporting protein data')
+    
+    logger.info('Exporting protein data')
+    
+    genome = Genome(project)
+    
+    for org in organism.getAll():
+        nprots = SeqIO.write([x for x in genome.getRecords(org.org_id)],
+                    open('%s.faa'%org.org_id,'w'), 'fasta')
+        logger.info('Saved %d proteins from %s (%s)'%(nprots,
+                                                      org.org_id,
+                                                      '%s.faa'%org.org_id))
         
-        genome = Genome(project)
+    logger.info('Exporting Kegg data')
+    
+    logger.info('Exporting KO map data')
+    
+    kegg = Kegg(project)
+    
+    for org in organism.getAll():
+        fname = 'ko_%s.tsv'%org.org_id
+        fout = open(fname,'w')
+        i = 0
+        for prot_id, ko_id in kegg.getAllKO(org.org_id):
+            fout.write('%s\t%s\n'%(prot_id, ko_id.lstrip('ko:')))
+            i += 1
+        fout.close()
         
-        for org in organism.getAll():
-            nprots = SeqIO.write([x for x in genome.getRecords(org.org_id)],
-                        open('%s.faa'%org.org_id,'w'), 'fasta')
-            logger.info('Saved %d proteins from %s (%s)'%(nprots,
-                                                          org.org_id,
-                                                          '%s.faa'%org.org_id))
-            
-        logger.info('Exporting Kegg data')
+        if i == 0:
+            os.remove(fname)
+            logger.warning('No KO links available for %s'%org.org_id)
+        else:
+            logger.info('Saved %d KO links for %s (%s)'%(i, org.org_id,
+                                                     fname))
         
-        logger.info('Exporting KO map data')
+    logger.info('Exporting Kegg reactions data')
+    
+    for org in organism.getAll():
+        fname = 'reactions_%s.tsv'%org.org_id
+        fout = open(fname,'w')
+        i = 0
+        for prot_id, re_id in kegg.getAllReactions(org.org_id):
+            fout.write('%s\t%s\n'%(prot_id, re_id.lstrip('rn:')))
+            i += 1
+        fout.close()
         
-        kegg = Kegg(project)
+        if i == 0:
+            os.remove(fname)
+            logger.warning('No Kegg reactions available for %s'%org.org_id)
+        else:
+            logger.info('Saved %d Kegg reactions links for %s (%s)'%
+                    (i, org.org_id, fname))
         
-        for org in organism.getAll():
-            fname = 'ko_%s.tsv'%org.org_id
+    proj = Project(project)
+    
+    if proj.isPanGenome():
+        logger.info('Exporting pangenome data')
+        
+        dG = genome.getPanGenome()
+        if len(dG) == 0:
+            logger.warning('No pangenome available')
+        else:
+            fname = 'pangenome.tsv'
             fout = open(fname,'w')
-            i = 0
-            for prot_id, ko_id in kegg.getAllKO(org.org_id):
-                fout.write('%s\t%s\n'%(prot_id, ko_id.lstrip('ko:')))
-                i += 1
+            for group, prots in dG.iteritems():
+                for prot in prots:
+                    fout.write('%s\t%s\n'%(group,prot))
             fout.close()
             
-            if i == 0:
-                os.remove(fname)
-                logger.warning('No KO links available for %s'%org.org_id)
-            else:
-                logger.info('Saved %d KO links for %s (%s)'%(i, org.org_id,
-                                                         fname))
+            logger.info('Exported %d orthologs (%s)'%(len(dG),fname))
             
-        logger.info('Exporting Kegg reactions data')
-        
-        for org in organism.getAll():
-            fname = 'reactions_%s.tsv'%org.org_id
+            fname = 'pangenome_category.tsv'
             fout = open(fname,'w')
-            i = 0
-            for prot_id, re_id in kegg.getAllReactions(org.org_id):
-                fout.write('%s\t%s\n'%(prot_id, re_id.lstrip('rn:')))
-                i += 1
+            dG = genome.getPanGenomeOrgs()
+            for group in genome.getCore():
+                fout.write('%s\t%s\t%s\n'%(group.group_id,
+                                           'core',
+                                           '-'.join(dG[group.group_id])))
+            for group in genome.getAcc():
+                fout.write('%s\t%s\t%s\n'%(group.group_id,
+                                           'accessory',
+                                           '-'.join(dG[group.group_id])))
+            for group in genome.getUni():
+                fout.write('%s\t%s\t%s\n'%(group.group_id,
+                                           'unique',
+                                           '-'.join(dG[group.group_id])))
             fout.close()
             
-            if i == 0:
-                os.remove(fname)
-                logger.warning('No Kegg reactions available for %s'%org.org_id)
-            else:
-                logger.info('Saved %d Kegg reactions links for %s (%s)'%
-                        (i, org.org_id, fname))
-            
-        proj = Project(project)
-        
-        if proj.isPanGenome():
-            logger.info('Exporting pangenome data')
-            
-            dG = genome.getPanGenome()
-            if len(dG) == 0:
-                logger.warning('No pangenome available')
-            else:
-                fname = 'pangenome.tsv'
-                fout = open(fname,'w')
-                for group, prots in dG.iteritems():
-                    for prot in prots:
-                        fout.write('%s\t%s\n'%(group,prot))
-                fout.close()
-                
-                logger.info('Exported %d orthologs (%s)'%(len(dG),fname))
-                
-                fname = 'pangenome_category.tsv'
-                fout = open(fname,'w')
-                dG = genome.getPanGenomeOrgs()
-                for group in genome.getCore():
-                    fout.write('%s\t%s\t%s\n'%(group.group_id,
-                                               'core',
-                                               '-'.join(dG[group.group_id])))
-                for group in genome.getAcc():
-                    fout.write('%s\t%s\t%s\n'%(group.group_id,
-                                               'accessory',
-                                               '-'.join(dG[group.group_id])))
-                for group in genome.getUni():
-                    fout.write('%s\t%s\t%s\n'%(group.group_id,
-                                               'unique',
-                                               '-'.join(dG[group.group_id])))
-                fout.close()
-                
-                logger.info('Exported orthologs informations (%s)'%fname)
+            logger.info('Exported orthologs informations (%s)'%fname)
     
     return True
+
+def dPhenomeExport(project):
+    # Is there something to be exported?
+    organism = Organism(project)
+    
+    if organism.howMany() == 0:
+        logger.info('No phenomic data can be exported at this time')
+        return False
+    
+    logger.info('Exporting single organism(s) phenomic data')
+    
+    biolog = Biolog(project)
+    
+    for org in organism.getAll():
+        nexps=0
+        logger.info('Saved %d phenomic experiments from %s (%s)'%(nexps,
+                                                      org.org_id,
+                                                      '%s.tsv'%org.org_id))
+    
             
 def dSetKind(project):
     '''

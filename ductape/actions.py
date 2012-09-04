@@ -455,6 +455,8 @@ def dPanGenomeAdd(project, orthfile):
         orth = {}
         for l in open(orthfile):
             s = l.strip().split('\t')
+            if s[0].lstrip()[0] == '#':
+                continue
             if s[0] not in orth:
                 orth[s[0]] = []
             orth[s[0]].append(s[1])
@@ -767,6 +769,7 @@ def dGenomeExport(project):
     for org in organism.getAll():
         fname = 'ko_%s.tsv'%org.org_id
         fout = open(fname,'w')
+        fout.write('#%s\t%s\n'%('prot_id', 'ko_id'))
         i = 0
         for prot_id, ko_id in kegg.getAllKO(org.org_id):
             fout.write('%s\t%s\n'%(prot_id, ko_id.lstrip('ko:')))
@@ -785,6 +788,7 @@ def dGenomeExport(project):
     for org in organism.getAll():
         fname = 'reactions_%s.tsv'%org.org_id
         fout = open(fname,'w')
+        fout.write('#%s\t%s\n'%('prot_id', 're_id'))
         i = 0
         for prot_id, re_id in kegg.getAllReactions(org.org_id):
             fout.write('%s\t%s\n'%(prot_id, re_id.lstrip('rn:')))
@@ -809,6 +813,7 @@ def dGenomeExport(project):
         else:
             fname = 'pangenome.tsv'
             fout = open(fname,'w')
+            fout.write('#%s\t%s\n'%('orth_id', 'prot_id'))
             for group, prots in dG.iteritems():
                 for prot in prots:
                     fout.write('%s\t%s\n'%(group,prot))
@@ -818,6 +823,7 @@ def dGenomeExport(project):
             
             fname = 'pangenome_category.tsv'
             fout = open(fname,'w')
+            fout.write('#%s\t%s\t%s\n'%('orth_id', 'category', 'organism(s)'))
             dG = genome.getPanGenomeOrgs()
             for group in genome.getCore():
                 fout.write('%s\t%s\t%s\n'%(group.group_id,

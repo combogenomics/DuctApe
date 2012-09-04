@@ -20,7 +20,14 @@ def get_span(li, span=4):
     while i < len(li):
         yield li[i : i+span]
         i += span
-        
+
+# Borrowed from stackoverflow
+# python-most-idiomatic-way-to-convert-none-to-empty-string
+def xstr(s):
+    if s is None:
+        return ''
+    return str(s)
+
 # Borrowed from http://www.scipy.org/Cookbook/SignalSmooth
 def smooth(x,window_len=11,window='hanning'):
     """smooth the data using a window with requested size.

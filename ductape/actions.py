@@ -10,7 +10,7 @@ All the actions required for the analysis
 import matplotlib
 matplotlib.use('Agg')
 #
-from ductape.common.utils import slice_it, rgb_to_hex
+from ductape.common.utils import slice_it, rgb_to_hex, xstr
 from ductape.phenome.biolog import BiologParser, Plate, getSinglePlates, \
     BiologZero, zeroPlates, getPlates, Experiment
 from ductape.storage.SQLite.database import DBBase, Project, Genome, Organism, \
@@ -856,11 +856,61 @@ def dPhenomeExport(project):
     biolog = Biolog(project)
     
     for org in organism.getAll():
-        nexps=0
-        logger.info('Saved %d phenomic experiments from %s (%s)'%(nexps,
-                                                      org.org_id,
-                                                      '%s.tsv'%org.org_id))
-    
+        fname = 'phenome_%s.tsv'%org.org_id
+        fout = open(fname,'w')
+        fout.write('#' + '\t'.join(['plate_id', 'well_id', 'chemical',
+                                'category',
+                                'moa', 'co_id', 'replica', 'activity',
+                                'min', 'max', 'height', 'plateau', 'slope',
+                                'lag', 'area']) + '\n')
+        i = 0
+        for w in biolog.getOrgWells(org.org_id):
+            wdet = biolog.getWell(w.plate_id, w.well_id)
+            fout.write('\t'.join([xstr(x) for x in [w.plate_id, w.well_id, wdet.chemical,
+                                  wdet.category, wdet.moa, wdet.co_id]] +
+                                  [xstr(x) for x in [w.replica, w.activity,
+                                                    w.min, w.max, w.height,
+                                                    w.plateau, w.slope,
+                                                    w.lag, w.area]])
+                       + '\n')
+            i += 1
+        fout.close()
+        
+        if i == 0:
+            os.remove(fname)
+            logger.warning('No phenomic experiments available for %s'%org.org_id)
+        else:            
+            logger.info('Saved %d phenomic experiments from %s (%s)'%(i,
+                                                org.org_id,
+                                                'phenome_%s.tsv'%org.org_id))
+        
+        # Export the average activity if we have replicas
+        if biolog.howManyReplicasByOrg(org.org_id) > 1:
+            fname = 'phenome_avg_%s.tsv'%org.org_id
+            fout = open(fname,'w')
+            fout.write('#' + '\t'.join(['plate_id', 'well_id', 'chemical',
+                                    'category',
+                                    'moa', 'co_id', 'replica',
+                                    'avg activity']) + '\n')
+            i = 0
+            for w in biolog.getOrgDistinctWells(org.org_id):
+                wdet = biolog.getWell(w.plate_id, w.well_id)
+                fout.write('\t'.join([xstr(x) for x in [w.plate_id, w.well_id, wdet.chemical,
+                                      wdet.category, wdet.moa, wdet.co_id,
+                                      xstr(biolog.getAvgActivity(w.plate_id,
+                                                            w.well_id,
+                                                            org.org_id))]])
+                           + '\n')
+                i += 1
+            fout.close()            
+
+            if i == 0:
+                os.remove(fname)
+                logger.warning('No average phenomic experiments available for %s'%org.org_id)
+            else:            
+                logger.info('Saved average %d phenomic experiments from %s (%s)'%(i,
+                                                    org.org_id,
+                                                    'phenome_avg_%s.tsv'%org.org_id))
             
 def dSetKind(project):
     '''

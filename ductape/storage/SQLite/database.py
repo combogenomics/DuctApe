@@ -2171,8 +2171,11 @@ class Biolog(DBBase):
                                    and well_id=?;''',
                                   [org_id,plate_id, well_id,])
         
-        for res in cursor:
-            yield Row(res, cursor.description)      
+        try:
+            return float(cursor.fetchall()[0][0])      
+        except Exception, e:
+            import numpy as np
+            return np.nan
     
     def getAvgWellsByOrg(self, org_id):
         '''
@@ -2283,7 +2286,52 @@ class Biolog(DBBase):
                                            and org_id=?;''',[plate_id,
                                                              well_id,
                                                              org_id,])
-        return int(cursor.fetchall()[0][0])
+        return int(cursor.fetchall()[0][0])    
+    
+    def getOneWell(self, plate_id, well_id, org_id, replica):
+        '''
+        Get a precise well
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select *
+                                   from biolog_exp
+                                   where org_id=?
+                                   and plate_id=?
+                                   and well_id=?
+                                   and replica=?;''',[org_id,
+                                                      plate_id,
+                                                      well_id,
+                                                      replica,])
+        
+        data = cursor.fetchall()
+        if len(data) == 0:
+            return Row([], cursor.description)
+        else:
+            return Row(data[0], cursor.description)
+        
+    def getOrgsByWell(self, plate_id, well_id, replica=None):
+        '''
+        Get the organisms for a precise well
+        If replica is provided, only the org_id for that particular replica
+        are provided
+        '''
+        with self.connection as conn:
+            if not replica:
+                cursor=conn.execute('''select distinct org_id
+                                       from biolog_exp
+                                       where plate_id=?
+                                       and well_id=?;''',[plate_id,
+                                                      well_id,])
+            else:
+                cursor=conn.execute('''select distinct org_id
+                                       from biolog_exp
+                                       where plate_id=?
+                                       and well_id=?
+                                       and replica=?;''',[plate_id,
+                                                   well_id,
+                                                   replica,])                
+            
+        return [x[0] for x in cursor.fetchall()]
     
     def getAllWells(self):
         '''
@@ -2292,10 +2340,27 @@ class Biolog(DBBase):
         with self.connection as conn:
             cursor=conn.execute('''select *
                                    from biolog_exp
-                                   order by plate_id, well_id, replica;''')
+                                   order by plate_id, well_id, org_id, replica;''')
         
         for res in cursor:
             yield Row(res, cursor.description)
+    
+    def getDistinctWells(self, replica=False):
+        '''
+        Get the distinct wells identifiers (if replica=True, replica aware)
+        '''
+        with self.connection as conn:
+            if replica:
+                cursor=conn.execute('''select distinct plate_id, well_id, replica
+                                from biolog_exp
+                                order by plate_id, well_id, replica;''')
+            else:
+                cursor=conn.execute('''select distinct plate_id, well_id
+                                        from biolog_exp
+                                        order by plate_id, well_id;''')                
+        
+        for res in cursor:
+            yield Row(res, cursor.description)        
     
     def getOrgDistinctWells(self, org_id):
         '''

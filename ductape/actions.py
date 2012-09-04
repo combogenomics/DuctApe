@@ -851,6 +851,9 @@ def dPhenomeExport(project):
         logger.info('No phenomic data can be exported at this time')
         return False
     
+    # Which project are we talking about?
+    kind = dSetKind(project)    
+    
     logger.info('Exporting single organism(s) phenomic data')
     
     biolog = Biolog(project)
@@ -906,11 +909,160 @@ def dPhenomeExport(project):
 
             if i == 0:
                 os.remove(fname)
-                logger.warning('No average phenomic experiments available for %s'%org.org_id)
+                logger.warning('No average phenomic experiments available'%org.org_id)
             else:            
-                logger.info('Saved average %d phenomic experiments from %s (%s)'%(i,
+                logger.info('Saved %d average phenomic experiments from %s (%s)'%(i,
                                                     org.org_id,
                                                     'phenome_avg_%s.tsv'%org.org_id))
+    
+    if kind == 'pangenome':
+        logger.info('Exporting combined phenomes')
+        
+        fname = 'phenome_combined.tsv'
+        fout = open(fname,'w')
+        fout.write('#' + '\t'.join(['', '', '','','', '', '',
+                                            'activity']) + '\n')            
+        fout.write('#' + '\t'.join(['plate_id', 'well_id', 'chemical',
+                                'category',
+                                'moa', 'co_id', 'replica'] +
+                                [x.org_id for x in organism.getAll()])
+                   + '\n')        
+        
+        i = 0
+        for w in biolog.getDistinctWells(replica=True):
+            wdet = biolog.getWell(w.plate_id, w.well_id)
+            fout.write('\t'.join([xstr(x) for x in [w.plate_id, w.well_id, wdet.chemical,
+                                wdet.category, wdet.moa, wdet.co_id,
+                                w.replica]] +
+                                [xstr(biolog.getOneWell(w.plate_id, w.well_id,
+                                                   x.org_id, w.replica).activity)
+                                 for x in organism.getAll()]) + '\n')
+            i += 1
+        fout.close()            
+
+        if i == 0:
+            os.remove(fname)
+            logger.warning('No combined phenomic experiments available')
+        else:            
+            logger.info('Saved %d combined phenomic experiments (%s)'%(i,
+                        'phenome_combined.tsv'))
+            
+        # Export the average activity if we have replicas
+        if biolog.howManyReplicas() > 1:
+            i = 0
+            fname = 'phenome_avg_combined.tsv'
+            fout = open(fname,'w')
+            fout.write('#' + '\t'.join(['', '', '','','', '', '',
+                                                'avg activity']) + '\n')            
+            fout.write('#' + '\t'.join(['plate_id', 'well_id', 'chemical',
+                                    'category',
+                                    'moa', 'co_id'] +
+                                    [x.org_id for x in organism.getAll()])
+                       + '\n')        
+            
+            for w in biolog.getDistinctWells(replica=False):
+                wdet = biolog.getWell(w.plate_id, w.well_id)
+                fout.write('\t'.join([xstr(x) for x in [w.plate_id, w.well_id, wdet.chemical,
+                                    wdet.category, wdet.moa, wdet.co_id]] +
+                                    [xstr(biolog.getAvgActivity(w.plate_id,
+                                                                w.well_id,
+                                                                x.org_id))
+                                     for x in organism.getAll()]) + '\n')
+                i += 1
+            fout.close()            
+    
+            if i == 0:
+                os.remove(fname)
+                logger.warning('No combined average phenomic experiments available')
+            else:            
+                logger.info('Saved %d combined average phenomic experiments (%s)'%(i,
+                            'phenome_avg_combined.tsv'))
+    
+    elif kind == 'mutants':
+        logger.info('Exporting combined phenomes')
+        
+        refs = [org.org_id
+                for org in organism.getAll()
+                if not organism.isMutant(org.org_id)]
+        
+        fname = 'phenome_combined.tsv'
+        fout = open(fname,'w')
+        fout.write('#' + '\t'.join(['', '', '','','', '', '',
+                                            'activity']) + '\n')            
+        fout.write('#' + '\t'.join(['plate_id', 'well_id', 'chemical',
+                                'category',
+                                'moa', 'co_id', 'replica']))
+
+        for ref in refs:
+            fout.write('\t' + '\t'.join([ref] + [x for x in organism.getOrgMutants(ref)]))
+        fout.write('\n')
+        
+        i = 0
+        for w in biolog.getDistinctWells(replica=True):
+            wdet = biolog.getWell(w.plate_id, w.well_id)
+            fout.write('\t'.join([xstr(x) for x in [w.plate_id, w.well_id, wdet.chemical,
+                                wdet.category, wdet.moa, wdet.co_id,
+                                w.replica]]))
+            for ref in refs:
+                fout.write('\t' + '\t'.join([xstr(biolog.getOneWell(w.plate_id,
+                                                w.well_id,
+                                                ref,
+                                                w.replica).activity)] + 
+                                            [xstr(biolog.getOneWell(w.plate_id,
+                                                w.well_id,
+                                                x,
+                                                w.replica).activity)
+                                             for x in organism.getOrgMutants(ref)]))
+            fout.write('\n')
+            i += 1
+        fout.close()            
+
+        if i == 0:
+            os.remove(fname)
+            logger.warning('No combined phenomic experiments available')
+        else:            
+            logger.info('Saved %d combined phenomic experiments (%s)'%(i,
+                        'phenome_combined.tsv'))
+        
+        # Export the average activity if we have replicas
+        if biolog.howManyReplicas() > 1:
+            i = 0
+            fname = 'phenome_avg_combined.tsv'
+            fout = open(fname,'w')
+            fout.write('#' + '\t'.join(['', '', '','','', '', '',
+                                                'avg activity and deltas']) + '\n')            
+            fout.write('#' + '\t'.join(['plate_id', 'well_id', 'chemical',
+                                    'category',
+                                    'moa', 'co_id']))
+    
+            for ref in refs:
+                fout.write('\t' + '\t'.join([ref] + [x for x in organism.getOrgMutants(ref)]))
+            fout.write('\n')
+            
+            for w in biolog.getDistinctWells(replica=False):
+                wdet = biolog.getWell(w.plate_id, w.well_id)
+                fout.write('\t'.join([xstr(x) for x in [w.plate_id, w.well_id, wdet.chemical,
+                                    wdet.category, wdet.moa, wdet.co_id]]))
+                for ref in refs:
+                    ref_act = biolog.getAvgActivity(w.plate_id, w.well_id, ref)
+                    fout.write('\t' + '\t'.join([xstr(ref_act)] + 
+                                                [xstr(ref_act - biolog.getAvgActivity(
+                                                    w.plate_id,
+                                                    w.well_id,
+                                                    x))
+                                                 for x in organism.getOrgMutants(ref)]))
+                fout.write('\n')
+                i += 1
+            fout.close()            
+    
+            if i == 0:
+                os.remove(fname)
+                logger.warning('No combined average phenomic experiments available')
+            else:            
+                logger.info('Saved %d combined average phenomic experiments (%s)'%(i,
+                            'phenome_avg_combined.tsv'))        
+                       
+    return True
             
 def dSetKind(project):
     '''

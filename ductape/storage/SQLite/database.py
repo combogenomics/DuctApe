@@ -32,7 +32,10 @@ class Row(object):
     '''
     def __init__(self, data, description):
         for field in description:
-            self.__setattr__(field[0],data[description.index(field)])
+            try:
+                self.__setattr__(field[0],data[description.index(field)])
+            except:
+                self.__setattr__(field[0],None)
 
 class DBBase(object):
     '''
@@ -321,7 +324,7 @@ class Organism(DBBase):
         Returns a list of Row objects about all the organisms
         '''
         with self.connection as conn:
-            cursor=conn.execute('select * from organism')
+            cursor=conn.execute('select * from organism order by org_id')
             
         for res in cursor:
             yield Row(res, cursor.description)
@@ -621,7 +624,7 @@ class Genome(DBBase):
         
         data = cursor.fetchall()
         if len(data) == 0:
-            return None
+            return Row([], cursor.description)
         else:
             return Row(data[0], cursor.description)
         
@@ -706,7 +709,7 @@ class Genome(DBBase):
         
         data = cursor.fetchall()
         if len(data) == 0:
-            return None
+            return Row([], cursor.description)
         else:
             return Row(data[0], cursor.description)
     
@@ -1898,7 +1901,7 @@ class Biolog(DBBase):
         
         data = cursor.fetchall()
         if len(data) == 0:
-            return None
+            return Row([], cursor.description)
         else:
             return Row(data[0], cursor.description)
         
@@ -1974,7 +1977,7 @@ class Biolog(DBBase):
         
         data = cursor.fetchall()
         if len(data) == 0:
-            return None
+            return Row([], cursor.description)
         else:
             return Row(data[0], cursor.description)
         
@@ -2269,9 +2272,10 @@ class Biolog(DBBase):
         How many replicas do we have for my organism?
         '''
         with self.connection as conn:
-                    cursor=conn.execute('''select count(distinct replica)
-                                           from biolog_exp
-                                           where org_id=?;''',[org_id,])
+            cursor=conn.execute('''select count(distinct replica)
+                                   from biolog_exp
+                                   where org_id=?;''',[org_id,])
+
         return int(cursor.fetchall()[0][0])
     
     def howManyReplicasByWell(self, plate_id, well_id, org_id):

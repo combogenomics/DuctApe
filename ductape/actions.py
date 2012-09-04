@@ -160,6 +160,7 @@ def dPhenomeAdd(project, orgID, filename):
         logger.info('''Using it anyway to add this data''')
     
     # Prepare a series of Plate objects to catch the replicas
+    # (replicas will be handled by the db tough)
     dPlates={}
     for plate in bparser.plates:
         if plate.plate_id not in dPlates:
@@ -223,6 +224,7 @@ def dPhenomeMultiAdd(project, filename):
             continue
         
         # Prepare a series of Plate objects to catch the replicas
+        # (replicas will be handled by the db tough)
         dPlates={}
         for plate in bparser.plates:
             if plate.strain == orgID:
@@ -522,7 +524,7 @@ def dPhenomeZero(project, blankfile=None):
     
     # Add to the project
     biolog = Biolog(project)
-    biolog.addWells(wells, clustered=False)
+    biolog.addWells(wells, clustered=False, replace=True)
     
     logger.info('Zero subtraction done on %d plates'%len(plates))
     if biolog.atLeastOneParameter():

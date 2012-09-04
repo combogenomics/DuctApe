@@ -227,7 +227,7 @@ def doClusterPhenome(project, cpu=1, save_fig_clusters=False):
     for w in wells:
         if biolog.isZeroSubtracted(w.plate_id, w.well_id, w.strain, w.replica):
             w.zero = True
-    biolog.addWells(wells, clustered=True)
+    biolog.addWells(wells, clustered=True, replace=True)
     
     logger.info('Analyzed and clustered %d phenomic experiments'%len(wells))
     

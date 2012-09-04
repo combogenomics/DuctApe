@@ -2032,13 +2032,15 @@ class Biolog(DBBase):
         for res in cursor:
             yield Row(res, cursor.description)
     
-    def addWells(self, explist, clustered=True):
+    def addWells(self, explist, clustered=True, replace=False):
         '''
         Input: a series of Well objects
         If clustered = True, it is assumed that we have generated the 
         activity parameters and calculated the activity index
+        If replace = True, we are merely updating a well
         Checks are performed
         '''
+        
         query = '''insert or replace into biolog_exp 
                             (plate_id, well_id, org_id, replica, activity, 
                             zero, min, max, height, plateau, slope, lag,
@@ -2067,6 +2069,13 @@ class Biolog(DBBase):
             if w.activity is None and clustered:
                 logger.warning('Parameters extraction not yet performed!')
                 raise Exception('Parameters extraction not yet performed!')
+        
+        if not clustered and not replace:
+            # Correct the replica
+            for w in explist:
+                rep = self.howManyReplicasByWell(w.plate_id, w.well_id,
+                                                 w.strain)
+                w.replica = int(w.replica) + rep
         
         self.boost()
         

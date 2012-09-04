@@ -851,12 +851,18 @@ def dPhenomeExport(project):
         logger.info('No phenomic data can be exported at this time')
         return False
     
+    biolog = Biolog(project)
+    
+    # Check!
+    if biolog.atLeastOneNoParameter():
+        logger.warning('The activity index must be calculated first (run %s start)'%
+                        __prog__)
+        return False    
+    
     # Which project are we talking about?
     kind = dSetKind(project)    
     
     logger.info('Exporting single organism(s) phenomic data')
-    
-    biolog = Biolog(project)
     
     for org in organism.getAll():
         fname = 'phenome_%s.tsv'%org.org_id

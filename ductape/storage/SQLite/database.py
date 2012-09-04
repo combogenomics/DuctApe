@@ -6,6 +6,8 @@ Storage library
 
 SQLite Database wrappers
 """
+# TODO: decorator to catch SQLite exceptions
+
 from ductape.storage.SQLite.dbstrings import dbcreate, dbboost
 from ductape.common.utils import get_span
 import logging
@@ -1880,7 +1882,8 @@ class Biolog(DBBase):
     
     def getWells(self):
         with self.connection as conn:
-            cursor=conn.execute('select distinct well_id from biolog order by well_id;')
+            cursor=conn.execute('''select distinct well_id
+                                   from biolog order by well_id;''')
         
         for res in cursor:
             yield Row(res, cursor.description)
@@ -1905,7 +1908,8 @@ class Biolog(DBBase):
         '''
         with self.connection as conn:
             cursor=conn.execute('''select *
-                                from biolog;''')
+                                from biolog
+                                order by plate_id, well_id;''')
         
         for res in cursor:
             yield Row(res, cursor.description)

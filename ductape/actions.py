@@ -10,7 +10,7 @@ All the actions required for the analysis
 import matplotlib
 matplotlib.use('Agg')
 #
-from ductape.common.utils import slice_it, rgb_to_hex
+from ductape.common.utils import slice_it, rgb_to_hex, xstr
 from ductape.phenome.biolog import BiologParser, Plate, getSinglePlates, \
     BiologZero, zeroPlates, getPlates, Experiment
 from ductape.storage.SQLite.database import DBBase, Project, Genome, Organism, \
@@ -160,6 +160,7 @@ def dPhenomeAdd(project, orgID, filename):
         logger.info('''Using it anyway to add this data''')
     
     # Prepare a series of Plate objects to catch the replicas
+    # (replicas will be handled by the db tough)
     dPlates={}
     for plate in bparser.plates:
         if plate.plate_id not in dPlates:
@@ -223,6 +224,7 @@ def dPhenomeMultiAdd(project, filename):
             continue
         
         # Prepare a series of Plate objects to catch the replicas
+        # (replicas will be handled by the db tough)
         dPlates={}
         for plate in bparser.plates:
             if plate.strain == orgID:
@@ -453,6 +455,8 @@ def dPanGenomeAdd(project, orthfile):
         orth = {}
         for l in open(orthfile):
             s = l.strip().split('\t')
+            if s[0].lstrip()[0] == '#':
+                continue
             if s[0] not in orth:
                 orth[s[0]] = []
             orth[s[0]].append(s[1])
@@ -522,7 +526,7 @@ def dPhenomeZero(project, blankfile=None):
     
     # Add to the project
     biolog = Biolog(project)
-    biolog.addWells(wells, clustered=False)
+    biolog.addWells(wells, clustered=False, replace=True)
     
     logger.info('Zero subtraction done on %d plates'%len(plates))
     if biolog.atLeastOneParameter():
@@ -744,95 +748,326 @@ def dGenomeExport(project):
     if organism.howMany() == 0:
         logger.info('No genomic data can be exported at this time')
         return False
-    else:
-        logger.info('Exporting protein data')
-        
-        genome = Genome(project)
-        
-        for org in organism.getAll():
-            nprots = SeqIO.write([x for x in genome.getRecords(org.org_id)],
-                        open('%s.faa'%org.org_id,'w'), 'fasta')
-            logger.info('Saved %d proteins from %s (%s)'%(nprots,
-                                                          org.org_id,
-                                                          '%s.faa'%org.org_id))
-            
-        logger.info('Exporting Kegg data')
-        
-        logger.info('Exporting KO map data')
-        
-        kegg = Kegg(project)
-        
-        for org in organism.getAll():
-            fname = 'ko_%s.tsv'%org.org_id
-            fout = open(fname,'w')
-            i = 0
-            for prot_id, ko_id in kegg.getAllKO(org.org_id):
-                fout.write('%s\t%s\n'%(prot_id, ko_id.lstrip('ko:')))
-                i += 1
-            fout.close()
-            
-            if i == 0:
-                os.remove(fname)
-                logger.warning('No KO links available for %s'%org.org_id)
-            else:
-                logger.info('Saved %d KO links for %s (%s)'%(i, org.org_id,
-                                                         fname))
-            
-        logger.info('Exporting Kegg reactions data')
-        
-        for org in organism.getAll():
-            fname = 'reactions_%s.tsv'%org.org_id
-            fout = open(fname,'w')
-            i = 0
-            for prot_id, re_id in kegg.getAllReactions(org.org_id):
-                fout.write('%s\t%s\n'%(prot_id, re_id.lstrip('rn:')))
-                i += 1
-            fout.close()
-            
-            if i == 0:
-                os.remove(fname)
-                logger.warning('No Kegg reactions available for %s'%org.org_id)
-            else:
-                logger.info('Saved %d Kegg reactions links for %s (%s)'%
-                        (i, org.org_id, fname))
-            
-        proj = Project(project)
-        
-        if proj.isPanGenome():
-            logger.info('Exporting pangenome data')
-            
-            dG = genome.getPanGenome()
-            if len(dG) == 0:
-                logger.warning('No pangenome available')
-            else:
-                fname = 'pangenome.tsv'
-                fout = open(fname,'w')
-                for group, prots in dG.iteritems():
-                    for prot in prots:
-                        fout.write('%s\t%s\n'%(group,prot))
-                fout.close()
-                
-                logger.info('Exported %d orthologs (%s)'%(len(dG),fname))
-                
-                fname = 'pangenome_category.tsv'
-                fout = open(fname,'w')
-                dG = genome.getPanGenomeOrgs()
-                for group in genome.getCore():
-                    fout.write('%s\t%s\t%s\n'%(group.group_id,
-                                               'core',
-                                               '-'.join(dG[group.group_id])))
-                for group in genome.getAcc():
-                    fout.write('%s\t%s\t%s\n'%(group.group_id,
-                                               'accessory',
-                                               '-'.join(dG[group.group_id])))
-                for group in genome.getUni():
-                    fout.write('%s\t%s\t%s\n'%(group.group_id,
-                                               'unique',
-                                               '-'.join(dG[group.group_id])))
-                fout.close()
-                
-                logger.info('Exported orthologs informations (%s)'%fname)
     
+    logger.info('Exporting protein data')
+    
+    genome = Genome(project)
+    
+    for org in organism.getAll():
+        nprots = SeqIO.write([x for x in genome.getRecords(org.org_id)],
+                    open('%s.faa'%org.org_id,'w'), 'fasta')
+        logger.info('Saved %d proteins from %s (%s)'%(nprots,
+                                                      org.org_id,
+                                                      '%s.faa'%org.org_id))
+        
+    logger.info('Exporting Kegg data')
+    
+    logger.info('Exporting KO map data')
+    
+    kegg = Kegg(project)
+    
+    for org in organism.getAll():
+        fname = 'ko_%s.tsv'%org.org_id
+        fout = open(fname,'w')
+        fout.write('#%s\t%s\n'%('prot_id', 'ko_id'))
+        i = 0
+        for prot_id, ko_id in kegg.getAllKO(org.org_id):
+            fout.write('%s\t%s\n'%(prot_id, ko_id.lstrip('ko:')))
+            i += 1
+        fout.close()
+        
+        if i == 0:
+            os.remove(fname)
+            logger.warning('No KO links available for %s'%org.org_id)
+        else:
+            logger.info('Saved %d KO links for %s (%s)'%(i, org.org_id,
+                                                     fname))
+        
+    logger.info('Exporting Kegg reactions data')
+    
+    for org in organism.getAll():
+        fname = 'reactions_%s.tsv'%org.org_id
+        fout = open(fname,'w')
+        fout.write('#%s\t%s\n'%('prot_id', 're_id'))
+        i = 0
+        for prot_id, re_id in kegg.getAllReactions(org.org_id):
+            fout.write('%s\t%s\n'%(prot_id, re_id.lstrip('rn:')))
+            i += 1
+        fout.close()
+        
+        if i == 0:
+            os.remove(fname)
+            logger.warning('No Kegg reactions available for %s'%org.org_id)
+        else:
+            logger.info('Saved %d Kegg reactions links for %s (%s)'%
+                    (i, org.org_id, fname))
+        
+    proj = Project(project)
+    
+    if proj.isPanGenome():
+        logger.info('Exporting pangenome data')
+        
+        dG = genome.getPanGenome()
+        if len(dG) == 0:
+            logger.warning('No pangenome available')
+        else:
+            fname = 'pangenome.tsv'
+            fout = open(fname,'w')
+            fout.write('#%s\t%s\n'%('orth_id', 'prot_id'))
+            for group, prots in dG.iteritems():
+                for prot in prots:
+                    fout.write('%s\t%s\n'%(group,prot))
+            fout.close()
+            
+            logger.info('Exported %d orthologs (%s)'%(len(dG),fname))
+            
+            fname = 'pangenome_category.tsv'
+            fout = open(fname,'w')
+            fout.write('#%s\t%s\t%s\n'%('orth_id', 'category', 'organism(s)'))
+            dG = genome.getPanGenomeOrgs()
+            for group in genome.getCore():
+                fout.write('%s\t%s\t%s\n'%(group.group_id,
+                                           'core',
+                                           '-'.join(dG[group.group_id])))
+            for group in genome.getAcc():
+                fout.write('%s\t%s\t%s\n'%(group.group_id,
+                                           'accessory',
+                                           '-'.join(dG[group.group_id])))
+            for group in genome.getUni():
+                fout.write('%s\t%s\t%s\n'%(group.group_id,
+                                           'unique',
+                                           '-'.join(dG[group.group_id])))
+            fout.close()
+            
+            logger.info('Exported orthologs informations (%s)'%fname)
+    
+    return True
+
+def dPhenomeExport(project):
+    # Is there something to be exported?
+    organism = Organism(project)
+    
+    if organism.howMany() == 0:
+        logger.info('No phenomic data can be exported at this time')
+        return False
+    
+    biolog = Biolog(project)
+    
+    # Check!
+    if biolog.atLeastOneNoParameter():
+        logger.warning('The activity index must be calculated first (run %s start)'%
+                        __prog__)
+        return False    
+    
+    # Which project are we talking about?
+    kind = dSetKind(project)    
+    
+    logger.info('Exporting single organism(s) phenomic data')
+    
+    for org in organism.getAll():
+        fname = 'phenome_%s.tsv'%org.org_id
+        fout = open(fname,'w')
+        fout.write('#' + '\t'.join(['plate_id', 'well_id', 'chemical',
+                                'category',
+                                'moa', 'co_id', 'replica', 'activity',
+                                'min', 'max', 'height', 'plateau', 'slope',
+                                'lag', 'area']) + '\n')
+        i = 0
+        for w in biolog.getOrgWells(org.org_id):
+            wdet = biolog.getWell(w.plate_id, w.well_id)
+            fout.write('\t'.join([xstr(x) for x in [w.plate_id, w.well_id, wdet.chemical,
+                                  wdet.category, wdet.moa, wdet.co_id]] +
+                                  [xstr(x) for x in [w.replica, w.activity,
+                                                    w.min, w.max, w.height,
+                                                    w.plateau, w.slope,
+                                                    w.lag, w.area]])
+                       + '\n')
+            i += 1
+        fout.close()
+        
+        if i == 0:
+            os.remove(fname)
+            logger.warning('No phenomic experiments available for %s'%org.org_id)
+        else:            
+            logger.info('Saved %d phenomic experiments from %s (%s)'%(i,
+                                                org.org_id,
+                                                'phenome_%s.tsv'%org.org_id))
+        
+        # Export the average activity if we have replicas
+        if biolog.howManyReplicasByOrg(org.org_id) > 1:
+            fname = 'phenome_avg_%s.tsv'%org.org_id
+            fout = open(fname,'w')
+            fout.write('#' + '\t'.join(['plate_id', 'well_id', 'chemical',
+                                    'category',
+                                    'moa', 'co_id', 'replica',
+                                    'avg activity']) + '\n')
+            i = 0
+            for w in biolog.getOrgDistinctWells(org.org_id):
+                wdet = biolog.getWell(w.plate_id, w.well_id)
+                fout.write('\t'.join([xstr(x) for x in [w.plate_id, w.well_id, wdet.chemical,
+                                      wdet.category, wdet.moa, wdet.co_id,
+                                      xstr(biolog.getAvgActivity(w.plate_id,
+                                                            w.well_id,
+                                                            org.org_id))]])
+                           + '\n')
+                i += 1
+            fout.close()            
+
+            if i == 0:
+                os.remove(fname)
+                logger.warning('No average phenomic experiments available'%org.org_id)
+            else:            
+                logger.info('Saved %d average phenomic experiments from %s (%s)'%(i,
+                                                    org.org_id,
+                                                    'phenome_avg_%s.tsv'%org.org_id))
+    
+    if kind == 'pangenome':
+        logger.info('Exporting combined phenomes')
+        
+        fname = 'phenome_combined.tsv'
+        fout = open(fname,'w')
+        fout.write('#' + '\t'.join(['', '', '','','', '', '',
+                                            'activity']) + '\n')            
+        fout.write('#' + '\t'.join(['plate_id', 'well_id', 'chemical',
+                                'category',
+                                'moa', 'co_id', 'replica'] +
+                                [x.org_id for x in organism.getAll()])
+                   + '\n')        
+        
+        i = 0
+        for w in biolog.getDistinctWells(replica=True):
+            wdet = biolog.getWell(w.plate_id, w.well_id)
+            fout.write('\t'.join([xstr(x) for x in [w.plate_id, w.well_id, wdet.chemical,
+                                wdet.category, wdet.moa, wdet.co_id,
+                                w.replica]] +
+                                [xstr(biolog.getOneWell(w.plate_id, w.well_id,
+                                                   x.org_id, w.replica).activity)
+                                 for x in organism.getAll()]) + '\n')
+            i += 1
+        fout.close()            
+
+        if i == 0:
+            os.remove(fname)
+            logger.warning('No combined phenomic experiments available')
+        else:            
+            logger.info('Saved %d combined phenomic experiments (%s)'%(i,
+                        'phenome_combined.tsv'))
+            
+        # Export the average activity if we have replicas
+        if biolog.howManyReplicas() > 1:
+            i = 0
+            fname = 'phenome_avg_combined.tsv'
+            fout = open(fname,'w')
+            fout.write('#' + '\t'.join(['', '', '','','', '', '',
+                                                'avg activity']) + '\n')            
+            fout.write('#' + '\t'.join(['plate_id', 'well_id', 'chemical',
+                                    'category',
+                                    'moa', 'co_id'] +
+                                    [x.org_id for x in organism.getAll()])
+                       + '\n')        
+            
+            for w in biolog.getDistinctWells(replica=False):
+                wdet = biolog.getWell(w.plate_id, w.well_id)
+                fout.write('\t'.join([xstr(x) for x in [w.plate_id, w.well_id, wdet.chemical,
+                                    wdet.category, wdet.moa, wdet.co_id]] +
+                                    [xstr(biolog.getAvgActivity(w.plate_id,
+                                                                w.well_id,
+                                                                x.org_id))
+                                     for x in organism.getAll()]) + '\n')
+                i += 1
+            fout.close()            
+    
+            if i == 0:
+                os.remove(fname)
+                logger.warning('No combined average phenomic experiments available')
+            else:            
+                logger.info('Saved %d combined average phenomic experiments (%s)'%(i,
+                            'phenome_avg_combined.tsv'))
+    
+    elif kind == 'mutants':
+        logger.info('Exporting combined phenomes')
+        
+        refs = [org.org_id
+                for org in organism.getAll()
+                if not organism.isMutant(org.org_id)]
+        
+        fname = 'phenome_combined.tsv'
+        fout = open(fname,'w')
+        fout.write('#' + '\t'.join(['', '', '','','', '', '',
+                                            'activity']) + '\n')            
+        fout.write('#' + '\t'.join(['plate_id', 'well_id', 'chemical',
+                                'category',
+                                'moa', 'co_id', 'replica']))
+
+        for ref in refs:
+            fout.write('\t' + '\t'.join([ref] + [x for x in organism.getOrgMutants(ref)]))
+        fout.write('\n')
+        
+        i = 0
+        for w in biolog.getDistinctWells(replica=True):
+            wdet = biolog.getWell(w.plate_id, w.well_id)
+            fout.write('\t'.join([xstr(x) for x in [w.plate_id, w.well_id, wdet.chemical,
+                                wdet.category, wdet.moa, wdet.co_id,
+                                w.replica]]))
+            for ref in refs:
+                fout.write('\t' + '\t'.join([xstr(biolog.getOneWell(w.plate_id,
+                                                w.well_id,
+                                                ref,
+                                                w.replica).activity)] + 
+                                            [xstr(biolog.getOneWell(w.plate_id,
+                                                w.well_id,
+                                                x,
+                                                w.replica).activity)
+                                             for x in organism.getOrgMutants(ref)]))
+            fout.write('\n')
+            i += 1
+        fout.close()            
+
+        if i == 0:
+            os.remove(fname)
+            logger.warning('No combined phenomic experiments available')
+        else:            
+            logger.info('Saved %d combined phenomic experiments (%s)'%(i,
+                        'phenome_combined.tsv'))
+        
+        # Export the average activity if we have replicas
+        if biolog.howManyReplicas() > 1:
+            i = 0
+            fname = 'phenome_avg_combined.tsv'
+            fout = open(fname,'w')
+            fout.write('#' + '\t'.join(['', '', '','','', '', '',
+                                                'avg activity and deltas']) + '\n')            
+            fout.write('#' + '\t'.join(['plate_id', 'well_id', 'chemical',
+                                    'category',
+                                    'moa', 'co_id']))
+    
+            for ref in refs:
+                fout.write('\t' + '\t'.join([ref] + [x for x in organism.getOrgMutants(ref)]))
+            fout.write('\n')
+            
+            for w in biolog.getDistinctWells(replica=False):
+                wdet = biolog.getWell(w.plate_id, w.well_id)
+                fout.write('\t'.join([xstr(x) for x in [w.plate_id, w.well_id, wdet.chemical,
+                                    wdet.category, wdet.moa, wdet.co_id]]))
+                for ref in refs:
+                    ref_act = biolog.getAvgActivity(w.plate_id, w.well_id, ref)
+                    fout.write('\t' + '\t'.join([xstr(ref_act)] + 
+                                                [xstr(ref_act - biolog.getAvgActivity(
+                                                    w.plate_id,
+                                                    w.well_id,
+                                                    x))
+                                                 for x in organism.getOrgMutants(ref)]))
+                fout.write('\n')
+                i += 1
+            fout.close()            
+    
+            if i == 0:
+                os.remove(fname)
+                logger.warning('No combined average phenomic experiments available')
+            else:            
+                logger.info('Saved %d combined average phenomic experiments (%s)'%(i,
+                            'phenome_avg_combined.tsv'))        
+                       
     return True
             
 def dSetKind(project):

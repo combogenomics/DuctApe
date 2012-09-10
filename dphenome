@@ -178,11 +178,12 @@ def dstats(options, wdir, project):
     # TODO
 
 def dexport(options, wdir, project):
+    from ductape.actions import dPhenomeExport
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
-    # TODO
+    return dPhenomeExport(project)
 
 def dremove(options, wdir, project):
     from ductape.actions import dPhenomeRemove
@@ -226,7 +227,7 @@ def doClusterPhenome(project, cpu=1, save_fig_clusters=False):
     for w in wells:
         if biolog.isZeroSubtracted(w.plate_id, w.well_id, w.strain, w.replica):
             w.zero = True
-    biolog.addWells(wells, clustered=True)
+    biolog.addWells(wells, clustered=True, replace=True)
     
     logger.info('Analyzed and clustered %d phenomic experiments'%len(wells))
     

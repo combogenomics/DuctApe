@@ -6,6 +6,8 @@ Storage library
 
 SQLite Database wrappers
 """
+# TODO: decorator to catch SQLite exceptions
+
 from ductape.storage.SQLite.dbstrings import dbcreate, dbboost
 from ductape.common.utils import get_span
 import logging
@@ -30,7 +32,10 @@ class Row(object):
     '''
     def __init__(self, data, description):
         for field in description:
-            self.__setattr__(field[0],data[description.index(field)])
+            try:
+                self.__setattr__(field[0],data[description.index(field)])
+            except:
+                self.__setattr__(field[0],None)
 
 class DBBase(object):
     '''
@@ -319,7 +324,7 @@ class Organism(DBBase):
         Returns a list of Row objects about all the organisms
         '''
         with self.connection as conn:
-            cursor=conn.execute('select * from organism')
+            cursor=conn.execute('select * from organism order by org_id')
             
         for res in cursor:
             yield Row(res, cursor.description)
@@ -619,7 +624,7 @@ class Genome(DBBase):
         
         data = cursor.fetchall()
         if len(data) == 0:
-            return None
+            return Row([], cursor.description)
         else:
             return Row(data[0], cursor.description)
         
@@ -704,7 +709,7 @@ class Genome(DBBase):
         
         data = cursor.fetchall()
         if len(data) == 0:
-            return None
+            return Row([], cursor.description)
         else:
             return Row(data[0], cursor.description)
     
@@ -1880,7 +1885,8 @@ class Biolog(DBBase):
     
     def getWells(self):
         with self.connection as conn:
-            cursor=conn.execute('select distinct well_id from biolog order by well_id;')
+            cursor=conn.execute('''select distinct well_id
+                                   from biolog order by well_id;''')
         
         for res in cursor:
             yield Row(res, cursor.description)
@@ -1895,7 +1901,7 @@ class Biolog(DBBase):
         
         data = cursor.fetchall()
         if len(data) == 0:
-            return None
+            return Row([], cursor.description)
         else:
             return Row(data[0], cursor.description)
         
@@ -1904,8 +1910,9 @@ class Biolog(DBBase):
         Get the titles for each well
         '''
         with self.connection as conn:
-            cursor=conn.execute('''select distinct plate_id, well_id, chemical
-                                from biolog;''')
+            cursor=conn.execute('''select *
+                                from biolog
+                                order by plate_id, well_id;''')
         
         for res in cursor:
             yield Row(res, cursor.description)
@@ -1970,7 +1977,7 @@ class Biolog(DBBase):
         
         data = cursor.fetchall()
         if len(data) == 0:
-            return None
+            return Row([], cursor.description)
         else:
             return Row(data[0], cursor.description)
         
@@ -2032,13 +2039,15 @@ class Biolog(DBBase):
         for res in cursor:
             yield Row(res, cursor.description)
     
-    def addWells(self, explist, clustered=True):
+    def addWells(self, explist, clustered=True, replace=False):
         '''
         Input: a series of Well objects
         If clustered = True, it is assumed that we have generated the 
         activity parameters and calculated the activity index
+        If replace = True, we are merely updating a well
         Checks are performed
         '''
+        
         query = '''insert or replace into biolog_exp 
                             (plate_id, well_id, org_id, replica, activity, 
                             zero, min, max, height, plateau, slope, lag,
@@ -2067,6 +2076,13 @@ class Biolog(DBBase):
             if w.activity is None and clustered:
                 logger.warning('Parameters extraction not yet performed!')
                 raise Exception('Parameters extraction not yet performed!')
+        
+        if not clustered and not replace:
+            # Correct the replica
+            for w in explist:
+                rep = self.howManyReplicasByWell(w.plate_id, w.well_id,
+                                                 w.strain)
+                w.replica = int(w.replica) + rep
         
         self.boost()
         
@@ -2145,16 +2161,34 @@ class Biolog(DBBase):
                         [org_id,])
         
         org = Organism(self.dbname)
-        org.setPhenomeStatus(org_id, 'none')
+        org.setPhenomeStatus(org_id, 'none')    
     
-    def getWellsByOrg(self, org_id):
+    def getAvgActivity(self, plate_id, well_id, org_id):
         '''
-        Get all the wells from a certain organism
+        Get the average activity for a particular experiment
         '''
         with self.connection as conn:
-            cursor=conn.execute('''select * from biolog_exp  
+            cursor=conn.execute('''select avg(activity) from biolog_exp  
+                                   where org_id=?
+                                   and plate_id=?
+                                   and well_id=?;''',
+                                  [org_id,plate_id, well_id,])
+        
+        try:
+            return float(cursor.fetchall()[0][0])      
+        except Exception, e:
+            import numpy as np
+            return np.nan
+    
+    def getAvgWellsByOrg(self, org_id):
+        '''
+        Get the average activity for all the wells of a particular organism
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select plate_id, well_id, org_id,
+                                avg(activity) activity from biolog_exp  
                         where org_id=?
-                        order by replica;''',
+                        order by plate_id, well_id, replica;''',
                         [org_id,])
         
         for res in cursor:
@@ -2224,12 +2258,137 @@ class Biolog(DBBase):
                                     and org_id=?;''',[activity,org_id,])
         return int(cursor.fetchall()[0][0])
     
+    def howManyReplicas(self):
+        '''
+        How many replicas do we have?
+        '''
+        with self.connection as conn:
+                    cursor=conn.execute('''select count(distinct replica)
+                                           from biolog_exp;''')
+        return int(cursor.fetchall()[0][0])        
+    
+    def howManyReplicasByOrg(self, org_id):
+        '''
+        How many replicas do we have for my organism?
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select count(distinct replica)
+                                   from biolog_exp
+                                   where org_id=?;''',[org_id,])
+
+        return int(cursor.fetchall()[0][0])
+    
+    def howManyReplicasByWell(self, plate_id, well_id, org_id):
+        '''
+        How many replicas do we have for this single well?
+        '''
+        with self.connection as conn:
+                    cursor=conn.execute('''select count(distinct replica)
+                                           from biolog_exp
+                                           where plate_id=?
+                                           and well_id=?
+                                           and org_id=?;''',[plate_id,
+                                                             well_id,
+                                                             org_id,])
+        return int(cursor.fetchall()[0][0])    
+    
+    def getOneWell(self, plate_id, well_id, org_id, replica):
+        '''
+        Get a precise well
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select *
+                                   from biolog_exp
+                                   where org_id=?
+                                   and plate_id=?
+                                   and well_id=?
+                                   and replica=?;''',[org_id,
+                                                      plate_id,
+                                                      well_id,
+                                                      replica,])
+        
+        data = cursor.fetchall()
+        if len(data) == 0:
+            return Row([], cursor.description)
+        else:
+            return Row(data[0], cursor.description)
+        
+    def getOrgsByWell(self, plate_id, well_id, replica=None):
+        '''
+        Get the organisms for a precise well
+        If replica is provided, only the org_id for that particular replica
+        are provided
+        '''
+        with self.connection as conn:
+            if not replica:
+                cursor=conn.execute('''select distinct org_id
+                                       from biolog_exp
+                                       where plate_id=?
+                                       and well_id=?;''',[plate_id,
+                                                      well_id,])
+            else:
+                cursor=conn.execute('''select distinct org_id
+                                       from biolog_exp
+                                       where plate_id=?
+                                       and well_id=?
+                                       and replica=?;''',[plate_id,
+                                                   well_id,
+                                                   replica,])                
+            
+        return [x[0] for x in cursor.fetchall()]
+    
     def getAllWells(self):
         '''
         Get all the wells from the storage
         '''
         with self.connection as conn:
-            cursor=conn.execute('''select * from biolog_exp;''')
+            cursor=conn.execute('''select *
+                                   from biolog_exp
+                                   order by plate_id, well_id, org_id, replica;''')
+        
+        for res in cursor:
+            yield Row(res, cursor.description)
+    
+    def getDistinctWells(self, replica=False):
+        '''
+        Get the distinct wells identifiers (if replica=True, replica aware)
+        '''
+        with self.connection as conn:
+            if replica:
+                cursor=conn.execute('''select distinct plate_id, well_id, replica
+                                from biolog_exp
+                                order by plate_id, well_id, replica;''')
+            else:
+                cursor=conn.execute('''select distinct plate_id, well_id
+                                        from biolog_exp
+                                        order by plate_id, well_id;''')                
+        
+        for res in cursor:
+            yield Row(res, cursor.description)        
+    
+    def getOrgDistinctWells(self, org_id):
+        '''
+        Get the distinct wells identifiers for a particular organism
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select distinct plate_id, well_id
+                                   from biolog_exp
+                                   where org_id=?
+                                   order by plate_id, well_id;''',[org_id,])
+        
+        for res in cursor:
+            yield Row(res, cursor.description)        
+    
+    def getOrgWells(self, org_id):
+        '''
+        Get all the wells for a particular organism
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select *
+                                   from biolog_exp b1
+                                   where org_id=?
+                                   order by plate_id, well_id,
+                                   replica;''',[org_id,])
         
         for res in cursor:
             yield Row(res, cursor.description)

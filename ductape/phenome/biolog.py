@@ -10,7 +10,6 @@ Classes to handle Biolog data
 import matplotlib
 matplotlib.use('Agg')
 #
-from ductape.common.commonmultiprocess import CommonMultiProcess
 from ductape.common.commonthread import CommonThread
 from ductape.common.utils import smooth, compress
 from matplotlib import cm
@@ -1705,7 +1704,7 @@ class CalcParams(object):
         
         return True
 
-class BiologCluster(CommonMultiProcess):
+class BiologCluster(CommonThread):
     '''
     Class BiologCluster
     '''
@@ -1716,8 +1715,8 @@ class BiologCluster(CommonMultiProcess):
     _substatuses = [1]
     
     def __init__(self,experiment,
-                 ncpus=1,save_fig_clusters=False,queue=Queue.Queue()):
-        CommonMultiProcess.__init__(self,ncpus,queue)
+                 save_fig_clusters=False,queue=Queue.Queue()):
+        CommonThread.__init__(self,queue)
         # Experiment
         self.exp = experiment
         
@@ -1728,55 +1727,16 @@ class BiologCluster(CommonMultiProcess):
         wellcount = 0
         for w in self.exp.getWells(params=False):
             wellcount += 1
-            
+        
         self._maxsubstatus = wellcount
         
-        self.initiateParallel()
-        
         for well in self.exp.getWells(params=False):
-            obj = CalcParams(well)
-            self._paralleltasks.put(obj)
-                    
-        # Poison pill to stop the workers
-        self.addPoison()
-        
-        while True:
-            if self.killed:
-                logger.debug('Exiting for a kill signal')
-                return
-            
-            while not self._parallelresults.empty():
-                if self.killed:
-                    logger.debug('Exiting for a kill signal')
-                    return
-                
-                result = self._parallelresults.get()
-                self._substatus += 1
-                self.updateStatus(sub=True)
-                
-                if not result:
-                    logger.error('An error occurred while calculating parameters')
-                    return False
-                    
-            if self.isTerminated():
-                break
-            
-            self.sleeper.sleep(0.1)
-            
-        while not self._parallelresults.empty():
-            if self.killed:
-                logger.debug('Exiting for a kill signal')
-                return
-            
-            result = self._parallelresults.get()
+            logger.debug('Calculating parameters for %s - %s'%
+                             (well.plate_id, well.well_id))
             self._substatus += 1
             self.updateStatus(sub=True)
             
-            if not result:
-                logger.error('An error occurred while calculating parameters')
-                return False
-        
-        self.killParallel()
+            well.calculateParams()
         
         return True
     

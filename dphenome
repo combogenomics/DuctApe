@@ -229,8 +229,8 @@ def doClusterPhenome(project, cpu=1, save_fig_clusters=False):
 
     exp = Experiment(plates=plates, zero=isZero)
     
-    bclust = BiologCluster(exp, ncpus=cpu, save_fig_clusters=save_fig_clusters)
-
+    bclust = BiologCluster(exp, save_fig_clusters=save_fig_clusters)
+        
     if not RunThread(bclust):
         return False
     

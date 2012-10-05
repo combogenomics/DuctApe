@@ -738,7 +738,38 @@ def dGenomeStats(project, svg=False, doPrint=True):
         return False
 
     return True
-        
+
+def dPhenomeStats(project, svg=False, doPrint=True):
+    # Which project are we talking about?
+    kind = dSetKind(project)
+    
+    proj = Project(project)
+    organism = Organism(project)
+    biolog = Biolog(project)
+    
+    logger.info('Overall plots')
+    # Setup an experiment
+    sigs = [s for s in biolog.getAllSignals()]
+    plates = [p for p in getPlates(sigs)]
+    
+    isZero = biolog.atLeastOneZeroSubtracted()
+    
+    category = {}
+    for c in biolog.getPlateCategs():
+        categ = c.category.replace(' ','_').replace('&','and')
+        if categ not in category:
+            category[categ] = set()
+        category[categ].add(c.plate_id)
+    
+    exp = Experiment(plates=plates, zero=isZero, category=category)
+    
+    exp.plot()
+    
+    if kind == 'single' or kind == 'pangenome':
+        pass
+    
+    return True
+
 def dGenomeExport(project):
     from Bio import SeqIO
     

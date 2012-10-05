@@ -19,10 +19,10 @@ import csv
 import logging
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 # No country for warnings
 np.seterr(all='ignore')
 #
-import os
 
 __author__ = "Marco Galardini"
 
@@ -720,11 +720,13 @@ class Experiment(object):
     class well(object):
         pass
     
-    def __init__(self, exp_id='', name='', plates=[], zero=False):
+    def __init__(self, exp_id='', name='', plates=[], zero=False,
+                 category = {}):
         self.exp_id = exp_id
         self.name = name
         
         self.zero = zero
+        self.category = category
         
         self.plates = {}
         for plate in plates:
@@ -790,7 +792,40 @@ class Experiment(object):
             Plate = self.plates[plate_id]
             for res in Plate.calculateParams():
                 yield True
+    
+    def getZeroWells(self, params=True):
+        '''
+        Generator to get the zero-subtracted single wells
+        if params is set to False, it just gives you the wells,
+        otherwise it calculates them
+        '''
+        for well in self.getWells(params):
+            if well.plate_id in zeroPlates:
+                yield well
                 
+    def getNoZeroWells(self, params=True):
+        '''
+        Generator to get the nonzero-subtracted single wells
+        if params is set to False, it just gives you the wells,
+        otherwise it calculates them
+        '''
+        for well in self.getWells(params):
+            if well.plate_id not in zeroPlates:
+                yield well
+                
+    def getCategoryWells(self, params=True):
+        '''
+        Generator to get ('category', [wells])
+        if params is set to False, it just gives you the wells,
+        otherwise it calculates them
+        '''
+        for categ, plates in self.category.iteritems():
+            wells = []
+            for well in self.getWells(params):
+                if well.plate_id in plates:
+                    wells.append(well)
+            yield (categ, wells)
+    
     def getWells(self, params=True):
         '''
         Generator to get the single wells
@@ -1076,6 +1111,78 @@ class Experiment(object):
                 for i in range(len(k_nz_labels)):
                     who = dWells['nonzero'][i]
                     who.activity = dConvert[k_nz_labels[i]]
+    
+    def plot(self, svg=False):
+        '''
+        Go for the overall plots!
+        Coloured according to the activity.
+        '''
+        logger.debug('Plotting overall Zero wells')
+        self._plot(self.getZeroWells(params=False), 'ZeroPlot',
+                  'Zero subtracted wells', svg)
+        
+        logger.debug('Plotting overall NoZero wells')
+        self._plot(self.getNoZeroWells(params=False), 'NoZeroPlot',
+                   'NoZero subtracted wells', svg)
+        
+        for categ, wells in self.getCategoryWells(params=False):
+            logger.debug('Plotting overall %s wells'%categ)
+            self._plot(wells, 'CategPlot_%s'%categ,
+                   'Category wells (%s)'%categ, svg)
+    
+    def _plot(self, iterwells, name, description='Overall plot', svg=False):
+        '''
+        Plot all the wells in a single plot!
+        Coloured according to the activity. 
+        '''
+        from ductape.common.utils import rangeColors
+        
+        # Figure creation
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.set_xlabel('Hour')
+        ax.set_ylabel('Signal')
+        
+        colors = rangeColors(0, 9, cm.RdYlGn(np.arange(0,256)))
+        
+        counter = 0
+        maxsig = 0.0
+        maxtime = 0.0
+        for w in iterwells:
+            counter += 1
+            
+            if not w.compressed:
+                w.compress()
+            if not w.smoothed:
+                # More aggressive smooth
+                w.smooth(30)
+            
+            times = sorted(w.signals.keys())
+            ax.plot(times, [w.signals[t] for t in times], color=colors[w.activity],
+                        rasterized=True)
+            
+            msig = max(w.signals.values())
+            if msig > maxsig:
+                maxsig = msig  
+               
+            mtime = max(w.signals.keys())
+            if mtime > maxtime:
+                maxtime = mtime
+        
+        if counter == 0:
+            return
+        
+        ax.set_ylim(0,maxsig)
+        ax.set_xlim(0,maxtime)
+        
+        ax.set_title('%s'%description)
+        
+        if svg:
+            ftype = 'svg'
+        else:
+            ftype = 'png'
+            
+        plt.savefig('%s.%s'%(name,ftype))
 
 class BiologParser(object):
     '''
@@ -1287,7 +1394,7 @@ class BiologPlot(CommonThread):
                  compress = 0,
                  maxsig = None,
                  plotPlates=True, plotAll=False, plotActivity=True,
-                 order = [], category ={},
+                 order = [], category = {},
                  queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         # Biolog
@@ -1708,6 +1815,11 @@ def getSinglePlatesFromSignals(signals):
         for i in range(len(lT)):
             dExp[plate_id][org_id][replica].data[well_id].addSignal(float(lT[i]),
                                                                     float(lS[i]))
+            
+        # Add the activity - if present
+        if hasattr(well, "activity"):
+            dExp[plate_id][org_id][replica].data[well_id].activity = well.activity
+        #
         
     # Return all the SinglePlates objects 
     for orgs in dExp.itervalues():

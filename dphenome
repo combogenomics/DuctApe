@@ -173,11 +173,21 @@ def drestore(options, wdir, project):
     return dPhenomeRestore(project, options.plates)
   
 def dstats(options, wdir, project):
+    from ductape.actions import dPhenomeStats
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
-    # TODO
+    
+    biolog = Biolog(project)
+    
+    # Check!
+    if biolog.atLeastOneNoParameter():
+        logger.warning('The activity index must be calculated first (run %s start)'%
+                       __prog__)
+        return False
+    
+    return dPhenomeStats(project, svg=options.svg)
 
 def dexport(options, wdir, project):
     from ductape.actions import dPhenomeExport
@@ -368,8 +378,11 @@ def getOptions():
                             help='Plate(s) to be purged')
     parser_restore.set_defaults(func=drestore)
     
-    parser_map = subparsers.add_parser('stats', help='Print phenomic statistics')
-    parser_map.set_defaults(func=dstats)
+    parser_stats = subparsers.add_parser('stats', help='Print phenomic statistics')
+    parser_stats.add_argument('-s', '--svg', action="store_true",
+                            default=False,
+                            help='Figures in svg format instead of png')
+    parser_stats.set_defaults(func=dstats)
     
     parser_export = subparsers.add_parser('export', help='Export phenomic data')
     parser_export.set_defaults(func=dexport)

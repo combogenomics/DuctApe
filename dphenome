@@ -341,10 +341,6 @@ def getOptions():
     parser_zero.set_defaults(func=dzero)
 
     parser_start = subparsers.add_parser('start', help='Start the analysis')
-    parser_start.add_argument('-n', metavar='cpu', action="store", dest='cpu',
-                            type=int,
-                            default=1,
-                            help='Number of CPUs to be used')
     parser_start.add_argument('-f', action="store_true",
                             default=False,
                             help='Save intermediate clusters figures')

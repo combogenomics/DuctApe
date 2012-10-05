@@ -999,7 +999,7 @@ class Experiment(object):
         Perform the biolog data clusterizzation
         The data is divided in two chunks if Zero subtraction has been done
         '''
-        from ductape.phenome.clustering import mean, kmeans
+        from ductape.phenome.clustering import mean, kmeans, plotClusters
         
         if self.zero:
             dWells = {'zero':[],
@@ -1045,22 +1045,15 @@ class Experiment(object):
         
         # Perform the actual clusterizzations
         
+        # Zero subtracted signals
+        
         # "Control" MeanShift
         # If we will get 1 cluster, we have a real "flat" experiment
         # Fixed KMeans to get an activity scale
         if self.zero and len(dParams['zero']) >= 1:
             xZero = [x for x in dParams['zero']]
-            m_z_labels = mean(xZero, save_fig=save_fig, prefix='zero',
-                               params_labels=params_labels)
-            k_z_labels = kmeans(xZero, save_fig=save_fig, prefix='zero',
-                                 params_labels=params_labels)
-        
-        if len(dParams['nonzero']) >= 1:
-            xNonZero = [x for x in dParams['nonzero']]
-            m_nz_labels = mean(xNonZero, save_fig=save_fig, prefix='nonzero',
-                               params_labels=params_labels)
-            k_nz_labels = kmeans(xNonZero, save_fig=save_fig, prefix='nonzero',
-                                 params_labels=params_labels)
+            m_z_labels = mean(xZero)
+            k_z_labels = kmeans(xZero)
         
         if self.zero  and len(dParams['zero']) >= 1:
             m_z_nclusters = len(np.unique(m_z_labels))
@@ -1083,9 +1076,30 @@ class Experiment(object):
                     dConvert[t[0]] = i
                     i += 1
                 
+                # List for intermediate plotting
+                k_z_activity = []
+                
                 for i in range(len(k_z_labels)):
                     who = dWells['zero'][i]
                     who.activity = dConvert[k_z_labels[i]]
+                    k_z_activity.append(dConvert[k_z_labels[i]])
+                
+                # Intermediate plot
+                if save_fig:
+                    plotClusters(xZero, k_z_activity,
+                                 params=params_labels,
+                                 method='kmeans', prefix='zero')
+        
+        # Non subtracted signals
+        
+        # "Control" MeanShift
+        # If we will get 1 cluster, we have a real "flat" experiment
+        # Fixed KMeans to get an activity scale
+        
+        if len(dParams['nonzero']) >= 1:
+            xNonZero = [x for x in dParams['nonzero']]
+            m_nz_labels = mean(xNonZero)
+            k_nz_labels = kmeans(xNonZero)
         
         if len(dParams['nonzero']) >= 1:
             m_nz_nclusters = len(np.unique(m_nz_labels))
@@ -1108,9 +1122,19 @@ class Experiment(object):
                     dConvert[t[0]] = i
                     i += 1
                 
+                # List for intermediate plotting
+                k_nz_activity = []
+                
                 for i in range(len(k_nz_labels)):
                     who = dWells['nonzero'][i]
                     who.activity = dConvert[k_nz_labels[i]]
+                    k_nz_activity.append(dConvert[k_nz_labels[i]])
+                    
+                # Intermediate plot
+                if save_fig:
+                    plotClusters(xNonZero, k_nz_activity,
+                                 params=params_labels,
+                                 method='kmeans', prefix='nonzero')
     
     def plot(self, svg=False):
         '''

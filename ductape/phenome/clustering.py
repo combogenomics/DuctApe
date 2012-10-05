@@ -7,21 +7,23 @@ Phenome library
 biolog data clustering functions
 Many thanks to the scikits.learn team for the exhaustive documentation
 """
-from itertools import cycle, product
+from itertools import product
 from sklearn.cluster import KMeans, MeanShift, estimate_bandwidth
 import numpy as np
 import logging
 import warnings
-import matplotlib.pyplot as plt
 
 __author__ = "Marco Galardini"
 
 logger = logging.getLogger('ductape.clustering')
 
-def plotClusters(X, clust, params=None, method='', prefix='clusters'):
-    labels = clust.labels_
-    cluster_centers = clust.cluster_centers_
-
+def plotClusters(X, labels, params=None, method='', prefix='clusters'):
+    from ductape.common.utils import slice_it
+    import matplotlib.pyplot as plt
+    import matplotlib.cm as cm
+    
+    X = np.array(X)
+    labels = np.array(labels)
     labels_unique = np.unique(labels)
     n_clusters_ = len(labels_unique)
     
@@ -44,14 +46,15 @@ def plotClusters(X, clust, params=None, method='', prefix='clusters'):
         
         figidx += 1
 
-        colors = cycle('bgrcmykbgrcmykbgrcmykbgrcmyk')
-        for k, col in zip(range(n_clusters_), colors):
-            if k > len(cluster_centers) - 1:continue
+        color = dict()
+        j = 0
+        for i in slice_it(range(255), cols=n_clusters_):
+            color[j] = cm.RdYlGn(i[0])
+            j += 1
+
+        for k in range(n_clusters_):
             my_members = labels == k
-            cluster_center = cluster_centers[k]
-            ax.plot(X[my_members, y], X[my_members, x], col + '.')
-            ax.plot(cluster_center[y], cluster_center[x], 'o', markerfacecolor=col,
-                                            markeredgecolor='k', markersize=2)
+            ax.plot(X[my_members, y], X[my_members, x], '.', color=color[k])
 
     fig.subplots_adjust(wspace=0, hspace=0)
     for ax in fig.axes:

@@ -2406,7 +2406,14 @@ class Biolog(DBBase):
         Get all the signals from the storage
         '''
         with self.connection as conn:
-            cursor=conn.execute('''select * from biolog_exp_det;''')
+            cursor=conn.execute('''select b.plate_id, b.well_id, b.org_id,
+                                          b.replica, b1.times, b1.signals,
+                                          b.activity
+                                   from biolog_exp_det b1, biolog_exp b
+                                   where b.plate_id=b1.plate_id
+                                   and b.well_id=b1.well_id
+                                   and b.org_id=b1.org_id
+                                   and b.replica=b1.replica;''')
         
         for res in cursor:
             yield Row(res, cursor.description)

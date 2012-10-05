@@ -763,7 +763,7 @@ def dPhenomeStats(project, svg=False, doPrint=True):
     
     exp = Experiment(plates=plates, zero=isZero, category=category)
     
-    exp.plot()
+    exp.plot(svg=svg)
     
     if kind == 'single' or kind == 'pangenome':
         pass

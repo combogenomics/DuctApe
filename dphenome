@@ -145,6 +145,8 @@ def dplot(options, wdir, project):
     
     logger.info('Successefully generated phenomic plots (%s)'%bplot._room)
     
+    return True
+    
 def dpurge(options, wdir, project):
     from ductape.actions import dPhenomePurge
     if not touchProject(project):

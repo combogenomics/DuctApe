@@ -73,8 +73,7 @@ def dstart(options, wdir, project):
         return False
     
     # Clusterize the biolog experiment
-    if not doClusterPhenome(project, cpu=options.cpu,
-                            save_fig_clusters=options.f):
+    if not doClusterPhenome(project, save_fig_clusters=options.f):
         logger.error('Phenome experiment could not be clustered!')
         return False
     
@@ -215,7 +214,7 @@ def dclear(options, wdir, project):
         return False
     return dPhenomeClear(project)
 
-def doClusterPhenome(project, cpu=1, save_fig_clusters=False):
+def doClusterPhenome(project, save_fig_clusters=False):
     biolog = Biolog(project)
     # Get Plate Objects
     # TODO: here check the zero subtraction state? (it may be mixed up)

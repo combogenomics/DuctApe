@@ -95,4 +95,22 @@ def compress(x, span=10):
 
 def rgb_to_hex(rgb):
     return '#%02x%02x%02x' % rgb
+
+def rangeColors(minimum, maximum, colorrange):
+    '''
+    Given a min and a max value, returns a dict with stepwise colors
+    '''
+    hexs = {}
+    prev = '#FFFFFF'
+    i = minimum
+    for color in slice_it(colorrange, cols=maximum-minimum+1):
+        if len(color) == 0:
+            hexs[i] = prev
+        else:
+            hexs[i] = rgb_to_hex(tuple([int(round(x*255))
+                              for x in color[-1][:3]])).upper()
+        prev = hexs[i]
+        i += 1
+    
+    return hexs
         

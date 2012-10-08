@@ -13,6 +13,7 @@ matplotlib.use('Agg')
 from ductape.common.commonthread import CommonThread
 from ductape.common.utils import smooth, compress
 from matplotlib import cm
+from matplotlib import colors
 import Queue
 import csv
 import logging
@@ -1135,36 +1136,79 @@ class Experiment(object):
                                  params=params_labels,
                                  method='kmeans', prefix='nonzero')
     
+    def _saveFigure(self, fig, title='', name='', svg=False):
+        '''
+        Fix and save a multiaxes figure
+        '''
+        for ax in fig.axes:
+            ax.get_xaxis().set_ticks([])
+            ax.get_yaxis().set_ticks([])
+        fig.suptitle(title, size='large')
+        
+        cNorm  = colors.Normalize(vmin=0, vmax=9)
+        scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.RdYlGn)
+        scalarMap.set_array(np.array([0,1,2,3,4,5,6,7,8,9]))
+        cax = fig.add_axes([0.925, 0.2, 0.03, 0.6])        
+        plt.colorbar(scalarMap, cax=cax)
+        
+        if svg:
+            ftype = 'svg'
+        else:
+            ftype = 'png'
+        
+        plt.savefig('%s.%s'%(name,ftype))
+        plt.clf()
+    
     def plot(self, svg=False):
         '''
         Go for the overall plots!
-        Coloured according to the activity.
+        Colored according to the activity.
         '''
+        fig = plt.figure()
+        
         logger.debug('Plotting overall Zero wells')
+        ax = fig.add_subplot(1,2,1)
         self._plot(self.getZeroWells(params=False), 'ZeroPlot',
-                  'Zero subtracted wells', svg)
+                  'Zero subtracted wells', svg, ax)
         
         logger.debug('Plotting overall NoZero wells')
+        ax = fig.add_subplot(1,2,2)
         self._plot(self.getNoZeroWells(params=False), 'NoZeroPlot',
-                   'NoZero subtracted wells', svg)
+                   'NoZero subtracted wells', svg, ax)
+        
+        self._saveFigure(fig, 'Overall plot', 'Overall', svg)
+        
+        fig = plt.figure()
+        axid = 1
         
         for categ, wells in self.getCategoryWells(params=False):
+            ax = fig.add_subplot(2,4,axid)
+            
             logger.debug('Plotting overall %s wells'%categ)
             self._plot(wells, 'CategPlot_%s'%categ,
-                   'Category wells (%s)'%categ, svg)
+                   '%s'%categ, svg, ax)
+            
+            axid += 1
+        
+        self._saveFigure(fig, 'Overall plot (categories)', 'OverallCateg', svg)
     
-    def _plot(self, iterwells, name, description='Overall plot', svg=False):
+    def _plot(self, iterwells, name, description='Overall plot', svg=False,
+              axis=None):
         '''
         Plot all the wells in a single plot!
         Coloured according to the activity. 
         '''
         from ductape.common.utils import rangeColors
         
-        # Figure creation
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        ax.set_xlabel('Hour')
-        ax.set_ylabel('Signal')
+        if not axis:
+            # Figure creation
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+        else:
+            ax = axis
+            
+        ax.set_xlabel('Hour', size='small')
+        ax.set_ylabel('Signal', size='small')
         
         colors = rangeColors(0, 9, cm.RdYlGn(np.arange(0,256)))
         
@@ -1198,14 +1242,20 @@ class Experiment(object):
         ax.set_ylim(0,maxsig)
         ax.set_xlim(0,maxtime)
         
-        ax.set_title('%s'%description)
+        x0,x1 = ax.get_xlim()
+        y0,y1 = ax.get_ylim()
+        ax.set_aspect((x1-x0)/(y1-y0))
         
-        if svg:
-            ftype = 'svg'
-        else:
-            ftype = 'png'
-            
-        plt.savefig('%s.%s'%(name,ftype))
+        ax.set_title('%s'%description, size='small')
+        
+        if not axis:
+            if svg:
+                ftype = 'svg'
+            else:
+                ftype = 'png'
+                
+            plt.savefig('%s.%s'%(name,ftype))
+            plt.clf()
 
 class BiologParser(object):
     '''

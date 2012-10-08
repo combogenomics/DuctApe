@@ -2163,6 +2163,195 @@ class Biolog(DBBase):
         org = Organism(self.dbname)
         org.setPhenomeStatus(org_id, 'none')    
     
+    def getActivityDistribution(self):
+        '''
+        Get the total activity distribution (not replica-wise)
+        Returns a dictionary of activity --> #wells
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select activity, count(*)
+                                   from biolog_exp
+                                   group by activity
+                                   order by activity;''')
+        
+        act = {}
+        for res in cursor:
+            a = Row(res, cursor.description)
+            if a.activity not in act:
+                act[a.activity] = 0
+            act[a.activity] += 1
+            
+        return act
+    
+    def getActivityDistributionByOrg(self, org_id):
+        '''
+        Get the total activity distribution (not replica-wise)
+        Returns a dictionary of activity --> #wells
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select activity, count(*)
+                                   from biolog_exp
+                                   where org_id = ?
+                                   group by activity
+                                   order by activity;''',
+                                   [org_id,])
+        
+        act = {}
+        for res in cursor:
+            a = Row(res, cursor.description)
+            if a.activity not in act:
+                act[a.activity] = 0
+            act[a.activity] += 1
+            
+        return act
+    
+    def getActivityDistributionByZero(self, nonzero=False):
+        '''
+        Get the total activity distribution (not replica-wise)
+        if nonzero is set to True, the nonzero subtractable activities are returned
+        Returns a dictionary of activity --> #wells
+        '''
+        with self.connection as conn:
+            if not nonzero:
+                cursor=conn.execute('''select activity, count(*)
+                                       from biolog_exp
+                                       where (plate_id='PM01'
+                                            or plate_id='PM02A'
+                                            or plate_id='PM03B'
+                                            or plate_id='PM04A'
+                                            or plate_id='PM05'
+                                            or plate_id='PM06'
+                                            or plate_id='PM07'
+                                            or plate_id='PM08'
+                                            or plate_id='PM03B'
+                                            or plate_id='PM04A')
+                                       group by activity
+                                       order by activity;''')
+            else:
+                cursor=conn.execute('''select activity, count(*)
+                                       from biolog_exp
+                                       where (plate_id!='PM01'
+                                            and plate_id!='PM02A'
+                                            and plate_id!='PM03B'
+                                            and plate_id!='PM04A'
+                                            and plate_id!='PM05'
+                                            and plate_id!='PM06'
+                                            and plate_id!='PM07'
+                                            and plate_id!='PM08'
+                                            and plate_id!='PM03B'
+                                            and plate_id!='PM04A')
+                                       group by activity
+                                       order by activity;''')
+        
+        act = {}
+        for res in cursor:
+            a = Row(res, cursor.description)
+            if a.activity not in act:
+                act[a.activity] = 0
+            act[a.activity] += 1
+            
+        return act
+    
+    def getActivityDistributionByZeroAndOrg(self, org_id, nonzero=False):
+        '''
+        Get the total activity distribution (not replica-wise)
+        if nonzero is set to True, the nonzero subtractable activities are returned
+        Returns a dictionary of activity --> #wells
+        '''
+        with self.connection as conn:
+            if not nonzero:
+                cursor=conn.execute('''select activity, count(*)
+                                       from biolog_exp
+                                       where (plate_id='PM01'
+                                            or plate_id='PM02A'
+                                            or plate_id='PM03B'
+                                            or plate_id='PM04A'
+                                            or plate_id='PM05'
+                                            or plate_id='PM06'
+                                            or plate_id='PM07'
+                                            or plate_id='PM08'
+                                            or plate_id='PM03B'
+                                            or plate_id='PM04A')
+                                       and org_id = ?
+                                       group by activity
+                                       order by activity;''',
+                                       [org_id,])
+            else:
+                cursor=conn.execute('''select activity, count(*)
+                                       from biolog_exp
+                                       where (plate_id!='PM01'
+                                            and plate_id!='PM02A'
+                                            and plate_id!='PM03B'
+                                            and plate_id!='PM04A'
+                                            and plate_id!='PM05'
+                                            and plate_id!='PM06'
+                                            and plate_id!='PM07'
+                                            and plate_id!='PM08'
+                                            and plate_id!='PM03B'
+                                            and plate_id!='PM04A')
+                                       and org_id = ?
+                                       group by activity
+                                       order by activity;''',
+                                       [org_id,])
+        
+        act = {}
+        for res in cursor:
+            a = Row(res, cursor.description)
+            if a.activity not in act:
+                act[a.activity] = 0
+            act[a.activity] += 1
+            
+        return act
+    
+    def getActivityDistributionByCateg(self, categ):
+        '''
+        Get the total activity distribution (not replica-wise)
+        Returns a dictionary of activity --> #wells
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select activity, count(*)
+                                   from biolog_exp b1, biolog b
+                                   where b.plate_id = b1.plate_id
+                                   and b.well_id = b1.well_id
+                                   and category = ?
+                                   group by activity
+                                   order by activity;''',
+                                   [categ,])
+        
+        act = {}
+        for res in cursor:
+            a = Row(res, cursor.description)
+            if a.activity not in act:
+                act[a.activity] = 0
+            act[a.activity] += 1
+            
+        return act
+    
+    def getActivityDistributionByCategAndOrg(self, categ, org_id):
+        '''
+        Get the total activity distribution (not replica-wise)
+        Returns a dictionary of activity --> #wells
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select activity, count(*)
+                                   from biolog_exp b1, biolog b
+                                   where b.plate_id = b1.plate_id
+                                   and b.well_id = b1.well_id
+                                   and category = ?
+                                   and org_id = ?
+                                   group by activity
+                                   order by activity;''',
+                                   [categ,org_id,])
+        
+        act = {}
+        for res in cursor:
+            a = Row(res, cursor.description)
+            if a.activity not in act:
+                act[a.activity] = 0
+            act[a.activity] += 1
+            
+        return act
+    
     def getAvgActivity(self, plate_id, well_id, org_id):
         '''
         Get the average activity for a particular experiment

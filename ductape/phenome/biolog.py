@@ -1140,9 +1140,6 @@ class Experiment(object):
         '''
         Fix and save a multiaxes figure
         '''
-        for ax in fig.axes:
-            ax.get_xaxis().set_ticks([])
-            ax.get_yaxis().set_ticks([])
         fig.suptitle(title, size='large')
         
         cNorm  = colors.Normalize(vmin=0, vmax=9)
@@ -1164,7 +1161,7 @@ class Experiment(object):
         Go for the overall plots!
         Colored according to the activity.
         '''
-        fig = plt.figure()
+        fig = plt.figure(figsize=(12,6))
         
         logger.debug('Plotting overall Zero wells')
         ax = fig.add_subplot(1,2,1)
@@ -1177,8 +1174,9 @@ class Experiment(object):
                    'NoZero subtracted wells', svg, ax)
         
         self._saveFigure(fig, 'Overall plot', 'Overall', svg)
+        plt.clf()
         
-        fig = plt.figure()
+        fig = plt.figure(figsize=(24,12))
         axid = 1
         
         for categ, wells in self.getCategoryWells(params=False):

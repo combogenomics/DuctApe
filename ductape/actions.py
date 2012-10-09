@@ -743,9 +743,11 @@ def dPhenomeStats(project, svg=False, doPrint=True):
     # Which project are we talking about?
     kind = dSetKind(project)
     
-    proj = Project(project)
     organism = Organism(project)
     biolog = Biolog(project)
+    
+    ############################################################################
+    # Overall plots
     
     logger.info('Overall plots')
     # Setup an experiment
@@ -765,7 +767,14 @@ def dPhenomeStats(project, svg=False, doPrint=True):
     
     exp.plot(svg=svg)
     
+    ############################################################################
+    # Activity distribution
+    
     logger.info('Activity distributions')
+    
+    # Fake plot top get the correct bin centers
+    y,binEdges=np.histogram(range(10),bins=10)
+    bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
     
     if kind == 'single':
         fig = plt.figure()
@@ -782,11 +791,10 @@ def dPhenomeStats(project, svg=False, doPrint=True):
         if len(x) != 0:                   
             ax = fig.add_subplot(1,2,1)
             y,binEdges=np.histogram(x,bins=10)
-            bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
             ax.plot(bincenters,y,'-o', color='black', linewidth=2)
             
             ax.set_ylim(0,max([x for x in d.itervalues()]) + 20)
-            ax.set_xlim(0,9)
+            ax.set_xlim(min(bincenters)-1,max(bincenters)+1)
             
             x0,x1 = ax.get_xlim()
             y0,y1 = ax.get_ylim()
@@ -823,14 +831,13 @@ def dPhenomeStats(project, svg=False, doPrint=True):
             continue
                 
         y,binEdges=np.histogram(x,bins=10)
-        bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
         ax.plot(bincenters,y,'-o', color=dcolors[org.org_id], linewidth=2,
                 alpha=0.66, label=org.org_id)
         
         maxv.append(max([x for x in d.itervalues()]))
         
     ax.set_ylim(0,max(maxv) + 20)
-    ax.set_xlim(0,9)
+    ax.set_xlim(min(bincenters)-1,max(bincenters)+1)
     
     x0,x1 = ax.get_xlim()
     y0,y1 = ax.get_ylim()
@@ -896,7 +903,6 @@ def dPhenomeStats(project, svg=False, doPrint=True):
                 continue
             
             y,binEdges=np.histogram(x,bins=10)
-            bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
             ax.plot(bincenters,y,'-o', color=dcolors[org.org_id], linewidth=2,
                     alpha=0.66, label=org.org_id)
             
@@ -906,7 +912,7 @@ def dPhenomeStats(project, svg=False, doPrint=True):
             continue
         
         ax.set_ylim(0,max(maxv) + 20)
-        ax.set_xlim(0,9)
+        ax.set_xlim(min(bincenters)-1,max(bincenters)+1)
         
         x0,x1 = ax.get_xlim()
         y0,y1 = ax.get_ylim()
@@ -979,7 +985,6 @@ def dPhenomeStats(project, svg=False, doPrint=True):
                 continue
             
             y,binEdges=np.histogram(x,bins=10)
-            bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
             ax.plot(bincenters,y,'-o', color=dcolors[org.org_id], linewidth=2,
                     alpha=0.66, label=org.org_id)
             
@@ -989,7 +994,7 @@ def dPhenomeStats(project, svg=False, doPrint=True):
             continue
         
         ax.set_ylim(0,max(maxv) + 20)
-        ax.set_xlim(0,9)
+        ax.set_xlim(min(bincenters)-1,max(bincenters)+1)
         
         x0,x1 = ax.get_xlim()
         y0,y1 = ax.get_ylim()

@@ -1450,7 +1450,10 @@ def getOrganismsColors(project):
         # Automatic assignment, probably not the best choiche
         # if we got some organism assigned and some others not
         if not color:
-            autocolor = plt.get_cmap('jet')(float( orgs.index(org) )/(len(orgs)-1))
+            if len(orgs) == 1:
+                autocolor = plt.get_cmap('jet')(float( orgs.index(org) )/(len(orgs)))
+            else:
+                autocolor = plt.get_cmap('jet')(float( orgs.index(org) )/(len(orgs)-1))
             autocolor = pltcls.rgb2hex(autocolor)
             colors[org] = autocolor
             organism.setColor(org, autocolor)

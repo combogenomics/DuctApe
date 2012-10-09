@@ -765,7 +765,264 @@ def dPhenomeStats(project, svg=False, doPrint=True):
     
     exp.plot(svg=svg)
     
+    logger.info('Activity distributions')
+    
+    if kind == 'single':
+        fig = plt.figure()
+    else:
+        fig = plt.figure(figsize=(12,6))
+    
+        logger.debug('Overall activity')
+        d = biolog.getActivityDistribution()
+        x = []
+        for k, v in d.iteritems():
+            for i in range(v):
+                x.append(k)
+                
+        if len(x) != 0:                   
+            ax = fig.add_subplot(1,2,1)
+            y,binEdges=np.histogram(x,bins=10)
+            bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
+            ax.plot(bincenters,y,'-o', color='black', linewidth=2)
+            
+            ax.set_ylim(0,max([x for x in d.itervalues()]) + 20)
+            ax.set_xlim(0,9)
+            
+            x0,x1 = ax.get_xlim()
+            y0,y1 = ax.get_ylim()
+            ax.set_aspect((x1-x0)/(y1-y0))
+            
+            ax.set_xticks(bincenters)
+            ax.set_xticklabels([str(x) for x in range(10)])
+            
+            ax.xaxis.grid(color='gray', linestyle='dashed')
+            ax.set_axisbelow(True)
+            
+            ax.set_xlabel('Activity', size='small')
+            ax.set_ylabel('# of wells', size='small')
+            ax.set_title('Overall', size='small')
+    
+    logger.debug('Single organisms activity')
+    
+    dcolors = getOrganismsColors(project)
+    
+    if kind == 'single':
+        ax = fig.add_subplot(1,1,1)
+    else:
+        ax = fig.add_subplot(1,2,2)
+        
+    maxv = []
+    for org in organism.getAll():
+        d = biolog.getActivityDistributionByOrg(org.org_id)
+        x = []
+        for k, v in d.iteritems():
+            for i in range(v):
+                x.append(k)
+                
+        if len(x) == 0:
+            continue
+                
+        y,binEdges=np.histogram(x,bins=10)
+        bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
+        ax.plot(bincenters,y,'-o', color=dcolors[org.org_id], linewidth=2,
+                alpha=0.66, label=org.org_id)
+        
+        maxv.append(max([x for x in d.itervalues()]))
+        
+    ax.set_ylim(0,max(maxv) + 20)
+    ax.set_xlim(0,9)
+    
+    x0,x1 = ax.get_xlim()
+    y0,y1 = ax.get_ylim()
+    ax.set_aspect((x1-x0)/(y1-y0))
+    
+    ax.set_xticks(bincenters)
+    ax.set_xticklabels([str(x) for x in range(10)])
+    
+    ax.xaxis.grid(color='gray', linestyle='dashed')
+    ax.set_axisbelow(True)
+        
+    ax.set_xlabel('Activity', size='small')
+    ax.set_ylabel('# of wells', size='small')
+    if kind == 'single':
+        ax.set_title('Activity distribution', size='large')
+    else:
+        ax.set_title('Single organisms', size='small')
+        fig.suptitle('Activity distribution', size='large')
+    
+    plt.legend(loc='best')
+    
+    if svg:
+        plt.savefig('Activity.svg')
+    else:
+        plt.savefig('Activity.png')
+    
+    plt.clf()
+    
+    fig = plt.figure(figsize=(12,6))
+    axid = 1
+    
+    logger.debug('Zero/NonZero distributions')
+    
+    for bzero in [False,True]:
+        d = biolog.getActivityDistributionByZero(bzero)
+        x = []
+        for k, v in d.iteritems():
+            for i in range(v):
+                x.append(k)
+        
+        if len(x) == 0:
+            ax = fig.add_subplot(1,2,axid)
+            ax.set_xlabel('Activity', size='small')
+            ax.set_ylabel('# of wells', size='small')
+            if not bzero:
+                ax.set_title('Zero subtracted wells', size='small')
+            else:
+                ax.set_title('NoZero subtracted wells', size='small')
+            axid += 1
+            continue
+            
+        ax = fig.add_subplot(1,2,axid)
+        
+        maxv = []
+        for org in organism.getAll():
+            d = biolog.getActivityDistributionByZeroAndOrg(org.org_id, bzero)
+            x = []
+            for k, v in d.iteritems():
+                for i in range(v):
+                    x.append(k)
+            
+            if len(x) == 0:
+                continue
+            
+            y,binEdges=np.histogram(x,bins=10)
+            bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
+            ax.plot(bincenters,y,'-o', color=dcolors[org.org_id], linewidth=2,
+                    alpha=0.66, label=org.org_id)
+            
+            maxv.append(max([x for x in d.itervalues()]))
+        
+        if len(maxv) == 0:
+            continue
+        
+        ax.set_ylim(0,max(maxv) + 20)
+        ax.set_xlim(0,9)
+        
+        x0,x1 = ax.get_xlim()
+        y0,y1 = ax.get_ylim()
+        ax.set_aspect((x1-x0)/(y1-y0))
+        
+        ax.xaxis.grid(color='gray', linestyle='dashed')
+        ax.set_axisbelow(True)
+        
+        ax.set_xticks(bincenters)
+        ax.set_xticklabels([str(x) for x in range(10)])
+            
+        ax.set_xlabel('Activity', size='small')
+        ax.set_ylabel('# of wells', size='small')
+        if not bzero:
+            ax.set_title('Zero subtracted wells', size='small')
+        else:
+            ax.set_title('NoZero subtracted wells', size='small')
+        
+        axid += 1
+        
+        plt.legend(loc='best')
+        
+    fig.suptitle('Activity distribution by categories', size='large')
+    
+    plt.legend(loc='best')
+    
+    if svg:
+        plt.savefig('ActivityZero.svg')
+    else:
+        plt.savefig('ActivityZero.png')
+    
+    plt.clf()
+    
+    fig = plt.figure(figsize=(24,12))
+    axid = 1
+    
+    logger.debug('Category distributions')
+    
+    categs = set()
+    for c in biolog.getPlateCategs():
+        categs.add(c.category)
+    
+    for categ in categs:
+        d = biolog.getActivityDistributionByCateg(categ)
+        x = []
+        for k, v in d.iteritems():
+            for i in range(v):
+                x.append(k)
+        
+        if len(x) == 0:
+            ax = fig.add_subplot(2,4,axid)
+            ax.set_xlabel('Activity', size='small')
+            ax.set_ylabel('# of wells', size='small')
+            ax.set_title('%s'%categ.replace(' ','_').replace('&','and'), size='small')
+            axid += 1
+            continue
+            
+        ax = fig.add_subplot(2,4,axid)
+        
+        logger.debug('Plotting category %s activities'%categ)
+        maxv = []
+        for org in organism.getAll():
+            d = biolog.getActivityDistributionByCategAndOrg(categ, org.org_id)
+            x = []
+            for k, v in d.iteritems():
+                for i in range(v):
+                    x.append(k)
+            
+            if len(x) == 0:
+                continue
+            
+            y,binEdges=np.histogram(x,bins=10)
+            bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
+            ax.plot(bincenters,y,'-o', color=dcolors[org.org_id], linewidth=2,
+                    alpha=0.66, label=org.org_id)
+            
+            maxv.append(max([x for x in d.itervalues()]))
+        
+        if len(maxv) == 0:
+            continue
+        
+        ax.set_ylim(0,max(maxv) + 20)
+        ax.set_xlim(0,9)
+        
+        x0,x1 = ax.get_xlim()
+        y0,y1 = ax.get_ylim()
+        ax.set_aspect((x1-x0)/(y1-y0))
+        
+        ax.xaxis.grid(color='gray', linestyle='dashed')
+        ax.set_axisbelow(True)
+        
+        ax.set_xticks(bincenters)
+        ax.set_xticklabels([str(x) for x in range(10)])
+            
+        ax.set_xlabel('Activity', size='small')
+        ax.set_ylabel('# of wells', size='small')
+        ax.set_title('%s'%categ.replace(' ','_').replace('&','and'), size='small')
+        
+        axid += 1
+        
+        plt.legend(loc='best')
+        
+    fig.suptitle('Activity distribution by categories', size='large')
+    
+    plt.legend(loc='best')
+    
+    if svg:
+        plt.savefig('ActivityCateg.svg')
+    else:
+        plt.savefig('ActivityCateg.png')
+    
+    plt.clf()
+    
     if kind == 'single' or kind == 'pangenome':
+        pass
+    else:
         pass
     
     return True

@@ -2169,7 +2169,7 @@ class Biolog(DBBase):
         Returns a dictionary of activity --> #wells
         '''
         with self.connection as conn:
-            cursor=conn.execute('''select activity, count(*)
+            cursor=conn.execute('''select activity, count(*) howmany
                                    from biolog_exp
                                    group by activity
                                    order by activity;''')
@@ -2177,9 +2177,7 @@ class Biolog(DBBase):
         act = {}
         for res in cursor:
             a = Row(res, cursor.description)
-            if a.activity not in act:
-                act[a.activity] = 0
-            act[a.activity] += 1
+            act[a.activity] = a.howmany
             
         return act
     
@@ -2189,7 +2187,7 @@ class Biolog(DBBase):
         Returns a dictionary of activity --> #wells
         '''
         with self.connection as conn:
-            cursor=conn.execute('''select activity, count(*)
+            cursor=conn.execute('''select activity, count(*) howmany
                                    from biolog_exp
                                    where org_id = ?
                                    group by activity
@@ -2199,9 +2197,7 @@ class Biolog(DBBase):
         act = {}
         for res in cursor:
             a = Row(res, cursor.description)
-            if a.activity not in act:
-                act[a.activity] = 0
-            act[a.activity] += 1
+            act[a.activity] = a.howmany
             
         return act
     
@@ -2213,7 +2209,7 @@ class Biolog(DBBase):
         '''
         with self.connection as conn:
             if not nonzero:
-                cursor=conn.execute('''select activity, count(*)
+                cursor=conn.execute('''select activity, count(*) howmany
                                        from biolog_exp
                                        where (plate_id='PM01'
                                             or plate_id='PM02A'
@@ -2228,7 +2224,7 @@ class Biolog(DBBase):
                                        group by activity
                                        order by activity;''')
             else:
-                cursor=conn.execute('''select activity, count(*)
+                cursor=conn.execute('''select activity, count(*) howmany
                                        from biolog_exp
                                        where (plate_id!='PM01'
                                             and plate_id!='PM02A'
@@ -2246,9 +2242,7 @@ class Biolog(DBBase):
         act = {}
         for res in cursor:
             a = Row(res, cursor.description)
-            if a.activity not in act:
-                act[a.activity] = 0
-            act[a.activity] += 1
+            act[a.activity] = a.howmany
             
         return act
     
@@ -2260,7 +2254,7 @@ class Biolog(DBBase):
         '''
         with self.connection as conn:
             if not nonzero:
-                cursor=conn.execute('''select activity, count(*)
+                cursor=conn.execute('''select activity, count(*) howmany
                                        from biolog_exp
                                        where (plate_id='PM01'
                                             or plate_id='PM02A'
@@ -2277,7 +2271,7 @@ class Biolog(DBBase):
                                        order by activity;''',
                                        [org_id,])
             else:
-                cursor=conn.execute('''select activity, count(*)
+                cursor=conn.execute('''select activity, count(*) howmany
                                        from biolog_exp
                                        where (plate_id!='PM01'
                                             and plate_id!='PM02A'
@@ -2297,9 +2291,7 @@ class Biolog(DBBase):
         act = {}
         for res in cursor:
             a = Row(res, cursor.description)
-            if a.activity not in act:
-                act[a.activity] = 0
-            act[a.activity] += 1
+            act[a.activity] = a.howmany
             
         return act
     
@@ -2309,7 +2301,7 @@ class Biolog(DBBase):
         Returns a dictionary of activity --> #wells
         '''
         with self.connection as conn:
-            cursor=conn.execute('''select activity, count(*)
+            cursor=conn.execute('''select activity, count(*) howmany
                                    from biolog_exp b1, biolog b
                                    where b.plate_id = b1.plate_id
                                    and b.well_id = b1.well_id
@@ -2321,9 +2313,7 @@ class Biolog(DBBase):
         act = {}
         for res in cursor:
             a = Row(res, cursor.description)
-            if a.activity not in act:
-                act[a.activity] = 0
-            act[a.activity] += 1
+            act[a.activity] = a.howmany
             
         return act
     
@@ -2333,7 +2323,7 @@ class Biolog(DBBase):
         Returns a dictionary of activity --> #wells
         '''
         with self.connection as conn:
-            cursor=conn.execute('''select activity, count(*)
+            cursor=conn.execute('''select activity, count(*) howmany
                                    from biolog_exp b1, biolog b
                                    where b.plate_id = b1.plate_id
                                    and b.well_id = b1.well_id
@@ -2346,9 +2336,7 @@ class Biolog(DBBase):
         act = {}
         for res in cursor:
             a = Row(res, cursor.description)
-            if a.activity not in act:
-                act[a.activity] = 0
-            act[a.activity] += 1
+            act[a.activity] = a.howmany
             
         return act
     

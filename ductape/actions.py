@@ -1025,10 +1025,200 @@ def dPhenomeStats(project, svg=False, doPrint=True):
     
     plt.clf()
     
-    if kind == 'single' or kind == 'pangenome':
-        pass
+    ############################################################################
+    # Activity Boxplots
+    logger.info('Activity boxplots')
+    
+    if kind == 'single':
+        fig = plt.figure()
     else:
-        pass
+        fig = plt.figure(figsize=(12,6))
+    
+        d = biolog.getActivityDistribution()
+        x = []
+        for k, v in d.iteritems():
+            for i in range(v):
+                x.append(k)
+                
+        if len(x) != 0:                   
+            ax = fig.add_subplot(1,2,1)
+            bplot=ax.boxplot(x,1,vert=0)
+            
+            colorBoxPlot(ax, bplot, ['black'])
+            
+            ax.set_xlim(-1,10)
+            ax.set_xticks(range(10))
+            
+            ax.get_yaxis().set_ticks([])
+            
+            x0,x1 = ax.get_xlim()
+            y0,y1 = ax.get_ylim()
+            ax.set_aspect((x1-x0)/(y1-y0))
+            
+            ax.xaxis.grid(color='gray', linestyle='dashed')
+            ax.set_axisbelow(True)
+            
+            ax.set_xlabel('Activity', size='small')
+            ax.set_title('Overall', size='small')
+    
+    logger.debug('Single organisms activity')
+    
+    dcolors = getOrganismsColors(project)
+    
+    if kind == 'single':
+        ax = fig.add_subplot(1,1,1)
+    else:
+        ax = fig.add_subplot(1,2,2)
+        
+    # Get the organisms order (to have a nice order in case of mutants)
+    orgs = []
+    # Orgs actually used
+    borgs = []
+    bcolors = [] 
+    data = []
+    if kind == 'mutants':
+        refs = [org.org_id
+                    for org in organism.getAll()
+                    if not organism.isMutant(org.org_id)]
+        
+        for ref_id in refs:
+            orgs.append(ref_id)            
+            for x in organism.getOrgMutants(ref_id):
+                orgs.append(x)
+    else:
+        for org in organism.getAll():
+            orgs.append(org.org_id)
+    
+    for org_id in orgs:
+        d = biolog.getActivityDistributionByOrg(org_id)
+        x = []
+        for k, v in d.iteritems():
+            for i in range(v):
+                x.append(k)
+                
+        if len(x) == 0:
+            continue
+        borgs.append(org_id)
+        bcolors.append(dcolors[org_id])
+        data.append(x)
+    
+    borgs = borgs[::-1]
+    bcolors = bcolors[::-1]
+    data = data[::-1]
+    
+    bplot=ax.boxplot(data,1,vert=0)
+            
+    colorBoxPlot(ax, bplot, bcolors)
+    
+    if len(borgs) > 0:
+        ax.set_xlim(-1,10)
+        ax.set_xticks(range(10))
+        
+        ax.set_yticklabels(borgs, size='x-small')
+        
+        x0,x1 = ax.get_xlim()
+        y0,y1 = ax.get_ylim()
+        ax.set_aspect((x1-x0)/(y1-y0))
+        
+        ax.xaxis.grid(color='gray', linestyle='dashed')
+        ax.set_axisbelow(True)
+        
+        ax.set_xlabel('Activity', size='small')
+        ax.set_ylabel('Organisms', size='x-small')
+    
+        if kind == 'single':
+            ax.set_title('Activity boxplots', size='large')
+        else:
+            ax.set_title('Single organisms', size='small')
+            fig.suptitle('Activity boxplots', size='large')
+    
+        if svg:
+            plt.savefig('ActivityBoxplot.svg')
+        else:
+            plt.savefig('ActivityBoxplot.png')
+    
+    plt.clf()
+    
+    fig = plt.figure(figsize=(24,12))
+    axid = 1
+    
+    logger.debug('Category distributions')
+    
+    categs = set()
+    for c in biolog.getPlateCategs():
+        categs.add(c.category)
+    
+    for categ in categs:
+        d = biolog.getActivityDistributionByCateg(categ)
+        x = []
+        for k, v in d.iteritems():
+            for i in range(v):
+                x.append(k)
+        
+        if len(x) == 0:
+            ax = fig.add_subplot(2,4,axid)
+            ax.set_xlabel('Activity', size='small')
+            ax.set_ylabel('Organisms', size='x-small')
+            ax.set_title('%s'%categ.replace(' ','_').replace('&','and'), size='small')
+            axid += 1
+            continue
+            
+        ax = fig.add_subplot(2,4,axid)
+        
+        logger.debug('Plotting category %s activities'%categ)
+        
+        # Orgs actually used
+        borgs = []
+        bcolors = [] 
+        data = []
+        for org_id in orgs:
+            d = biolog.getActivityDistributionByCategAndOrg(categ, org_id)
+            x = []
+            for k, v in d.iteritems():
+                for i in range(v):
+                    x.append(k)
+                    
+            if len(x) == 0:
+                continue
+            borgs.append(org_id)
+            bcolors.append(dcolors[org_id])
+            data.append(x)
+        
+        borgs = borgs[::-1]
+        bcolors = bcolors[::-1]
+        data = data[::-1]
+        
+        bplot=ax.boxplot(data,1,vert=0)
+                
+        colorBoxPlot(ax, bplot, bcolors)
+        
+        if len(borgs) > 0:
+            ax.set_xlim(-1,10)
+            ax.set_xticks(range(10))
+            
+            ax.set_yticklabels(borgs, size='x-small')
+            
+            x0,x1 = ax.get_xlim()
+            y0,y1 = ax.get_ylim()
+            ax.set_aspect((x1-x0)/(y1-y0))
+            
+            ax.xaxis.grid(color='gray', linestyle='dashed')
+            ax.set_axisbelow(True)
+            
+            ax.set_xlabel('Activity', size='small')
+            ax.set_ylabel('Organisms', size='x-small')
+            ax.set_title('%s'%categ, size='small')
+        
+        axid += 1
+            
+    fig.suptitle('Activity boxplots by categories', size='large')
+    
+    if svg:
+        plt.savefig('ActivityCategBoxplot.svg')
+    else:
+        plt.savefig('ActivityCategBoxplot.png')
+    
+    plt.clf()
     
     return True
 
@@ -1563,6 +1753,52 @@ def createLegend(kind, compounds=False):
         
     return fname
 
+def colorBoxPlot(ax, bplot, colors):
+    '''
+    color the boxplots with the desired color
+    
+    Borrowed from the amazing matplotlib gallery
+    http://matplotlib.org/examples/pylab_examples/boxplot_demo2.html
+    '''
+    import matplotlib.artist as art
+    from matplotlib.patches import Polygon
+    
+    # Caps, Fliers and Whiskers
+    tocolor = []
+    for i in range(1,len(bplot['whiskers']),2):
+        color = colors[i/2]
+    
+        tocolor.append((bplot['caps'][i-1], color))
+        tocolor.append((bplot['caps'][i], color))
+        
+        tocolor.append((bplot['fliers'][i-1], color))
+        tocolor.append((bplot['fliers'][i], color))
+        
+        tocolor.append((bplot['whiskers'][i-1], color))
+        tocolor.append((bplot['whiskers'][i], color))
+    
+    for obj, color in tocolor:
+        art.setp(obj, color=color, linewidth=2)
+    
+    # Box & Median
+    for i in range(len(bplot['boxes'])):
+        box = bplot['boxes'][i]
+        median = bplot['medians'][i]
+        color = colors[i]
+        
+        art.setp(box, color=color, linewidth=2)
+        art.setp(median, color=color, linewidth=2)
+        
+        boxX = []
+        boxY = []
+        for j in box.get_xdata():
+            boxX.append(j)
+        for j in box.get_ydata():
+            boxY.append(j)
+        boxCoords = zip(boxX,boxY)
+        boxPolygon = Polygon(boxCoords, facecolor=color, alpha=0.66)
+        ax.add_patch(boxPolygon)
+    
 def plotMapBars(lOrg, title, fname, svg=False):
     '''
     Plot histograms for Kegg mapping statistics

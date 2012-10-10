@@ -1496,13 +1496,7 @@ def dPhenomeExport(project):
         logger.info('No phenomic data can be exported at this time')
         return False
     
-    biolog = Biolog(project)
-    
-    # Check!
-    if biolog.atLeastOneNoParameter():
-        logger.warning('The activity index must be calculated first (run %s start)'%
-                        __prog__)
-        return False    
+    biolog = Biolog(project)    
     
     # Which project are we talking about?
     kind = dSetKind(project)    

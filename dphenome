@@ -212,6 +212,15 @@ def dexport(options, wdir, project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
+    
+    biolog = Biolog(project)
+    
+    # Check!
+    if biolog.atLeastOneNoParameter():
+        logger.warning('The activity index must be calculated first (run %s start)'%
+                       __prog__)
+        return False
+    
     return dPhenomeExport(project)
 
 def dremove(options, wdir, project):

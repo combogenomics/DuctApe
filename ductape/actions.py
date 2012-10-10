@@ -757,13 +757,19 @@ def dPhenomeStats(project, svg=False, doPrint=True):
     isZero = biolog.atLeastOneZeroSubtracted()
     
     category = {}
+    categorder = []
     for c in biolog.getPlateCategs():
         categ = c.category.replace(' ','_').replace('&','and')
+        
         if categ not in category:
             category[categ] = set()
         category[categ].add(c.plate_id)
+        
+        if categ not in categorder:
+            categorder.append(categ)
     
-    exp = Experiment(plates=plates, zero=isZero, category=category)
+    exp = Experiment(plates=plates, zero=isZero,
+                     category=category, categorder=categorder)
     
     exp.plot(svg=svg)
     
@@ -951,9 +957,10 @@ def dPhenomeStats(project, svg=False, doPrint=True):
     
     logger.debug('Category distributions')
     
-    categs = set()
+    categs = []
     for c in biolog.getPlateCategs():
-        categs.add(c.category)
+        if c.category not in categs:
+            categs.append(c.category)
     
     for categ in categs:
         d = biolog.getActivityDistributionByCateg(categ)
@@ -1144,9 +1151,10 @@ def dPhenomeStats(project, svg=False, doPrint=True):
     
     logger.debug('Category distributions')
     
-    categs = set()
+    categs = []
     for c in biolog.getPlateCategs():
-        categs.add(c.category)
+        if c.category not in categs:
+            categs.append(c.category)
     
     for categ in categs:
         d = biolog.getActivityDistributionByCateg(categ)

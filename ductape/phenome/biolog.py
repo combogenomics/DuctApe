@@ -721,12 +721,13 @@ class Experiment(object):
         pass
     
     def __init__(self, exp_id='', name='', plates=[], zero=False,
-                 category = {}):
+                 category = {}, categorder = []):
         self.exp_id = exp_id
         self.name = name
         
         self.zero = zero
         self.category = category
+        self.categorder = categorder
         
         self.plates = {}
         for plate in plates:
@@ -819,7 +820,8 @@ class Experiment(object):
         if params is set to False, it just gives you the wells,
         otherwise it calculates them
         '''
-        for categ, plates in self.category.iteritems():
+        for categ in self.categorder:
+            plates = self.category[categ]
             wells = []
             for well in self.getWells(params):
                 if well.plate_id in plates:

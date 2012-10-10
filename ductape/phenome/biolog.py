@@ -1178,6 +1178,9 @@ class Experiment(object):
             ftype = 'png'
         
         plt.savefig('%s.%s'%(name,ftype))
+        
+        logger.info('Saved "%s" graph (%s)'%(title, name))
+        
         plt.clf()
     
     def plot(self, svg=False):

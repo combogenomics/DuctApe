@@ -866,9 +866,13 @@ def dPhenomeStats(project, svg=False, doPrint=True):
     plt.legend(loc='best')
     
     if svg:
-        plt.savefig('Activity.svg')
+        fname = 'Activity.svg'
     else:
-        plt.savefig('Activity.png')
+        fname = 'Activity.png'
+    
+    plt.savefig(fname)
+    
+    logger.info('Saved activity distribution graph (%s)'%fname)
     
     plt.clf()
     
@@ -946,9 +950,13 @@ def dPhenomeStats(project, svg=False, doPrint=True):
     plt.legend(loc='best')
     
     if svg:
-        plt.savefig('ActivityZero.svg')
+        fname = 'ActivityZero.svg'
     else:
-        plt.savefig('ActivityZero.png')
+        fname = 'ActivityZero.png'
+        
+    plt.savefig(fname)
+    
+    logger.info('Saved Zero/NoZero activity distribution (%s)'%fname)
     
     plt.clf()
     
@@ -1026,9 +1034,13 @@ def dPhenomeStats(project, svg=False, doPrint=True):
     plt.legend(loc='best')
     
     if svg:
-        plt.savefig('ActivityCateg.svg')
+        fname = 'ActivityCateg.svg'
     else:
-        plt.savefig('ActivityCateg.png')
+        fname = 'ActivityCateg.png'
+    
+    plt.savefig(fname)
+    
+    logger.info('Saved category activity distribution (%s)'%fname)
     
     plt.clf()
     
@@ -1140,9 +1152,13 @@ def dPhenomeStats(project, svg=False, doPrint=True):
             fig.suptitle('Activity boxplots', size='large')
     
         if svg:
-            plt.savefig('ActivityBoxplot.svg')
+            fname = 'ActivityBoxplot.svg'
         else:
-            plt.savefig('ActivityBoxplot.png')
+            fname = 'ActivityBoxplot.png'
+            
+        plt.savefig(fname)
+            
+        logger.info('Saved activity boxplots (%s)'%fname)
     
     plt.clf()
     

@@ -188,6 +188,24 @@ def dstats(options, wdir, project):
     
     return dPhenomeStats(project, svg=options.svg)
 
+def drings(options, wdir, project):
+    from ductape.actions import dPhenomeRings
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    
+    biolog = Biolog(project)
+    
+    # Check!
+    if biolog.atLeastOneNoParameter():
+        logger.warning('The activity index must be calculated first (run %s start)'%
+                       __prog__)
+        return False
+    
+    return dPhenomeRings(project, delta=options.delta, difforg=options.o,
+                         svg=options.svg)
+
 def dexport(options, wdir, project):
     from ductape.actions import dPhenomeExport
     if not touchProject(project):
@@ -378,6 +396,19 @@ def getOptions():
                             default=False,
                             help='Figures in svg format instead of png')
     parser_stats.set_defaults(func=dstats)
+    
+    parser_rings = subparsers.add_parser('rings', help='Plot phenomic rings')
+    parser_rings.add_argument('-d', metavar='delta', action="store", dest='delta',
+                              type=int,
+                              default=1,
+                              help='Activity delta threshold')
+    parser_rings.add_argument('-o', metavar='difforg', action="store",
+                            default = None,
+                            help='Diff mode: reference organism ID')
+    parser_rings.add_argument('-s', '--svg', action="store_true",
+                            default=False,
+                            help='Figures in svg format instead of png')
+    parser_rings.set_defaults(func=drings)
     
     parser_export = subparsers.add_parser('export', help='Export phenomic data')
     parser_export.set_defaults(func=dexport)

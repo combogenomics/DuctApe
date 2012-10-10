@@ -775,6 +775,23 @@ class Experiment(object):
                 self.sumexp[w.plate_id][w.well_id][w.strain] = fakeWell
             
             self.experiment[w.plate_id][w.well_id][w.strain][w.replica] = w
+            
+        # For each well, if each replica has an activity, add its value
+        # to the averaged dictionary
+        for pid in self.sumexp:
+            for wid in self.sumexp[pid]:
+                for org in self.sumexp[pid][wid]:
+                    reps = self.experiment[pid][wid][org].keys()
+                    
+                    act = []
+                    for r in reps:
+                        if self.experiment[pid][wid][org][r].activity is None:
+                            break
+                        act.append(self.experiment[pid][wid][org][r].activity)
+                        
+                    if len(act) > 0:
+                        mean = np.array(act).mean()
+                        self.sumexp[pid][wid][org].activity = mean
     
     def getMax(self):
         '''
@@ -864,14 +881,19 @@ class Experiment(object):
                     for w in reps:
                         yield w
                         
-    def getAverageWells(self):
+    def getAverageWells(self, org_id=None):
         '''
         Generator to the single average wells
+        if org_id is provided, only the wells from that ID is provided
+        (plate IDs, well IDs and organism IDs are sorted)
         '''
-        for plate in self.sumexp:
-            for well in self.sumexp[plate]:
-                for strain in self.sumexp[plate][well]:  
-                    yield self.experiment[plate][well][strain]
+        for plate in sorted(self.sumexp.keys()):
+            for well in sorted(self.sumexp[plate].keys()):
+                if org_id:
+                    yield self.sumexp[plate][well][org_id]
+                else:               
+                    for strain in sorted(self.sumexp[plate][well].keys()):  
+                        yield self.sumexp[plate][well][strain]
                     
     def getAverageSinglePlates(self):
         '''

@@ -1222,9 +1222,163 @@ def dPhenomeStats(project, svg=False, doPrint=True):
     fig.suptitle('Activity boxplots by categories', size='large')
     
     if svg:
-        plt.savefig('ActivityCategBoxplot.svg')
+        fname = 'ActivityCategBoxplot.svg'
     else:
-        plt.savefig('ActivityCategBoxplot.png')
+        fname = 'ActivityCategBoxplot.png'
+    
+    plt.savefig(fname)
+    
+    logger.info('Saved category activity boxplots (%s)'%fname)
+    
+    plt.clf()
+        
+    return True
+
+def dPhenomeRings(project, delta=1, difforg=None, svg=False):
+    # Which project are we talking about?
+    kind = dSetKind(project)
+    
+    if kind == 'mutants' and difforg:
+        logger.warning('Reference organism(s) will be used for diff mode')
+        difforg = None
+    
+    organism = Organism(project)
+    if difforg:
+        if not organism.isOrg(difforg):
+            logger.error('Organism %s is not present yet!'%difforg)
+            return False
+        logger.info('Diff mode: using organism %s as reference'%difforg)
+    
+    biolog = Biolog(project)
+    
+    # Setup an experiment
+    sigs = [s for s in biolog.getAllSignals()]
+    plates = [p for p in getPlates(sigs)]
+    
+    isZero = biolog.atLeastOneZeroSubtracted()
+    
+    category = {}
+    categorder = []
+    for c in biolog.getPlateCategs():
+        categ = c.category.replace(' ','_').replace('&','and')
+        
+        if categ not in category:
+            category[categ] = set()
+        category[categ].add(c.plate_id)
+        
+        if categ not in categorder:
+            categorder.append(categ)
+    
+    exp = Experiment(plates=plates, zero=isZero,
+                     category=category, categorder=categorder)
+    
+    ############################################################################
+    # Activity rings (!!!)
+    # Thanks to stackoverflow for that
+    # http://stackoverflow.com/questions/12803883
+    
+    logger.info('Activity ring')
+    
+    fig = plt.figure(figsize=(25,25), dpi=300)
+    # Polar plot!
+    ax = fig.add_subplot(111, polar = True)
+    # Start from the top
+    ax.set_theta_offset(np.pi/2)
+    # Go clockwise
+    ax.set_theta_direction(-1)
+    
+    # Get the organisms order (to have a nice order in case of mutants)
+    orgs = []
+    muts = {}
+    if kind == 'mutants':
+        refs = [org.org_id
+                    for org in organism.getAll()
+                    if not organism.isMutant(org.org_id)]
+        
+        for ref_id in refs:
+            orgs.append(ref_id)            
+            for x in organism.getOrgMutants(ref_id):
+                orgs.append(x)
+                muts[x] = ref_id
+    elif difforg:
+        orgs.append(difforg)
+        for org in organism.getAll():
+            if org.org_id != difforg:
+                orgs.append(org.org_id)
+                muts[org.org_id] = difforg
+    else:
+        for org in organism.getAll():
+            orgs.append(org.org_id)
+    
+    # "Legend"
+    i = 0.1
+    for org_id in orgs:
+        radius = np.linspace(i, i+0.1, 10)
+        theta = np.linspace(0, 2*np.pi, 628)
+        R,T  = np.meshgrid(radius,theta)
+    
+        ax.pcolor(T, R, [[1 for y in range(10)] for x in range(628)], cmap=cm.Greys,
+                  vmin=0, vmax=9)
+        
+        ax.text(0, i+0.03, org_id, size=17, weight='black', alpha=0.77, ha='center')
+        
+        i += 0.15
+    
+    # Starting point 
+    if i < 0.5:
+        i = 0.5
+    for org_id in orgs:
+        acts = []
+        for w in exp.getAverageWells(org_id):
+            if (kind == 'mutants' or difforg) and org_id in muts:
+                # Check if the reference has a value for this
+                try:
+                    ref_id = muts[org_id]
+                    refact = exp.sumexp[w.plate_id][w.well_id][ref_id].activity
+                    if abs(w.activity - refact) <= delta:
+                        acts.append(np.nan)
+                    else:
+                        acts.append(w.activity - refact)
+                except Exception, e:
+                    logger.warning(e)
+                    acts.append(np.nan)
+            else:
+                if w.activity is None:
+                    acts.append(np.nan)
+                else:
+                    acts.append(w.activity)
+                    
+        radius = np.linspace(i, i+0.2, 10)
+        theta = np.linspace(0, 2*np.pi, len(acts))
+        R,T  = np.meshgrid(radius,theta)
+        
+        if (kind == 'mutants' or difforg) and org_id in muts:
+            cmap = cm.BuPu
+            vmin = -9
+            vmax = 9
+        else:
+            cmap = cm.RdYlGn
+            vmin = 0
+            vmax = 9
+            
+        cmap.set_under('#CCCCCC',1.)
+        
+        ax.pcolor(T, R, [[x for y in range(10)] for x in acts], cmap=cmap,
+                  vmin=vmin, vmax=vmax)
+        
+        i += 0.25
+
+    # Categ archs
+    pass
+
+    #Turn off polar labels
+    ax.axes.get_xaxis().set_visible(False)
+    ax.axes.get_yaxis().set_visible(False)
+
+    # Colorbar
+    #plt.colorbar()
+
+    plt.savefig('polar.png')
     
     plt.clf()
     

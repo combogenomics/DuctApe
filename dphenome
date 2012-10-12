@@ -186,7 +186,8 @@ def dstats(options, wdir, project):
                        __prog__)
         return False
     
-    return dPhenomeStats(project, svg=options.svg)
+    return dPhenomeStats(project, activity=options.activity,
+                         delta=options.delta, svg=options.svg)
 
 def drings(options, wdir, project):
     from ductape.actions import dPhenomeRings
@@ -401,6 +402,14 @@ def getOptions():
     parser_restore.set_defaults(func=drestore)
     
     parser_stats = subparsers.add_parser('stats', help='Print phenomic statistics')
+    parser_stats.add_argument('-a', metavar='activity', action="store", dest='activity',
+                              type=int,
+                              default=5,
+                              help='Activity threshold')
+    parser_stats.add_argument('-d', metavar='delta', action="store", dest='delta',
+                              type=int,
+                              default=3,
+                              help='Activity delta threshold')
     parser_stats.add_argument('-s', '--svg', action="store_true",
                             default=False,
                             help='Figures in svg format instead of png')

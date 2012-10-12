@@ -739,7 +739,10 @@ def dGenomeStats(project, svg=False, doPrint=True):
 
     return True
 
-def dPhenomeStats(project, svg=False, doPrint=True):
+def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
+    from ductape.phenome.biolog import getOrder
+    from itertools import combinations
+    
     # Which project are we talking about?
     kind = dSetKind(project)
     
@@ -1247,7 +1250,135 @@ def dPhenomeStats(project, svg=False, doPrint=True):
     logger.info('Saved category activity boxplots (%s)'%fname)
     
     plt.clf()
+    
+    ############################################################################
+    # Statistics printing
+    logger.info('Active wells stats')
+    
+    # Get the organisms order (to have a nice order in case of mutants)
+    orgs = []
+    refs = {}
+    if kind == 'mutants':
+        refIDs = [org.org_id
+                    for org in organism.getAll()
+                    if not organism.isMutant(org.org_id)]
         
+        for ref_id in refIDs:
+            refs[ref_id] = []
+            orgs.append(ref_id)            
+            for x in organism.getOrgMutants(ref_id):
+                orgs.append(x)
+                refs[ref_id].append(x)
+    else:
+        for org in organism.getAll():
+            orgs.append(org.org_id)
+            
+    header = 'Active wells (%% of wells with activity >= %d)'%activity
+    if doPrint:
+        print header
+    else:
+        logger.info(header)
+    
+    header = '\t'.join( ['Category'] + orgs )
+    if doPrint:
+        print header
+    else:
+        logger.info(header)
+        
+    for categ in categorder:
+        line = [categ]
+        for org_id in orgs:
+            wells = filter(lambda x:x.plate_id in category[categ],
+                                [w for w in exp.getAverageWells(org_id)])
+            total = float(len(wells))
+            active = float(len(filter(lambda x: x.activity >= activity,
+                                      wells)))
+            
+            try:
+                line.append( str( (active/total) * 100) )
+            except:
+                line.append('N/A')
+    
+        line = '\t'.join(line)
+        if doPrint:
+            print line
+        else:
+            logger.info(line)
+    
+    if kind == 'single':
+        return True
+    
+    logger.info('Active differences stats')
+    
+    header = '\t'.join( ['Category', 'Average difference',
+             'Main differences (%% of wells whose average difference >= %d)'%delta] )
+    if doPrint:
+        print header
+    else:
+        logger.info(header)
+        
+    for categ in categorder:
+        pwlist = filter(lambda x: x[0] in category[categ],
+                    [pw for pw in getOrder()])
+        
+        pwdiff = []
+        pwavgdiff = []
+        pwcount = 0
+        if kind == 'mutants':
+            for pid, wid in pwlist:
+                try:
+                    # For simplicity reasons, we use the overall differences
+                    diff = []
+                    for ref_id in refIDs:
+                        for mut_id in refs[ref_id]:
+                            if ref_id not in exp.sumexp[pid][wid]:continue
+                            if mut_id not in exp.sumexp[pid][wid]:continue
+                            
+                            pwdiff.append( exp.sumexp[pid][wid][mut_id].activity -
+                                           exp.sumexp[pid][wid][ref_id].activity )
+                            diff.append( abs(
+                                       exp.sumexp[pid][wid][mut_id].activity -
+                                       exp.sumexp[pid][wid][ref_id].activity) )
+                            
+                    pwavgdiff.append(np.array(diff).mean())
+                    pwcount += 1
+                except:pass
+        else:
+            for pid, wid in pwlist:
+                try:
+                    diff = []
+                    for oid, oid1 in combinations(orgs, 2):
+                        if oid not in exp.sumexp[pid][wid]:continue
+                        if oid1 not in exp.sumexp[pid][wid]:continue
+                                               
+                        pwdiff.append( abs(
+                                   exp.sumexp[pid][wid][oid].activity -
+                                   exp.sumexp[pid][wid][oid1].activity) )
+                        diff.append( abs(
+                                   exp.sumexp[pid][wid][oid].activity -
+                                   exp.sumexp[pid][wid][oid1].activity) )
+                    
+                    pwavgdiff.append(np.array(diff).mean())
+                    pwcount += 1 
+                except:pass
+        
+        total = float(pwcount)
+        if len(pwdiff) == 0:
+            avgdiff = 'N/A'
+        else:
+            avgdiff = str(np.array(pwdiff).mean())
+        overdiff = float(len(filter(lambda x: x >= delta, pwavgdiff)))
+        try:
+            maindiff = str((overdiff / total) * 100)
+        except:
+            maindiff = 'N/A'
+        
+        line = '\t'.join( [categ, avgdiff, maindiff] )
+        if doPrint:
+            print line
+        else:
+            logger.info(line)
+            
     return True
 
 def dPhenomeRings(project, delta=1, difforg=None, svg=False):

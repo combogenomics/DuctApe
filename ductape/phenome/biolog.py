@@ -1168,8 +1168,9 @@ class Experiment(object):
         
         cNorm  = colors.Normalize(vmin=0, vmax=9)
         scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.RdYlGn)
-        scalarMap.set_array(np.array([0,1,2,3,4,5,6,7,8,9]))
-        cax = fig.add_axes([0.925, 0.2, 0.03, 0.6])        
+        scalarMap.set_array(np.array(range(10)))
+        cax = fig.add_axes([0.925, 0.2, 0.03, 0.6])
+        cax.text(0.50, 1.01, 'Activity', size=10, ha='center')       
         plt.colorbar(scalarMap, cax=cax)
         
         if svg:
@@ -1179,7 +1180,7 @@ class Experiment(object):
         
         plt.savefig('%s.%s'%(name,ftype))
         
-        logger.info('Saved "%s" graph (%s)'%(title, name))
+        logger.info('Saved "%s" graph (%s.%s)'%(title, name, ftype))
         
         plt.clf()
     

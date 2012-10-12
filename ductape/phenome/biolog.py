@@ -32,7 +32,7 @@ __author__ = "Marco Galardini"
 logger = logging.getLogger('ductape.biolog')
 
 ################################################################################
-# Plate ID conversion
+# Plate ID conversion and sanity checks
 
 dPlates = {'PM 1-':'PM01', 'PM 2-A':'PM02A',
             'PM 3-B':'PM03B', 'PM 4-A':'PM04A',
@@ -58,6 +58,28 @@ acceptedPlates = dPlates.values()
 zeroPlates = ['PM01','PM02A','PM03B','PM04A','PM05',
               'PM06','PM07','PM08','PM03B','PM04A']
 zeroWell = 'A01'
+
+wellChars = 'ABCDEFGH'
+
+def getPlatesOrder():
+    return sorted(set(dPlates.values()))
+
+def getOrder(plates=None):
+    '''
+    Generator of plate/well IDs
+    If plates is provided as a list of plates IDs, only those plates are used
+    '''
+    if not plates:
+        plates = getPlatesOrder()
+        
+    for pid in plates:
+        for wh in wellChars:
+            for wi in range(1,13):
+                if wi < 10:
+                    wid = '%s0%d'%(wh, wi)
+                else:
+                    wid = '%s%d'%(wh, wi)
+                yield (pid, wid)
 
 ################################################################################
 # Classes

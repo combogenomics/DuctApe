@@ -1382,6 +1382,8 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     return True
 
 def dPhenomeRings(project, delta=1, difforg=None, svg=False):
+    from ductape.phenome.biolog import getOrder
+    
     # Which project are we talking about?
     kind = dSetKind(project)
     
@@ -1470,37 +1472,64 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
         ax.text(0, i+0.03, org_id, size=17, weight='black', alpha=0.77, ha='center')
         
         i += 0.15
+        
+    # Category and plate/well fail-safe tweaks
+    # What if a plate/well is missing?
+    # What is the category order?
+    categpworder = {}
+    for categ in categorder:
+        categpworder[categ] = []
+        for pid, wid in getOrder(sorted(category[categ])):
+            # Check what we can discard (plates)
+            if pid in exp.sumexp:
+                categpworder[categ].append((pid, wid))
+    
+    # Categ colors
+    from itertools import cycle
+    categcolor = {}
+    colors = cycle('bgrcmykbgrcmykbgrcmykbgrcmyk')
+    for categ, col in zip(categorder, colors):
+        categcolor[categ] = col
     
     # Starting point 
     if i < 0.5:
         i = 0.5
     for org_id in orgs:
         acts = []
-        for w in exp.getAverageWells(org_id):
-            if (kind == 'mutants' or difforg) and org_id in muts:
-                # Check if the reference has a value for this
+        
+        for categ in categorder:
+            if len(categpworder[categ]) == 0:continue
+            
+            for pid, wid in categpworder[categ]:
                 try:
-                    ref_id = muts[org_id]
-                    refact = exp.sumexp[w.plate_id][w.well_id][ref_id].activity
-                    if abs(w.activity - refact) <= delta:
+                    w = exp.sumexp[pid][wid][org_id]
+                except:
+                    acts.append(np.nan)
+                    continue
+                if (kind == 'mutants' or difforg) and org_id in muts:
+                    # Check if the reference has a value for this
+                    try:
+                        ref_id = muts[org_id]
+                        refact = exp.sumexp[w.plate_id][w.well_id][ref_id].activity
+                        if abs(w.activity - refact) <= delta:
+                            acts.append(np.nan)
+                        else:
+                            acts.append(w.activity - refact)
+                    except Exception, e:
+                        logger.warning(e)
+                        acts.append(np.nan)
+                else:
+                    if w.activity is None:
                         acts.append(np.nan)
                     else:
-                        acts.append(w.activity - refact)
-                except Exception, e:
-                    logger.warning(e)
-                    acts.append(np.nan)
-            else:
-                if w.activity is None:
-                    acts.append(np.nan)
-                else:
-                    acts.append(w.activity)
+                        acts.append(w.activity)
                     
         radius = np.linspace(i, i+0.2, 10)
         theta = np.linspace(0, 2*np.pi, len(acts))
         R,T  = np.meshgrid(radius,theta)
         
         if (kind == 'mutants' or difforg) and org_id in muts:
-            cmap = cm.BuPu
+            cmap = cm.PuOr
             vmin = -9
             vmax = 9
         else:
@@ -1508,7 +1537,7 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
             vmin = 0
             vmax = 9
             
-        cmap.set_under('#CCCCCC',1.)
+        cmap.set_under('#F8F8F8',1.)
         
         ax.pcolor(T, R, [[x for y in range(10)] for x in acts], cmap=cmap,
                   vmin=vmin, vmax=vmax)
@@ -1516,16 +1545,67 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
         i += 0.25
 
     # Categ archs
-    pass
+    # Total points
+    total = 0
+    for pw in categpworder.itervalues():
+        total += len(pw)
+    total = float(total)
+    
+    start_arch = 0
+    stop_arch = 0
+    for categ in categorder:
+        if len(categpworder[categ]) == 0:continue
+        
+        # This category proportion over the others
+        categprop = float(len(categpworder[categ])) / total
+        
+        stop_arch += 2*np.pi*categprop
+        theta = np.linspace(start_arch, stop_arch, 100)
+        
+        ax.plot(theta, [i for t in theta], color=categcolor[categ],
+                linewidth=20, label=categ)
+        
+        start_arch += 2*np.pi*categprop
 
     #Turn off polar labels
     ax.axes.get_xaxis().set_visible(False)
     ax.axes.get_yaxis().set_visible(False)
 
-    # Colorbar
-    #plt.colorbar()
+    ax.set_rmax(i)
 
-    plt.savefig('polar.png')
+    # Colorbar
+    import matplotlib.colors as colors
+    cNorm  = colors.Normalize(vmin=0, vmax=9)
+    scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.RdYlGn)
+    scalarMap.set_array(np.array(range(10)))
+    cax = fig.add_axes([0.93, 0.2, 0.03, 0.6])
+    cax.text(0.50, 1.01, 'Activity', size=20, ha='center')
+    plt.colorbar(scalarMap, cax=cax)
+    
+    if (kind == 'mutants' or difforg):
+        cNorm  = colors.Normalize(vmin=-9, vmax=9)
+        scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.PuOr)
+        scalarMap.set_array(np.array(range(-9,9,20)))
+        cax = fig.add_axes([0.04, 0.2, 0.03, 0.6])
+        cax.text(0.50, 1.01, 'Delta activity', size=20, ha='center')
+        plt.colorbar(scalarMap, cax=cax)
+        
+        # Title
+        ax.set_title('Activity ring (diff mode)', size=35)
+    else:
+        # Title
+        ax.set_title('Activity ring', size=35)
+    
+    ax.legend(loc='best')
+    
+    if svg:
+        fname = 'ActivityRing.svg'
+    else:
+        fname = 'ActivityRing.png'
+    
+    plt.savefig(fname)
+    
+    logger.info('Saved activity ring (%s)'%fname)
     
     plt.clf()
     

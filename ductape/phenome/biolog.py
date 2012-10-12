@@ -912,6 +912,7 @@ class Experiment(object):
         for plate in sorted(self.sumexp.keys()):
             for well in sorted(self.sumexp[plate].keys()):
                 if org_id:
+                    if org_id not in self.sumexp[plate][well]:continue
                     yield self.sumexp[plate][well][org_id]
                 else:               
                     for strain in sorted(self.sumexp[plate][well].keys()):  

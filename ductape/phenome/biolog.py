@@ -1271,7 +1271,10 @@ class Experiment(object):
                 w.compress()
             if not w.smoothed:
                 # More aggressive smooth
-                w.smooth(30)
+                try:
+                    w.smooth(30)
+                except:
+                    w.smooth()
             
             times = sorted(w.signals.keys())
             ax.plot(times, [w.signals[t] for t in times], color=colors[w.activity],

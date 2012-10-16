@@ -7,7 +7,7 @@ Common Library
 KeggAPI handles the connection to KEGG API through wsdl
 KoMapper handles reactions, pathways and compounds retrieval on Ko IDs 
 """
-from SOAPpy import WSDL
+import urllib
 from ductape.common.commonthread import CommonThread
 from ductape.common.utils import get_span
 from ductape.kegg.web import kheader
@@ -59,45 +59,51 @@ class KeggAPI(object):
     Connects to KEGG API and performs various tasks
     Fail-safe: if a request fails it tries again and again
     All the results are stored in the attribute result, as well as the inputs
+    
+    Docs:
+    http://www.kegg.jp/kegg/docs/keggapi.html
+    http://www.kegg.jp/kegg/rest/weblink.html
     '''
     def __init__(self):
-        self._apiurl = 'http://soap.genome.jp/KEGG.wsdl'
-        self._keggserv = None
+        self._apiurl = 'http://rest.kegg.jp/'
+        self._maplink = 'http://www.kegg.jp/kegg-bin/show_pathway?'
         self.clean()
     
     def clean(self):
         self.input = None
         self.result = None
+
+    def getEntryTag(self, entry, tag):
+        '''
+        Get the tag content inside a kegg entry (flat file)
+        '''
+        b = False
+        res = ''
+        for line in entry.split('\n'):
+            if line.startswith(tag):
+                res += line.rstrip().lstrip(tag).lstrip()
+                b = True
+            elif b and line[0] == ' ':
+                res += line.rstrip().lstrip()
+            elif b and line[0] != ' ':
+                b = False
+                return res
     
-    def connect(self, retries=5):
+    def parseLinks(self, links):
         '''
-        Connect to KEGG API
-        If it fails it tries again (retries)
-        Returns True if it worked, False otherwise
+        Parse the results of 
         '''
-        logger.debug('KEPP API url: %s'%self._apiurl)
-        attempts = 0
-        while True:
-            try:
-                # Avoid deprecation warnings due to the nature of the wsdl file
-                import warnings
-                with warnings.catch_warnings():
-                    warnings.filterwarnings("ignore",category=DeprecationWarning)
-                    
-                    self._keggserv = WSDL.Proxy(self._apiurl)
-                logger.debug('Connection to KEGG API successful')
-                self.result = True
-                return
-            except Exception, e:
-                attempts += 1
-                logger.debug('Connection to KEGG API failed! Attempt %d'
-                              %attempts)
-                logger.debug('%s'%str(e))
-                time.sleep(2*attempts)
-                if attempts >= retries:
-                    logger.warning('Could not connect to KEGG API')
-                    self.result = False
-                    return
+        d = {}
+        for line in links.split('\n'):
+            if line == '':continue
+            
+            k, v = line.split('\t')
+            
+            if k not in d:
+                d[k] = []
+            d[k].append(v)
+        
+        return d
 
     def getTitle(self, entry, retries=5):
         '''
@@ -108,150 +114,184 @@ class KeggAPI(object):
             try:
                 self.input = entry
                 logger.debug('Looking for title for KEGG entry %s'%entry)
-                res = self._keggserv.btit(entry).strip()
-                start = res.split(';')
-                name = ' '.join(start[0].split(' ')[1:])
-                if len(start) > 1:
-                    descr = ';'.join(start[1:])
-                else: descr = ''
-                self.result = [name, descr]
+                url = self._apiurl + 'get/%s'%entry
+                data = urllib.urlopen(url).read()
+                self.result = [self.getEntryTag(data, 'NAME'),
+                               self.getEntryTag(data, 'DEFINITION')]
                 return
             except Exception, e:
                 attempts += 1
-                logger.debug('btit failed! Attempt %d'
+                logger.debug('get failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
-                    logger.warning('btit failed!')
-                    raise Exception('btit request failed')
+                    logger.warning('get failed!')
+                    raise Exception('get request failed')
     
-    def getReactions(self, ko_id, retries=5):
+    def getReactions(self, ko_ids, retries=5):
         '''
-        Get the reaction IDs for a given KO entry
+        Get the reaction IDs for a given KO list
         '''
         attempts = 0
         while True:
             try:
-                self.input = ko_id
-                logger.debug('Looking for KEGG reactions from %s'%ko_id)
-                self.result = self._keggserv.get_linkdb_by_entry(ko_id, 'reaction')
-                return
-            except Exception, e:
-                attempts += 1
-                logger.debug('get_linkdb_by_entry failed! Attempt %d'
-                              %attempts)
-                logger.debug('%s'%str(e))
-                time.sleep(2*attempts)
-                if attempts >= retries:
-                    logger.warning('get_linkdb_by_entry failed!')
-                    raise Exception('get_linkdb_by_entry request failed')
+                self.input = ko_ids
+                logger.debug('Looking for KEGG reactions from %d KO IDs'%len(ko_ids))
+                url = self._apiurl + 'link/reaction/'
+                for ko_id in ko_ids:
+                    url += '%s+'%ko_id
+                url.rstrip('+')
                 
-    def getPathways(self, re_id, retries=5):
-        '''
-        Get the pathway IDs for a given reaction
-        '''
-        attempts = 0
-        while True:
-            try:
-                self.input = re_id
-                logger.debug('Looking for KEGG pathways from %s'%re_id)
-                self.result = list(self._keggserv.get_pathways_by_reactions([re_id]))
+                data = urllib.urlopen(url).read()
+                self.result = self.parseLinks(data)
                 return
             except Exception, e:
                 attempts += 1
-                logger.debug('get_pathways_by_reactions failed! Attempt %d'
+                logger.debug('link (reaction) failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
-                    logger.warning('get_pathways_by_reactions failed!')
-                    raise Exception('get_pathways_by_reactions request failed')
+                    logger.warning('link (reaction) failed!')
+                    raise Exception('link (reaction) request failed')
+                
+    def getPathways(self, re_ids, retries=5):
+        '''
+        Get the pathway IDs for a given reaction list
+        '''
+        attempts = 0
+        while True:
+            try:
+                self.input = re_ids
+                logger.debug('Looking for KEGG pathways from %d RE IDs'%len(re_ids))
+                url = self._apiurl + 'link/pathway/'
+                for re_id in re_ids:
+                    url += '%s+'%re_id
+                url.rstrip('+')
+                
+                data = urllib.urlopen(url).read()
+                self.result = self.parseLinks(data)
+                return
+            except Exception, e:
+                attempts += 1
+                logger.debug('link (pathway) failed! Attempt %d'
+                              %attempts)
+                logger.debug('%s'%str(e))
+                time.sleep(2*attempts)
+                if attempts >= retries:
+                    logger.warning('link (pathway) failed!')
+                    raise Exception('link (pathway) request failed')
     
-    def getReactionsByComp(self, co_id, retries=5):
+    def getReactionsByComp(self, co_ids, retries=5):
         '''
-        Get the reactions IDs for a given compound
+        Get the reactions IDs for a given compound list
         '''
         attempts = 0
         while True:
             try:
-                self.input = co_id
-                logger.debug('Looking for KEGG reactions from %s'%co_id)
-                self.result = list(self._keggserv.get_reactions_by_compound(co_id))
+                self.input = co_ids
+                logger.debug('Looking for KEGG reactions from %d CO IDs'%len(co_ids))
+                url = self._apiurl + 'link/reaction/'
+                for co_id in co_ids:
+                    url += '%s+'%co_id
+                url.rstrip('+')
+                
+                data = urllib.urlopen(url).read()
+                self.result = self.parseLinks(data)
                 return
             except Exception, e:
                 attempts += 1
-                logger.debug('get_reactions_by_compound failed! Attempt %d'
+                logger.debug('link (reaction) failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
-                    logger.warning('get_reactions_by_compound failed!')
-                    raise Exception('get_reactions_by_compound request failed')
+                    logger.warning('link (reaction) failed!')
+                    raise Exception('link (reaction) request failed')
     
-    def getReactionsFromPath(self, path_id, retries=5):
+    def getReactionsFromPath(self, path_ids, retries=5):
         '''
-        Get the reaction IDs for a given pathway
+        Get the reaction IDs for a given pathway list
         '''
         attempts = 0
         while True:
             try:
-                self.input = path_id
-                logger.debug('Looking for KEGG reactions from %s'%path_id)
-                self.result = list(self._keggserv.get_reactions_by_pathway(path_id))
+                self.input = path_ids
+                logger.debug('Looking for KEGG reactions from %d PATH IDs'%len(path_ids))
+                url = self._apiurl + 'link/reaction/'
+                for path_id in path_ids:
+                    url += '%s+'%path_id
+                url.rstrip('+')
+                
+                data = urllib.urlopen(url).read()
+                self.result = self.parseLinks(data)
                 return
             except Exception, e:
                 attempts += 1
-                logger.debug('get_reactions_by_pathway failed! Attempt %d'
+                logger.debug('link (reaction) failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
-                    logger.warning('get_reactions_by_pathway failed!')
-                    raise Exception('get_reactions_by_pathway request failed')
+                    logger.warning('link (reaction) failed!')
+                    raise Exception('link (reaction) request failed')
     
-    def getCompoundsFromReaction(self, re_id, retries=5):
+    def getCompoundsFromReaction(self, re_ids, retries=5):
         '''
-        Get the compound IDs for a given reaction
+        Get the compound IDs for a given reaction list
         '''
         attempts = 0
         while True:
             try:
-                self.input = re_id
-                logger.debug('Looking for KEGG compounds from %s'%re_id)
-                self.result = list(self._keggserv.get_compounds_by_reaction(re_id))
+                self.input = re_ids
+                logger.debug('Looking for KEGG compounds from %d RE IDs'%len(re_ids))
+                url = self._apiurl + 'link/compound/'
+                for re_id in re_ids:
+                    url += '%s+'%re_id
+                url.rstrip('+')
+                
+                data = urllib.urlopen(url).read()
+                self.result = self.parseLinks(data)
                 return
             except Exception, e:
                 attempts += 1
-                logger.debug('get_compounds_by_reaction failed! Attempt %d'
+                logger.debug('link (compound) failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
-                    logger.warning('get_compounds_by_reaction failed!')
-                    raise Exception('get_compounds_by_reaction request failed')
+                    logger.warning('link (compound) failed!')
+                    raise Exception('link (compound) request failed')
     
-    def getCompoundsFromPath(self, path_id, retries=5):
+    def getCompoundsFromPath(self, path_ids, retries=5):
         '''
-        Get the compound IDs for a given pathway
+        Get the compound IDs for a given pathway list
         '''
         attempts = 0
         while True:
             try:
-                self.input = path_id
-                logger.debug('Looking for KEGG compounds from %s'%path_id)
-                self.result = list(self._keggserv.get_compounds_by_pathway(path_id))
+                self.input = path_ids
+                logger.debug('Looking for KEGG compounds from %d PATH IDs'%len(path_ids))
+                url = self._apiurl + 'link/compound/'
+                for path_id in path_ids:
+                    url += '%s+'%path_id
+                url.rstrip('+')
+                
+                data = urllib.urlopen(url).read()
+                self.result = self.parseLinks(data)
                 return
             except Exception, e:
                 attempts += 1
-                logger.debug('get_compounds_by_pathway failed! Attempt %d'
+                logger.debug('link (compound) failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
-                    logger.warning('get_compounds_by_pathway failed!')
-                    raise Exception('get_compounds_by_pathway request failed')
+                    logger.warning('link (compound) failed!')
+                    raise Exception('link (compound) request failed')
                     
+    # TODO: remove this
     def getColoredPathway(self, path_id, obj_list, color_list, retries=5):
         '''
         Get the colored pathway and return the picture as a string
@@ -279,6 +319,7 @@ class KeggAPI(object):
                     logger.warning('color_pathway_by_objects failed!')
                     raise Exception('color_pathway_by_objects request failed')
     
+    # TODO: remove this
     def getURLColoredPathway(self, path_id, obj_list, color_list, retries=5):
         '''
         Get the URL of the colored pathway and return its content
@@ -303,7 +344,8 @@ class KeggAPI(object):
                 if attempts >= retries:
                     logger.warning('get_html_of_colored_pathway_by_objects failed!')
                     raise Exception('get_html_of_colored_pathway_by_objects request failed')
-                
+    
+    # TODO: fix this   
     def getHTMLColoredPathway(self, path_id, obj_list, color_list, retries=5):
         '''
         Get the URL of the colored pathway and return its content

@@ -240,7 +240,7 @@ def dmap(options, wdir, project):
             logger.info('Going to generate a genomic metabolic map')
             
             organism = Organism(project)
-            org_id = [x for x in organism.getAll()][0]
+            org_id = [x.org_id for x in organism.getAll()][0]
             
             # Create the legend
             legend = createLegend('single')

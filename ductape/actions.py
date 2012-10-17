@@ -11,8 +11,6 @@ import matplotlib
 matplotlib.use('Agg')
 #
 from ductape.common.utils import slice_it, rgb_to_hex, xstr
-from ductape.phenome.biolog import BiologParser, Plate, getSinglePlates, \
-    BiologZero, zeroPlates, getPlates, Experiment
 from ductape.storage.SQLite.database import DBBase, Project, Genome, Organism, \
     Kegg, Biolog
 from matplotlib import cm
@@ -97,6 +95,8 @@ def dPhenomeAdd(project, orgID, filename):
     '''
     Add a single phenome
     '''
+    from ductape.phenome.biolog import BiologParser, Plate
+    
     if not os.path.exists(filename):
         logger.error('Phenomic file %s may not be present'%(filename))
         return False
@@ -183,6 +183,8 @@ def dPhenomeMultiAdd(project, filename):
     '''
     Add a single phenomic file with multiple organisms in it
     '''
+    from ductape.phenome.biolog import BiologParser, Plate
+    
     if not os.path.exists(filename):
         logger.error('Phenomic file %s may not be present'%(filename))
         return False
@@ -476,6 +478,9 @@ def dPhenomeZero(project, blankfile=None):
     If blankfile is provided, "blank plates" are parsed and then may be used
     for zero subtraction
     '''
+    from ductape.phenome.biolog import BiologParser, getSinglePlates
+    from ductape.phenome.biolog import zeroPlates, BiologZero
+    
     if blankfile:
         logger.info('Going to use a blank file for zero subtraction')
         
@@ -535,6 +540,8 @@ def dPhenomeZero(project, blankfile=None):
     return True
 
 def dPhenomePurge(project, policy, delta=1, filterplates=[]):
+    from ductape.phenome.biolog import getPlates, Experiment
+    
     biolog = Biolog(project)
     
     sigs = [s for s in biolog.getAllWells()]
@@ -740,6 +747,7 @@ def dGenomeStats(project, svg=False, doPrint=True):
     return True
 
 def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
+    from ductape.phenome.biolog import getPlates, Experiment
     from ductape.phenome.biolog import getOrder
     from itertools import combinations
     
@@ -1382,6 +1390,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     return True
 
 def dPhenomeRings(project, delta=1, difforg=None, svg=False):
+    from ductape.phenome.biolog import getPlates, Experiment
     from ductape.phenome.biolog import getOrder
     
     # Which project are we talking about?

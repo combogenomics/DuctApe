@@ -17,7 +17,6 @@ import os
 import shutil
 import threading
 import time
-import urllib
 
 __author__ = "Marco Galardini"
 
@@ -65,6 +64,7 @@ class KeggAPI(object):
     http://www.kegg.jp/kegg/rest/weblink.html
     '''
     def __init__(self):
+        self.baseurl = 'http://www.kegg.jp/'
         self._apiurl = 'http://rest.kegg.jp/'
         self._maplink = 'http://www.kegg.jp/kegg-bin/show_pathway?'
         self.clean()
@@ -88,6 +88,10 @@ class KeggAPI(object):
             elif b and line[0] != ' ':
                 b = False
                 return res
+        
+        if res == '':
+            return None
+        return res
     
     def parseLinks(self, links):
         '''
@@ -95,7 +99,7 @@ class KeggAPI(object):
         '''
         d = {}
         for line in links.split('\n'):
-            if line == '':continue
+            if line == '' or '\t' not in line:continue
             
             k, v = line.split('\t')
             
@@ -103,6 +107,8 @@ class KeggAPI(object):
                 d[k] = []
             d[k].append(v)
         
+        if len(d) == 0:
+            return None
         return d
 
     def getTitle(self, entry, retries=5):
@@ -141,7 +147,7 @@ class KeggAPI(object):
                 url = self._apiurl + 'link/reaction/'
                 for ko_id in ko_ids:
                     url += '%s+'%ko_id
-                url.rstrip('+')
+                url = url.rstrip('+')
                 
                 data = urllib.urlopen(url).read()
                 self.result = self.parseLinks(data)
@@ -168,7 +174,7 @@ class KeggAPI(object):
                 url = self._apiurl + 'link/pathway/'
                 for re_id in re_ids:
                     url += '%s+'%re_id
-                url.rstrip('+')
+                url = url.rstrip('+')
                 
                 data = urllib.urlopen(url).read()
                 self.result = self.parseLinks(data)
@@ -195,7 +201,7 @@ class KeggAPI(object):
                 url = self._apiurl + 'link/reaction/'
                 for co_id in co_ids:
                     url += '%s+'%co_id
-                url.rstrip('+')
+                url = url.rstrip('+')
                 
                 data = urllib.urlopen(url).read()
                 self.result = self.parseLinks(data)
@@ -222,7 +228,7 @@ class KeggAPI(object):
                 url = self._apiurl + 'link/reaction/'
                 for path_id in path_ids:
                     url += '%s+'%path_id
-                url.rstrip('+')
+                url = url.rstrip('+')
                 
                 data = urllib.urlopen(url).read()
                 self.result = self.parseLinks(data)
@@ -249,7 +255,7 @@ class KeggAPI(object):
                 url = self._apiurl + 'link/compound/'
                 for re_id in re_ids:
                     url += '%s+'%re_id
-                url.rstrip('+')
+                url = url.rstrip('+')
                 
                 data = urllib.urlopen(url).read()
                 self.result = self.parseLinks(data)
@@ -276,7 +282,7 @@ class KeggAPI(object):
                 url = self._apiurl + 'link/compound/'
                 for path_id in path_ids:
                     url += '%s+'%path_id
-                url.rstrip('+')
+                url = url.rstrip('+')
                 
                 data = urllib.urlopen(url).read()
                 self.result = self.parseLinks(data)
@@ -290,62 +296,7 @@ class KeggAPI(object):
                 if attempts >= retries:
                     logger.warning('link (compound) failed!')
                     raise Exception('link (compound) request failed')
-                    
-    # TODO: remove this
-    def getColoredPathway(self, path_id, obj_list, color_list, retries=5):
-        '''
-        Get the colored pathway and return the picture as a string
-        If it fails, an exception is thrown
-        '''
-        attempts = 0
-        while True:
-            try:
-                self.input = path_id
-                logger.debug('Looking for KEGG colored map from %s'%path_id)
-                url = self._keggserv.color_pathway_by_objects(path_id,
-                                                      obj_list,[],color_list)
-                sock=urllib.urlopen(url)
-                content = sock.read()
-                sock.close()
-                self.result = content
-                return
-            except Exception, e:
-                attempts += 1
-                logger.debug('color_pathway_by_objects failed! Attempt %d'
-                              %attempts)
-                logger.debug('%s'%str(e))
-                time.sleep(2*attempts)
-                if attempts >= retries:
-                    logger.warning('color_pathway_by_objects failed!')
-                    raise Exception('color_pathway_by_objects request failed')
     
-    # TODO: remove this
-    def getURLColoredPathway(self, path_id, obj_list, color_list, retries=5):
-        '''
-        Get the URL of the colored pathway and return its content
-        If it fails, an exception is thrown
-        '''
-        attempts = 0
-        while True:
-            try:
-                self.input = path_id
-                logger.debug('Looking for KEGG colored map URL from %s'%path_id)
-                url =  self._keggserv.get_html_of_colored_pathway_by_objects(
-                                                      path_id,
-                                                      obj_list,[],color_list)
-                self.result = url
-                return
-            except Exception, e:
-                attempts += 1
-                logger.debug('get_html_of_colored_pathway_by_objects failed! Attempt %d'
-                              %attempts)
-                logger.debug('%s'%str(e))
-                time.sleep(2*attempts)
-                if attempts >= retries:
-                    logger.warning('get_html_of_colored_pathway_by_objects failed!')
-                    raise Exception('get_html_of_colored_pathway_by_objects request failed')
-    
-    # TODO: fix this   
     def getHTMLColoredPathway(self, path_id, obj_list, color_list, retries=5):
         '''
         Get the URL of the colored pathway and return its content
@@ -355,23 +306,31 @@ class KeggAPI(object):
         while True:
             try:
                 self.input = path_id
-                logger.debug('Looking for KEGG colored map URL from %s'%path_id)
-                url =  self._keggserv.get_html_of_colored_pathway_by_objects(
-                                                      path_id,
-                                                      obj_list,[],color_list)
+                
+                # Fix color codes
+                for i in range(len(color_list)):
+                    if '#' in color_list[i]:
+                        color_list[i] = color_list[i].replace('#', '%23')
+                #
+                
+                logger.debug('Looking for KEGG colored map from %s'%path_id)
+                url = self._maplink + path_id.lstrip('path:') + '/default%3white/'
+                for i in range(len(obj_list)):
+                    url += obj_list[i] + '%09' + color_list[i] + '/'
+                
                 sock=urllib.urlopen(url)
                 self.result = sock.read()
                 sock.close()
                 return
             except Exception, e:
                 attempts += 1
-                logger.debug('get_html_of_colored_pathway_by_objects failed! Attempt %d'
+                logger.debug('show_pathway failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
-                    logger.warning('get_html_of_colored_pathway_by_objects failed!')
-                    raise Exception('get_html_of_colored_pathway_by_objects request failed')
+                    logger.warning('show_pathway failed!')
+                    raise Exception('show_pathway request failed')
 
 class KeggColor(object):
     '''
@@ -517,37 +476,26 @@ class BaseKegg(CommonThread):
         
         # Kegg connection
         self.handlers = []
+        self._hindex = 0
         self.numThreads = threads
         
-    def connect(self):
-        '''
-        Starts N connections to Kegg API
-        Return False if something goes wrong
-        '''
         for i in range(self.numThreads):
             obj = KeggAPI()
             self.handlers.append(obj)
             
         self.cleanHandlers()
-        threads = []
-        for i in range(self.numThreads):
-            obj = threading.Thread(target = self.handlers[i].connect)
-            obj.start()
-            threads.append(obj)
-        time.sleep(0.01)
-        while len(threads) > 0:
-            if self.killed:
-                logger.debug('Exiting for a kill signal')
-                return False
-            
-            for thread in threads:
-                if not thread.isAlive():
-                    threads.remove(thread)
-        return True
     
     def cleanHandlers(self):
         for handler in self.handlers:
             handler.clean()
+        self._hindex = 0
+    
+    def getHandler(self):
+        if self._hindex >= len(self.handlers):
+            self._hindex = 0
+        handler = self.handlers[self._hindex] 
+        self._hindex += 1
+        return handler
             
 class BaseMapper(BaseKegg):
     def __init__(self, threads=5, avoid=[], queue=Queue.Queue()):
@@ -668,72 +616,92 @@ class BaseMapper(BaseKegg):
                 self.pathmap[handler.input] = parser.map
     
     def getPathReactions(self):
-        for piece in get_span(self.pathdet.keys(), self.numThreads):
+        pieces = [p for p in get_span(self.pathdet.keys(), 80)]
+        for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
                 return
             
             self.cleanHandlers()
-            self._substatus += self.numThreads
+            self._substatus += len([i for p in piece for i in p])
             if self._substatus > self._maxsubstatus:
                 self._substatus = self._maxsubstatus
             self.updateStatus(sub=True)
             
             threads = []
-            for path in piece:
+            for ids in piece:
+                remove = set()
+                for i in ids:
+                    if i in self.avoid:
+                        remove.add(i)
+                for i in remove:
+                    ids.remove(i)
+                
                 obj = threading.Thread(
-                            target = 
-                            self.handlers[piece.index(path)].getReactionsFromPath,
-                            args = (path,))
+                                target = self.getHandler().getReactionsFromPath,
+                                args = (ids,))
                 obj.start()
                 threads.append(obj)
             time.sleep(0.01)
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    continue
-                for react in handler.result:
-                    if handler.input not in self.pathreact:
-                        self.pathreact[handler.input] = []
-                    self.pathreact[handler.input].append(react)
+                    return
+                
+                for path, reacts in handler.result.iteritems():
+                    if path not in self.pathreact:
+                        self.pathreact[path] = reacts
+                reacts = set([v for vs in handler.result.itervalues() for v in vs])
+                for react in reacts:
                     if react not in self.reactdet:
                         self.reactdet[react] = None
                         
     def getPathCompounds(self):
-        for piece in get_span(self.pathdet.keys(), self.numThreads):
+        pieces = [p for p in get_span(self.pathdet.keys(), 80)]
+        for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
                 return
             
             self.cleanHandlers()
-            self._substatus += self.numThreads
+            self._substatus += len([i for p in piece for i in p])
             if self._substatus > self._maxsubstatus:
                 self._substatus = self._maxsubstatus
             self.updateStatus(sub=True)
             
             threads = []
-            for path in piece:
+            for ids in piece:
+                remove = set()
+                for i in ids:
+                    if i in self.avoid:
+                        remove.add(i)
+                for i in remove:
+                    ids.remove(i)
+                
                 obj = threading.Thread(
-                            target = 
-                            self.handlers[piece.index(path)].getCompoundsFromPath,
-                            args = (path,))
+                                target = self.getHandler().getCompoundsFromPath,
+                                args = (ids,))
                 obj.start()
                 threads.append(obj)
             time.sleep(0.01)
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    continue
-                for comp in handler.result:
-                    if handler.input not in self.pathcomp:
-                        self.pathcomp[handler.input] = []
-                    self.pathcomp[handler.input].append(comp)
+                    return
+                
+                for path, comps in handler.result.iteritems():
+                    if path not in self.pathcomp:
+                        self.pathcomp[path] = comps
+                comps = set([v for vs in handler.result.itervalues() for v in vs])
+                for comp in comps:
                     if comp not in self.compdet:
                         self.compdet[comp] = None
                         
@@ -767,121 +735,142 @@ class BaseMapper(BaseKegg):
                 self.compdet[handler.input] = handler.result
     
     def getPathways(self):
-        for piece in get_span(self.reactdet.keys(), self.numThreads):
+        pieces = [p for p in get_span(self.reactdet.keys(), 80)]
+        for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
                 return
             
             self.cleanHandlers()
-            self._substatus += self.numThreads
+            self._substatus += len([i for p in piece for i in p])
             if self._substatus > self._maxsubstatus:
                 self._substatus = self._maxsubstatus
             self.updateStatus(sub=True)
             
             threads = []
-            for react in piece:
+            for ids in piece:
+                remove = set()
+                for i in ids:
+                    if i in self.avoid:
+                        remove.add(i)
+                for i in remove:
+                    ids.remove(i)
+                
                 obj = threading.Thread(
-                            target = self.handlers[piece.index(react)].getPathways,
-                            args = (react,))
+                                target = self.getHandler().getPathways,
+                                args = (ids,))
                 obj.start()
                 threads.append(obj)
             time.sleep(0.01)
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    continue
-                if len(handler.result) == 0:
-                    continue
-                if handler.input not in self.reactpath:
-                    self.reactpath[handler.input] = []
-                for path in handler.result:
-                    self.reactpath[handler.input].append(path)
-                    # A new pathway?
-                    if path not in self.pathdet:
+                    return
+                
+                for react, paths in handler.result.iteritems():
+                    if react not in self.reactpath:
+                        self.reactpath[react] = []
+                    for path in paths:
+                        if path.startswith('path:map'):continue
+                        self.reactpath[react].append(path)
+                paths = set([v for vs in handler.result.itervalues() for v in vs])
+                for path in paths:
+                    if path not in self.pathdet and not path.startswith('path:map'):
                         self.pathdet[path] = None
                         
     def getReactCompounds(self):
-        for piece in get_span(self.reactdet.keys(), self.numThreads):
+        pieces = [p for p in get_span(self.reactdet.keys(), 80)]
+        for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
                 return
             
             self.cleanHandlers()
-            self._substatus += self.numThreads
+            self._substatus += len([i for p in piece for i in p])
             if self._substatus > self._maxsubstatus:
                 self._substatus = self._maxsubstatus
             self.updateStatus(sub=True)
             
             threads = []
-            for react in piece:
-                if react in self.avoid:
-                    continue
+            for ids in piece:
+                remove = set()
+                for i in ids:
+                    if i in self.avoid:
+                        remove.add(i)
+                for i in remove:
+                    ids.remove(i)
                 
                 obj = threading.Thread(
-                            target = self.handlers[piece.index(react)].getCompoundsFromReaction,
-                            args = (react,))
+                                target = self.getHandler().getCompoundsFromReaction,
+                                args = (ids,))
                 obj.start()
                 threads.append(obj)
             time.sleep(0.01)
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    continue
-                if len(handler.result) == 0:
-                    continue
-                if handler.input not in self.reactcomp:
-                    self.reactcomp[handler.input] = []
-                for co_id in handler.result:
-                    self.reactcomp[handler.input].append(co_id)
-                    # A new compound?
-                    if co_id not in self.compdet:
-                        self.compdet[co_id] = None
+                    return
+                
+                for react, comps in handler.result.iteritems():
+                    if react not in self.reactcomp:
+                        self.reactcomp[react] = comps
+                comps = set([v for vs in handler.result.itervalues() for v in vs])
+                for comp in comps:
+                    if comp not in self.compdet:
+                        self.compdet[comp] = None
                         
     def getCompoundReacts(self):
-        for piece in get_span(self.compdet.keys(), self.numThreads):
+        pieces = [p for p in get_span(self.compdet.keys(), 80)]
+        for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
                 return
             
             self.cleanHandlers()
-            self._substatus += self.numThreads
+            self._substatus += len([i for p in piece for i in p])
             if self._substatus > self._maxsubstatus:
                 self._substatus = self._maxsubstatus
             self.updateStatus(sub=True)
             
             threads = []
-            for co_id in piece:
-                if co_id in self.avoid:
-                    continue
+            for ids in piece:
+                remove = set()
+                for i in ids:
+                    if i in self.avoid:
+                        remove.add(i)
+                for i in remove:
+                    ids.remove(i)
                 
                 obj = threading.Thread(
-                            target = self.handlers[piece.index(co_id)].getReactionsByComp,
-                            args = (co_id,))
+                                target = self.getHandler().getReactionsByComp,
+                                args = (ids,))
                 obj.start()
                 threads.append(obj)
             time.sleep(0.01)
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    continue
-                if len(handler.result) == 0:
-                    continue
-                if handler.input not in self.compreact:
-                    self.compreact[handler.input] = []
-                for re_id in handler.result:
-                    self.compreact[handler.input].append(re_id)
-                    # A new reaction?
-                    if re_id not in self.reactdet:
-                        self.reactdet[re_id] = None
+                    return
+                
+                for comp, reacts in handler.result.iteritems():
+                    if comp not in self.compreact:
+                        self.compreact[comp] = reacts
+                reacts = set([v for vs in handler.result.itervalues() for v in vs])
+                for react in reacts:
+                    if react not in self.reactdet:
+                        self.reactdet[react] = None
 
 class KoMapper(BaseMapper):
     '''
@@ -894,17 +883,16 @@ class KoMapper(BaseMapper):
     '''
     
     _statusDesc = {0:'Not started',
-               1:'Connection to KEGG',
-               2:'Fetching reactions',
-               3:'Fetching pathways',
-               4:'Fetching pathways content',
-               5:'Fetching reactions - compounds links',
-               6:'Fetching details on KEGG entries',
-               7:'Crafting results'}
+               1:'Fetching reactions',
+               2:'Fetching pathways',
+               3:'Fetching pathways content',
+               4:'Fetching reactions - compounds links',
+               5:'Fetching details on KEGG entries',
+               6:'Crafting results'}
     
-    _substatuses = [2,3,4,5,6]
+    _substatuses = [1,2,3,4,5]
     
-    def __init__(self, ko_list, threads=20, avoid=[], queue=Queue.Queue()):
+    def __init__(self, ko_list, threads=50, avoid=[], queue=Queue.Queue()):
         BaseMapper.__init__(self, threads=threads, avoid=avoid, queue=queue)
         # Kegg
         self.ko = ko_list
@@ -946,53 +934,51 @@ class KoMapper(BaseMapper):
                 self.kodet[handler.input] = handler.result
                 
     def getReactions(self):
-        for piece in get_span(self.ko, self.numThreads):
+        pieces = [p for p in get_span(self.ko, 80)]
+        for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
                 return
             
             self.cleanHandlers()
-            self._substatus += self.numThreads
+            self._substatus += len([i for p in piece for i in p])
             if self._substatus > self._maxsubstatus:
                 self._substatus = self._maxsubstatus
             self.updateStatus(sub=True)
             
             threads = []
-            for ko in piece:
-                if ko in self.avoid:
-                    continue
+            for ids in piece:
+                remove = set()
+                for i in ids:
+                    if i in self.avoid:
+                        remove.add(i)
+                for i in remove:
+                    ids.remove(i)
                 
                 obj = threading.Thread(
-                            target = self.handlers[piece.index(ko)].getReactions,
-                            args = (ko,))
+                                target = self.getHandler().getReactions,
+                                args = (ids,))
                 obj.start()
                 threads.append(obj)
             time.sleep(0.01)
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    continue
-                for react in handler.result:
-                    if 'original' in react.type:
-                        if handler.input not in self.koreact:
-                            self.koreact[handler.input] = []
-                        self.koreact[handler.input].append(react.entry_id2)
-                        # Is this reaction new?
-                        if react.entry_id2 not in self.reactdet:
-                            self.reactdet[react.entry_id2] = None
+                    return
+                
+                for ko, reacts in handler.result.iteritems():
+                    if ko not in self.koreact:
+                        self.koreact[ko] = reacts
+                reacts = set([v for vs in handler.result.itervalues() for v in vs])
+                for react in reacts:
+                    if react not in self.reactdet:
+                        self.reactdet[react] = None
     
     def run(self):
-        self.updateStatus()
-        if not self.connect():
-            self.sendFailure('Could not connect to KEGG')
-            return
-        
-        if self.killed:
-            return
-        
         # Reactions
         self._maxsubstatus = len(self.ko)
         self.updateStatus()
@@ -1049,7 +1035,7 @@ class KoMapper(BaseMapper):
         if self.killed:
             return
         
-        # Compunds for each reaction
+        # Compounds for each reaction
         self._maxsubstatus = len(self.reactdet)
         self.updateStatus()
         try:
@@ -1063,7 +1049,7 @@ class KoMapper(BaseMapper):
         if self.killed:
             return
         
-        # Reactions for each compund
+        # Reactions for each compound
         self._maxsubstatus = len(self.compdet)
         try:
             self.getCompoundReacts()
@@ -1162,17 +1148,16 @@ class CompMapper(BaseMapper):
     '''
     
     _statusDesc = {0:'Not started',
-               1:'Connection to KEGG',
-               2:'Fetching reactions',
-               3:'Fetching pathways',
-               4:'Fetching pathways content',
-               5:'Fetching reactions - compounds links',
-               6:'Fetching details on KEGG entries',
-               7:'Crafting results'}
+               1:'Fetching reactions',
+               2:'Fetching pathways',
+               3:'Fetching pathways content',
+               4:'Fetching reactions - compounds links',
+               5:'Fetching details on KEGG entries',
+               6:'Crafting results'}
     
-    _substatuses = [2,3,4,5,6]
+    _substatuses = [1,2,3,4,5]
     
-    def __init__(self, co_list, threads=20, avoid=[], queue=Queue.Queue()):
+    def __init__(self, co_list, threads=50, avoid=[], queue=Queue.Queue()):
         BaseMapper.__init__(self, threads=threads, avoid=avoid, queue=queue)
         # Kegg
         self.co = co_list
@@ -1181,14 +1166,6 @@ class CompMapper(BaseMapper):
         self.comppath = {}
     
     def run(self):
-        self.updateStatus()
-        if not self.connect():
-            self.sendFailure('Could not connect to KEGG')
-            return
-        
-        if self.killed:
-            return
-        
         # Reactions
         for co_id in self.co:
             self.compdet[co_id] = None
@@ -1347,21 +1324,18 @@ class MapsFetcher(BaseKegg):
     
     _statusDesc = {0:'Not started',
                1:'Making room',
-               2:'Connection to KEGG',
-               3:'Fetching maps (pictures)',
-               4:'Generating interactive web pages',
-               5:'Fetching maps (URLs)'}
+               2:'Fetching maps (pictures)',
+               3:'Generating interactive web pages'}
     
-    _substatuses = [3,5]
+    _substatuses = [2]
     
-    def __init__(self, color_objs, pictures=True, html=True, URLs=False, prefix='', 
+    def __init__(self, color_objs, pictures=True, html=True, prefix='', 
                  legend=None, threads=20, queue=Queue.Queue()):
         BaseKegg.__init__(self, threads=threads, queue=queue)
         
         self.colors = color_objs
         self.pictures = bool(pictures)
         self.web = bool(html)
-        self.HTMLs = bool(URLs)
         self.legend = legend 
         
         self._keggroom = None
@@ -1423,7 +1397,7 @@ class MapsFetcher(BaseKegg):
                 objs,colors = kmap.getAll()
                 
                 obj = threading.Thread(
-                        target = self.handlers[piece.index(kmap)].getColoredPathway,
+                        target = self.handlers[piece.index(kmap)].getHTMLColoredPathway,
                         args = (path,objs,colors,))
                 obj.start()
                 threads.append(obj)
@@ -1437,10 +1411,24 @@ class MapsFetcher(BaseKegg):
                     continue
                 fname = os.path.join(self._keggroom,handler.input)
                 fname = fname+'.png'
-                fOut = open(fname,'w')
-                fOut.write(handler.result)
-                fOut.close()
-                self.pics.append(fname)
+                
+                # Fetch the map picture
+                # Hoping it won't change much in the future
+                for line in handler.result.split('\n'):
+                    if ('<img' in line
+                        and 'pathwayimage' in line
+                        and 'usemap="#mapdata"' in line):
+                        urlimage = 'http://www.kegg.jp/' + line.split('src="')[1].split('"')[0]
+
+                        sock=urllib.urlopen(urlimage)
+                        pic = sock.read()
+                        sock.close()
+                        
+                        fOut = open(fname,'w')
+                        fOut.write(pic)
+                        fOut.close()
+                        self.pics.append(fname)
+                #
     
     def getWebPages(self):
         # TODO: nicer web pages
@@ -1512,49 +1500,9 @@ class MapsFetcher(BaseKegg):
             
             self.webpages.append(fname)
     
-    def getPages(self):
-        for piece in get_span(self.colors, self.numThreads):
-            if self.killed:
-                logger.debug('Exiting for a kill signal')
-                return
-            
-            self.cleanHandlers()
-            self._substatus += self.numThreads
-            if self._substatus > self._maxsubstatus:
-                self._substatus = self._maxsubstatus
-            self.updateStatus(sub=True)
-            
-            threads = []
-            for kmap in piece:
-                path = kmap.path
-                objs,colors = kmap.getAll()
-                
-                obj = threading.Thread(
-                        target = self.handlers[piece.index(kmap)].getURLColoredPathway,
-                        args = (path,objs,colors,))
-                obj.start()
-                threads.append(obj)
-            time.sleep(0.01)
-            while len(threads) > 0:
-                for thread in threads:
-                    if not thread.isAlive():
-                        threads.remove(thread)
-            for handler in self.handlers:
-                if not handler.result:
-                    continue
-                self.pages.append(handler.result)
-    
     def run(self):
         self.updateStatus()
         self.makeRoom()
-        
-        if self.killed:
-            return
-        
-        self.updateStatus()
-        if not self.connect():
-            self.sendFailure('Could not connect to KEGG')
-            return
         
         if self.killed:
             return
@@ -1582,19 +1530,6 @@ class MapsFetcher(BaseKegg):
             except Exception, e:
                 self.sendFailure(e)
                 return
-        else:
-            self.updateStatus(send=False)
-        
-        if self.HTMLs:
-            self._maxsubstatus = len(self.colors)
-            self.updateStatus()
-            try:
-                self.getPages()
-            except Exception, e:
-                self.sendFailure(e)
-                return
-            self.cleanHandlers()
-            self.resetSubStatus()
         else:
             self.updateStatus(send=False)
 

@@ -87,6 +87,16 @@ class DBBase(object):
         '''
         with self.connection as conn:
             conn.execute(dbboost)
+            
+    def query(self, sql):
+        '''
+        Launch a query and returns a generator with each row 
+        '''
+        with self.connection as conn:
+            cursor=conn.execute(sql)
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
     
 class Project(DBBase):
     '''

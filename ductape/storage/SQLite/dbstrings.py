@@ -48,6 +48,12 @@ CREATE TABLE "reaction" (
     "name" TEXT,
     "description" TEXT
 );
+CREATE TABLE "rpair" (
+    "rp_id" TEXT NOT NULL,
+    "co1" TEXT,
+    "co2" TEXT,
+    "kind" TEXT 
+);
 CREATE TABLE "compound" (
     "co_id" TEXT NOT NULL,
     "name" TEXT,
@@ -74,6 +80,10 @@ CREATE TABLE "react_path" (
 CREATE TABLE "comp_path" (
     "co_id" TEXT NOT NULL,
     "path_id" TEXT NOT NULL
+);
+CREATE TABLE "rpair_react" (
+    "rp_id" TEXT NOT NULL,
+    "re_id" TEXT NOT NULL
 );
 CREATE TABLE "pathmap" (
     "path_id" TEXT NOT NULL,
@@ -149,12 +159,14 @@ CREATE UNIQUE INDEX "mapko_id" on mapko (prot_id ASC, ko_id ASC);
 CREATE UNIQUE INDEX "ortholog_id" on ortholog (group_id ASC, prot_id ASC);
 CREATE UNIQUE INDEX "ko_id" on ko (ko_id ASC);
 CREATE UNIQUE INDEX "reaction_id" on reaction (re_id ASC);
+CREATE UNIQUE INDEX "rpair_id" on rpair (rp_id ASC);
 CREATE UNIQUE INDEX "compound_id" on compound (co_id ASC);
 CREATE UNIQUE INDEX "pathway_id" on pathway (path_id ASC);
 CREATE UNIQUE INDEX "koreact_id" on ko_react (ko_id ASC, re_id ASC);
 CREATE UNIQUE INDEX "reactcomp_id" on react_comp (re_id ASC, co_id ASC);
 CREATE UNIQUE INDEX "reactpath_id" on react_path (re_id ASC, path_id ASC);
 CREATE UNIQUE INDEX "comppath_id" on comp_path (co_id ASC, path_id ASC);
+CREATE UNIQUE INDEX "rpairreact_id" on rpair_react (rp_id ASC, re_id ASC);
 CREATE UNIQUE INDEX "pathmap_id" on pathmap (path_id ASC);
 CREATE UNIQUE INDEX "biolog_id" on biolog (plate_id ASC, well_id ASC);
 CREATE UNIQUE INDEX "biologexp_id" on biolog_exp (plate_id ASC, well_id ASC, org_id ASC, replica ASC);

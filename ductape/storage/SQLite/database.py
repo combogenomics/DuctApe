@@ -1038,6 +1038,12 @@ class Kegg(DBBase):
         for res in cursor:
             yield res[0]
             
+        with self.connection as conn:
+            cursor=conn.execute('select rp_id from rpair;')
+            
+        for res in cursor:
+            yield res[0]
+            
     def getKO(self, ko_id):
         '''
         Get a specific ko_id
@@ -1099,6 +1105,84 @@ class Kegg(DBBase):
                     description = ''
                 conn.execute('insert or ignore into reaction values (?,?,?);',
                      (re_id,name,description,))
+    
+    def isRPair(self, rp_id):
+        '''
+        Is this rp_id already present?
+        '''
+        try:
+            with self.connection as conn:
+                cursor=conn.execute('select count(*) from rpair where rp_id=?;',
+                                    (rp_id,))
+            return bool(cursor.fetchall()[0][0])
+        except Exception, e:
+            logger.debug('Got error %s on id %s, assuming id is present'%
+                         (str(e),rp_id))
+            return True
+    
+    def addRPairs(self, rp):
+        '''
+        Add new reactions (ignoring errors if they are already present)
+        the input is a dictionary
+        co_id --> name, description
+        '''
+        self.boost()
+        
+        with self.connection as conn:
+            for rp_id, values in rp.iteritems():
+                co1, co2, kind = values[0], values[1], values[2]
+                conn.execute('insert or ignore into rpair values (?,?,?,?);',
+                     (rp_id,co1,co2,kind,))
+    
+    def addReactRPairs(self, reactrpair):
+        '''
+        An exception is thrown if such IDs are not present
+        '''
+        for re_id in reactrpair:
+            if not self.isReaction(re_id):
+                logger.warning('Reaction %s is not present yet!'
+                                %re_id)
+                raise Exception('This reaction (%s) is not present yet!'
+                                %re_id)
+            for rp_id in reactrpair[re_id]:
+                if not self.isRPair(rp_id):
+                    logger.warning('RPair %s is not present yet!'
+                                %rp_id)
+                    raise Exception('This rpair (%s) is not present yet!'
+                                %rp_id)
+        
+        self.boost()
+        
+        with self.connection as conn:
+            for re_id in reactrpair:
+                for rp_id in reactrpair[re_id]:
+                    conn.execute('insert or ignore into rpair_react values (?,?);',
+                                 (rp_id,re_id,))
+                    
+    def addRPairReacts(self, rpairreact):
+        '''
+        An exception is thrown if such IDs are not present
+        '''
+        for rp_id in rpairreact:
+            if not self.isRPair(rp_id):
+                logger.warning('RPair %s is not present yet!'
+                                %rp_id)
+                raise Exception('This rpair (%s) is not present yet!'
+                                %rp_id)
+            for re_id in rpairreact[rp_id]:
+                if not self.isReaction(re_id):
+                    logger.warning('Reaction %s is not present yet!'
+                                %re_id)
+                    raise Exception('This reaction (%s) is not present yet!'
+                                %re_id)
+        
+        self.boost()
+        
+        with self.connection as conn:
+            for rp_id in rpairreact:
+                for re_id in rpairreact[rp_id]:
+                    conn.execute('insert or ignore into rpair_react values (?,?);',
+                                 (rp_id,re_id,))
     
     def addReactComps(self, reactcomp):
         '''

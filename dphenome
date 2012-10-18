@@ -294,11 +294,15 @@ def doMap2KEGG(project):
     logger.info('Added %d Re IDs'%len(komap.result.react))
     kegg.addPathways(komap.result.path)
     logger.info('Added %d Path IDs'%len(komap.result.path))
+    kegg.addRPairs(komap.result.rpair)
+    logger.info('Added %d RPair IDs'%len(komap.result.rpair))
     # Links
     kegg.addPathComps(komap.result.pathcomp)
     kegg.addPathReacts(komap.result.pathreact)
     kegg.addReactComps(komap.result.reactcomp)
     kegg.addCompReacts(komap.result.compreact)
+    kegg.addReactRPairs(komap.result.reactrpair)
+    kegg.addRPairReacts(komap.result.rpairreact)
     logger.info('Added Kegg links')
     # HTML maps
     kegg.addPathHtml(komap.result.pathmaps)

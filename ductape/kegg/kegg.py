@@ -134,6 +134,32 @@ class KeggAPI(object):
                 if attempts >= retries:
                     logger.warning('get failed!')
                     raise Exception('get request failed')
+                
+    def getRPair(self, entry, retries=5):
+        '''
+        Similar to getTitle, but targeting specific features of RPair
+        Specifically the two co_id involved and the kind of interaction
+        '''
+        attempts = 0
+        while True:
+            try:
+                self.input = entry
+                logger.debug('Looking for details on RPair entry %s'%entry)
+                url = self._apiurl + 'get/%s'%entry
+                data = urllib.urlopen(url).read()
+                co1, co2 = self.getEntryTag(data, 'NAME').split('_')
+                kind = self.getEntryTag(data, 'TYPE')
+                self.result = [co1,co2,kind]
+                return
+            except Exception, e:
+                attempts += 1
+                logger.debug('get failed! Attempt %d'
+                              %attempts)
+                logger.debug('%s'%str(e))
+                time.sleep(2*attempts)
+                if attempts >= retries:
+                    logger.warning('get failed!')
+                    raise Exception('get request failed')
     
     def getReactions(self, ko_ids, retries=5):
         '''
@@ -228,6 +254,60 @@ class KeggAPI(object):
                 url = self._apiurl + 'link/reaction/'
                 for path_id in path_ids:
                     url += '%s+'%path_id
+                url = url.rstrip('+')
+                
+                data = urllib.urlopen(url).read()
+                self.result = self.parseLinks(data)
+                return
+            except Exception, e:
+                attempts += 1
+                logger.debug('link (reaction) failed! Attempt %d'
+                              %attempts)
+                logger.debug('%s'%str(e))
+                time.sleep(2*attempts)
+                if attempts >= retries:
+                    logger.warning('link (reaction) failed!')
+                    raise Exception('link (reaction) request failed')
+    
+    def getRPairsFromReaction(self, re_ids, retries=5):
+        '''
+        Get the rpair IDs for a given reaction list
+        '''
+        attempts = 0
+        while True:
+            try:
+                self.input = re_ids
+                logger.debug('Looking for KEGG rpairs from %d RE IDs'%len(re_ids))
+                url = self._apiurl + 'link/rpair/'
+                for re_id in re_ids:
+                    url += '%s+'%re_id
+                url = url.rstrip('+')
+                
+                data = urllib.urlopen(url).read()
+                self.result = self.parseLinks(data)
+                return
+            except Exception, e:
+                attempts += 1
+                logger.debug('link (rpair) failed! Attempt %d'
+                              %attempts)
+                logger.debug('%s'%str(e))
+                time.sleep(2*attempts)
+                if attempts >= retries:
+                    logger.warning('link (rpair) failed!')
+                    raise Exception('link (rpair) request failed')
+                
+    def getReactionsFromRPair(self, rp_ids, retries=5):
+        '''
+        Get the reaction IDs for a given rpair list
+        '''
+        attempts = 0
+        while True:
+            try:
+                self.input = rp_ids
+                logger.debug('Looking for KEGG reactions from %d RP IDs'%len(rp_ids))
+                url = self._apiurl + 'link/reaction/'
+                for rp_id in rp_ids:
+                    url += '%s+'%rp_id
                 url = url.rstrip('+')
                 
                 data = urllib.urlopen(url).read()
@@ -375,12 +455,15 @@ class KeggDetails(object):
         self.react = None
         self.comp = None
         self.path = None
+        self.rpair = None
         # Links
         self.koreact = None
         self.pathreact = None
         self.pathcomp = None
         self.compreact = None
         self.reactcomp = None
+        self.reactrpair = None
+        self.rpairreact = None
         # Maps
         self.pathmaps = None
     
@@ -398,14 +481,16 @@ class KeggDetails(object):
         
         return det
     
-    def setDetails(self, ko=None, react=None, comp=None, path=None):
+    def setDetails(self, ko=None, react=None, comp=None, path=None, rpair=None):
         self.ko = self._purgeDetails(ko)
         self.react = self._purgeDetails(react)
         self.comp = self._purgeDetails(comp)
         self.path = self._purgeDetails(path)
+        self.rpair = self._purgeDetails(rpair)
         
     def setLinks(self, koreact=None, pathreact=None, pathcomp=None,
-                 compreact=None, reactcomp=None):
+                 compreact=None, reactcomp=None, reactrpair=None,
+                 rpairreact=None):
         self.koreact = {}
         if koreact:
             for k,v in koreact.iteritems():
@@ -442,6 +527,20 @@ class KeggDetails(object):
                 self.reactcomp[k] = []
                 for i in v:
                     self.reactcomp[k].append(str(i))
+                    
+        self.reactrpair = {}
+        if reactrpair:
+            for k,v in reactrpair.iteritems():
+                self.reactrpair[k] = []
+                for i in v:
+                    self.reactrpair[k].append(str(i))
+                    
+        self.rpairreact = {}
+        if rpairreact:
+            for k,v in rpairreact.iteritems():
+                self.rpairreact[k] = []
+                for i in v:
+                    self.rpairreact[k].append(str(i))
     
     def setMaps(self, maps):
         self.pathmaps = maps
@@ -506,6 +605,7 @@ class BaseMapper(BaseKegg):
         
         # Results
         self.reactdet = {}
+        self.rpairdet = {}
         self.pathdet = {}
         self.pathreact = {}
         self.pathcomp = {}
@@ -514,6 +614,8 @@ class BaseMapper(BaseKegg):
         self.reactpath = {}
         self.reactcomp = {}
         self.compreact = {}
+        self.rpairreact = {}
+        self.reactrpair = {}
         
         # Output
         self.result = None
@@ -549,7 +651,41 @@ class BaseMapper(BaseKegg):
                 if not handler.result:
                     continue
                 self.reactdet[handler.input] = handler.result
+    
+    def getRPairDetails(self):
+        for piece in get_span(self.rpairdet.keys(), self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
+            self.cleanHandlers()
+            self._substatus += self.numThreads
+            if self._substatus > self._maxsubstatus:
+                self._substatus = self._maxsubstatus
+            self.updateStatus(sub=True)
+            
+            threads = []
+            for rpair in piece:
+                if rpair in self.avoid:
+                    continue
                 
+                obj = threading.Thread(
+                            target = self.handlers[piece.index(rpair)].getRPair,
+                            args = (rpair,))
+                obj.start()
+                threads.append(obj)
+            time.sleep(0.01)
+            while len(threads) > 0:
+                for thread in threads:
+                    if not thread.isAlive():
+                        threads.remove(thread)
+            for handler in self.handlers:
+                if not handler.result:
+                    continue
+                if not handler.result[0]:
+                    continue
+                self.rpairdet[handler.input] = handler.result
+    
     def getPathDetails(self):
         for piece in get_span(self.pathdet.keys(), self.numThreads):
             if self.killed:
@@ -871,6 +1007,96 @@ class BaseMapper(BaseKegg):
                 for react in reacts:
                     if react not in self.reactdet:
                         self.reactdet[react] = None
+    
+    def getRPairReacts(self):
+        pieces = [p for p in get_span(self.rpairdet.keys(), 80)]
+        for piece in get_span(pieces, self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
+            self.cleanHandlers()
+            self._substatus += len([i for p in piece for i in p])
+            if self._substatus > self._maxsubstatus:
+                self._substatus = self._maxsubstatus
+            self.updateStatus(sub=True)
+            
+            threads = []
+            for ids in piece:
+                remove = set()
+                for i in ids:
+                    if i in self.avoid:
+                        remove.add(i)
+                for i in remove:
+                    ids.remove(i)
+                
+                obj = threading.Thread(
+                                target = self.getHandler().getReactionsFromRPair,
+                                args = (ids,))
+                obj.start()
+                threads.append(obj)
+            time.sleep(0.01)
+            
+            while len(threads) > 0:
+                for thread in threads:
+                    if not thread.isAlive():
+                        threads.remove(thread)
+            for handler in self.handlers:
+                if not handler.result:
+                    return
+                
+                for rpair, reacts in handler.result.iteritems():
+                    if rpair not in self.rpairreact:
+                        self.rpairreact[rpair] = reacts
+                reacts = set([v for vs in handler.result.itervalues() for v in vs])
+                for react in reacts:
+                    if react not in self.reactdet:
+                        self.reactdet[react] = None
+    
+    def getReactRPairs(self):
+        pieces = [p for p in get_span(self.reactdet.keys(), 80)]
+        for piece in get_span(pieces, self.numThreads):
+            if self.killed:
+                logger.debug('Exiting for a kill signal')
+                return
+            
+            self.cleanHandlers()
+            self._substatus += len([i for p in piece for i in p])
+            if self._substatus > self._maxsubstatus:
+                self._substatus = self._maxsubstatus
+            self.updateStatus(sub=True)
+            
+            threads = []
+            for ids in piece:
+                remove = set()
+                for i in ids:
+                    if i in self.avoid:
+                        remove.add(i)
+                for i in remove:
+                    ids.remove(i)
+                
+                obj = threading.Thread(
+                                target = self.getHandler().getRPairsFromReaction,
+                                args = (ids,))
+                obj.start()
+                threads.append(obj)
+            time.sleep(0.01)
+            
+            while len(threads) > 0:
+                for thread in threads:
+                    if not thread.isAlive():
+                        threads.remove(thread)
+            for handler in self.handlers:
+                if not handler.result:
+                    return
+                
+                for react, rpairs in handler.result.iteritems():
+                    if react not in self.reactrpair:
+                        self.reactrpair[react] = rpairs
+                rpairs = set([v for vs in handler.result.itervalues() for v in vs])
+                for rpair in rpairs:
+                    if rpair not in self.rpairdet:
+                        self.rpairdet[rpair] = None
 
 class KoMapper(BaseMapper):
     '''
@@ -884,13 +1110,14 @@ class KoMapper(BaseMapper):
     
     _statusDesc = {0:'Not started',
                1:'Fetching reactions',
-               2:'Fetching pathways',
-               3:'Fetching pathways content',
-               4:'Fetching reactions - compounds links',
-               5:'Fetching details on KEGG entries',
-               6:'Crafting results'}
+               2:'Fetching rpairs',
+               3:'Fetching pathways',
+               4:'Fetching pathways content',
+               5:'Fetching reactions - compounds links',
+               6:'Fetching details on KEGG entries',
+               7:'Crafting results'}
     
-    _substatuses = [1,2,3,4,5]
+    _substatuses = [1,2,3,4,5,6]
     
     def __init__(self, ko_list, threads=50, avoid=[], queue=Queue.Queue()):
         BaseMapper.__init__(self, threads=threads, avoid=avoid, queue=queue)
@@ -984,6 +1211,32 @@ class KoMapper(BaseMapper):
         self.updateStatus()
         try:
             self.getReactions()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        # Related rpairs
+        self._maxsubstatus = len(self.reactdet)
+        self.updateStatus()
+        try:
+            self.getReactRPairs()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        self._maxsubstatus = len(self.rpairdet)
+        try:
+            self.getRPairReacts()
         except Exception, e:
             self.sendFailure(e.message)
             return
@@ -1128,14 +1381,29 @@ class KoMapper(BaseMapper):
         if self.killed:
             return
         
+        # RPair details
+        self._maxsubstatus = len(self.rpairdet)
+        try:
+            self.getRPairDetails()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
         # Prepare the output object
         self.updateStatus()
         self.result = KeggDetails()
         self.result.setDetails(self.kodet, self.reactdet,
-                               self.compdet, self.pathdet)
+                               self.compdet, self.pathdet, self.rpairdet)
         self.result.setLinks(koreact=self.koreact, pathreact=self.pathreact, 
                              pathcomp=self.pathcomp, reactcomp=self.reactcomp,
-                             compreact=self.compreact)
+                             compreact=self.compreact,
+                             rpairreact=self.rpairreact,
+                             reactrpair=self.reactrpair)
         self.result.setMaps(self.pathmap)
 
 class CompMapper(BaseMapper):
@@ -1149,13 +1417,14 @@ class CompMapper(BaseMapper):
     
     _statusDesc = {0:'Not started',
                1:'Fetching reactions',
-               2:'Fetching pathways',
-               3:'Fetching pathways content',
-               4:'Fetching reactions - compounds links',
-               5:'Fetching details on KEGG entries',
-               6:'Crafting results'}
+               2:'Fetching rpairs',
+               3:'Fetching pathways',
+               4:'Fetching pathways content',
+               5:'Fetching reactions - compounds links',
+               6:'Fetching details on KEGG entries',
+               7:'Crafting results'}
     
-    _substatuses = [1,2,3,4,5]
+    _substatuses = [1,2,3,4,5,6]
     
     def __init__(self, co_list, threads=50, avoid=[], queue=Queue.Queue()):
         BaseMapper.__init__(self, threads=threads, avoid=avoid, queue=queue)
@@ -1173,6 +1442,32 @@ class CompMapper(BaseMapper):
         self.updateStatus()
         try:
             self.getCompoundReacts()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        # Related rpairs
+        self._maxsubstatus = len(self.reactdet)
+        self.updateStatus()
+        try:
+            self.getReactRPairs()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        self._maxsubstatus = len(self.rpairdet)
+        try:
+            self.getRPairReacts()
         except Exception, e:
             self.sendFailure(e.message)
             return
@@ -1304,14 +1599,30 @@ class CompMapper(BaseMapper):
         if self.killed:
             return
         
+        # RPair details
+        self._maxsubstatus = len(self.rpairdet)
+        try:
+            self.getRPairDetails()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
         # Prepare the output object
         self.updateStatus()
         self.result = KeggDetails()
         self.result.setDetails(react=self.reactdet,
-                               comp=self.compdet, path=self.pathdet)
+                               comp=self.compdet, path=self.pathdet,
+                               rpair=self.rpairdet)
         self.result.setLinks(pathreact=self.pathreact, 
                              pathcomp=self.pathcomp, compreact=self.compreact,
-                             reactcomp=self.reactcomp)
+                             reactcomp=self.reactcomp,
+                             reactrpair=self.reactrpair,
+                             rpairreact=self.rpairreact)
         self.result.setMaps(self.pathmap)
 
 class MapsFetcher(BaseKegg):

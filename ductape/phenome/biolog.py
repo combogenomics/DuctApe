@@ -6,10 +6,6 @@ Phenome library
 
 Classes to handle Biolog data
 """
-# TODO: this part must be handled somewhere else
-import matplotlib
-matplotlib.use('Agg')
-#
 from ductape.common.commonthread import CommonThread
 from ductape.common.utils import smooth, compress
 from matplotlib import cm

@@ -1459,10 +1459,9 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
                 orgs.append(x)
                 muts[x] = ref_id
     elif difforg:
-        orgs.append(difforg)
         for org in organism.getAll():
+            orgs.append(org.org_id)
             if org.org_id != difforg:
-                orgs.append(org.org_id)
                 muts[org.org_id] = difforg
     else:
         for org in organism.getAll():

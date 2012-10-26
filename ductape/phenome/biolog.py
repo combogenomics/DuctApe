@@ -224,17 +224,17 @@ class Well(object):
         from scipy.integrate import trapz
         from ductape.phenome.fitting import fitData, getFlex, getPlateau
         
-        if not self.compressed and not noCompress:
-            self.compress()
-        if not self.smoothed and not noSmooth:
-            self.smooth(window_len=len(self.signals)/3, window_type='blackman')
-            
         # Let's start with the easy ones!
         self.max = self.getMax()
         
         self.min = self.getMin()
         
         self.height = np.array( self.signals.values() ).mean()
+        
+        if not self.compressed and not noCompress:
+            self.compress()
+        if not self.smoothed and not noSmooth:
+            self.smooth(window_len=len(self.signals)/3, window_type='blackman')
         
         # Let's go with the function fitting
         xdata = np.array( [x for x in sorted(self.signals.keys())] )

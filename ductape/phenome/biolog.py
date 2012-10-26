@@ -1944,7 +1944,7 @@ def getSinglePlatesFromParameters(wells, nonmean=False):
             
             dExp[plate_id][org_id][replica].data[well_id].activity = well.activity
             
-            for param in well.params:
+            for param in Well('fake', 'fake').params:
                 setattr(dExp[plate_id][org_id][replica].data[well_id],
                         param,
                         getattr(well, param, None)) 

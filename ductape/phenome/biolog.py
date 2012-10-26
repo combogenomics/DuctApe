@@ -103,6 +103,11 @@ class Well(object):
         self.v = None
         self.y0 = None
         
+        # Parameters list
+        self.params = ['max', 'min', 'height',
+                       'plateu', 'slope', 'lag',
+                       'area', 'v', 'y0']
+        
         # Fitting model used
         self.model = None
         
@@ -1863,7 +1868,7 @@ def getSinglePlates(binput, nonmean=False):
         for splate in getSinglePlatesFromSignals(binput):
             yield splate
     else:
-        for splate in getSinglePlatesFromActivity(binput, nonmean):
+        for splate in getSinglePlatesFromParameters(binput, nonmean):
             yield splate
             
 def getSinglePlatesFromSignals(signals):
@@ -1909,7 +1914,7 @@ def getSinglePlatesFromSignals(signals):
             for splate in replicas.itervalues():
                 yield splate
 
-def getSinglePlatesFromActivity(wells, nonmean=False):
+def getSinglePlatesFromParameters(wells, nonmean=False):
     '''
     Takes a bunch of wells taken from the DB and returns a series of 
     SinglePlates objects
@@ -1938,6 +1943,11 @@ def getSinglePlatesFromActivity(wells, nonmean=False):
                                                                      well_id)
             
             dExp[plate_id][org_id][replica].data[well_id].activity = well.activity
+            
+            for param in well.params:
+                setattr(dExp[plate_id][org_id][replica].data[well_id],
+                        param,
+                        getattr(well, param, None)) 
             
         # Return all the SinglePlates objects 
         for orgs in dExp.itervalues():

@@ -91,7 +91,7 @@ class KeggAPI(object):
         
         if res == '':
             return None
-        return res
+        return res.lstrip()
     
     def parseLinks(self, links):
         '''
@@ -111,19 +111,34 @@ class KeggAPI(object):
             return None
         return d
 
-    def getTitle(self, entry, retries=5):
+    def getTitle(self, entries, retries=5):
         '''
         Get the title of a specific KEGG object
         '''
         attempts = 0
         while True:
             try:
-                self.input = entry
-                logger.debug('Looking for title for KEGG entry %s'%entry)
-                url = self._apiurl + 'get/%s'%entry
+                self.input = entries
+                logger.debug('Looking for title for %d KEGG entries'%len(entries))
+                url = self._apiurl + 'get/'
+                for entry in entries:
+                    url += '%s+'%entry
+                url = url.rstrip('+')
                 data = urllib.urlopen(url).read()
-                self.result = [self.getEntryTag(data, 'NAME'),
-                               self.getEntryTag(data, 'DEFINITION')]
+                
+                self.result = {}
+                for lines in data.split('///'):
+                    if len(lines) == 1:continue
+                    try:
+                        shortID = self.getEntryTag(lines,'ENTRY').split(' ')[0]
+                        for longID in self.input:
+                            if shortID in longID:
+                                self.result[longID] = [
+                                            self.getEntryTag(lines, 'NAME'),
+                                            self.getEntryTag(lines, 'DEFINITION')
+                                            ]
+                    except:
+                        continue
                 return
             except Exception, e:
                 attempts += 1
@@ -135,7 +150,7 @@ class KeggAPI(object):
                     logger.warning('get failed!')
                     raise Exception('get request failed')
                 
-    def getRPair(self, entry, retries=5):
+    def getRPair(self, entries, retries=5):
         '''
         Similar to getTitle, but targeting specific features of RPair
         Specifically the two co_id involved and the kind of interaction
@@ -143,23 +158,66 @@ class KeggAPI(object):
         attempts = 0
         while True:
             try:
-                self.input = entry
-                logger.debug('Looking for details on RPair entry %s'%entry)
-                url = self._apiurl + 'get/%s'%entry
+                self.input = entries
+                logger.debug('Looking for details on %d RPair entries'%len(entries))
+                url = self._apiurl + 'get/'
+                for entry in entries:
+                    url += '%s+'%entry
+                url = url.rstrip('+')
                 data = urllib.urlopen(url).read()
-                co1, co2 = self.getEntryTag(data, 'NAME').split('_')
-                kind = self.getEntryTag(data, 'TYPE')
-                self.result = [co1,co2,kind]
+                
+                self.result = {}
+                for lines in data.split('///'):
+                    if len(lines) == 1:continue
+                    try:
+                        shortID = self.getEntryTag(lines,'ENTRY').split(' ')[0]
+                        for longID in self.input:
+                            if shortID in longID:
+                                co1, co2 = self.getEntryTag(lines, 'NAME').split('_')
+                                kind = self.getEntryTag(lines, 'TYPE')
+                                self.result[longID] = [co1,co2,kind]
+                    except:
+                        continue
                 return
             except Exception, e:
                 attempts += 1
-                logger.debug('get failed! Attempt %d'
+                logger.debug('get (rpair) failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
-                    logger.warning('get failed!')
-                    raise Exception('get request failed')
+                    logger.warning('get (rpair) failed!')
+                    raise Exception('get request (rpair) failed')
+    
+    def getIDListFromDB(self, db='pathway', retries=5):
+        '''
+        Get all the IDs from a specific database
+        
+        Default: pathway
+        '''
+        attempts = 0
+        while True:
+            try:
+                self.input = db
+                logger.debug('Looking for KEGG IDs from db %s'%db)
+                url = self._apiurl + 'list/%s/'%db
+                
+                data = urllib.urlopen(url).read()
+                self.result = set([x.split('\t')[0] for x in data.split('\n')])
+                try:
+                    self.result.remove('')
+                except:pass
+                self.result = list(self.result)
+                return
+            except Exception, e:
+                attempts += 1
+                logger.debug('list (%s) failed! Attempt %d'
+                              %(db,attempts))
+                logger.debug('%s'%str(e))
+                time.sleep(2*attempts)
+                if attempts >= retries:
+                    logger.warning('list (%s) failed!'%db)
+                    raise Exception('list (%s) request failed'%db)
     
     def getReactions(self, ko_ids, retries=5):
         '''
@@ -621,102 +679,133 @@ class BaseMapper(BaseKegg):
         self.result = None
         
     def getReactDetails(self):
-        for piece in get_span(self.reactdet.keys(), self.numThreads):
+        pieces = [p for p in get_span(self.reactdet.keys(), 10)]
+        for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
                 return
             
             self.cleanHandlers()
-            self._substatus += self.numThreads
+            self._substatus += len([i for p in piece for i in p])
             if self._substatus > self._maxsubstatus:
                 self._substatus = self._maxsubstatus
             self.updateStatus(sub=True)
             
             threads = []
-            for react in piece:
-                if react in self.avoid:
+            for ids in piece:
+                remove = set()
+                for i in ids:
+                    if i in self.avoid:
+                        remove.add(i)
+                for i in remove:
+                    ids.remove(i)
+                
+                if len(ids) == 0:
                     continue
                 
                 obj = threading.Thread(
-                            target = self.handlers[piece.index(react)].getTitle,
-                            args = (react,))
+                                target = self.getHandler().getTitle,
+                                args = (ids,))
                 obj.start()
                 threads.append(obj)
             time.sleep(0.01)
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    continue
-                self.reactdet[handler.input] = handler.result
+                    return
+                
+                for kid, title in handler.result.iteritems():
+                    self.reactdet[kid] = title
     
     def getRPairDetails(self):
-        for piece in get_span(self.rpairdet.keys(), self.numThreads):
+        pieces = [p for p in get_span(self.rpairdet.keys(), 10)]
+        for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
                 return
             
             self.cleanHandlers()
-            self._substatus += self.numThreads
+            self._substatus += len([i for p in piece for i in p])
             if self._substatus > self._maxsubstatus:
                 self._substatus = self._maxsubstatus
             self.updateStatus(sub=True)
             
             threads = []
-            for rpair in piece:
-                if rpair in self.avoid:
+            for ids in piece:
+                remove = set()
+                for i in ids:
+                    if i in self.avoid:
+                        remove.add(i)
+                for i in remove:
+                    ids.remove(i)
+                    
+                if len(ids) == 0:
                     continue
                 
                 obj = threading.Thread(
-                            target = self.handlers[piece.index(rpair)].getRPair,
-                            args = (rpair,))
+                                target = self.getHandler().getRPair,
+                                args = (ids,))
                 obj.start()
                 threads.append(obj)
             time.sleep(0.01)
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    continue
-                if not handler.result[0]:
-                    continue
-                self.rpairdet[handler.input] = handler.result
+                    return
+                
+                for kid, title in handler.result.iteritems():
+                    self.rpairdet[kid] = title
     
     def getPathDetails(self):
-        for piece in get_span(self.pathdet.keys(), self.numThreads):
+        pieces = [p for p in get_span(self.pathdet.keys(), 10)]
+        for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
                 return
             
             self.cleanHandlers()
-            self._substatus += self.numThreads
+            self._substatus += len([i for p in piece for i in p])
             if self._substatus > self._maxsubstatus:
                 self._substatus = self._maxsubstatus
             self.updateStatus(sub=True)
             
             threads = []
-            for path in piece:
-                if path in self.avoid:
+            for ids in piece:
+                remove = set()
+                for i in ids:
+                    if i in self.avoid:
+                        remove.add(i)
+                for i in remove:
+                    ids.remove(i)
+                    
+                if len(ids) == 0:
                     continue
                 
                 obj = threading.Thread(
-                            target = self.handlers[piece.index(path)].getTitle,
-                            args = (path,))
+                                target = self.getHandler().getTitle,
+                                args = (ids,))
                 obj.start()
                 threads.append(obj)
             time.sleep(0.01)
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    continue
-                self.pathdet[handler.input] = handler.result
+                    return
+                
+                for kid, title in handler.result.iteritems():
+                    self.pathdet[kid] = title
     
     def getMapsDetails(self):
         for piece in get_span(self.pathdet.keys(), self.numThreads):
@@ -772,6 +861,9 @@ class BaseMapper(BaseKegg):
                         remove.add(i)
                 for i in remove:
                     ids.remove(i)
+                    
+                if len(ids) == 0:
+                    continue
                 
                 obj = threading.Thread(
                                 target = self.getHandler().getReactionsFromPath,
@@ -817,6 +909,9 @@ class BaseMapper(BaseKegg):
                         remove.add(i)
                 for i in remove:
                     ids.remove(i)
+                    
+                if len(ids) == 0:
+                    continue
                 
                 obj = threading.Thread(
                                 target = self.getHandler().getCompoundsFromPath,
@@ -842,33 +937,47 @@ class BaseMapper(BaseKegg):
                         self.compdet[comp] = None
                         
     def getCompDetails(self):
-        for piece in get_span(self.compdet.keys(), self.numThreads):
+        pieces = [p for p in get_span(self.compdet.keys(), 10)]
+        for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
                 return
             
             self.cleanHandlers()
-            self._substatus += self.numThreads
+            self._substatus += len([i for p in piece for i in p])
             if self._substatus > self._maxsubstatus:
                 self._substatus = self._maxsubstatus
             self.updateStatus(sub=True)
             
             threads = []
-            for comp in piece:
+            for ids in piece:
+                remove = set()
+                for i in ids:
+                    if i in self.avoid:
+                        remove.add(i)
+                for i in remove:
+                    ids.remove(i)
+                    
+                if len(ids) == 0:
+                    continue
+                
                 obj = threading.Thread(
-                            target = self.handlers[piece.index(comp)].getTitle,
-                            args = (comp,))
+                                target = self.getHandler().getTitle,
+                                args = (ids,))
                 obj.start()
                 threads.append(obj)
             time.sleep(0.01)
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    continue
-                self.compdet[handler.input] = handler.result
+                    return
+                
+                for kid, title in handler.result.iteritems():
+                    self.compdet[kid] = title
     
     def getPathways(self):
         pieces = [p for p in get_span(self.reactdet.keys(), 80)]
@@ -891,6 +1000,9 @@ class BaseMapper(BaseKegg):
                         remove.add(i)
                 for i in remove:
                     ids.remove(i)
+                    
+                if len(ids) == 0:
+                    continue
                 
                 obj = threading.Thread(
                                 target = self.getHandler().getPathways,
@@ -939,6 +1051,9 @@ class BaseMapper(BaseKegg):
                         remove.add(i)
                 for i in remove:
                     ids.remove(i)
+                    
+                if len(ids) == 0:
+                    continue
                 
                 obj = threading.Thread(
                                 target = self.getHandler().getCompoundsFromReaction,
@@ -984,6 +1099,9 @@ class BaseMapper(BaseKegg):
                         remove.add(i)
                 for i in remove:
                     ids.remove(i)
+                    
+                if len(ids) == 0:
+                    continue
                 
                 obj = threading.Thread(
                                 target = self.getHandler().getReactionsByComp,
@@ -1029,6 +1147,9 @@ class BaseMapper(BaseKegg):
                         remove.add(i)
                 for i in remove:
                     ids.remove(i)
+                    
+                if len(ids) == 0:
+                    continue
                 
                 obj = threading.Thread(
                                 target = self.getHandler().getReactionsFromRPair,
@@ -1074,6 +1195,9 @@ class BaseMapper(BaseKegg):
                         remove.add(i)
                 for i in remove:
                     ids.remove(i)
+                    
+                if len(ids) == 0:
+                    continue
                 
                 obj = threading.Thread(
                                 target = self.getHandler().getRPairsFromReaction,
@@ -1129,36 +1253,47 @@ class KoMapper(BaseMapper):
         self.koreact = {}
     
     def getKOdet(self):
-        for piece in get_span(self.ko, self.numThreads):
+        pieces = [p for p in get_span(self.ko, 10)]
+        for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
                 return
             
             self.cleanHandlers()
-            self._substatus += self.numThreads
+            self._substatus += len([i for p in piece for i in p])
             if self._substatus > self._maxsubstatus:
                 self._substatus = self._maxsubstatus
             self.updateStatus(sub=True)
             
             threads = []
-            for ko in piece:
-                if ko in self.avoid:
+            for ids in piece:
+                remove = set()
+                for i in ids:
+                    if i in self.avoid:
+                        remove.add(i)
+                for i in remove:
+                    ids.remove(i)
+                    
+                if len(ids) == 0:
                     continue
                 
                 obj = threading.Thread(
-                            target = self.handlers[piece.index(ko)].getTitle,
-                            args = (ko,))
+                                target = self.getHandler().getTitle,
+                                args = (ids,))
                 obj.start()
                 threads.append(obj)
             time.sleep(0.01)
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    continue
-                self.kodet[handler.input] = handler.result
+                    return
+                
+                for kid, title in handler.result.iteritems():
+                    self.kodet[kid] = title
                 
     def getReactions(self):
         pieces = [p for p in get_span(self.ko, 80)]
@@ -1181,6 +1316,9 @@ class KoMapper(BaseMapper):
                         remove.add(i)
                 for i in remove:
                     ids.remove(i)
+                    
+                if len(ids) == 0:
+                    continue
                 
                 obj = threading.Thread(
                                 target = self.getHandler().getReactions,

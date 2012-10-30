@@ -874,7 +874,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         ax.set_title('Single organisms', size='small')
         fig.suptitle('Activity distribution', size='large')
     
-    plt.legend(loc='best')
+    plt.legend(loc='best',prop={'size':6})
     
     if svg:
         fname = 'Activity.svg'
@@ -954,11 +954,11 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         
         axid += 1
         
-        plt.legend(loc='best')
+        plt.legend(loc='best',prop={'size':6})
         
     fig.suptitle('Activity distribution by categories', size='large')
     
-    plt.legend(loc='best')
+    plt.legend(loc='best',prop={'size':6})
     
     if svg:
         fname = 'ActivityZero.svg'
@@ -1038,11 +1038,11 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         
         axid += 1
         
-        plt.legend(loc='best')
+        plt.legend(loc='best',prop={'size':6})
         
     fig.suptitle('Activity distribution by categories', size='large')
     
-    plt.legend(loc='best')
+    plt.legend(loc='best',prop={'size':6})
     
     if svg:
         fname = 'ActivityCateg.svg'
@@ -2211,7 +2211,7 @@ def plotMapBars(lOrg, title, fname, svg=False):
     plt.xticks([0.2 + 1 * x for x in range(len(lOrg))] , [x[0] for x in lOrg])
     plt.ylim(0, maxprots + maxprots * 0.33)
     plt.title(title)
-    plt.legend(loc='best')
+    plt.legend(loc='best',prop={'size':6})
     
     if svg:
         fname += '.svg'
@@ -2231,7 +2231,7 @@ def plotPanGenome(core, acc, uni, svg=False):
                       shadow=True)
     plt.legend((patches[0][0], patches[0][1], patches[0][2]),
                ('Core','Accessory','Unique'),
-               loc=(0,-.1))
+               loc=(0,-.1),prop={'size':6})
     plt.title('PanGenome shape')
     
     if svg:

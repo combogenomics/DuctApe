@@ -1779,7 +1779,7 @@ class MapsFetcher(BaseKegg):
     _substatuses = [2]
     
     def __init__(self, color_objs, pictures=True, html=True, prefix='', 
-                 legend=None, threads=20, queue=Queue.Queue()):
+                 legend=None, threads=50, queue=Queue.Queue()):
         BaseKegg.__init__(self, threads=threads, queue=queue)
         
         self.colors = color_objs
@@ -1939,7 +1939,7 @@ class MapsFetcher(BaseKegg):
                     s1 = s[1].split('"')
                     s1[0] += '.html'
                     line1 = '"'.join(s1)
-                    line = './path:'.join([s[0]] + [line1])
+                    line = './'.join([s[0]] + [line1])
                 
                 newhtml.append(line)
                 
@@ -1955,6 +1955,12 @@ class MapsFetcher(BaseKegg):
         
         if self.killed:
             return
+        
+        # ':' bugfix
+        # the ':' char causes various problems in windows folders
+        for path in self.colors:
+            if ':' in path.path:
+                path.path = path.path.split(':')[1]
         
         if self.pictures:
             self._maxsubstatus = len(self.colors)

@@ -1386,7 +1386,77 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             print line
         else:
             logger.info(line)
+       
+    ############################################################################
+    
+    if kind == 'single':
+        return True
+    
+    logger.info('Unique metabolic functions')
+    
+    header = 'Unique metabolic functions (%% of wells with delta >= %d)'%delta
+    if doPrint:
+        print header
+    else:
+        logger.info(header)
+    
+    header = '\t'.join( [''] + orgs )
+    if doPrint:
+        print header
+    else:
+        logger.info(header)
+    
+    UpUnique = {}
+    for oid in orgs:
+        UpUnique[oid] = 0
+    DownUnique = {}
+    for oid in orgs:
+        DownUnique[oid] = 0
+    pwcount = 0
+    for pid, wid in getOrder():
+        try:
+            # Sort by activity
+            acts = sorted([exp.sumexp[pid][wid][oid] for oid in orgs],
+                          key=lambda x: x.activity)
             
+            amax = acts[-1]
+            amaxindex = acts.index(amax)
+            if amax.activity - acts[amaxindex - 1].activity >= delta:
+                UpUnique[amax.strain] += 1
+
+            amin = acts[0]
+            if acts[1].activity - amin.activity >= delta:
+                DownUnique[amin.strain] += 1
+            
+            pwcount += 1
+        except:pass
+        
+    total = float(pwcount)
+    
+    line = '\t'.join(['More active'] + [str(UpUnique[oid]) for oid in orgs])    
+    if doPrint:
+        print line
+    else:
+        logger.info(line)
+    
+    line = '\t'.join(['Less active'] + [str(DownUnique[oid]) for oid in orgs])    
+    if doPrint:
+        print line
+    else:
+        logger.info(line)
+            
+    line = '\t'.join(['Total'] + [str(UpUnique[oid] + DownUnique[oid]) for oid in orgs])    
+    if doPrint:
+        print line
+    else:
+        logger.info(line)
+        
+    line = '\t'.join(['%'] + [str(((UpUnique[oid] + DownUnique[oid])/total)*100) for oid in orgs])    
+    if doPrint:
+        print line
+    else:
+        logger.info(line)
+    
     return True
 
 def dPhenomeRings(project, delta=1, difforg=None, svg=False):

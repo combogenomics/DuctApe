@@ -7,7 +7,7 @@ Common Library
 KeggAPI handles the connection to KEGG API through wsdl
 KoMapper handles reactions, pathways and compounds retrieval on Ko IDs 
 """
-import urllib
+import urllib2 as urllib
 from ductape.common.commonthread import CommonThread
 from ductape.common.utils import get_span
 from ductape.kegg.web import kheader
@@ -124,7 +124,7 @@ class KeggAPI(object):
                 for entry in entries:
                     url += '%s+'%entry
                 url = url.rstrip('+')
-                data = urllib.urlopen(url).read()
+                data = urllib.urlopen(url, timeout=20).read()
                 
                 self.result = {}
                 for lines in data.split('///'):
@@ -146,6 +146,9 @@ class KeggAPI(object):
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
+                try:
+                    logger.debug(url)
+                except:pass
                 if attempts >= retries:
                     logger.warning('get failed!')
                     raise Exception('get request failed')
@@ -164,7 +167,7 @@ class KeggAPI(object):
                 for entry in entries:
                     url += '%s+'%entry
                 url = url.rstrip('+')
-                data = urllib.urlopen(url).read()
+                data = urllib.urlopen(url, timeout=20).read()
                 
                 self.result = {}
                 for lines in data.split('///'):
@@ -185,6 +188,9 @@ class KeggAPI(object):
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
+                try:
+                    logger.debug(url)
+                except:pass
                 if attempts >= retries:
                     logger.warning('get (rpair) failed!')
                     raise Exception('get request (rpair) failed')
@@ -202,7 +208,7 @@ class KeggAPI(object):
                 logger.debug('Looking for KEGG IDs from db %s'%db)
                 url = self._apiurl + 'list/%s/'%db
                 
-                data = urllib.urlopen(url).read()
+                data = urllib.urlopen(url, timeout=20).read()
                 self.result = set([x.split('\t')[0] for x in data.split('\n')])
                 try:
                     self.result.remove('')
@@ -215,6 +221,9 @@ class KeggAPI(object):
                               %(db,attempts))
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
+                try:
+                    logger.debug(url)
+                except:pass
                 if attempts >= retries:
                     logger.warning('list (%s) failed!'%db)
                     raise Exception('list (%s) request failed'%db)
@@ -233,7 +242,7 @@ class KeggAPI(object):
                     url += '%s+'%ko_id
                 url = url.rstrip('+')
                 
-                data = urllib.urlopen(url).read()
+                data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
                 return
             except Exception, e:
@@ -242,6 +251,9 @@ class KeggAPI(object):
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
+                try:
+                    logger.debug(url)
+                except:pass
                 if attempts >= retries:
                     logger.warning('link (reaction) failed!')
                     raise Exception('link (reaction) request failed')
@@ -260,7 +272,7 @@ class KeggAPI(object):
                     url += '%s+'%re_id
                 url = url.rstrip('+')
                 
-                data = urllib.urlopen(url).read()
+                data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
                 return
             except Exception, e:
@@ -269,6 +281,9 @@ class KeggAPI(object):
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
+                try:
+                    logger.debug(url)
+                except:pass
                 if attempts >= retries:
                     logger.warning('link (pathway) failed!')
                     raise Exception('link (pathway) request failed')
@@ -287,7 +302,7 @@ class KeggAPI(object):
                     url += '%s+'%co_id
                 url = url.rstrip('+')
                 
-                data = urllib.urlopen(url).read()
+                data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
                 return
             except Exception, e:
@@ -296,6 +311,9 @@ class KeggAPI(object):
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
+                try:
+                    logger.debug(url)
+                except:pass
                 if attempts >= retries:
                     logger.warning('link (reaction) failed!')
                     raise Exception('link (reaction) request failed')
@@ -314,7 +332,7 @@ class KeggAPI(object):
                     url += '%s+'%path_id
                 url = url.rstrip('+')
                 
-                data = urllib.urlopen(url).read()
+                data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
                 return
             except Exception, e:
@@ -323,6 +341,9 @@ class KeggAPI(object):
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
+                try:
+                    logger.debug(url)
+                except:pass
                 if attempts >= retries:
                     logger.warning('link (reaction) failed!')
                     raise Exception('link (reaction) request failed')
@@ -341,7 +362,7 @@ class KeggAPI(object):
                     url += '%s+'%re_id
                 url = url.rstrip('+')
                 
-                data = urllib.urlopen(url).read()
+                data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
                 return
             except Exception, e:
@@ -350,6 +371,9 @@ class KeggAPI(object):
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
+                try:
+                    logger.debug(url)
+                except:pass
                 if attempts >= retries:
                     logger.warning('link (rpair) failed!')
                     raise Exception('link (rpair) request failed')
@@ -368,7 +392,7 @@ class KeggAPI(object):
                     url += '%s+'%rp_id
                 url = url.rstrip('+')
                 
-                data = urllib.urlopen(url).read()
+                data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
                 return
             except Exception, e:
@@ -377,6 +401,9 @@ class KeggAPI(object):
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
+                try:
+                    logger.debug(url)
+                except:pass
                 if attempts >= retries:
                     logger.warning('link (reaction) failed!')
                     raise Exception('link (reaction) request failed')
@@ -395,7 +422,7 @@ class KeggAPI(object):
                     url += '%s+'%re_id
                 url = url.rstrip('+')
                 
-                data = urllib.urlopen(url).read()
+                data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
                 return
             except Exception, e:
@@ -404,6 +431,9 @@ class KeggAPI(object):
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
+                try:
+                    logger.debug(url)
+                except:pass
                 if attempts >= retries:
                     logger.warning('link (compound) failed!')
                     raise Exception('link (compound) request failed')
@@ -422,7 +452,7 @@ class KeggAPI(object):
                     url += '%s+'%path_id
                 url = url.rstrip('+')
                 
-                data = urllib.urlopen(url).read()
+                data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
                 return
             except Exception, e:
@@ -431,6 +461,9 @@ class KeggAPI(object):
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
+                try:
+                    logger.debug(url)
+                except:pass
                 if attempts >= retries:
                     logger.warning('link (compound) failed!')
                     raise Exception('link (compound) request failed')
@@ -456,7 +489,7 @@ class KeggAPI(object):
                 for i in range(len(obj_list)):
                     url += obj_list[i] + '%09' + color_list[i] + '/'
                 
-                sock=urllib.urlopen(url)
+                sock=urllib.urlopen(url, timeout=20)
                 self.result = sock.read()
                 sock.close()
                 return
@@ -466,6 +499,9 @@ class KeggAPI(object):
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
+                try:
+                    logger.debug(url)
+                except:pass
                 if attempts >= retries:
                     logger.warning('show_pathway failed!')
                     raise Exception('show_pathway request failed')
@@ -628,7 +664,7 @@ class KeggDetails(object):
         return self.pathmaps
 
 class BaseKegg(CommonThread):
-    def __init__(self, threads=5, queue=Queue.Queue()):
+    def __init__(self, threads=40, queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         
         # Kegg connection
@@ -655,7 +691,7 @@ class BaseKegg(CommonThread):
         return handler
             
 class BaseMapper(BaseKegg):
-    def __init__(self, threads=5, avoid=[], queue=Queue.Queue()):
+    def __init__(self, threads=40, avoid=[], queue=Queue.Queue()):
         BaseKegg.__init__(self, threads=threads, queue=queue)
 
         # Skip these
@@ -679,7 +715,7 @@ class BaseMapper(BaseKegg):
         self.result = None
         
     def getReactDetails(self):
-        pieces = [p for p in get_span(self.reactdet.keys(), 10)]
+        pieces = [p for p in get_span(self.reactdet.keys(), 9)]
         for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
@@ -722,7 +758,7 @@ class BaseMapper(BaseKegg):
                     self.reactdet[kid] = title
     
     def getRPairDetails(self):
-        pieces = [p for p in get_span(self.rpairdet.keys(), 10)]
+        pieces = [p for p in get_span(self.rpairdet.keys(), 9)]
         for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
@@ -765,7 +801,7 @@ class BaseMapper(BaseKegg):
                     self.rpairdet[kid] = title
     
     def getPathDetails(self):
-        pieces = [p for p in get_span(self.pathdet.keys(), 10)]
+        pieces = [p for p in get_span(self.pathdet.keys(), 9)]
         for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
@@ -937,7 +973,7 @@ class BaseMapper(BaseKegg):
                         self.compdet[comp] = None
                         
     def getCompDetails(self):
-        pieces = [p for p in get_span(self.compdet.keys(), 10)]
+        pieces = [p for p in get_span(self.compdet.keys(), 9)]
         for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
@@ -1243,7 +1279,7 @@ class KoMapper(BaseMapper):
     
     _substatuses = [1,2,3,4,5,6]
     
-    def __init__(self, ko_list, threads=50, avoid=[], queue=Queue.Queue()):
+    def __init__(self, ko_list, threads=40, avoid=[], queue=Queue.Queue()):
         BaseMapper.__init__(self, threads=threads, avoid=avoid, queue=queue)
         # Kegg
         self.ko = ko_list
@@ -1253,7 +1289,7 @@ class KoMapper(BaseMapper):
         self.koreact = {}
     
     def getKOdet(self):
-        pieces = [p for p in get_span(self.ko, 10)]
+        pieces = [p for p in get_span(self.ko, 9)]
         for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
@@ -1564,7 +1600,7 @@ class CompMapper(BaseMapper):
     
     _substatuses = [1,2,3,4,5,6]
     
-    def __init__(self, co_list, threads=50, avoid=[], queue=Queue.Queue()):
+    def __init__(self, co_list, threads=40, avoid=[], queue=Queue.Queue()):
         BaseMapper.__init__(self, threads=threads, avoid=avoid, queue=queue)
         # Kegg
         self.co = co_list
@@ -1779,7 +1815,7 @@ class MapsFetcher(BaseKegg):
     _substatuses = [2]
     
     def __init__(self, color_objs, pictures=True, html=True, prefix='', 
-                 legend=None, threads=50, queue=Queue.Queue()):
+                 legend=None, threads=40, queue=Queue.Queue()):
         BaseKegg.__init__(self, threads=threads, queue=queue)
         
         self.colors = color_objs
@@ -1869,7 +1905,7 @@ class MapsFetcher(BaseKegg):
                         and 'usemap="#mapdata"' in line):
                         urlimage = 'http://www.kegg.jp/' + line.split('src="')[1].split('"')[0]
 
-                        sock=urllib.urlopen(urlimage)
+                        sock=urllib.urlopen(urlimage, timeout=30)
                         pic = sock.read()
                         sock.close()
                         

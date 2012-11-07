@@ -2087,6 +2087,19 @@ def getPathsReacts(project):
         
     return paths
 
+def getPathsComps(project):
+    kegg = Kegg(project)
+    # Get the pathway - compounds links
+    paths = {}
+    for pR in kegg.getPathComps():
+        if pR.path_id in ['path:rn01100','path:rn01110','path:rn01120']:
+            continue
+        if pR.path_id not in paths:
+            paths[pR.path_id] = []
+        paths[pR.path_id].append(pR.co_id)
+        
+    return paths
+
 def getOrganismsColors(project):
     '''
     Check the colors assigned to the organisms and return a dictionary
@@ -2117,11 +2130,7 @@ def getOrganismsColors(project):
     
     return colors
 
-def prepareColors(dReacts, colorrange):
-    if len(dReacts) == 0:
-        return {}
-    
-    maximum = max([dReacts[x] for x in dReacts])
+def prepareColors(maximum, colorrange):
     hexs = {}
     prev = '#FFFFFF'
     i = 1
@@ -2136,79 +2145,107 @@ def prepareColors(dReacts, colorrange):
     
     return hexs
 
-def createLegend(kind, compounds=False):
+def createLegend(kind):
     '''
     Create a color scheme legend
     '''
     # TODO: a more centralized color scheme
     fig = plt.figure()
     fname = 'legend.png'
-    matrix = np.outer(np.arange(0.33,1,0.01),np.ones(7))
+    rmatrix = np.outer(np.arange(0.33,1,0.01),np.ones(7))
+    if kind == 'mutants':
+        cmatrix = np.outer(np.arange(-9,9,0.1),np.ones(7))
+    elif kind == 'pangenome':
+        cmatrix = np.outer(np.arange(0.33,1,0.01),np.ones(7))
+    else:
+        cmatrix = np.outer(np.arange(0,9,0.1),np.ones(7))
+         
     if kind == 'pangenome':
-        if compounds:
-            pass
-        else:
-            ax = fig.add_subplot(131)
-            ax.imshow(matrix, cmap=cm.Blues, vmin=0, vmax=1)
-            ax.axes.get_xaxis().set_visible(False)
-            ax.axes.get_yaxis().set_visible(False)
-            ax.axes.get_yaxis().set_ticks([])
-            ax.axes.get_xaxis().set_ticks([])
-            ax.set_title('Core')
-            
-            ax = fig.add_subplot(132)
-            ax.imshow(matrix, cmap=cm.Greens, vmin=0, vmax=1)
-            ax.axes.get_xaxis().set_visible(False)
-            ax.axes.get_yaxis().set_visible(False)
-            ax.axes.get_yaxis().set_ticks([])
-            ax.axes.get_xaxis().set_ticks([])
-            ax.set_title('Core and Dispensable')
-            
-            ax = fig.add_subplot(133)
-            ax.imshow(matrix, cmap=cm.Oranges, vmin=0, vmax=1)
-            ax.axes.get_xaxis().set_visible(False)
-            ax.axes.get_yaxis().set_visible(False)
-            ax.axes.get_yaxis().set_ticks([])
-            ax.axes.get_xaxis().set_ticks([])
-            ax.set_title('Dispensable')
-            
-            fig.savefig(fname)
+        ax = fig.add_subplot(141)
+        ax.imshow(rmatrix, cmap=cm.Blues, vmin=0, vmax=1)
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+        ax.axes.get_yaxis().set_ticks([])
+        ax.axes.get_xaxis().set_ticks([])
+        ax.set_title('Core')
+        
+        ax = fig.add_subplot(142)
+        ax.imshow(rmatrix, cmap=cm.Greens, vmin=0, vmax=1)
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+        ax.axes.get_yaxis().set_ticks([])
+        ax.axes.get_xaxis().set_ticks([])
+        ax.set_title('Core and Disp.')
+        
+        ax = fig.add_subplot(143)
+        ax.imshow(rmatrix, cmap=cm.Oranges, vmin=0, vmax=1)
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+        ax.axes.get_yaxis().set_ticks([])
+        ax.axes.get_xaxis().set_ticks([])
+        ax.set_title('Dispensable')
+        
+        ax = fig.add_subplot(144)
+        ax.imshow(cmatrix, cmap=cm.Purples, vmin=0, vmax=1)
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+        ax.axes.get_yaxis().set_ticks([])
+        ax.axes.get_xaxis().set_ticks([])
+        ax.set_title('Mean activity diff.')
+        
+        fig.savefig(fname)
             
     elif kind == 'single':
-        ax = fig.add_subplot(111)
-        ax.imshow(matrix, cmap=cm.Greens, vmin=0, vmax=1)
+        ax = fig.add_subplot(121)
+        ax.imshow(rmatrix, cmap=cm.Greens, vmin=0, vmax=1)
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
         ax.axes.get_xaxis().set_ticks([])
         ax.set_title('Reactions')
         
+        ax = fig.add_subplot(122)
+        ax.imshow(cmatrix, cmap=cm.RdYlGn, vmin=0, vmax=9)
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+        ax.axes.get_yaxis().set_ticks([])
+        ax.axes.get_xaxis().set_ticks([])
+        ax.set_title('Phenomic activity')
+        
         fig.savefig(fname)
 
     elif kind == 'mutants':
-        ax = fig.add_subplot(131)
-        ax.imshow(matrix, cmap=cm.Greens, vmin=0, vmax=1)
+        ax = fig.add_subplot(141)
+        ax.imshow(rmatrix, cmap=cm.Greens, vmin=0, vmax=1)
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
         ax.axes.get_xaxis().set_ticks([])
         ax.set_title('Wild-type')
         
-        ax = fig.add_subplot(132)
-        ax.imshow(matrix, cmap=cm.copper_r, vmin=0, vmax=1)
+        ax = fig.add_subplot(142)
+        ax.imshow(rmatrix, cmap=cm.copper_r, vmin=0, vmax=1)
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
         ax.axes.get_xaxis().set_ticks([])
         ax.set_title('Wild-type and Mutated')
         
-        ax = fig.add_subplot(133)
-        ax.imshow(matrix, cmap=cm.Reds, vmin=0, vmax=1)
+        ax = fig.add_subplot(143)
+        ax.imshow(rmatrix, cmap=cm.Reds, vmin=0, vmax=1)
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
         ax.axes.get_xaxis().set_ticks([])
         ax.set_title('Mutated')
+        
+        ax = fig.add_subplot(144)
+        ax.imshow(cmatrix, cmap=cm.PuOr, vmin=-9, vmax=9)
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+        ax.axes.get_yaxis().set_ticks([])
+        ax.axes.get_xaxis().set_ticks([])
+        ax.set_title('Delta-activity')
         
         fig.savefig(fname)
         

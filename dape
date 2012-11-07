@@ -7,6 +7,9 @@ Analyze genome(s) and phenome(s)
 from ductape import __version__
 from ductape.actions import touchProject
 from ductape.common.colorlog import ColorFormatter
+from ductape.storage.SQLite.database import Organism, Project, Kegg, Biolog
+# TODO: handle this imports somewhere else
+from matplotlib import cm
 import argparse
 import logging.handlers
 import os
@@ -47,6 +50,460 @@ def daddMut(options, wdir, project):
     return dMutAdd(project, options.mutID, options.m,
                      options.k, options.n, options.d, options.c)
 
+def dmap(options, wdir, project):
+    from ductape.actions import dSetKind, getPathsReacts, getPathsComps
+    from ductape.actions import prepareColors, createLegend
+    from ductape.kegg.kegg import KeggColor, MapsFetcher
+    from ductape.terminal import RunThread
+    from ductape.common.utils import rgb_to_hex
+    from itertools import combinations
+    import numpy as np
+    
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    
+    # Check which maps we have to generate
+    # Genome
+    proj = Project(project)
+    proj.getProject()
+    if proj.genome != 'map2kegg':
+        logger.warning('Genome mapping to KEGG has not yet been performed!')
+    
+    # Phenome
+    biolog = Biolog(project)
+    if biolog.atLeastOneNoParameter():
+        logger.warning('Phenome parametrization has not yet been performed!')
+        phenome = False
+    else:
+        phenome = True
+    if phenome and options.s:
+        phenome = False
+        logger.warning('Skipping the phenomic data')
+    
+    kegg = Kegg(project)
+    
+    kind = dSetKind(project)
+    
+    rpaths = getPathsReacts(project)
+    cpaths = getPathsComps(project)
+    
+    if len(options.organisms) == 0:
+        # PanGenome or all genomes?
+        if kind != 'mutants' and options.all:
+            logger.info('Going to generate all the single genomic maps')
+            
+            organism = Organism(project)
+            for org_id in [x.org_id for x in organism.getAll()]:
+                logger.info('Going to generate the metabolic map for %s'%org_id)
+                
+                # Create the legend
+                legend = createLegend('single')
+                
+                if phenome:
+                    logger.info('Generating the reactions-only map')
+                if not doFetchMaps(project, org_id, rpaths, cpaths, legend):
+                    return False
+                
+                if phenome:
+                    for categ in biolog.getCategs():
+                        logger.info('Plotting maps for biolog category %s'%categ.category)
+                        if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
+                                           categ.category.replace(' ','_').replace('&','and')):
+                            return False
+                
+        elif proj.isPanGenome() and kind == 'pangenome':
+            logger.info('Going to generate a pangenomic metabolic map')
+            
+            # Some info
+            logger.info('Single genome maps can be created using %s map orgID1 orgID2 ...'%
+                        __prog__)
+            logger.info('All the single genome maps can be created using %s map -a'%
+                        __prog__)
+            
+            # Get the reactions in the pangenome space
+            core = {}
+            for cR in kegg.getCoreReact():
+                core[cR.re_id] = cR.num
+            
+            disp = {}
+            for cR in kegg.getDispensableReact():
+                disp[cR.re_id] = cR.num
+                
+            # Get the intersected reactions
+            mix_id = set(core.keys()).intersection(set(disp.keys()))
+            mix = {}
+            for re_id in mix_id:
+                mix[re_id] = core[re_id] + disp[re_id]
+            for re_id in mix_id:
+                del core[re_id]
+                del disp[re_id]
+            
+            # Go for the colors!
+            # Mix
+            if len(mix.values()) == 0:
+                hexmix = {}
+            else:
+                hexmix = prepareColors(max(mix.values()), cm.Greens(np.arange(85,256)))
+            
+            # Core
+            if len(core.values()) == 0:
+                hexcore = {}
+            else:
+                hexcore = prepareColors(max(core.values()), cm.Blues(np.arange(85,256)))
+                
+            # Dispensable
+            if len(disp.values()) == 0:
+                hexdisp = {}
+            else:
+                hexdisp = prepareColors(max(disp.values()), cm.Oranges(np.arange(85,256)))
+            
+            # Create the legend
+            legend = createLegend('pangenome')
+            
+            if phenome:
+                logger.info('Generating the reactions-only map')
+            # Create the input objects
+            colorPaths = []
+            for path in rpaths:
+                KC = KeggColor(path)
+                dreact = {}
+                for re_id in rpaths[path]:
+                    if re_id in mix:
+                        dreact[re_id] = hexmix[mix[re_id]]
+                    elif re_id in core:
+                        dreact[re_id] = hexcore[core[re_id]]
+                    elif re_id in disp:
+                        dreact[re_id] = hexdisp[disp[re_id]]
+                    else:
+                        dreact[re_id] = '#FFFFFF'
+                KC.setReactions(dreact)
+                KC.setMap(kegg.getPathway(path).html)
+                colorPaths.append(KC)
+                
+            # Go!
+            kmap = MapsFetcher(colorPaths, prefix='pangenome', legend=legend)
+    
+            if not RunThread(kmap):
+                return False
+            
+            logger.info('%d maps are available in %s'%(len(kmap.pics),
+                                                       kmap._keggroom))
+            
+            if phenome:
+                for categ in biolog.getCategs():
+                    logger.info('Plotting maps for biolog category %s'%categ.category)
+                    logger.info(
+                            'Showing average differences in the activity >= %d'%options.delta)
+                    
+                    # Get the compounds in the phenomics space
+                    corg = {}
+                    wells = [w for w in biolog.getAllCoByCateg(categ.category)]
+                    for well in wells:
+                        acts = [x.avgact 
+                                for x in
+                                biolog.getAvgActivityEachOrg(well.plate_id,
+                                                             well.well_id)]
+                        if len(acts) <= 1:
+                            continue
+                        
+                        diffs = []
+                        for a, a1 in combinations(acts, 2):
+                            diffs.append( abs(a - a1) )
+                        avgdiff = np.array(diffs).mean()
+                        if avgdiff < options.delta:continue
+                        
+                        # Some co_ids are present more than once
+                        if well.co_id not in corg:
+                            corg[well.co_id] = []
+                        corg[well.co_id].append(avgdiff)
+                    
+                    toremove = set()
+                    for k, v in corg.iteritems():
+                        mean = np.array(v).mean()
+                        if mean != np.nan:
+                            corg[k] = mean
+                        else:
+                            toremove.add(k)
+                    for k in toremove:
+                        del corg[k]
+                    
+                    if len(corg) == 0:
+                        logger.warning('No compounds available for category %s'%(categ.category))
+                        continue
+                    
+                    # Create the input objects
+                    colorPaths = []
+                    for path in set(rpaths.keys() + cpaths.keys()):
+                        KC = KeggColor(path)
+                        
+                        dreact = {}
+                        if path in rpaths:
+                            for re_id in rpaths[path]:
+                                if re_id in mix:
+                                    dreact[re_id] = hexmix[mix[re_id]]
+                                elif re_id in core:
+                                    dreact[re_id] = hexcore[core[re_id]]
+                                elif re_id in disp:
+                                    dreact[re_id] = hexdisp[disp[re_id]]
+                                else:
+                                    dreact[re_id] = '#FFFFFF'
+                        
+                        dcomp = {}            
+                        if path in cpaths:
+                            for co_id in cpaths[path]:
+                                if co_id.lstrip('cpd:') in corg:
+                                    # We map the values 0-9 in a 85-256 window
+                                    numcolor = int((corg[co_id.lstrip('cpd:')]*171)/9) + 85
+                                    color = cm.Purples( numcolor )[:3]
+                                    color = tuple([int(round(x*255)) for x in color])
+                                    dcomp[co_id] = rgb_to_hex(color).upper()
+                                else:
+                                    dcomp[co_id] = '#FFFFFF'
+                        
+                        KC.setReactions(dreact)
+                        KC.setCompounds(dcomp)
+                        KC.setMap(kegg.getPathway(path).html)
+                        colorPaths.append(KC)
+                        
+                    # Go!
+                    prefix = 'pangenome_'+categ.category.replace(' ','_').replace('&','and')
+                    kmap = MapsFetcher(colorPaths, prefix=prefix, legend=legend)
+            
+                    if not RunThread(kmap):
+                        return False
+                    
+                    logger.info('%d maps are available in %s'%(len(kmap.pics),
+                                                               kmap._keggroom))
+                
+        elif kind == 'single':
+            logger.info('Going to generate a genomic metabolic map')
+            
+            organism = Organism(project)
+            org_id = [x.org_id for x in organism.getAll()][0]
+            
+            # Create the legend
+            legend = createLegend('single')
+            
+            if phenome:
+                logger.info('Generating the reactions-only map')
+            if not doFetchMaps(project, org_id, rpaths, cpaths, legend):
+                return False
+            
+            if phenome:
+                for categ in biolog.getCategs():
+                    logger.info('Plotting maps for biolog category %s'%categ.category)
+                    if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
+                                       categ.category.replace(' ','_').replace('&','and')):
+                        return False                
+        
+        elif kind == 'mutants':
+            logger.info('Going to generate mutants metabolic map')
+        
+            organism = Organism(project)
+        
+            refs = [org.org_id
+                    for org in organism.getAll()
+                    if not organism.isMutant(org.org_id)]
+        
+            for ref_id in refs:
+                logger.info('Going to generate the metabolic map for reference %s'%
+                            ref_id)
+                
+                # Create the legend
+                legend = createLegend('single')
+                
+                if phenome:
+                    logger.info('Generating the reactions-only map')
+                if not doFetchMaps(project, ref_id, rpaths, cpaths, legend):
+                    return False
+                
+                if phenome:
+                    for categ in biolog.getCategs():
+                        logger.info('Plotting maps for biolog category %s'%categ.category)
+                        if not doFetchMaps(project, ref_id, rpaths, cpaths, legend,
+                                           categ.category.replace(' ','_').replace('&','and')):
+                            return False
+                
+                muts = [x for x in organism.getOrgMutants(ref_id)]
+                for mut_id in muts:
+                    logger.info('Going to generate the metabolic map for mutant %s (parent %s)'%
+                            (mut_id,ref_id))
+                    
+                    # Get the reactions in the mutant space
+                    mut = {}
+                    for mR in kegg.getOrgReact(mut_id):
+                        mut[mR.re_id] = mR.num
+                    
+                    ref = {}
+                    for rR in kegg.getReferenceReact(mut_id, ref_id):
+                        ref[rR.re_id] = rR.num
+                    
+                    # Get the intersected reactions
+                    mix_id = set(mut.keys()).intersection(set(ref.keys()))
+                    mix = {}
+                    for re_id in mix_id:
+                        mix[re_id] = ref[re_id] + mut[re_id]
+                    for re_id in mix_id:
+                        del mut[re_id]
+                        del ref[re_id]
+                    
+                    # Go for the colors!
+                    # Mix
+                    if len(mix.values()) == 0:
+                        hexmix = {}
+                    else:
+                        hexmix = prepareColors(max(mix.values()), cm.copper_r(np.arange(1,170)))
+                    
+                    # mut
+                    if len(mut.values()) == 0:
+                        hexmut = {}
+                    else:
+                        hexmut = prepareColors(max(mut.values()), cm.Reds(np.arange(85,256)))
+                        
+                    # ref
+                    if len(ref.values()) == 0:
+                        hexref = {}
+                    else:
+                        hexref = prepareColors(max(ref.values()), cm.Greens(np.arange(85,256)))
+                    
+                    # Create the legend
+                    legend = createLegend('mutants')
+                    
+                    if phenome:
+                        logger.info('Generating the reactions-only map')
+                    
+                    # Create the input objects
+                    colorPaths = []
+                    for path in rpaths:
+                        KC = KeggColor(path)
+                        dreact = {}
+                        for re_id in rpaths[path]:
+                            if re_id in mix:
+                                dreact[re_id] = hexmix[mix[re_id]]
+                            elif re_id in mut:
+                                dreact[re_id] = hexmut[mut[re_id]]
+                            elif re_id in ref:
+                                dreact[re_id] = hexref[ref[re_id]]
+                            else:
+                                dreact[re_id] = '#FFFFFF'
+                        KC.setReactions(dreact)
+                        KC.setMap(kegg.getPathway(path).html)
+                        colorPaths.append(KC)
+                        
+                    # Go!
+                    kmap = MapsFetcher(colorPaths, prefix=mut_id, legend=legend)
+            
+                    if not RunThread(kmap):
+                        return False
+                    
+                    logger.info('%d maps are available in %s'%(len(kmap.pics),
+                                                               kmap._keggroom))
+                    
+                    if phenome:
+                        for categ in biolog.getCategs():
+                            logger.info('Plotting maps for biolog category %s'%categ.category)
+                            logger.info('Showing differences in the activity >= %d'%options.delta)                            # Get the compounds in the phenomics space
+                            corg = {}
+                            wells = [w for w in biolog.getAllCoByCateg(categ.category)]
+                            for well in wells:
+                                mact = biolog.getAvgActivity(well.plate_id, well.well_id, mut_id)
+                                ract = biolog.getAvgActivity(well.plate_id, well.well_id, ref_id)
+                                if mact and ract:
+                                    diff = ract - mact
+                                    if abs(diff) < options.delta:continue
+                                    # Some co_ids are present more than once
+                                    if well.co_id not in corg:
+                                        corg[well.co_id] = []
+                                    corg[well.co_id].append(diff)
+                            
+                            toremove = set()
+                            for k, v in corg.iteritems():
+                                mean = np.array(v).mean()
+                                if mean != np.nan or abs(diff) >= options.delta:
+                                    corg[k] = mean
+                                else:
+                                    toremove.add(k)
+                            for k in toremove:
+                                del corg[k]
+                            
+                            if len(corg) == 0:
+                                logger.warning('No compounds available for category %s (%s)'%(categ.category, mut_id))
+                                continue
+                            
+                            # Create the input objects
+                            colorPaths = []
+                            for path in set(rpaths.keys() + cpaths.keys()):
+                                KC = KeggColor(path)
+                                
+                                dreact = {}
+                                if path in rpaths:
+                                    for re_id in rpaths[path]:
+                                        if re_id in mix:
+                                            dreact[re_id] = hexmix[mix[re_id]]
+                                        elif re_id in mut:
+                                            dreact[re_id] = hexmut[mut[re_id]]
+                                        elif re_id in ref:
+                                            dreact[re_id] = hexref[ref[re_id]]
+                                        else:
+                                            dreact[re_id] = '#FFFFFF'
+                                
+                                dcomp = {}            
+                                if path in cpaths:
+                                    for co_id in cpaths[path]:
+                                        if co_id.lstrip('cpd:') in corg:
+                                            # We map the values 0-9 in a 0-256 window
+                                            numcolor = int((corg[co_id.lstrip('cpd:')]*256)/9)
+                                            color = cm.PuOr( numcolor )[:3]
+                                            color = tuple([int(round(x*255)) for x in color])
+                                            dcomp[co_id] = rgb_to_hex(color).upper()
+                                        else:
+                                            dcomp[co_id] = '#FFFFFF'
+                                
+                                KC.setReactions(dreact)
+                                KC.setCompounds(dcomp)
+                                KC.setMap(kegg.getPathway(path).html)
+                                colorPaths.append(KC)
+                                
+                            # Go!
+                            prefix = mut_id+'_'+categ.category.replace(' ','_').replace('&','and')
+                            kmap = MapsFetcher(colorPaths, prefix=prefix, legend=legend)
+                    
+                            if not RunThread(kmap):
+                                return False
+                            
+                            logger.info('%d maps are available in %s'%(len(kmap.pics),
+                                                                       kmap._keggroom))
+        else:
+            logger.warning('Unattended case %s'%kind)
+            
+    else:
+        orgs = set(options.organisms)
+        
+        organism = Organism(project)
+        
+        for org_id in orgs:
+            if not organism.isOrg(org_id):
+                logger.warning('Organism %s is not present: skipping'%org_id)
+                continue
+            
+            logger.info('Going to generate the metabolic map for %s'%org_id)
+            
+            # Create the legend
+            legend = createLegend('single')
+            
+            if phenome:
+                logger.info('Generating the reactions-only map')
+            if not doFetchMaps(project, org_id, rpaths, cpaths, legend):
+                return False
+            if phenome:
+                for categ in biolog.getCategs():
+                    logger.info('Plotting maps for biolog category %s'%categ.category)
+                    if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
+                                       categ.category.replace(' ','_').replace('&','and')):
+                        return False
+
 def dremove(options, wdir, project):
     from ductape.actions import dRemove
     if not touchProject(project):
@@ -64,6 +521,98 @@ def dclear(options, wdir, project):
                        __prog__)
         return False
     return dClear(project)
+
+def doFetchMaps(project, org_id, rpaths, cpaths, legend=None, category=None):
+    from ductape.actions import prepareColors
+    from ductape.kegg.kegg import KeggColor, MapsFetcher
+    from ductape.terminal import RunThread
+    from ductape.common.utils import rgb_to_hex
+    import numpy as np
+    
+    kegg = Kegg(project)
+    biolog = Biolog(project)
+    
+    # Get the reactions in the organism space
+    rorg = {}
+    for oR in kegg.getOrgReact(org_id):
+        rorg[oR.re_id] = oR.num
+        
+    # Get the compounds in the phenomics space
+    corg = {}
+    if category:
+        wells = [w for w in biolog.getAllCoByCateg(category)]
+    else:
+        wells = []
+    for well in wells:
+        act = biolog.getAvgActivity(well.plate_id, well.well_id, org_id)
+        if act:
+            # Some co_ids are present more than once
+            if well.co_id not in corg:
+                corg[well.co_id] = []
+            corg[well.co_id].append(act)
+    
+    toremove = set()
+    for k, v in corg.iteritems():
+        mean = np.array(v).mean()
+        if mean != np.nan:
+            corg[k] = mean
+        else:
+            toremove.add(k)
+    for k in toremove:
+        del corg[k]
+        
+    if category and len(corg) == 0:
+        logger.warning('No compounds available for category %s (%s)'%(category, org_id))
+        return True
+    
+    # Go for the colors (reactions)!
+    rhexorg = prepareColors(max(rorg.values()), cm.Greens(np.arange(85,256)))
+     
+    # Create the input objects
+    colorPaths = []
+    for path in set(rpaths.keys() + cpaths.keys()):
+        KC = KeggColor(path)
+        
+        # Reactions
+        dreact = {}
+        if path in rpaths:
+            for re_id in rpaths[path]:
+                if re_id in rorg:
+                    dreact[re_id] = rhexorg[rorg[re_id]]
+                else:
+                    dreact[re_id] = '#FFFFFF'
+                    
+        # Compounds
+        dcomp = {}
+        if path in cpaths:
+            for co_id in cpaths[path]:
+                if co_id.lstrip('cpd:') in corg:
+                    # We map the values 0-9 in a 0-256 window
+                    numcolor = int((corg[co_id.lstrip('cpd:')]*256)/9)
+                    color = cm.RdYlGn( numcolor )[:3]
+                    color = tuple([int(round(x*255)) for x in color])
+                    dcomp[co_id] = rgb_to_hex(color).upper()
+                else:
+                    dcomp[co_id] = '#FFFFFF'
+        
+        KC.setReactions(dreact)
+        KC.setCompounds(dcomp)
+        KC.setMap(kegg.getPathway(path).html)
+        colorPaths.append(KC)
+        
+    # Go!
+    if category:
+        prefix = org_id + '_' + category
+    else:
+        prefix = org_id
+    kmap = MapsFetcher(colorPaths, prefix=prefix, legend=legend)
+
+    if not RunThread(kmap):
+        return False
+    
+    logger.info('%d maps are available in %s'%(len(kmap.pics), kmap._keggroom))
+    
+    return True
 
 ################################################################################
 # Options
@@ -133,6 +682,23 @@ def getOptions():
                             default = '',
                             help='Organism color')
     parser_add_mut.set_defaults(func=daddMut)
+    
+    parser_map = subparsers.add_parser('map', help='Fetch metabolic maps')
+    parser_map.add_argument('-a', '--all', action="store_true",
+                            default=False,
+                            help='Plot all the single organisms maps')
+    parser_map.add_argument('-d', metavar='delta', action="store", dest='delta',
+                              type=int,
+                              default=3,
+                              help='Activity delta threshold')
+    parser_map.add_argument('-s', action="store_true",
+                            default=False,
+                            help='Skip the phenomic data')
+    parser_map.add_argument('organisms', metavar='orgID', nargs='*',
+                            action="store",
+                            default=[],
+                            help='Organism(s) to be mapped')
+    parser_map.set_defaults(func=dmap)
     
     parser_rm = subparsers.add_parser('rm', help='Completely remove an organism')
     parser_rm.add_argument('organisms', metavar='orgID', nargs='+',

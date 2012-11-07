@@ -1390,6 +1390,20 @@ class Kegg(DBBase):
             
         for res in cursor:
             yield Row(res, cursor.description)
+            
+    def getPathComps(self):
+        '''
+        Get all the pathway - compounds links
+        '''
+        query = '''select path_id, co_id
+                   from comp_path
+                   order by path_id'''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query)
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
                     
     def addPathComps(self, pathcomp):
         '''
@@ -2056,6 +2070,14 @@ class Biolog(DBBase):
         for res in cursor:
             yield Row(res, cursor.description)
     
+    def getAll(self):
+        with self.connection as conn:
+            cursor=conn.execute('''select * from biolog
+                                order by plate_id, well_id;''')
+        
+        for res in cursor:
+            yield Row(res, cursor.description)
+    
     def getPlateCategs(self):
         with self.connection as conn:
             cursor=conn.execute('''select distinct plate_id, category
@@ -2129,6 +2151,17 @@ class Biolog(DBBase):
             cursor=conn.execute('''select * from biolog 
                                 where co_id is not null
                                 order by plate_id, well_id;''')
+        
+        for res in cursor:
+            yield Row(res, cursor.description)
+            
+    def getAllCoByCateg(self, category):
+        with self.connection as conn:
+            cursor=conn.execute('''select * from biolog 
+                                where co_id is not null
+                                and category = ?
+                                order by plate_id, well_id;''',
+                                [category,])
         
         for res in cursor:
             yield Row(res, cursor.description)
@@ -2448,19 +2481,20 @@ class Biolog(DBBase):
         try:
             return float(cursor.fetchall()[0][0])      
         except Exception, e:
-            import numpy as np
-            return np.nan
+            return None
     
-    def getAvgWellsByOrg(self, org_id):
+    def getAvgActivityEachOrg(self, plate_id, well_id):
         '''
-        Get the average activity for all the wells of a particular organism
+        Get the average activity for a particular experiment
+        Returns one record for each organism
         '''
         with self.connection as conn:
-            cursor=conn.execute('''select plate_id, well_id, org_id,
-                                avg(activity) activity from biolog_exp  
-                        where org_id=?
-                        order by plate_id, well_id, replica;''',
-                        [org_id,])
+            cursor=conn.execute('''select org_id, avg(activity) avgact
+                                   from biolog_exp  
+                                   where plate_id=?
+                                   and well_id=?
+                                   group by org_id;''',
+                                  [plate_id, well_id,])
         
         for res in cursor:
             yield Row(res, cursor.description)

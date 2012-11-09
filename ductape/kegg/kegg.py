@@ -139,6 +139,12 @@ class KeggAPI(object):
                                             ]
                     except:
                         continue
+                    
+                # Check that every input has a result
+                for entry in entries:
+                    if entry not in self.result:
+                        self.result[entry] = ['','']
+                
                 return
             except Exception, e:
                 attempts += 1
@@ -181,6 +187,12 @@ class KeggAPI(object):
                                 self.result[longID] = [co1,co2,kind]
                     except:
                         continue
+                    
+                # Check that every input has a result
+                for entry in entries:
+                    if entry not in self.result:
+                        self.result[entry] = ['','','']
+                        
                 return
             except Exception, e:
                 attempts += 1

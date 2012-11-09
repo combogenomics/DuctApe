@@ -50,6 +50,46 @@ def daddMut(options, wdir, project):
     return dMutAdd(project, options.mutID, options.m,
                      options.k, options.n, options.d, options.c)
 
+def dstart(options, wdir, project):
+    from ductape.kegg.kegg import KeggNet
+    from ductape.terminal import RunThread
+    
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    
+    logger.info('Fetching the whole KEGG metabolic map')
+    kegg = Kegg(project)
+    avoid = [kid for kid in kegg.getAllIDs()]
+    
+    knet = KeggNet(avoid=avoid)
+    if not RunThread(knet):
+        return False
+    
+    # Details
+    kegg.addPathways(knet.result.path)
+    logger.info('Added %d Path IDs'%len(knet.result.path))
+    kegg.addReactions(knet.result.react)
+    logger.info('Added %d Re IDs'%len(knet.result.react))
+    kegg.addCompounds(knet.result.comp)
+    logger.info('Added %d Co IDs'%len(knet.result.comp))
+    kegg.addRPairs(knet.result.rpair)
+    logger.info('Added %d RPair IDs'%len(knet.result.rpair))
+    # Links
+    kegg.addPathReacts(knet.result.pathreact)
+    kegg.addReactComps(knet.result.reactcomp)
+    kegg.addCompReacts(knet.result.compreact)
+    kegg.addPathComps(knet.result.pathcomp)
+    kegg.addReactRPairs(knet.result.reactrpair)
+    kegg.addRPairReacts(knet.result.rpairreact)
+    logger.info('Added Kegg links')
+    # HTML maps
+    kegg.addPathHtml(knet.result.pathmaps)
+    logger.info('Added Kegg maps')
+    
+    return True
+
 def dmap(options, wdir, project):
     from ductape.actions import dSetKind, getPathsReacts, getPathsComps
     from ductape.actions import prepareColors, createLegend
@@ -682,6 +722,9 @@ def getOptions():
                             default = '',
                             help='Organism color')
     parser_add_mut.set_defaults(func=daddMut)
+    
+    parser_start = subparsers.add_parser('start', help='Start the analysis')
+    parser_start.set_defaults(func=dstart)
     
     parser_map = subparsers.add_parser('map', help='Fetch metabolic maps')
     parser_map.add_argument('-a', '--all', action="store_true",

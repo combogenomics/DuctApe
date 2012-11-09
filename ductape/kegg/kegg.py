@@ -2036,5 +2036,207 @@ class MapsFetcher(BaseKegg):
         else:
             self.updateStatus(send=False)
 
-class KeggNet(CommonThread):
-    pass
+class KeggNet(BaseMapper):
+    '''
+    Fetch as much details as possible from the KEGG database,
+    starting from the pathways list
+    '''
+    
+    _statusDesc = {0:'Not started',
+               1:'Fetching pathways',
+               2:'Fetching compounds',
+               3:'Fetching compounds - reactions links',
+               4:'Fetching reactions',
+               5:'Fetching rpairs',
+               6:'Fetching reactions - compounds links',
+               7:'Fetching details on KEGG entries',
+               8:'Crafting results'}
+    
+    _substatuses = [2,3,4,5,6,7]
+    
+    def __init__(self, threads=40, avoid=[], queue=Queue.Queue()):
+        BaseMapper.__init__(self, threads=threads, avoid=avoid, queue=queue)
+        
+    def getAllPathways(self):
+        '''
+        Get all the available pathway IDs
+        '''
+        kegg = KeggAPI()
+        
+        kegg.getIDListFromDB('pathway')
+        
+        for p in kegg.result:
+            self.pathdet[p] = None
+    
+    def run(self):
+        # Get pathways
+        self.updateStatus()
+        try:
+            self.getAllPathways()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        
+        if self.killed:
+            return
+        
+        # Compounds
+        self._maxsubstatus = len(self.pathdet)
+        self.updateStatus()
+        try:
+            self.getPathCompounds()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        # Reactions for each compound
+        self._maxsubstatus = len(self.compdet)
+        self.updateStatus()
+        try:
+            self.getCompoundReacts()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        # Reactions
+        self._maxsubstatus = len(self.pathdet)
+        self.updateStatus()
+        try:
+            self.getPathReactions()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        # Related rpairs
+        self._maxsubstatus = len(self.reactdet)
+        self.updateStatus()
+        try:
+            self.getReactRPairs()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        self._maxsubstatus = len(self.rpairdet)
+        try:
+            self.getRPairReacts()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        # Compounds for each reaction
+        self._maxsubstatus = len(self.reactdet)
+        self.updateStatus()
+        try:
+            self.getReactCompounds()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        # Details
+        # Pathway details
+        self._maxsubstatus = len(self.pathdet)
+        self.updateStatus()
+        try:
+            self.getPathDetails()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        # Pathway HTML maps (!!!)
+        self._maxsubstatus = len(self.pathdet)
+        try:
+            self.getMapsDetails()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        # Reaction details
+        self._maxsubstatus = len(self.reactdet)
+        try:
+            self.getReactDetails()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        # Compound details
+        self._maxsubstatus = len(self.compdet)
+        try:
+            self.getCompDetails()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        # RPair details
+        self._maxsubstatus = len(self.rpairdet)
+        try:
+            self.getRPairDetails()
+        except Exception, e:
+            self.sendFailure(e.message)
+            return
+        self.cleanHandlers()
+        self.resetSubStatus()
+        
+        if self.killed:
+            return
+        
+        # Prepare the output object
+        self.updateStatus()
+        self.result = KeggDetails()
+        self.result.setDetails(None, self.reactdet,
+                               self.compdet, self.pathdet, self.rpairdet)
+        self.result.setLinks(pathreact=self.pathreact, 
+                             pathcomp=self.pathcomp, reactcomp=self.reactcomp,
+                             compreact=self.compreact,
+                             rpairreact=self.rpairreact,
+                             reactrpair=self.reactrpair)
+        self.result.setMaps(self.pathmap)

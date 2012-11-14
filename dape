@@ -123,7 +123,7 @@ def dmap(options, wdir, project):
                     for categ in biolog.getCategs():
                         logger.info('Plotting maps for biolog category %s'%categ.category)
                         if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
-                                           categ.category.replace(' ','_').replace('&','and')):
+                                           categ.category):
                             return False
                 
         elif proj.isPanGenome() and kind == 'pangenome':
@@ -308,7 +308,7 @@ def dmap(options, wdir, project):
                 for categ in biolog.getCategs():
                     logger.info('Plotting maps for biolog category %s'%categ.category)
                     if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
-                                       categ.category.replace(' ','_').replace('&','and')):
+                                       categ.category):
                         return False                
         
         elif kind == 'mutants':
@@ -336,7 +336,7 @@ def dmap(options, wdir, project):
                     for categ in biolog.getCategs():
                         logger.info('Plotting maps for biolog category %s'%categ.category)
                         if not doFetchMaps(project, ref_id, rpaths, cpaths, legend,
-                                           categ.category.replace(' ','_').replace('&','and')):
+                                           categ.category):
                             return False
                 
                 muts = [x for x in organism.getOrgMutants(ref_id)]
@@ -514,7 +514,7 @@ def dmap(options, wdir, project):
                 for categ in biolog.getCategs():
                     logger.info('Plotting maps for biolog category %s'%categ.category)
                     if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
-                                       categ.category.replace(' ','_').replace('&','and')):
+                                       categ.category):
                         return False
 
 def dimport(options, wdir, project):
@@ -589,7 +589,7 @@ def doFetchMaps(project, org_id, rpaths, cpaths, legend=None, category=None):
             toremove.add(k)
     for k in toremove:
         del corg[k]
-        
+    
     if category and len(corg) == 0:
         logger.warning('No compounds available for category %s (%s)'%(category, org_id))
         return True
@@ -631,7 +631,7 @@ def doFetchMaps(project, org_id, rpaths, cpaths, legend=None, category=None):
         
     # Go!
     if category:
-        prefix = org_id + '_' + category
+        prefix = org_id + '_' + category.replace(' ','_').replace('&','and')
     else:
         prefix = org_id
     kmap = MapsFetcher(colorPaths, prefix=prefix, legend=legend)

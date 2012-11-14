@@ -279,13 +279,21 @@ def dGenomeRemove(project, organisms):
         logger.info('Successfully removed genome %s'%org)
     return True
 
-def dClear(project):
+def dClear(project, keeporg=False, keepkegg=False):
     '''
     Clear all the organisms data
     '''
-    org = Organism(project)
-    org.delAllOrgs(True)
-    logger.info('Successfully removed all organisms data')
+    
+    if not keeporg:
+        org = Organism(project)
+        org.delAllOrgs(True)
+        logger.info('Successfully removed all organisms data')
+    
+    if not keepkegg:
+        kegg = Kegg(project)
+        kegg.clear()
+        logger.info('Successfully removed all KEGG data')
+    
     return True
 
 def dGenomeClear(project):
@@ -1686,6 +1694,39 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
     logger.info('Saved activity ring (%s)'%fname)
     
     plt.clf()
+    
+    return True
+
+def dKeggImport(project, infile):
+    kegg = Kegg(project)
+    
+    logger.info('Importing KEGG metabolic network')
+    
+    kegg.importKegg(open(infile))
+    
+    i = 0
+    for l in open(infile):
+        i += 1
+    logger.info('Imported %d KEGG metabolic network entries'%i)
+    
+    return True
+
+def dKeggExport(project):
+    kegg = Kegg(project)
+    
+    logger.info('Exporting KEGG metabolic network')
+    
+    fname = 'kegg.tsv'
+    fout = open(fname,'w')
+    
+    i = 0
+    for row in kegg.exportKegg():
+        fout.write(row + '\n')
+        i += 1
+        
+    fout.close()
+    
+    logger.info('Exported %d KEGG entries (%s)'%(i, fname))
     
     return True
 

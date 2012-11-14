@@ -249,6 +249,27 @@ class Project(DBBase):
             return True
         else:
             return False
+        
+    def setKegg(self, keggver):
+        '''
+        Set the KEGG database version
+        '''
+        self.getProject()
+        with self.connection as conn:
+            conn.execute('update project set kegg = ? where name = ?;',
+                         [keggver, self.name,])
+        # Update the project
+        self.getProject()
+        
+    def isKegg(self):
+        '''
+        Check if a Kegg database version has been set
+        '''
+        self.getProject()
+        if not self.kegg:
+            return False
+        else:
+            return True
     
 class Organism(DBBase):
     '''
@@ -945,16 +966,177 @@ class Kegg(DBBase):
     def __init__(self, dbname='storage'):
         DBBase.__init__(self, dbname)
     
+    def clear(self):
+        '''
+        Remove all the KEGG data
+        '''
+        self.boost()
+        
+        # Delete the data
+        with self.connection as conn:
+            conn.execute('delete from ko;')
+            conn.execute('delete from ko_react;')
+            conn.execute('delete from compound;')
+            conn.execute('delete from pathway;')
+            conn.execute('delete from reaction;')
+            conn.execute('delete from rpair;')
+            conn.execute('delete from comp_path;')
+            conn.execute('delete from react_comp;')
+            conn.execute('delete from react_path;')
+            conn.execute('delete from rpair_react;')
+        
+        # "Update" the release number
+        proj = Project(self.dbname)
+        proj.setKegg(None)
+    
+    def exportKegg(self):
+        '''
+        Generator for kegg data export
+        All the relevant data for the kegg db is extracted
+        '''
+        # Release?
+        try:
+            oCheck = Project(self.dbname)
+            if oCheck.isKegg():
+                yield '\t'.join(['release', str(oCheck.kegg)])
+            else:
+                yield '\t'.join(['release', str(None)])
+        except:
+            # Testing bugfix for old DBs
+            yield '\t'.join(['release', str(None)])
+        
+        with self.connection as conn:
+            cursor=conn.execute('select * from ko;')
+            
+        for res in cursor:
+            yield '\t'.join(['ko'] + 
+                            [str(res[cursor.description.index(field)]) 
+                             for field in cursor.description])
+        
+        with self.connection as conn:
+            cursor=conn.execute('select * from compound;')
+            
+        for res in cursor:
+            yield '\t'.join(['compound'] + 
+                            [str(res[cursor.description.index(field)]) 
+                             for field in cursor.description])
+    
+        with self.connection as conn:
+            cursor=conn.execute('select * from pathway;')
+            
+        # Exceptionally ugly exception
+        # Newlines chars in html maps are converted in NEWLINEHERE
+        # Which is stupid, but for know it will suffice
+        for res in cursor:
+            yield '\t'.join(['pathway'] + 
+                            [str(res[cursor.description.index(field)]).replace('\n','DUCTAPENEWLINEHERE').replace('\t','  ') 
+                             for field in cursor.description])
+    
+        with self.connection as conn:
+            cursor=conn.execute('select * from reaction;')
+            
+        for res in cursor:
+            yield '\t'.join(['reaction'] + 
+                            [str(res[cursor.description.index(field)]) 
+                             for field in cursor.description])
+            
+        with self.connection as conn:
+            cursor=conn.execute('select * from rpair;')
+            
+        for res in cursor:
+            yield '\t'.join(['rpair'] + 
+                            [str(res[cursor.description.index(field)]) 
+                             for field in cursor.description])
+        
+        with self.connection as conn:
+            cursor=conn.execute('select * from ko_react;')
+            
+        for res in cursor:
+            yield '\t'.join(['ko_react'] + 
+                            [str(res[cursor.description.index(field)]) 
+                             for field in cursor.description])
+        
+        with self.connection as conn:
+            cursor=conn.execute('select * from comp_path;')
+            
+        for res in cursor:
+            yield '\t'.join(['comp_path'] + 
+                            [str(res[cursor.description.index(field)]) 
+                             for field in cursor.description])
+            
+        with self.connection as conn:
+            cursor=conn.execute('select * from react_comp;')
+            
+        for res in cursor:
+            yield '\t'.join(['react_comp'] + 
+                            [str(res[cursor.description.index(field)]) 
+                             for field in cursor.description])
+    
+        with self.connection as conn:
+            cursor=conn.execute('select * from react_path;')
+            
+        for res in cursor:
+            yield '\t'.join(['react_path'] + 
+                            [str(res[cursor.description.index(field)]) 
+                             for field in cursor.description])
+            
+        with self.connection as conn:
+            cursor=conn.execute('select * from rpair_react;')
+            
+        for res in cursor:
+            yield '\t'.join(['rpair_react'] + 
+                            [str(res[cursor.description.index(field)]) 
+                             for field in cursor.description])
+    
+    def importKegg(self, infile):
+        '''
+        Imports the content of the file object inside the kegg tables
+        In case of errors there should be a rollback
+        '''
+        self.boost()
+        
+        with self.connection as conn:
+            for l in infile:
+                s = l.rstrip('\n').split('\t')
+                # Special case #1
+                if s[0] == 'release':
+                    if s[1] == 'None':
+                        release = None
+                    else:
+                        release = s[1]
+                else:
+                    # Special case #2
+                    if s[0] == 'pathway':
+                        for i in range(len(s)):
+                            s[i] = s[i].replace('DUCTAPENEWLINEHERE','\n')
+                    
+                    for i in range(len(s)):
+                        if s[i] == 'None':
+                            s[i] = None
+                    
+                    values = ''
+                    for i in range(len(s[1:])):
+                        values += '''?, '''
+                    values = values.rstrip(', ')
+                    query = '''insert or replace into %s values (%s);'''%(s[0], values)
+                    
+                    conn.execute(query, s[1:])
+        
+        # Last step
+        if release:
+            proj = Project(self.dbname)
+            proj.setKegg(release)            
+    
     def addDraftKOs(self, ko):
         '''
-        Add new KOs (ignoring errors if they are already present)
+        Add new KOs (skipping if they are already present)
         the input is a list, so no details about this KOs are there yet
         '''
         self.boost()
         
         with self.connection as conn:
             for ko_id in ko:
-                conn.execute('insert or replace into ko (`ko_id`) values (?);',
+                conn.execute('insert or ignore into ko (`ko_id`) values (?);',
                      ('ko:'+ko_id,))
     
     def addKOs(self, ko):

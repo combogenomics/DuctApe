@@ -241,13 +241,18 @@ def doMap2KO(project, infiles, local=False, keggdb='', cpu=1):
     return True
 
 def doMap2KEGG(project):
+    from ductape.actionsterm import fetchKegg
     from ductape.kegg.kegg import KoMapper
+    
+    # Fetch the Kegg DB?
+    fetchKegg(project)
     
     kegg = Kegg(project)
     kos = [ko.ko_id for ko in kegg.getKO2Analyze()]
     if len(kos) == 0:
         logger.warning('No KO entries to be analyzed!')
-        return False
+        logger.warning('The KO entries could also have been already analyzed')
+        return True
     avoid = [kid for kid in kegg.getAllIDs()]
     
     komap = KoMapper(kos,avoid=avoid)

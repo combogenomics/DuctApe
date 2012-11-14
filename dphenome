@@ -67,6 +67,8 @@ def dzero(options, wdir, project):
     return dPhenomeZero(project, options.b)
 
 def dstart(options, wdir, project):
+    from ductape.actionsterm import fetchKegg
+    
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
@@ -76,6 +78,9 @@ def dstart(options, wdir, project):
     if not doClusterPhenome(project, save_fig_clusters=options.f):
         logger.error('Phenome experiment could not be clustered!')
         return False
+    
+    # Fetch the Kegg DB?
+    fetchKegg(project)
     
     # We have to map 2 KEGG?
     proj = Project(project)

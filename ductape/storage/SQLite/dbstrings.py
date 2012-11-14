@@ -7,9 +7,10 @@ CREATE TABLE project (
     "tmp" TEXT,
     "creation" TEXT,
     "last" TEXT,
-    "genome" TEXT   DEFAULT ('none'),
-    "phenome" TEXT   DEFAULT ('none'),
-    "pangenome" INTEGER   DEFAULT (0)
+    "genome" TEXT,
+    "phenome" TEXT,
+    "pangenome" INTEGER   DEFAULT (0),
+    "kegg" REAL
 );
 CREATE TABLE organism (
     "org_id" TEXT NOT NULL,

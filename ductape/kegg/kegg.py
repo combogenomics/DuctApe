@@ -111,6 +111,55 @@ class KeggAPI(object):
             return None
         return d
 
+    def getRelease(self, dbver):
+        '''
+        Takes a string like "Release 64.0+/11-13, Nov 12"
+        and returns the release number, as a float (useful for comparison)
+        if it fails returns None
+        '''
+        try:
+            s = dbver.split(' ')
+            release = s[1]
+            while True:
+                try:
+                    release = float(release)
+                    return release
+                except:
+                    release = release[:-1]
+        except:
+            logger.debug('Could not parse KEGG database version (%s)'%dbver)
+            return None
+
+    def getDBVersion(self, retries=5):
+        '''
+        Get the KEGG DB version
+        Returns a tuple: full version string , release number (None if unparsable)
+        '''
+        attempts = 0
+        while True:
+            try:
+                self.input = None
+                logger.debug('Looking for KEGG db version')
+                url = self._apiurl + 'info/kegg'
+                data = urllib.urlopen(url, timeout=20).read().split('\n')
+                
+                line = data[1].split('             ')[1]
+                self.result = (line, self.getRelease(line))
+
+                return
+            except Exception, e:
+                attempts += 1
+                logger.debug('info failed! Attempt %d'
+                              %attempts)
+                logger.debug('%s'%str(e))
+                time.sleep(2*attempts)
+                try:
+                    logger.debug(url)
+                except:pass
+                if attempts >= retries:
+                    logger.warning('info failed!')
+                    raise Exception('info request failed')
+    
     def getTitle(self, entries, retries=5):
         '''
         Get the title of a specific KEGG object
@@ -123,6 +172,12 @@ class KeggAPI(object):
                 url = self._apiurl + 'get/'
                 for entry in entries:
                     url += '%s+'%entry
+                    
+                # Dummy entry to avoid a rare bug when all the provided entries
+                if 'cpd:C00099' not in entries or 'C00099' not in entries:
+                    url += 'cpd:C00099'
+                #
+                
                 url = url.rstrip('+')
                 data = urllib.urlopen(url, timeout=20).read()
                 
@@ -172,6 +227,12 @@ class KeggAPI(object):
                 url = self._apiurl + 'get/'
                 for entry in entries:
                     url += '%s+'%entry
+                
+                # Dummy entry to avoid a rare bug when all the provided entries
+                if 'rp:RP00001' not in entries or 'RP00001' not in entries:
+                    url += 'rp:RP00001'
+                #
+                    
                 url = url.rstrip('+')
                 data = urllib.urlopen(url, timeout=20).read()
                 
@@ -192,7 +253,7 @@ class KeggAPI(object):
                 for entry in entries:
                     if entry not in self.result:
                         self.result[entry] = ['','','']
-                        
+                 
                 return
             except Exception, e:
                 attempts += 1
@@ -758,13 +819,17 @@ class BaseMapper(BaseKegg):
                 threads.append(obj)
             time.sleep(0.01)
             
+            if len(threads) == 0:
+                continue
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    return
+                    logger.debug('Found an empty handler')
+                    continue
                 
                 for kid, title in handler.result.iteritems():
                     self.reactdet[kid] = title
@@ -801,13 +866,17 @@ class BaseMapper(BaseKegg):
                 threads.append(obj)
             time.sleep(0.01)
             
+            if len(threads) == 0:
+                continue
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    return
+                    logger.debug('Found an empty handler')
+                    continue
                 
                 for kid, title in handler.result.iteritems():
                     self.rpairdet[kid] = title
@@ -844,13 +913,17 @@ class BaseMapper(BaseKegg):
                 threads.append(obj)
             time.sleep(0.01)
             
+            if len(threads) == 0:
+                continue
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    return
+                    logger.debug('Found an empty handler')
+                    continue
                 
                 for kid, title in handler.result.iteritems():
                     self.pathdet[kid] = title
@@ -878,12 +951,17 @@ class BaseMapper(BaseKegg):
                 obj.start()
                 threads.append(obj)
             time.sleep(0.01)
+            
+            if len(threads) == 0:
+                continue
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
+                    logger.debug('Found an empty handler')
                     continue
                 parser = MapParser(handler.result)
                 self.pathmap[handler.input] = parser.map
@@ -920,13 +998,17 @@ class BaseMapper(BaseKegg):
                 threads.append(obj)
             time.sleep(0.01)
             
+            if len(threads) == 0:
+                continue
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    return
+                    logger.debug('Found an empty handler')
+                    continue
                 
                 for path, reacts in handler.result.iteritems():
                     if path not in self.pathreact:
@@ -968,13 +1050,17 @@ class BaseMapper(BaseKegg):
                 threads.append(obj)
             time.sleep(0.01)
             
+            if len(threads) == 0:
+                continue
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    return
+                    logger.debug('Found an empty handler')
+                    continue
                 
                 for path, comps in handler.result.iteritems():
                     if path not in self.pathcomp:
@@ -1016,13 +1102,17 @@ class BaseMapper(BaseKegg):
                 threads.append(obj)
             time.sleep(0.01)
             
+            if len(threads) == 0:
+                continue
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    return
+                    logger.debug('Found an empty handler')
+                    continue
                 
                 for kid, title in handler.result.iteritems():
                     self.compdet[kid] = title
@@ -1059,13 +1149,17 @@ class BaseMapper(BaseKegg):
                 threads.append(obj)
             time.sleep(0.01)
             
+            if len(threads) == 0:
+                continue
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    return
+                    logger.debug('Found an empty handler')
+                    continue
                 
                 for react, paths in handler.result.iteritems():
                     if react not in self.reactpath:
@@ -1110,13 +1204,17 @@ class BaseMapper(BaseKegg):
                 threads.append(obj)
             time.sleep(0.01)
             
+            if len(threads) == 0:
+                continue
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    return
+                    logger.debug('Found an empty handler')
+                    continue
                 
                 for react, comps in handler.result.iteritems():
                     if react not in self.reactcomp:
@@ -1158,13 +1256,17 @@ class BaseMapper(BaseKegg):
                 threads.append(obj)
             time.sleep(0.01)
             
+            if len(threads) == 0:
+                continue
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    return
+                    logger.debug('Found an empty handler')
+                    continue
                 
                 for comp, reacts in handler.result.iteritems():
                     if comp not in self.compreact:
@@ -1206,13 +1308,17 @@ class BaseMapper(BaseKegg):
                 threads.append(obj)
             time.sleep(0.01)
             
+            if len(threads) == 0:
+                continue
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    return
+                    logger.debug('Found an empty handler')
+                    continue
                 
                 for rpair, reacts in handler.result.iteritems():
                     if rpair not in self.rpairreact:
@@ -1254,13 +1360,17 @@ class BaseMapper(BaseKegg):
                 threads.append(obj)
             time.sleep(0.01)
             
+            if len(threads) == 0:
+                continue
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    return
+                    logger.debug('Found an empty handler')
+                    continue
                 
                 for react, rpairs in handler.result.iteritems():
                     if react not in self.reactrpair:
@@ -1332,13 +1442,17 @@ class KoMapper(BaseMapper):
                 threads.append(obj)
             time.sleep(0.01)
             
+            if len(threads) == 0:
+                continue
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    return
+                    logger.debug('Found an empty handler')
+                    continue
                 
                 for kid, title in handler.result.iteritems():
                     self.kodet[kid] = title
@@ -1375,13 +1489,17 @@ class KoMapper(BaseMapper):
                 threads.append(obj)
             time.sleep(0.01)
             
+            if len(threads) == 0:
+                continue
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
-                    return
+                    logger.debug('Found an empty handler')
+                    continue
                 
                 for ko, reacts in handler.result.iteritems():
                     if ko not in self.koreact:
@@ -1899,13 +2017,19 @@ class MapsFetcher(BaseKegg):
                 obj.start()
                 threads.append(obj)
             time.sleep(0.01)
+            
+            if len(threads) == 0:
+                continue
+            
             while len(threads) > 0:
                 for thread in threads:
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
                 if not handler.result:
+                    logger.debug('Found an empty handler')
                     continue
+                
                 fname = os.path.join(self._keggroom,handler.input)
                 fname = fname+'.png'
                 

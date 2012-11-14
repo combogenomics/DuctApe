@@ -51,42 +51,15 @@ def daddMut(options, wdir, project):
                      options.k, options.n, options.d, options.c)
 
 def dstart(options, wdir, project):
-    from ductape.kegg.kegg import KeggNet
-    from ductape.terminal import RunThread
+    from ductape.actionsterm import fetchKegg
     
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
     
-    logger.info('Fetching the whole KEGG metabolic map')
-    kegg = Kegg(project)
-    avoid = [kid for kid in kegg.getAllIDs()]
-    
-    knet = KeggNet(avoid=avoid)
-    if not RunThread(knet):
-        return False
-    
-    # Details
-    kegg.addPathways(knet.result.path)
-    logger.info('Added %d Path IDs'%len(knet.result.path))
-    kegg.addReactions(knet.result.react)
-    logger.info('Added %d Re IDs'%len(knet.result.react))
-    kegg.addCompounds(knet.result.comp)
-    logger.info('Added %d Co IDs'%len(knet.result.comp))
-    kegg.addRPairs(knet.result.rpair)
-    logger.info('Added %d RPair IDs'%len(knet.result.rpair))
-    # Links
-    kegg.addPathReacts(knet.result.pathreact)
-    kegg.addReactComps(knet.result.reactcomp)
-    kegg.addCompReacts(knet.result.compreact)
-    kegg.addPathComps(knet.result.pathcomp)
-    kegg.addReactRPairs(knet.result.reactrpair)
-    kegg.addRPairReacts(knet.result.rpairreact)
-    logger.info('Added Kegg links')
-    # HTML maps
-    kegg.addPathHtml(knet.result.pathmaps)
-    logger.info('Added Kegg maps')
+    # Fetch the Kegg DB?
+    fetchKegg(project)
     
     return True
 
@@ -544,6 +517,22 @@ def dmap(options, wdir, project):
                                        categ.category.replace(' ','_').replace('&','and')):
                         return False
 
+def dimport(options, wdir, project):
+    from ductape.actions import dKeggImport
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    return dKeggImport(project, options.file)
+
+def dexport(options, wdir, project):
+    from ductape.actions import dKeggExport
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    return dKeggExport(project)
+
 def dremove(options, wdir, project):
     from ductape.actions import dRemove
     if not touchProject(project):
@@ -560,7 +549,7 @@ def dclear(options, wdir, project):
                        'You can setup a new project by running %s init'%
                        __prog__)
         return False
-    return dClear(project)
+    return dClear(project, options.keep_org, options.keep_kegg)
 
 def doFetchMaps(project, org_id, rpaths, cpaths, legend=None, category=None):
     from ductape.actions import prepareColors
@@ -743,6 +732,14 @@ def getOptions():
                             help='Organism(s) to be mapped')
     parser_map.set_defaults(func=dmap)
     
+    parser_import = subparsers.add_parser('import', help='Import kegg data')
+    parser_import.add_argument('file', action="store",
+                            help='Protein fasta file')
+    parser_import.set_defaults(func=dimport)
+    
+    parser_export = subparsers.add_parser('export', help='Export kegg data')
+    parser_export.set_defaults(func=dexport)
+    
     parser_rm = subparsers.add_parser('rm', help='Completely remove an organism')
     parser_rm.add_argument('organisms', metavar='orgID', nargs='+',
                               action="store",
@@ -751,6 +748,14 @@ def getOptions():
     
     parser_clear = subparsers.add_parser('clear',
                                          help='Clear all the results')
+    parser_clear.add_argument('-o', '--keep-org',
+                            action="store_true",
+                            default=False,
+                            help='Keep organisms data')
+    parser_clear.add_argument('-k', '--keep-kegg', 
+                            action="store_true",
+                            default=False,
+                            help='Keep KEGG data')
     parser_clear.set_defaults(func=dclear)
     
     return parser.parse_args()

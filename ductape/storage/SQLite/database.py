@@ -2662,7 +2662,7 @@ class Biolog(DBBase):
         
         try:
             return float(cursor.fetchall()[0][0])      
-        except Exception, e:
+        except:
             return None
     
     def getAvgActivityEachOrg(self, plate_id, well_id):

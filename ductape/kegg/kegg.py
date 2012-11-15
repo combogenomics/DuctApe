@@ -572,7 +572,7 @@ class KeggAPI(object):
                 for i in range(len(obj_list)):
                     url += obj_list[i] + '%09' + color_list[i] + '/'
                 
-                sock=urllib.urlopen(url, timeout=20)
+                sock=urllib.urlopen(url, timeout=60)
                 self.result = sock.read()
                 sock.close()
                 return

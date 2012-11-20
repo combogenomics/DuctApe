@@ -2194,7 +2194,7 @@ def createLegend(kind):
     fig = plt.figure()
     fname = 'legend.png'
     rmatrix = np.outer(np.arange(0.33,1,0.01),np.ones(7))
-    if kind == 'mutants':
+    if kind == 'mutants' or 'singlediff':
         cmatrix = np.outer(np.arange(-9,9,0.1),np.ones(7))
     elif kind == 'pangenome':
         cmatrix = np.outer(np.arange(0.33,1,0.01),np.ones(7))
@@ -2252,6 +2252,25 @@ def createLegend(kind):
         ax.axes.get_yaxis().set_ticks([])
         ax.axes.get_xaxis().set_ticks([])
         ax.set_title('Phenomic activity')
+        
+        fig.savefig(fname)
+        
+    elif kind == 'singlediff':
+        ax = fig.add_subplot(121)
+        ax.imshow(rmatrix, cmap=cm.Greens, vmin=0, vmax=1)
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+        ax.axes.get_yaxis().set_ticks([])
+        ax.axes.get_xaxis().set_ticks([])
+        ax.set_title('Reactions')
+        
+        ax = fig.add_subplot(122)
+        ax.imshow(cmatrix, cmap=cm.PuOr, vmin=-9, vmax=9)
+        ax.axes.get_xaxis().set_visible(False)
+        ax.axes.get_yaxis().set_visible(False)
+        ax.axes.get_yaxis().set_ticks([])
+        ax.axes.get_xaxis().set_ticks([])
+        ax.set_title('Delta-activity')
         
         fig.savefig(fname)
 

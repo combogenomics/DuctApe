@@ -52,6 +52,7 @@ def daddMut(options, wdir, project):
 
 def dstart(options, wdir, project):
     from ductape.actionsterm import fetchKegg
+    from ductape.actions import dNet
     
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
@@ -61,7 +62,7 @@ def dstart(options, wdir, project):
     # Fetch the Kegg DB?
     fetchKegg(project)
     
-    return True
+    return dNet(project, options.all, options.paths)
 
 def dmap(options, wdir, project):
     from ductape.actions import dSetKind, getPathsReacts, getPathsComps
@@ -878,6 +879,12 @@ def getOptions():
     parser_add_mut.set_defaults(func=daddMut)
     
     parser_start = subparsers.add_parser('start', help='Start the analysis')
+    parser_start.add_argument('-a', '--all', action="store_true",
+                            default=False,
+                            help='Create single organisms net')
+    parser_start.add_argument('-p', '--paths', action="store_true",
+                            default=False,
+                            help='Save each pathway network')
     parser_start.set_defaults(func=dstart)
     
     parser_map = subparsers.add_parser('map', help='Fetch metabolic maps')

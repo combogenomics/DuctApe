@@ -2,10 +2,9 @@
 """
 Kegg
 
-Common Library
+Kegg Library
 
-KeggAPI handles the connection to KEGG API through wsdl
-KoMapper handles reactions, pathways and compounds retrieval on Ko IDs 
+Kegg data fetching
 """
 import urllib2 as urllib
 from ductape.common.commonthread import CommonThread
@@ -254,6 +253,12 @@ class KeggAPI(object):
                         for longID in self.input:
                             if shortID in longID:
                                 co1, co2 = self.getEntryTag(lines, 'NAME').split('_')
+                                #
+                                if not co1.startswith('cpd:'):
+                                    co1 = 'cpd:' + co1
+                                if not co2.startswith('cpd:'):
+                                    co1 = 'cpd:' + co2
+                                #
                                 kind = self.getEntryTag(lines, 'TYPE')
                                 self.result[longID] = [co1,co2,kind]
                     except:
@@ -551,7 +556,8 @@ class KeggAPI(object):
                     logger.warning('link (compound) failed!')
                     raise Exception('link (compound) request failed')
     
-    def getHTMLColoredPathway(self, path_id, obj_list, color_list, retries=5):
+    def getHTMLColoredPathway(self, path_id, obj_list, color_list,
+                                    border_list=None, retries=5):
         '''
         Get the URL of the colored pathway and return its content
         If it fails, an exception is thrown
@@ -570,7 +576,12 @@ class KeggAPI(object):
                 logger.debug('Looking for KEGG colored map from %s'%path_id)
                 url = self._maplink + path_id.lstrip('path:') + '/default%3white/'
                 for i in range(len(obj_list)):
-                    url += obj_list[i] + '%09' + color_list[i] + '/'
+                    if border_list is not None and border_list[i] is not None:
+                        url += obj_list[i] + '%09' + color_list[i] + ',' + border_list[i] + '/'
+                    else:
+                        url += obj_list[i] + '%09' + color_list[i] + '/'
+                
+                logger.debug(url)
                 
                 sock=urllib.urlopen(url, timeout=60)
                 self.result = sock.read()
@@ -582,9 +593,6 @@ class KeggAPI(object):
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
-                try:
-                    logger.debug(url)
-                except:pass
                 if attempts >= retries:
                     logger.warning('show_pathway failed!')
                     raise Exception('show_pathway request failed')
@@ -595,11 +603,14 @@ class KeggColor(object):
     Holds the color information to be passed to MapsFetcher
     One object for each pathway
     '''
-    def __init__(self, path, htmlmap= '', reactions={}, compounds={}):
+    def __init__(self, path, htmlmap= '', reactions={}, compounds={},
+                 borders={}):
         self.path = path 
         self.htmlmap = htmlmap
         self.reactions = reactions
         self.compounds = compounds
+        # Objects that need to have a coloured border
+        self.borders = borders
     
     def setMap(self, htmlmap):
         self.htmlmap = htmlmap
@@ -610,6 +621,9 @@ class KeggColor(object):
     def setCompounds(self, compounds):
         self.compounds = compounds
         
+    def setBorders(self, borders):
+        self.borders = borders
+        
     def getAll(self):
         '''
         Returns a tuple --> objects, color
@@ -618,7 +632,23 @@ class KeggColor(object):
         colors = [self.reactions[x] for x in self.reactions]
         objs += [x for x in self.compounds]
         colors += [self.compounds[x] for x in self.compounds]
+                
+        return objs,colors
+    
+    def getBorders(self):
+        '''
+        Returns a tuple --> objects, color
+        '''
+        objs = [x for x in self.reactions]
+        objs += [x for x in self.compounds]
         
+        colors = []
+        for x in self.reactions.keys()+self.compounds.keys():
+            if x in self.borders.keys():
+                colors.append(self.borders[x])
+            else:
+                colors.append(None)
+                
         return objs,colors
         
 class KeggDetails(object):
@@ -2027,10 +2057,11 @@ class MapsFetcher(BaseKegg):
                 #
                 
                 objs,colors = kmap.getAll()
+                dummy,borders = kmap.getBorders()
                 
                 obj = threading.Thread(
                         target = self.handlers[piece.index(kmap)].getHTMLColoredPathway,
-                        args = (path,objs,colors,))
+                        args = (path,objs,colors,borders,))
                 obj.start()
                 threads.append(obj)
             time.sleep(0.01)

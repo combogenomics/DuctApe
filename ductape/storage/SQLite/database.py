@@ -1301,7 +1301,81 @@ class Kegg(DBBase):
             logger.debug('Got error %s on id %s, assuming id is present'%
                          (str(e),rp_id))
             return True
-    
+        
+    def hasRPairMain(self, path_id):
+        '''
+        Inspect if a pathway as at least one rpair of kind "main"
+        '''
+        query = '''
+                select count(*)
+                from rpair rp, rpair_react r,  reaction re, react_path p
+                where r.rp_id = rp.rp_id
+                and r.re_id = re.re_id
+                and r.re_id=p.re_id
+                and path_id=?
+                and kind like "%main%";
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query,
+                                (path_id,))
+        return bool(cursor.fetchall()[0][0])
+        
+    def getAllRPairsReacts(self, org_id=None, path_id=None):
+        '''
+        Generator to single reactions with main rpairs
+        If org_id is set, the organism specific subset is retrieved,
+        plus the information on the number of copies.
+        If path_id is set, only those reactiomns from the desired pathway will be retrieved
+        '''
+        with self.connection as conn:
+            if not org_id:
+                if not path_id:
+                    cursor=conn.execute('''select distinct r.re_id, co1, co2, re.name
+                                    from rpair rp, rpair_react r,  reaction re
+                                    where r.rp_id = rp.rp_id
+                                    and r.re_id = re.re_id
+                                    and kind like "%main%";''')
+                else:
+                    cursor=conn.execute('''select distinct r.re_id, co1, co2, re.name
+                                    from rpair rp, rpair_react r,  reaction re, react_path p
+                                    where r.rp_id = rp.rp_id
+                                    and r.re_id = re.re_id
+                                    and r.re_id=p.re_id
+                                    and path_id=?
+                                    and kind like "%main%";''',
+                                    [path_id,])
+            else:
+                if not path_id:
+                    cursor=conn.execute('''select distinct k.re_id, co1, co2, count(distinct p.prot_id) weight, re.name
+                                    from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re
+                                    where k.ko_id = m.ko_id
+                                    and p.prot_id = m.prot_id
+                                    and k.re_id = rr.re_id
+                                    and rr.rp_id = rp.rp_id
+                                    and rr.re_id=re.re_id
+                                    and kind like "%main%"
+                                    and org_id = ?
+                                    group by k.re_id, co1, co2;''',
+                                    [org_id,])
+                else:
+                    cursor=conn.execute('''select distinct k.re_id, co1, co2, count(distinct p.prot_id) weight, re.name
+                                    from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, react_path p
+                                    where k.ko_id = m.ko_id
+                                    and p.prot_id = m.prot_id
+                                    and k.re_id = rr.re_id
+                                    and rr.rp_id = rp.rp_id
+                                    and rr.re_id=re.re_id
+                                    and kind like "%main%"
+                                    and org_id = ?
+                                    and re.re_id=p.re_id
+                                    and path_id = ?
+                                    group by k.re_id, co1, co2;''',
+                                    [org_id,path_id,])
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+            
     def addRPairs(self, rp):
         '''
         Add new reactions (ignoring errors if they are already present)
@@ -1486,6 +1560,26 @@ class Kegg(DBBase):
             
         return Row(cursor.fetchall()[0], cursor.description)
     
+    def getAllCompounds(self, path_id=None):
+        '''
+        Generator to all the compounds
+        If path_id is set, only those compounds from the desired pathway will be retrieved
+        '''
+        with self.connection as conn:
+            if not path_id:
+                cursor=conn.execute('''select * from compound;''')
+            else:
+                cursor=conn.execute('''
+                                    select *
+                                    from compound c, comp_path p
+                                    where c.co_id = p.co_id
+                                    and path_id = ?;
+                                    ''',
+                                    [path_id,])
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+    
     def isCompound(self, co_id):
         '''
         Is this co_id already present?
@@ -1573,16 +1667,21 @@ class Kegg(DBBase):
         for res in cursor:
             yield Row(res, cursor.description)
             
-    def getPathComps(self):
+    def getPathComps(self, path_id=None):
         '''
         Get all the pathway - compounds links
+        If path_id is set, only those compounds from the desired path are retrieved
         '''
-        query = '''select path_id, co_id
-                   from comp_path
-                   order by path_id'''
-        
         with self.connection as conn:
-            cursor=conn.execute(query)
+            if not path_id:
+                cursor=conn.execute('''select path_id, co_id
+                                       from comp_path
+                                       order by path_id;''')
+            else:
+                cursor=conn.execute('''select path_id, co_id
+                                       from comp_path
+                                       where path_id = ?
+                                       order by co_id;''',[path_id,])
             
         for res in cursor:
             yield Row(res, cursor.description)
@@ -1659,6 +1758,23 @@ class Kegg(DBBase):
             
         return Row(cursor.fetchall()[0], cursor.description)
     
+    def getAllPathways(self, onlymain=False):
+        '''
+        Generator to the single pathways
+        If onlymain is set, only pathways with RPairs main are returned
+        '''
+        
+        query = '''select * from pathway order by path_id;'''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query)
+            
+        for res in cursor:
+            path = Row(res, cursor.description)
+            if not self.hasRPairMain(path.path_id):
+                continue
+            yield path
+    
     def isPathway(self, path_id):
         '''
         Is this path_id already present?
@@ -1698,6 +1814,36 @@ class Kegg(DBBase):
             
         for res in cursor:
             yield Row(res, cursor.description)
+            
+    def getCoreRPairsReact(self):
+        '''
+        Get core genome rpairs reactions (and numerosity)
+        '''
+        nOrg = Organism(self.dbname).howMany()
+        
+        query = '''
+                select distinct k.re_id, co1, co2, count(distinct group_id) weight, re.name
+                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
+                where k.ko_id = m.ko_id
+                and p.prot_id = m.prot_id
+                and p.prot_id = o.prot_id
+                and k.re_id = rr.re_id
+                and rr.rp_id = rp.rp_id
+                and rr.re_id=re.re_id
+                and kind like "%main%"
+                and group_id in (select distinct group_id
+                                                    from ortholog
+                                                    group by group_id
+                                                    having count(*) = ?)
+                group by k.re_id, co1, co2;
+                '''
+    
+        with self.connection as conn:
+            cursor=conn.execute(query,
+                                [nOrg,])
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
     
     def getDispensableReact(self):
         '''
@@ -1718,6 +1864,36 @@ class Kegg(DBBase):
                 order by num DESC;
                 '''
         
+        with self.connection as conn:
+            cursor=conn.execute(query,
+                                [nOrg,])
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+    
+    def getDispensableRPairsReact(self):
+        '''
+        Get dispensable genome rpairs reactions (and numerosity)
+        '''
+        nOrg = Organism(self.dbname).howMany()
+        
+        query = '''
+                select distinct k.re_id, co1, co2, count(distinct group_id) weight, re.name
+                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
+                where k.ko_id = m.ko_id
+                and p.prot_id = m.prot_id
+                and p.prot_id = o.prot_id
+                and k.re_id = rr.re_id
+                and rr.rp_id = rp.rp_id
+                and rr.re_id=re.re_id
+                and kind like "%main%"
+                and group_id in (select distinct group_id
+                                                    from ortholog
+                                                    group by group_id
+                                                    having count(*) < ?)
+                group by k.re_id, co1, co2;
+                '''
+    
         with self.connection as conn:
             cursor=conn.execute(query,
                                 [nOrg,])
@@ -1752,6 +1928,37 @@ class Kegg(DBBase):
         for res in cursor:
             yield Row(res, cursor.description)
     
+    def getAccessoryRPairsReact(self):
+        '''
+        Get accessory genome rpairs reactions (and numerosity)
+        '''
+        nOrg = Organism(self.dbname).howMany()
+        
+        query = '''
+                select distinct k.re_id, co1, co2, count(distinct group_id) weight, re.name
+                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
+                where k.ko_id = m.ko_id
+                and p.prot_id = m.prot_id
+                and p.prot_id = o.prot_id
+                and k.re_id = rr.re_id
+                and rr.rp_id = rp.rp_id
+                and rr.re_id=re.re_id
+                and kind like "%main%"
+                and group_id in (select distinct group_id
+                                                    from ortholog
+                                                    group by group_id
+                                                    having count(*) < ?
+                                                    and count(*) > 1)
+                group by k.re_id, co1, co2;
+                '''
+    
+        with self.connection as conn:
+            cursor=conn.execute(query,
+                                [nOrg,])
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+    
     def getUniqueReact(self):
         '''
         Get unique genome reactions (and numerosity)
@@ -1769,6 +1976,33 @@ class Kegg(DBBase):
                 order by num DESC;
                 '''
         
+        with self.connection as conn:
+            cursor=conn.execute(query)
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+            
+    def getUniqueRPairsReact(self):
+        '''
+        Get unique genome rpairs reactions (and numerosity)
+        '''
+        query = '''
+                select distinct k.re_id, co1, co2, count(distinct group_id) weight, re.name
+                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
+                where k.ko_id = m.ko_id
+                and p.prot_id = m.prot_id
+                and p.prot_id = o.prot_id
+                and k.re_id = rr.re_id
+                and rr.rp_id = rp.rp_id
+                and rr.re_id=re.re_id
+                and kind like "%main%"
+                and group_id in (select distinct group_id
+                                                    from ortholog
+                                                    group by group_id
+                                                    having count(*) = 1)
+                group by k.re_id, co1, co2;
+                '''
+    
         with self.connection as conn:
             cursor=conn.execute(query)
             
@@ -2244,10 +2478,19 @@ class Biolog(DBBase):
         for res in cursor:
             yield Row(res, cursor.description)
     
-    def getCategs(self):
+    def getCategs(self, active=False):
+        '''
+        If active is set, only those categories with at least one signal are returned
+        '''
         with self.connection as conn:
-            cursor=conn.execute('''select distinct category
-                                from biolog order by plate_id;''')
+            if active:
+                cursor=conn.execute('''select distinct category
+                                    from biolog b, biolog_exp e
+                                    where b.plate_id = e.plate_id
+                                    order by b.plate_id;''')
+            else:
+                cursor=conn.execute('''select distinct category
+                                    from biolog order by plate_id;''')
         
         for res in cursor:
             yield Row(res, cursor.description)

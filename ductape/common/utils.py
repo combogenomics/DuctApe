@@ -6,6 +6,15 @@ Common library
 
 Spare parts
 """
+import logging
+
+################################################################################
+# Log setup
+
+logger = logging.getLogger('ductape.utils')
+
+################################################################################
+# Methods
 
 # Borrowed from: www.garyrobinson.net
 def slice_it(li, cols=10):
@@ -113,4 +122,21 @@ def rangeColors(minimum, maximum, colorrange):
         i += 1
     
     return hexs
-        
+
+def makeRoom(location='', *args):
+    '''
+    Creates a tmp directory in the desired location
+    Any extra argument is a nested directory
+    '''
+    import os
+    path = os.path.abspath(location)
+    path = os.path.join(path, 'tmp')
+    try:os.mkdir(path)
+    except:pass
+    
+    for name in args:
+        path = os.path.join(path, name)
+        try:os.mkdir(path)
+        except:pass
+    
+    return path

@@ -369,6 +369,8 @@ def dmap(options, wdir, project):
                     corg = {}
                     # Grey compounds (those below delta)
                     grey = set()
+                    # Border compounds (those with at least one difference above delta)
+                    border = {}
                     #
                     wells = [w for w in biolog.getAllCoByCateg(categ.category)]
                     for well in wells:
@@ -382,8 +384,11 @@ def dmap(options, wdir, project):
                         diffs = []
                         for a, a1 in combinations(acts, 2):
                             diffs.append( abs(a - a1) )
+                            
                         avgdiff = np.array(diffs).mean()
                         if avgdiff < options.delta:
+                            if max(diffs) >= options.delta:
+                                border['cpd:'+well.co_id] = 'red'
                             grey.add(well.co_id)
                             continue
                         
@@ -439,6 +444,7 @@ def dmap(options, wdir, project):
                         
                         KC.setReactions(dreact)
                         KC.setCompounds(dcomp)
+                        KC.setBorders(border)
                         KC.setMap(kegg.getPathway(path).html)
                         colorPaths.append(KC)
                         

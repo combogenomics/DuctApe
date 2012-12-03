@@ -46,9 +46,8 @@ def fetchKegg(project):
         if release:
             logger.info('KEGG DB release %s'%str(release))
         kegg = Kegg(project)
-        avoid = [kid for kid in kegg.getAllIDs()]
         
-        knet = KeggNet(avoid=avoid)
+        knet = KeggNet()
         if not RunThread(knet):
             return False
         

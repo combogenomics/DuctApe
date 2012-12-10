@@ -310,6 +310,22 @@ class Organism(DBBase):
                                 [org_id,])
         return bool(cursor.fetchall()[0][0])
     
+    def getMutReference(self, org_id):
+        '''
+        Get the reference genome for this mutant
+        '''
+        query = '''
+                select reference
+                from organism
+                where org_id = ?
+                and mutant = 1;
+                '''
+        
+        with self.connection as conn:
+            cursor = conn.execute(query, (org_id,))
+        
+        return cursor.fetchall()[0][0]
+    
     def getOrgMutants(self, org_id):
         '''
         Get the list of org_id that are mutants of this organism 

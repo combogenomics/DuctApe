@@ -915,7 +915,7 @@ def getOptions():
     
     parser_import = subparsers.add_parser('import', help='Import kegg data')
     parser_import.add_argument('file', action="store",
-                            help='Protein fasta file')
+                            help='Kegg dump file')
     parser_import.set_defaults(func=dimport)
     
     parser_export = subparsers.add_parser('export', help='Export kegg data')

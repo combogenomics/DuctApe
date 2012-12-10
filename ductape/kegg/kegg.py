@@ -257,7 +257,7 @@ class KeggAPI(object):
                                 if not co1.startswith('cpd:'):
                                     co1 = 'cpd:' + co1
                                 if not co2.startswith('cpd:'):
-                                    co1 = 'cpd:' + co2
+                                    co2 = 'cpd:' + co2
                                 #
                                 kind = self.getEntryTag(lines, 'TYPE')
                                 self.result[longID] = [co1,co2,kind]

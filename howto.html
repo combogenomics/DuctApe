@@ -103,7 +103,8 @@
 												</p>
 												<p>
 													<code>sudo pip install matplotlib</code>
-												</p>										
+												</p>
+										
 										</div>
 										
 										<div id="installation">
@@ -554,18 +555,21 @@ dape start</pre>
 									                  class="btn" target="_blank">
       	          									<i class="icon-download"></i> Download &raquo;</a>
       	          								</p>
-      	          								<pre>dape init
+      	          								<pre>#!/usr/bin/sh
+ 
+dape init
 dape add MyOrg
 dape add MyOrg2
 dape add MyOrg3
-
+ 
 dgenome add-dir MyFolder
 dgenome add-ko MyOrg.tab MyOrg2.tab MyOrg3.tab
 # also perform pangenome creation using 4 CPUs
 dgenome start -n 4
-# plot the maps for the whole pangenome
-dgenome map
-
+# Export and plot statistics
+dgenome export
+dgenome stats
+ 
 dphenome add-dir MyPhenomicFolder
 dphenome zero
 dphenome start
@@ -573,7 +577,7 @@ dphenome purge -d 3 keep-max
 dphenome plot
 # rings with diff mode: compare the activity of MyOrg
 dphenome rings -o MyOrg
-
+ 
 dape start</pre>
                 								</div>
               								  </div>

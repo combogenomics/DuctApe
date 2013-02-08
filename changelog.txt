@@ -1,3 +1,8 @@
+Version 0.5.1
+=============
+
+BUGFIX: The net file was absent from the kegg module
+
 Version 0.5.0
 =============
 

@@ -182,7 +182,7 @@ def dPhenomeAdd(project, orgID, filename):
     biolog.addWells(wells, clustered=False)
     
     logger.info('Added phenome %s, having %d biolog plates (%d wells)'%
-                (orgID, len(dPlates), len(wells)))
+                (orgID, len(bparser.plates), len(wells)))
     
     return True
 

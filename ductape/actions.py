@@ -128,6 +128,7 @@ def dPhenomeAdd(project, orgID, filename):
         logger.debug('No sign of %s in strainNumber field'%orgID)
     
     # TODO: regular expression search
+    orgFound = True
     if orgID in samples:
         if len(samples) > 1:
             logger.warning('''More than one organism ID may be present in this phenomic data file!''')
@@ -158,6 +159,7 @@ def dPhenomeAdd(project, orgID, filename):
     else:
         logger.warning('''The organism ID you provided was not found inside the phenomic data file''')
         logger.info('''Using it anyway to add this data''')
+        orgFound = False
     
     # Prepare a series of Plate objects to catch the replicas
     # (replicas will be handled by the db tough)
@@ -169,6 +171,11 @@ def dPhenomeAdd(project, orgID, filename):
     
     # Grep the wells
     wells = [w for plate in dPlates.itervalues() for w in plate.getWells()]
+    
+    # Manually add the OrgID
+    if not orgFound:
+        for w in wells:
+            w.strain = orgID
     
     # Add to the project
     biolog = Biolog(project)

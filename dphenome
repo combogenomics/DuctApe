@@ -142,7 +142,8 @@ def dplot(options, wdir, project):
     bplot = BiologPlot(plates, colors=getOrganismsColors(project),
                 avgdata=avgplates, wellNames=titles,
                maxsig=biolog.maxSignal(), plotAll=True,
-               expname=options.n, order=order, category=category)
+               expname=options.n, order=order, category=category,
+               svg=options.svg)
 
     if not RunThread(bplot):
         return False
@@ -386,6 +387,9 @@ def getOptions():
     parser_plot.add_argument('-n', metavar='expname', action="store",
                             default = 'phenome',
                             help='Plot set name')
+    parser_plot.add_argument('-s', '--svg', action="store_true",
+                            default=False,
+                            help='Figures in svg format instead of png')
     parser_plot.set_defaults(func=dplot)
     
     parser_purge = subparsers.add_parser('purge', help='Remove inconsistent replicas')

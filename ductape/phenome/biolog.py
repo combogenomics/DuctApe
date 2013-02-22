@@ -1521,6 +1521,7 @@ class BiologPlot(CommonThread):
                  maxsig = None,
                  plotPlates=True, plotAll=False, plotActivity=True,
                  order = [], category = {},
+                 svg=False,
                  queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         # Biolog
@@ -1545,6 +1546,7 @@ class BiologPlot(CommonThread):
         self.plotActivity = bool(plotActivity)
         self.order = order
         self.category = category
+        self.svg = bool(svg)
         
         # Results
         # Plate_id --> Plate
@@ -1700,8 +1702,18 @@ class BiologPlot(CommonThread):
                 path = os.path.join(self._room,self.category[plate_id])
             else:
                 path = self._room
-            fname = os.path.join(path,'%s_legend.png'%plate_id)
-            self.results[plate_id].legend.savefig(fname, dpi=150)
+            
+            if self.svg:
+                fformat = 'svg'
+            else:
+                fformat = 'png'
+                
+            fname = os.path.join(path,'%s_legend.%s'%(plate_id, fformat))
+            
+            if self.svg:
+                self.results[plate_id].legend.savefig(fname, dpi=300)
+            else:
+                self.results[plate_id].legend.savefig(fname, dpi=150)
             self.results[plate_id].legend.clf()
             
             if self.killed:
@@ -1726,8 +1738,18 @@ class BiologPlot(CommonThread):
                     path = os.path.join(self._room,self.category[plate_id])
                 else:
                     path = self._room
-                fname = os.path.join(path,'%s.png'%plate_id)
-                self.results[plate_id].figure.savefig(fname, dpi=150)
+                    
+                if self.svg:
+                    fformat = 'svg'
+                else:
+                    fformat = 'png'
+                    
+                fname = os.path.join(path,'%s.%s'%(plate_id, fformat))
+                
+                if self.svg:
+                    self.results[plate_id].figure.savefig(fname, dpi=300)
+                else:
+                    self.results[plate_id].figure.savefig(fname, dpi=150)
                 self.results[plate_id].figure.clf()
         else:
             self.updateStatus(send=False)
@@ -1753,9 +1775,18 @@ class BiologPlot(CommonThread):
                         path = os.path.join(self._room,self.category[plate_id])
                     else:
                         path = self._room
-                    fname = os.path.join(path,'%s_%s.png'%(plate_id,
-                                                                 well_id))
-                    self.well.savefig(fname, dpi=150)
+                        
+                    if self.svg:
+                        fformat = 'svg'
+                    else:
+                        fformat = 'png'
+                        
+                    fname = os.path.join(path,'%s_%s.%s'%(plate_id,
+                                                         well_id, fformat))
+                    if self.svg:
+                        self.well.savefig(fname, dpi=300)
+                    else:
+                        self.well.savefig(fname, dpi=150)
                     
                     self._substatus += 1
                     self.updateStatus(True)
@@ -1785,8 +1816,17 @@ class BiologPlot(CommonThread):
                     path = os.path.join(self._room,self.category[plate_id])
                 else:
                     path = self._room
-                fname = os.path.join(path,'%sheat.png'%plate_id)
-                self.avgresults[plate_id].heatfig.savefig(fname, dpi=150)
+                    
+                if self.svg:
+                    fformat = 'svg'
+                else:
+                    fformat = 'png'
+                    
+                fname = os.path.join(path,'%sheat.%s'%(plate_id, fformat))
+                if self.svg:
+                    self.avgresults[plate_id].heatfig.savefig(fname)
+                else:
+                    self.avgresults[plate_id].heatfig.savefig(fname, dpi=150)
                 self.avgresults[plate_id].heatfig.clf()
         else:
             self.updateStatus(send=False)

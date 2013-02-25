@@ -1,3 +1,16 @@
+Version 0.5.2
+=============
+
+dape start
+BUGFIX: pangenome network analysis improvements
+
+dphenome add
+BUGFIX: handle csv files with a different OrgID than expected
+BUGFIX: calculate the correct number of added plates
+
+dphenome plot
+FEATURE: added the ability to generate plots in svg formats (-s option)
+
 Version 0.5.1
 =============
 

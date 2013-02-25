@@ -2153,6 +2153,7 @@ def getPanGenomeNet(project, pangenome='all', path_id=None, category=None):
         logger.debug('Building total metabolic network for %s'%pangenome)
         
     from ductape.kegg.net import MetabolicNet, Compound
+    from itertools import combinations
     
     kegg = Kegg(project)
     
@@ -2173,8 +2174,6 @@ def getPanGenomeNet(project, pangenome='all', path_id=None, category=None):
                        kegg.getUniqueRPairsReact(path_id))
     
     if category:
-        # CHANGE THIS!
-        
         logger.debug('Fetching metabolic activity for category %s'%category)
         
         biolog = Biolog(project)
@@ -2189,14 +2188,26 @@ def getPanGenomeNet(project, pangenome='all', path_id=None, category=None):
                         if 'cpd:'+w.co_id in path_co]
         else:
             wells = [w for w in biolog.getAllCoByCateg(category)]
+        
         for well in wells:
-            act = biolog.getAvgActivity(well.plate_id, well.well_id, org_id)
-            if act is not None:
-                # Some co_ids are present more than once
-                if well.co_id not in corg:
-                    corg[well.co_id] = []
-                corg[well.co_id].append(act)
-    
+            acts = [x.avgact 
+                    for x in
+                    biolog.getAvgActivityEachOrg(well.plate_id,
+                                                 well.well_id)]
+            if len(acts) <= 1:
+                continue
+            
+            diffs = []
+            for a, a1 in combinations(acts, 2):
+                diffs.append( abs(a - a1) )
+                
+            avgdiff = np.array(diffs).mean()
+            
+            # Some co_ids are present more than once
+            if well.co_id not in corg:
+                corg[well.co_id] = []
+            corg[well.co_id].append(avgdiff)
+        
         toremove = set()
         for k, v in corg.iteritems():
             mean = np.array(v).mean()
@@ -2292,12 +2303,17 @@ def dNet(project, allorgs=False, allpaths=False):
             fact.write('# Metabolic network activity\n')
             fact.write('\t'.join( ['network', 'name', 'category'] +
                                                  ['Avg Activity Difference'] +
-                                                 orgs + ['\n'] ))
+                                                 ['Std Activity Difference'] +
+                                                 ['\n'] ))
 
         # Total network
         logger.info('Overall network stats')
         
         oNet = {}
+        for org in orgs:
+            oNet[org] = getPanGenomeNet(project, org)
+            npath = makeRoom('', 'metNet', org)
+            writeNet(oNet[org], npath, '%s.gml'%org)
         
             
         flen.write('\t'.join( ['All', ''] +
@@ -2312,6 +2328,72 @@ def dNet(project, allorgs=False, allpaths=False):
                               [str(aNet.getComponentsStd())] +
                               [str(oNet[x].getComponentsStd()) for x in orgs] +
                               ['\n']))
+                              
+        if phenome:
+            for categ in biolog.getCategs(True):
+                scateg = categ.category.replace(' ','_').replace('&','and')
+                
+                oNet = getPanGenomeNet(project,
+                                       'all',
+                                       category=categ.category)
+                npath = makeRoom('', 'metNet', 'all', scateg)
+                writeNet(oNet, npath, '%s_%s.gml'%('all', scateg))
+                
+                fact.write('\t'.join( ['All', '', scateg] +
+                              [str(oNet.mean())] + [str(oNet.std())] +
+                              ['\n']))
+                              
+        # Single paths
+        logger.info('Single pathways stats')
+        
+        for path in kegg.getAllPathways(True):
+            logger.info('Pathway: %s // %s'%(path.path_id, path.name))
+            
+            if ':' in path.path_id:
+                spath = path.path_id.split(':')[1]
+                
+            oNet = {}
+            for org_id in orgs:
+                oNet[org_id] = getPanGenomeNet(project, org_id, path.path_id)
+                if allpaths:
+                    npath = makeRoom('', 'metNet', org_id)
+                    writeNet(oNet[org_id], npath, '%s_%s.gml'%(org_id, spath))
+                
+            flen.write('\t'.join( [path.path_id, path.name] +
+                                  [str(len(dapNet[path.path_id]))] +
+                                  [str(len(oNet[x])) for x in orgs] + ['\n']))
+            
+            fconn.write('\t'.join( [path.path_id, path.name] +
+                                  [str(dapNet[path.path_id].getComponents())] +
+                                  [str(oNet[x].getComponents()) for x in orgs] +
+                                  [str(dapNet[path.path_id].getComponentsMean())] +
+                                  [str(oNet[x].getComponentsMean()) for x in orgs] +
+                                  [str(dapNet[path.path_id].getComponentsStd())] +
+                                  [str(oNet[x].getComponentsStd()) for x in orgs] +
+                                  ['\n']))
+            
+            if phenome:
+                path_co = [x.co_id for x in kegg.getPathComps(path.path_id)]
+                for categ in biolog.getCategs(True):
+                    wells = [w for w in biolog.getAllCoByCateg(categ.category)
+                        if 'cpd:'+w.co_id in path_co]
+                    if len(wells) == 0:
+                        continue
+                    
+                    scateg = categ.category.replace(' ','_').replace('&','and')
+                    
+                    oNet = getOrgNet(project,
+                                     'all',
+                                     path.path_id,
+                                     categ.category)
+                    if allpaths:
+                        npath = makeRoom('', 'metNet', 'all', scateg)
+                        writeNet(oNet, npath,
+                                 '%s_%s_%s.gml'%('all', scateg, spath))
+                    
+                    fact.write('\t'.join( [path.path_id, path.name, scateg] +
+                                  [str(oNet.mean())] + [str(oNet.std())] +
+                                  ['\n']))
 
     elif kind == 'single' or allorgs or kind == 'mutants':
         logger.info('Single organisms networks')
@@ -2445,10 +2527,18 @@ def dNet(project, allorgs=False, allpaths=False):
                                   [str(oNet[x].mean()) for x in orgs] +
                                   [str(oNet[x].std()) for x in orgs] +
                                   ['\n']))
+    
+    try:
         flen.close()
         fconn.close()
         if phenome:
             fact.close()
+    except:pass
+    
+    logger.info('Metabolic network length stats saved to %s'%slen)
+    logger.info('Metabolic subnetworks stats saved to %s'%sconn)
+    if phenome:
+        logger.info('Metabolic network activity stats saved to %s'%sact)
     
     return True
     

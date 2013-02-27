@@ -9,6 +9,9 @@ Networks made using Kegg data
 import logging
 import networkx as nx
 import numpy as np
+# Nodes color handling
+import matplotlib.colors as pltcls
+import matplotlib.pyplot as plt
 
 __author__ = "Marco Galardini"
 
@@ -19,6 +22,8 @@ logger = logging.getLogger('ductape.net')
 
 ################################################################################
 # Classes
+
+phenomeNorm = pltcls.Normalize(vmin=0, vmax=9)
 
 class Compound(object):
     '''
@@ -31,6 +36,17 @@ class Compound(object):
         if weight:
             self.weight = weight
             
+    def getColor(self):
+        '''
+        Transform the node weight into an hex color
+        '''
+        if self.weight:
+            return pltcls.rgb2hex( 
+                                plt.get_cmap('RdYlGn')(phenomeNorm(self.weight))
+                                )
+        
+        return '#808080'
+                    
 class Reaction(object):
     '''
     Kegg reaction, enconded as an edge
@@ -64,6 +80,7 @@ class MetabolicNet(object):
                 self.net.add_node(n.co_id, name=n.name)
                 if hasattr(n, 'weight'):
                     self.net.node[n.co_id]['weight'] = n.weight
+                    self.net.node[n.co_id]['graphics'] = {'fill': n.getColor()}
         
         if edges:
             for e in edges:
@@ -95,6 +112,7 @@ class MetabolicNet(object):
             self.net.add_node(n.co_id, name=n.name)
             if hasattr(n, 'weight'):
                 self.net.node[n.co_id]['weight'] = n.weight
+                self.net.node[n.co_id]['graphics'] = {'fill': n.getColor()}
                 
     def __len__(self):
         '''

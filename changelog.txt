@@ -1,3 +1,10 @@
+Version 0.5.3
+=============
+
+dape start
+FEATURE: added AV color to KEGG compounds (GML graph output)
+BUGFIX: avoid duplicated nodes in the metabolic graphs
+
 Version 0.5.2
 =============
 

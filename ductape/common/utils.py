@@ -140,3 +140,15 @@ def makeRoom(location='', *args):
         except:pass
     
     return path
+
+def isOnline(url='http://8.8.8.8', timeout=1):
+    '''
+    Check if a particular site is online (with timeout)
+    If an IP address is provided, DNS lookup is skipped, so the timeout will be
+    onoured.
+    
+    Thanks to @unutbu on Stack Overflow
+    http://stackoverflow.com/questions/3764291/checking-network-connection
+    '''
+    import urllib2
+    response=urllib2.urlopen(url, timeout=1)

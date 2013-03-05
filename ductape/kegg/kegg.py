@@ -9,6 +9,7 @@ Kegg data fetching
 import urllib2 as urllib
 from ductape.common.commonthread import CommonThread
 from ductape.common.utils import get_span
+from ductape.common.utils import isOnline
 from ductape.kegg.web import kheader
 import Queue
 import logging
@@ -74,7 +75,9 @@ class KeggAPI(object):
     '''
     def __init__(self):
         self.baseurl = 'http://www.kegg.jp/'
+        self.baseip = 'http://133.103.200.32'
         self._apiurl = 'http://rest.kegg.jp/'
+        self._apiip = 'http://133.103.200.38'
         self._maplink = 'http://www.kegg.jp/kegg-bin/show_pathway?'
         self.clean()
     
@@ -802,6 +805,16 @@ class BaseKegg(CommonThread):
         handler = self.handlers[self._hindex] 
         self._hindex += 1
         return handler
+        
+    def checkConnection(self):
+        '''
+        Check if there are connection problems
+        First check the two IP addresses, then the URL
+        '''
+        check = [KeggAPI().baseip, KeggAPI()._apiip,
+                 KeggAPI().baseurl, KeggAPI()._apiurl]
+        for addr in check:
+            isOnline(addr)
             
 class BaseMapper(BaseKegg):
     def __init__(self, threads=40, avoid=[], queue=Queue.Queue()):
@@ -1431,15 +1444,16 @@ class KoMapper(BaseMapper):
     '''
     
     _statusDesc = {0:'Not started',
-               1:'Fetching reactions',
-               2:'Fetching rpairs',
-               3:'Fetching pathways',
-               4:'Fetching pathways content',
-               5:'Fetching reactions - compounds links',
-               6:'Fetching details on KEGG entries',
-               7:'Crafting results'}
+               1:'Checking connectivity',
+               2:'Fetching reactions',
+               3:'Fetching rpairs',
+               4:'Fetching pathways',
+               5:'Fetching pathways content',
+               6:'Fetching reactions - compounds links',
+               7:'Fetching details on KEGG entries',
+               8:'Crafting results'}
     
-    _substatuses = [1,2,3,4,5,6]
+    _substatuses = [2,3,4,5,6,7]
     
     def __init__(self, ko_list, threads=40, avoid=[], queue=Queue.Queue()):
         BaseMapper.__init__(self, threads=threads, avoid=avoid, queue=queue)
@@ -1550,13 +1564,20 @@ class KoMapper(BaseMapper):
                         self.reactdet[react] = None
     
     def run(self):
+        self.updateStatus()
+        try:
+            self.checkConnection()
+        except Exception, e:
+            self.sendFailure(str(e))
+            return
+    
         # Reactions
         self._maxsubstatus = len(self.ko)
         self.updateStatus()
         try:
             self.getReactions()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1570,7 +1591,7 @@ class KoMapper(BaseMapper):
         try:
             self.getReactRPairs()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1582,7 +1603,7 @@ class KoMapper(BaseMapper):
         try:
             self.getRPairReacts()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1596,7 +1617,7 @@ class KoMapper(BaseMapper):
         try:
             self.getPathways()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1611,7 +1632,7 @@ class KoMapper(BaseMapper):
         try:
             self.getPathReactions()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1624,7 +1645,7 @@ class KoMapper(BaseMapper):
         try:
             self.getPathCompounds()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1638,7 +1659,7 @@ class KoMapper(BaseMapper):
         try:
             self.getReactCompounds()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1651,7 +1672,7 @@ class KoMapper(BaseMapper):
         try:
             self.getCompoundReacts()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1665,7 +1686,7 @@ class KoMapper(BaseMapper):
         try:
             self.getKOdet()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1678,7 +1699,7 @@ class KoMapper(BaseMapper):
         try:
             self.getPathDetails()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1691,7 +1712,7 @@ class KoMapper(BaseMapper):
         try:
             self.getMapsDetails()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1704,7 +1725,7 @@ class KoMapper(BaseMapper):
         try:
             self.getReactDetails()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1717,7 +1738,7 @@ class KoMapper(BaseMapper):
         try:
             self.getCompDetails()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1730,7 +1751,7 @@ class KoMapper(BaseMapper):
         try:
             self.getRPairDetails()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1760,15 +1781,16 @@ class CompMapper(BaseMapper):
     '''
     
     _statusDesc = {0:'Not started',
-               1:'Fetching reactions',
-               2:'Fetching rpairs',
-               3:'Fetching pathways',
-               4:'Fetching pathways content',
-               5:'Fetching reactions - compounds links',
-               6:'Fetching details on KEGG entries',
-               7:'Crafting results'}
+               1:'Checking connectivity',
+               2:'Fetching reactions',
+               3:'Fetching rpairs',
+               4:'Fetching pathways',
+               5:'Fetching pathways content',
+               6:'Fetching reactions - compounds links',
+               7:'Fetching details on KEGG entries',
+               8:'Crafting results'}
     
-    _substatuses = [1,2,3,4,5,6]
+    _substatuses = [2,3,4,5,6,7]
     
     def __init__(self, co_list, threads=40, avoid=[], queue=Queue.Queue()):
         BaseMapper.__init__(self, threads=threads, avoid=avoid, queue=queue)
@@ -1779,6 +1801,13 @@ class CompMapper(BaseMapper):
         self.comppath = {}
     
     def run(self):
+        self.updateStatus()
+        try:
+            self.checkConnection()
+        except Exception, e:
+            self.sendFailure(str(e))
+            return
+    
         # Reactions
         for co_id in self.co:
             self.compdet[co_id] = None
@@ -1787,7 +1816,7 @@ class CompMapper(BaseMapper):
         try:
             self.getCompoundReacts()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1801,7 +1830,7 @@ class CompMapper(BaseMapper):
         try:
             self.getReactRPairs()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1813,7 +1842,7 @@ class CompMapper(BaseMapper):
         try:
             self.getRPairReacts()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1827,7 +1856,7 @@ class CompMapper(BaseMapper):
         try:
             self.getPathways()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1842,7 +1871,7 @@ class CompMapper(BaseMapper):
         try:
             self.getPathReactions()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1855,7 +1884,7 @@ class CompMapper(BaseMapper):
         try:
             self.getPathCompounds()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1869,7 +1898,7 @@ class CompMapper(BaseMapper):
         try:
             self.getReactCompounds()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1882,7 +1911,7 @@ class CompMapper(BaseMapper):
         try:
             self.getCompoundReacts()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1896,7 +1925,7 @@ class CompMapper(BaseMapper):
         try:
             self.getPathDetails()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1909,7 +1938,7 @@ class CompMapper(BaseMapper):
         try:
             self.getMapsDetails()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1922,7 +1951,7 @@ class CompMapper(BaseMapper):
         try:
             self.getReactDetails()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1935,7 +1964,7 @@ class CompMapper(BaseMapper):
         try:
             self.getCompDetails()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1948,7 +1977,7 @@ class CompMapper(BaseMapper):
         try:
             self.getRPairDetails()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -1978,11 +2007,12 @@ class MapsFetcher(BaseKegg):
     '''
     
     _statusDesc = {0:'Not started',
-               1:'Making room',
-               2:'Fetching maps (pictures)',
-               3:'Generating interactive web pages'}
+               1:'Checking connectivity',
+               2:'Making room',
+               3:'Fetching maps (pictures)',
+               4:'Generating interactive web pages'}
     
-    _substatuses = [2]
+    _substatuses = [3]
     
     def __init__(self, color_objs, pictures=True, html=True, prefix='', 
                  legend=None, threads=40, queue=Queue.Queue()):
@@ -2171,6 +2201,13 @@ class MapsFetcher(BaseKegg):
     
     def run(self):
         self.updateStatus()
+        try:
+            self.checkConnection()
+        except Exception, e:
+            self.sendFailure(str(e))
+            return
+    
+        self.updateStatus()
         self.makeRoom()
         
         if self.killed:
@@ -2215,16 +2252,17 @@ class KeggNet(BaseMapper):
     '''
     
     _statusDesc = {0:'Not started',
-               1:'Fetching pathways',
-               2:'Fetching compounds',
-               3:'Fetching compounds - reactions links',
-               4:'Fetching reactions',
-               5:'Fetching rpairs',
-               6:'Fetching reactions - compounds links',
-               7:'Fetching details on KEGG entries',
-               8:'Crafting results'}
+               1:'Checking connectivity',
+               2:'Fetching pathways',
+               3:'Fetching compounds',
+               4:'Fetching compounds - reactions links',
+               5:'Fetching reactions',
+               6:'Fetching rpairs',
+               7:'Fetching reactions - compounds links',
+               8:'Fetching details on KEGG entries',
+               9:'Crafting results'}
     
-    _substatuses = [2,3,4,5,6,7]
+    _substatuses = [3,4,5,6,7,8]
     
     def __init__(self, threads=40, avoid=[], queue=Queue.Queue()):
         BaseMapper.__init__(self, threads=threads, avoid=avoid, queue=queue)
@@ -2241,12 +2279,19 @@ class KeggNet(BaseMapper):
             self.pathdet[p] = None
     
     def run(self):
+        self.updateStatus()
+        try:
+            self.checkConnection()
+        except Exception, e:
+            self.sendFailure(str(e))
+            return
+    
         # Get pathways
         self.updateStatus()
         try:
             self.getAllPathways()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         
         if self.killed:
@@ -2258,7 +2303,7 @@ class KeggNet(BaseMapper):
         try:
             self.getPathCompounds()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -2272,7 +2317,7 @@ class KeggNet(BaseMapper):
         try:
             self.getCompoundReacts()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -2286,7 +2331,7 @@ class KeggNet(BaseMapper):
         try:
             self.getPathReactions()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -2300,7 +2345,7 @@ class KeggNet(BaseMapper):
         try:
             self.getReactRPairs()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -2312,7 +2357,7 @@ class KeggNet(BaseMapper):
         try:
             self.getRPairReacts()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -2326,7 +2371,7 @@ class KeggNet(BaseMapper):
         try:
             self.getReactCompounds()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -2341,7 +2386,7 @@ class KeggNet(BaseMapper):
         try:
             self.getPathDetails()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -2354,7 +2399,7 @@ class KeggNet(BaseMapper):
         try:
             self.getMapsDetails()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -2367,7 +2412,7 @@ class KeggNet(BaseMapper):
         try:
             self.getReactDetails()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -2380,7 +2425,7 @@ class KeggNet(BaseMapper):
         try:
             self.getCompDetails()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()
@@ -2393,7 +2438,7 @@ class KeggNet(BaseMapper):
         try:
             self.getRPairDetails()
         except Exception, e:
-            self.sendFailure(e.message)
+            self.sendFailure(str(e))
             return
         self.cleanHandlers()
         self.resetSubStatus()

@@ -6,6 +6,7 @@ Phenome library
 
 Classes to handle Biolog data
 """
+from ductape import __email__
 from ductape.common.commonthread import CommonThread
 from ductape.common.utils import smooth, compress
 from matplotlib import cm
@@ -1349,21 +1350,36 @@ class BiologParser(object):
                 wells = []
                 plate = SinglePlate()
             elif self._plate in line[0].strip():
-                if line[1].strip() in acceptedPlates:
-                    plate.plate_id = line[1].strip()
+                plateID = line[1].strip()
+                
+                if plateID not in dPlates and plateID not in acceptedPlates:
+                    logger.warning('Unknown plate ID has been found (%s)'%plateID)
+                    logger.warning(
+                        'Please send your csv file to %s'%__email__)
+                    plate = None
+                    continue
+                
+                if plateID in acceptedPlates:
+                    plate.plate_id = plateID
                 else:
-                    plate.plate_id = dPlates[line[1].strip()]
+                    plate.plate_id = dPlates[plateID]
             elif self._strainType in line[0].strip():
+                if not plate:continue
                 plate.strainType = line[1].strip()
             elif self._sample in line[0].strip():
+                if not plate:continue
                 plate.sample = line[1].strip()
             elif self._strainNumber in line[0].strip():
+                if not plate:continue
                 plate.strainNumber = line[1].strip()
             elif self._strainName in line[0].strip():
+                if not plate:continue
                 plate.strainName = line[1].strip()
             elif self._other in line[0].strip():
+                if not plate:continue
                 plate.other = line[1].strip()
             elif self._dataStart in line[0].strip():
+                if not plate:continue
                 data = True
                 for i in range(len(line)):
                     if i == 0:continue
@@ -1373,6 +1389,7 @@ class BiologParser(object):
                     plate._idx[i] = x.strip()
                     wells.append(x.strip())
             elif data:
+                if not plate:continue
                 # Workaround for bad-formatted files
                 try: float(line[0])
                 except:

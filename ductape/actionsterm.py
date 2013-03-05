@@ -20,12 +20,21 @@ logger = logging.getLogger('ductape.actionsterm')
 # Methods
 
 def fetchKegg(project):
-    from ductape.kegg.kegg import KeggNet, KeggAPI
+    from ductape.kegg.kegg import KeggNet, KeggAPI, BaseKegg
     from ductape.terminal import RunThread
     
     # Check if we have to fetch the whole kegg DB
     fetch = False
     proj = Project(project)
+    
+    logger.info('Checking connectivity')
+    bk = BaseKegg()
+    try:
+        bk.checkConnection()
+    except Exception, e:
+        logger.error(str(e))
+        return False
+    
     k = KeggAPI()
     try:
         k.getDBVersion()

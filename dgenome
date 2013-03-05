@@ -110,6 +110,9 @@ def dstart(options, wdir, project):
                 logger.error('PanGenome could not be calculated!')
                 return False
         elif step == 'map2ko':
+            if options.g:
+                logger.warning('Skipping Kegg mapping')
+                continue
             if not doMap2KO(project, infiles, local=options.l, keggdb=options.k):
                 logger.error('Genome(s) could not be mapped to ko!')
                 return False
@@ -119,6 +122,9 @@ def dstart(options, wdir, project):
             else:
                 break
         elif step == 'map2kegg':
+            if options.g:
+                logger.warning('Skipping Kegg mapping')
+                continue
             if not doMap2KEGG(project):
                 logger.error('Genome(s) could not be mapped to kegg!')
                 return False
@@ -355,6 +361,9 @@ def getOptions():
     parser_start.add_argument('-s', action="store_true",
                             default=False,
                             help='Skip pangenome creation')
+    parser_start.add_argument('-g', action="store_true",
+                            default=False,
+                            help='Skip Kegg mapping')
     parser_start.add_argument('-p', action="store", dest='prefix',
                             default='',
                             help='Orthologous groups prefix')

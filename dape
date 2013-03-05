@@ -59,8 +59,11 @@ def dstart(options, wdir, project):
                        __prog__)
         return False
     
-    # Fetch the Kegg DB?
-    fetchKegg(project)
+    if options.g:
+        logger.warning('Skipping mapping to Kegg')
+    else:
+        # Fetch the Kegg DB?
+        fetchKegg(project)
     
     return dNet(project, options.all, options.paths)
 
@@ -885,6 +888,9 @@ def getOptions():
     parser_add_mut.set_defaults(func=daddMut)
     
     parser_start = subparsers.add_parser('start', help='Start the analysis')
+    parser_start.add_argument('-g', action="store_true",
+                            default=False,
+                            help='Skip Kegg mapping')
     parser_start.add_argument('-a', '--all', action="store_true",
                             default=False,
                             help='Create single organisms net')

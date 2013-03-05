@@ -73,12 +73,19 @@ def dstart(options, wdir, project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
-    
-    # Clusterize the biolog experiment
-    if not doClusterPhenome(project, save_fig_clusters=options.f):
-        logger.error('Phenome experiment could not be clustered!')
-        return False
-    
+
+    if options.p:
+        logger.warning('Skipping parameters calculation')
+    else:   
+        # Clusterize the biolog experiment
+        if not doClusterPhenome(project, save_fig_clusters=options.f):
+            logger.error('Phenome experiment could not be clustered!')
+            return False
+
+    if options.g:
+        logger.warning('Skipping Kegg mapping')
+        return True
+            
     # Fetch the Kegg DB?
     fetchKegg(project)
     
@@ -378,6 +385,12 @@ def getOptions():
     parser_zero.set_defaults(func=dzero)
 
     parser_start = subparsers.add_parser('start', help='Start the analysis')
+    parser_start.add_argument('-p', action="store_true",
+                            default=False,
+                            help='Skip parameters calculation')
+    parser_start.add_argument('-g', action="store_true",
+                            default=False,
+                            help='Skip Kegg mapping')
     parser_start.add_argument('-f', action="store_true",
                             default=False,
                             help='Save intermediate clusters figures')

@@ -40,6 +40,18 @@ def dadd(options, wdir, project):
                        __prog__)
         return False
     return dAdd(project, options.orgID, options.n, options.d, options.c)
+    
+def daddMulti(options, wdir, project):
+    from ductape.actions import dAdd
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+        
+    for organism in options.orgID:
+        res = dAdd(project, organism)
+        if not res:
+            logger.warning('Could not add organism (%s)'%organism)
 
 def daddMut(options, wdir, project):
     from ductape.actions import dMutAdd
@@ -864,6 +876,12 @@ def getOptions():
                             default = '',
                             help='Organism color')
     parser_add.set_defaults(func=dadd)
+    
+    parser_add_multi = subparsers.add_parser('add-multi',
+                       help='Add multiple organisms (providing just the ID)')
+    parser_add_multi.add_argument('orgID', action='store', nargs='+',
+                            help='Organism ID')
+    parser_add_multi.set_defaults(func=daddMulti)
     
     parser_add_mut = subparsers.add_parser('add-mut',
                                help='Add a mutant of an existing organism')

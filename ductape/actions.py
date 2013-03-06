@@ -1851,6 +1851,19 @@ def dPhenomeExport(project):
     
     biolog = Biolog(project)    
     
+    logger.info('Exporting Biolog plate data')
+    fname = 'biolog.tsv'
+    fout = open(fname,'w')
+    
+    i = 0
+    for row in biolog.exportBiolog():
+        fout.write(row + '\n')
+        i += 1
+        
+    fout.close()
+    
+    logger.info('Exported %d Biolog wells (%s)'%(i, fname))
+    
     # Which project are we talking about?
     kind = dSetKind(project)    
     

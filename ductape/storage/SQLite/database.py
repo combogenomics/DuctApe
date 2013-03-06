@@ -13,6 +13,7 @@ from ductape.common.utils import get_span
 import logging
 import sqlite3
 import time
+import os
 
 __author__ = "Marco Galardini"
 
@@ -71,9 +72,15 @@ class DBBase(object):
         Returns True/False
         '''
         try:
+            self.boost()
+            
             with self.connection:
                 for command in dbcreate.split(';'):
                     self.connection.execute(command+';')
+                    
+            # Import Biolog data
+            b = Biolog(self.dbname)
+            b.create()
         except sqlite3.Error, e:
             logger.error('Could not create the database!')
             logger.error(e)
@@ -2515,7 +2522,65 @@ class Biolog(DBBase):
         oOrg.resetPhenomes()
         
         self.resetProject()
+        
+    def exportBiolog(self):
+        '''
+        Generator for biolog data export
+        All the relevant data for the biolog plates is extracted
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('select * from biolog;')
+        
+        yield '# DuctApe generated dump of the Biolog plates'
+        yield '#'
+        yield '# NOTE: the column "concentration" should be set to 0'
+        yield '# set values from 1 to N (i.e. 4) in chemical sensitivity plates'
+        yield '#'
+        yield '#' + '\t'.join([str(field[0]) 
+                             for field in cursor.description])
+                             
+        for res in cursor:
+            yield '\t'.join([str(res[cursor.description.index(field)]) 
+                             for field in cursor.description])
+                             
+    def importBiolog(self, infile):
+        '''
+        Imports the content of the file object into the biolog table
+        Used when first create the database and to add custom plates
+        In case of errors there should be a rollback
+        '''
+        self.boost()
+        
+        with self.connection as conn:
+            for l in open(infile):
+                if l.lstrip().startswith('#'):continue
+            
+                s = l.rstrip('\n').split('\t')
+               
+                for i in range(len(s)):
+                    if s[i] == 'None':
+                        s[i] = None
+                
+                values = ''
+                for i in range(len(s)):
+                    values += '''?, '''
+                values = values.rstrip(', ')
+                query = '''insert or replace into biolog values (%s);'''%(values)
+                
+                conn.execute(query, s)
     
+    def create(self):
+        '''
+        Import the standard biolog plates dump
+        
+        To be used on project init
+        '''
+        import os
+        import ductape.storage.data as data
+
+        fname = os.path.join(os.path.dirname(data.__file__),'biolog.tsv')
+        self.importBiolog(fname)
+
     def isPlate(self, plate_id):
         '''
         Is this plate present?

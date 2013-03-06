@@ -1048,7 +1048,7 @@ class Kegg(DBBase):
             cursor=conn.execute('select * from pathway;')
             
         # Exceptionally ugly exception
-        # Newlines chars in html maps are converted in NEWLINEHERE
+        # Newlines chars in html maps are converted in DUCTAPENEWLINEHERE
         # Which is stupid, but for know it will suffice
         for res in cursor:
             yield '\t'.join(['pathway'] + 
@@ -1120,6 +1120,8 @@ class Kegg(DBBase):
         
         with self.connection as conn:
             for l in infile:
+                if l.lstrip().startswith('#'):continue
+            
                 s = l.rstrip('\n').split('\t')
                 # Special case #1
                 if s[0] == 'release':

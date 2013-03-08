@@ -31,7 +31,12 @@ logger = logging.getLogger('ductape.biolog')
 ################################################################################
 # Plate ID conversion and sanity checks
 
-dPlates = {'PM 1-':'PM01', 'PM 2-A':'PM02A',
+dPlates = { 'PM01-':'PM01', 'PM02-A':'PM02A',
+            'PM03-B':'PM03B', 'PM04-A':'PM04A',
+            'PM05-':'PM05', 'PM06-':'PM06',
+            'PM07-':'PM07', 'PM08-':'PM08',
+            'PM09-':'PM09',
+            'PM 1-':'PM01', 'PM 2-A':'PM02A',
             'PM 3-B':'PM03B', 'PM 4-A':'PM04A',
             'PM 5-':'PM05', 'PM 6-':'PM06',
             'PM 7-':'PM07', 'PM 8-':'PM08',
@@ -48,12 +53,46 @@ dPlates = {'PM 1-':'PM01', 'PM 2-A':'PM02A',
             'PM09-':'PM09',
             # TODO: These are just guesses for now
             'PM21-D':'PM21D', 'PM22-C':'PM22C',
-            'PM23-A':'PM23A', 'PM24-B':'PM24B'}
+            'PM23-A':'PM23A', 'PM24-B':'PM24B',
+            #TODO: Guesses for old plates versions
+            'PM 2-':'PM02', 'PM 3-B':'PM03B', 'PM3-B':'PM03B',
+            'PM 3-A':'PM03A', 'PM3-A':'PM03A',
+            'PM 3-':'PM03', 'PM3-':'PM03',
+            'PM 4-A':'PM04A', 'PM4-A':'PM04A',
+            'PM 4-':'PM04', 'PM4-':'PM04',
+            'PM02-':'PM02', 'PM03-B':'PM03B', 'PM3-B':'PM03B',
+            'PM03-A':'PM03A', 'PM3-A':'PM03A',
+            'PM03-':'PM03', 'PM3-':'PM03',
+            'PM04-A':'PM04A', 'PM4-A':'PM04A',
+            'PM04-':'PM04', 'PM4-':'PM04',
+            'PM11-C':'PM11C', 'PM11-B':'PM11B', 
+            'PM11-A':'PM11A', 'PM11-':'PM11', 
+            'PM12-B':'PM12B', 'PM12-A':'PM12A', 
+            'PM12-':'PM12', 'PM13-B':'PM13B', 
+            'PM13-A':'PM13A', 'PM13-':'PM13', 
+            'PM14-A':'PM14A', 'PM14-':'PM14', 
+            'PM15-B':'PM15B', 'PM15-A':'PM15A', 
+            'PM15-':'PM15', 'PM16-A':'PM16A', 
+            'PM16-':'PM16', 'PM17-A':'PM17A', 
+            'PM17-':'PM17', 'PM18-C':'PM18C', 
+            'PM18-B':'PM18B', 'PM18-A':'PM18A', 
+            'PM18-':'PM18', 'PM20-B':'PM20B', 
+            'PM20-A':'PM20A', 'PM20-':'PM20', 
+            'PM21-D':'PM21D', 'PM21-C':'PM21C', 
+            'PM21-B':'PM21B', 'PM21-A':'PM21A', 
+            'PM21-':'PM21', 'PM22-C':'PM22C', 
+            'PM22-B':'PM22B', 'PM22-A':'PM22A', 
+            'PM22-':'PM22', 'PM23-A':'PM23A', 
+            'PM23-':'PM23', 'PM24-B':'PM24B', 
+            'PM24-A':'PM24A', 'PM24-':'PM24'}
 
 acceptedPlates = dPlates.values()
 
+#TODO: on new plates import find a way to signal which plates can be zero-subtracted
 zeroPlates = ['PM01','PM02A','PM03B','PM04A','PM05',
-              'PM06','PM07','PM08','PM03B','PM04A']
+              'PM06','PM07','PM08','PM03B','PM04A',
+              'PM03B', 'PM03B','PM03A', 'PM03A',
+              'PM03', 'PM03','PM04A', 'PM04A','PM04', 'PM04']
 zeroWell = 'A01'
 
 wellChars = 'ABCDEFGH'
@@ -1356,6 +1395,7 @@ class BiologParser(object):
                     logger.warning('Unknown plate ID has been found (%s)'%plateID)
                     logger.warning(
                         'Please send your csv file to %s'%__email__)
+                    logger.warning('Or you can import your custom plate')
                     plate = None
                     continue
                 

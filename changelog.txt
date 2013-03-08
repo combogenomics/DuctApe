@@ -1,3 +1,23 @@
+Version 0.5.4
+=============
+
+UPGRADE URGENCY: HIGH; dphenome users may be unable to load some PM data 
+
+dphenome
+FEATURE: import/export plates data
+BUGFIX: biolog parser shouldn't fail on unknown plates
+BUGFIX: handle new possible plate names some plates names
+
+dape
+FEATURE: add-multi lets the user to provide multiple orgID
+Fixed some typos
+
+dape/dgenome/dphenome start:
+FEATURE: added options to skip kegg map and phenomics parameters calculation
+
+kegg:
+FEATURE: internet connectivity is checked before the kegg mapping is performed
+
 Version 0.5.3
 =============
 

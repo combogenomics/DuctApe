@@ -172,9 +172,11 @@ class KeggAPI(object):
                     logger.warning('info failed!')
                     raise Exception('info request failed')
     
-    def getTitle(self, entries, retries=5):
+    def getTitle(self, entries, otherTags=[], retries=5):
         '''
         Get the title of a specific KEGG object
+        Default behaviour is to return NAME and DEFINITION tags
+        Additional tags can be provided in otherTags
         '''
         attempts = 0
         while True:
@@ -204,6 +206,11 @@ class KeggAPI(object):
                                             self.getEntryTag(lines, 'NAME'),
                                             self.getEntryTag(lines, 'DEFINITION')
                                             ]
+
+                                # TODO: a more general approach for this                                             
+                                for tag in otherTags:
+                                    value = self.getEntryTag(lines, tag)
+                                    self.result[longID].append(value)
                     except:
                         continue
                     
@@ -225,7 +232,7 @@ class KeggAPI(object):
                 if attempts >= retries:
                     logger.warning('get failed!')
                     raise Exception('get request failed')
-                
+          
     def getRPair(self, entries, retries=5):
         '''
         Similar to getTitle, but targeting specific features of RPair

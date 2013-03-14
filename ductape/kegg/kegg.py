@@ -867,7 +867,7 @@ class BaseMapper(BaseKegg):
                 
                 obj = threading.Thread(
                                 target = self.getHandler().getTitle,
-                                args = (ids,))
+                                args = (ids,['ENZYME'],))
                 obj.start()
                 threads.append(obj)
             time.sleep(0.01)

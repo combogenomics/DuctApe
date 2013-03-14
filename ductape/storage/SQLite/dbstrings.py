@@ -47,7 +47,8 @@ CREATE TABLE "ko" (
 CREATE TABLE "reaction" (
     "re_id" TEXT NOT NULL,
     "name" TEXT,
-    "description" TEXT
+    "description" TEXT,
+    "enzyme" TEXT
 );
 CREATE TABLE "rpair" (
     "rp_id" TEXT NOT NULL,

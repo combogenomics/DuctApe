@@ -1799,6 +1799,28 @@ def dGenomeExport(project):
         else:
             logger.info('Saved %d Kegg reactions links for %s (%s)'%
                     (i, org.org_id, fname))
+      
+    logger.info('Exporting EC numbers')
+    
+    for org in organism.getAll():
+        fname = 'ecnumbers_%s.tsv'%org.org_id
+        fout = open(fname,'w')
+        fout.write('#%s\t%s\n'%('prot_id', 'EC_number'))
+        i = 0
+        for prot_id, ec_ids in kegg.getAllECNumbers(org.org_id):
+            while '  ' in ec_ids:
+                ec_ids = ec_ids.replace('  ', ' ')
+            for ec_id in ec_ids.split():
+                fout.write('%s\t%s\n'%(prot_id, ec_id))
+                i += 1
+        fout.close()
+        
+        if i == 0:
+            os.remove(fname)
+            logger.warning('No EC numbers available for %s'%org.org_id)
+        else:
+            logger.info('Saved %d EC numbers links for %s (%s)'%
+                    (i, org.org_id, fname))
         
     proj = Project(project)
     

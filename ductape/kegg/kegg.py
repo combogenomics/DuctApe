@@ -96,7 +96,7 @@ class KeggAPI(object):
                 res += line.rstrip().lstrip(tag).lstrip()
                 b = True
             elif b and line[0] == ' ':
-                res += line.rstrip().lstrip()
+                res += ' ' + line.rstrip().lstrip()
             elif b and line[0] != ' ':
                 b = False
                 return res

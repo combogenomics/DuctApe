@@ -1926,7 +1926,7 @@ def dPhenomeExport(project):
             fout = open(fname,'w')
             fout.write('#' + '\t'.join(['plate_id', 'well_id', 'chemical',
                                     'category',
-                                    'moa', 'co_id', 'replica',
+                                    'moa', 'co_id',
                                     'avg activity']) + '\n')
             i = 0
             for w in biolog.getOrgDistinctWells(org.org_id):

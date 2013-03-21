@@ -2163,7 +2163,7 @@ def getOrgNet(project, org_id, path_id=None, category=None):
         for k in toremove:
             del corg[k]
         
-        compounds = [Compound(k,kegg.getCompound('cpd:'+k).name,v) for k,v in corg.iteritems()]
+        compounds = [Compound('cpd:'+k,kegg.getCompound('cpd:'+k).name,v) for k,v in corg.iteritems()]
         net.addNodes(compounds)
         logger.debug('Added %d metabolic activities'%len(compounds))
         
@@ -2253,7 +2253,7 @@ def getPanGenomeNet(project, pangenome='all', path_id=None, category=None):
         for k in toremove:
             del corg[k]
         
-        compounds = [Compound(k,kegg.getCompound('cpd:'+k).name,v) for k,v in corg.iteritems()]
+        compounds = [Compound('cpd:'+k,kegg.getCompound('cpd:'+k).name,v) for k,v in corg.iteritems()]
         net.addNodes(compounds)
         logger.debug('Added %d metabolic activities'%len(compounds))
         

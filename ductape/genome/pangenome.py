@@ -56,7 +56,7 @@ class PanGenomer(CommonMultiProcess):
         self._pangenomeroom = None
         self.prefix = prefix.rstrip('_')
         self.matrix = matrix
-        self._already = []
+        self._already = set()
         # Results
         self.orthologs = {}
         self.core = []
@@ -186,7 +186,7 @@ class PanGenomer(CommonMultiProcess):
                         if result[0] and result[0] not in self._already:
                             self.orthologs[orthname].append(result[0])
                             orgsincluded.append(result[1])
-                            self._already.append(result[0])
+                            self._already.add(result[0])
                             
                     if self.isTerminated():
                         break
@@ -207,7 +207,7 @@ class PanGenomer(CommonMultiProcess):
                     if result[0] and result[0] not in self._already:
                         self.orthologs[orthname].append(result[0])
                         orgsincluded.append(result[1])
-                        self._already.append(result[0])
+                        self._already.add(result[0])
                 
                 self.killParallel()
                 
@@ -274,7 +274,7 @@ class PanGenomer(CommonMultiProcess):
                                 if result[0] and result[0] not in self._already:
                                     self.orthologs[orthname].append(result[0])
                                     orgsincluded.append(result[1])
-                                    self._already.append(result[0])
+                                    self._already.add(result[0])
                             
                             if self.isTerminated():
                                 break
@@ -295,7 +295,7 @@ class PanGenomer(CommonMultiProcess):
                             if result[0] and result[0] not in self._already:
                                 self.orthologs[orthname].append(result[0])
                                 orgsincluded.append(result[1])
-                                self._already.append(result[0])
+                                self._already.add(result[0])
                         
                         self.killParallel()
                 

@@ -124,16 +124,18 @@ class Blaster(object):
 
         return bool(not return_code)
     
-    def runBlast(self, queryFile, db, outFile, evalue = 10,
-                    task = '', ncpus = 1, additional = ''):
+    def runBlast(self, queryFile, db, outFile='', evalue = 10,
+                    task = '', ncpus = 1, additional = '', outfmt='5'):
         '''Run Blast with the desired parameters'''
         # Create the command line
         from Bio.Blast.Applications import NcbiblastpCommandline
         self._out = outFile
         cmd = NcbiblastpCommandline(query=queryFile, db=db,
                 evalue=float(evalue),
-                outfmt='5',out=outFile,
+                outfmt=outfmt,
                 num_threads=ncpus)
+        if outFile != '':
+            cmd.set_parameter('out', outFile)
         if task != '':
             cmd.set_parameter('task', task)
         if additional !='':

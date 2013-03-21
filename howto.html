@@ -8,11 +8,11 @@
     <meta name="author" content="Marco Galardini" >
     
     <!-- Le meta tag to refresh the cache -->
-    <meta http-equiv="last-modified" content="Mon, 11 Mar 2013 16:00:00 GMT" />
+    <meta http-equiv="last-modified" content="Thu, 21 Mar 2013 16:00:00 GMT" />
 
     <!-- Le styles -->
     <link href="css/bootstrap.css" rel="stylesheet">
-			 <link href="css/custom.css" rel="stylesheet">
+       <link href="css/custom.css" rel="stylesheet">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -24,11 +24,11 @@
   </head>
 
   <body>
-			<div class="navbar navbar-static-top">
-		  <div class="navbar-inner">
-  		  <div class="container">
+      <div class="navbar navbar-static-top">
+      <div class="navbar-inner">
+        <div class="container">
 
-   	   <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
@@ -37,452 +37,452 @@
       <a class="brand" href="index.html">DuctApe</a>
  
       <div class="nav-collapse collapse brandmini">
-      		<div class="nav"><a href="https://github.com/combogenomics/DuctApe/archive/DuctApe0.5.4.tar.gz"><i class="icon-download"></i> Download &raquo;</a></div>
-      		<div class="nav"><a href="index.html#info"><i class="icon-info-sign"></i> More info</a></div>
+          <div class="nav"><a href="https://github.com/combogenomics/DuctApe/archive/DuctApe0.5.4.tar.gz"><i class="icon-download"></i> Download &raquo;</a></div>
+          <div class="nav"><a href="index.html#info"><i class="icon-info-sign"></i> More info</a></div>
       </div>
  
-   	 </div>
-  			</div>	
-			</div>
+      </div>
+        </div>  
+      </div>
 
     <div class="container">
       <div id="home">
-							<div class="row">
-								<noscript>
-			  					<div class="alert alert-error">
-										<strong>Whoops! You have javascript disabled</strong>
-											<br/>                
-										You may be unable to enjoy this site, sorry :(
-			  					</div>
-			 					</noscript>
-			 				</div>      
+              <div class="row">
+                <noscript>
+                  <div class="alert alert-error">
+                    <strong>Whoops! You have javascript disabled</strong>
+                      <br/>                
+                    You may be unable to enjoy this site, sorry :(
+                  </div>
+                 </noscript>
+               </div>      
       
-							<div class="row">
-								<div class="span3 hidden-phone">
-        		<ul class="nav nav-list da-docs-sidenav">
-        		<li><a href="#start"><i class="icon-chevron-right"></i> Howto</a></li>
-          		<li><a href="#requirements"><i class="icon-chevron-right"></i> Requirements</a></li>
-          		<li><a href="#installation"><i class="icon-chevron-right"></i> Installation</a></li>
-          		<li><a href="#general"><i class="icon-chevron-right"></i> DuctApe</a></li>
-          		<li><a href="#dape"><i class="icon-chevron-right"></i> dape</a></li>
-          		<li><a href="#dgenome"><i class="icon-chevron-right"></i> dgenome</a></li>
-          		<li><a href="#dphenome"><i class="icon-chevron-right"></i> dphenome</a></li>
-          		<li><a href="#examples"><i class="icon-chevron-right"></i> Examples</a></li>
-          		<li><a href="#talks"><i class="icon-chevron-right"></i> Talks</a></li>
-		        </ul>
-  				    </div>
-  				    <div class="span9" id="howto">
-  				    		<div class="dwell">
-  				    						<div id="start">
-											<div class="page-header">
-												<h1><div class="title">Howto</div></h1>
-												<h1><div class="title"><small>A quick tour into DuctApe</small></div></h1>
-											</div>
-											<p>For further questions and updates, please contact <a href="mailto:ductape-users@googlegroups.com">ductape-users@googlegroups.com</a> or subscribe to the <a href="https://groups.google.com/forum/?fromgroups#!forum/ductape-users">user group</a></p>
-										</div>
-										
-  				    
-										<div id="requirements">
-											<div class="page-header">
-												<h1><div class="minititle">Requirements
-												</div></h1>
-											</div>
-											<p>
-												DuctApe should work in all Unix systems with a python install; the dependencies are the following:
-											</p>
-											<ul>
-												<li><a href="http://www.python.org/">python</a> 2.6 or higher</li>
-												<li><a href="http://www.biopython.org/">Biopython</a></li>
-												<li><a href="http://numpy.scipy.org/">NumPy</a></li>
-												<li><a href="http://scipy.org/">SciPy</a></li>
-												<li><a href="http://matplotlib.org/">matplotlib</a></li>
-												<li><a href="http://scikit-learn.org/">scikits.learn</a></li>
-												<li><a href="http://docs.python.org/2/library/multiprocessing.html">multiprocessing</a> (included in python 2.6)</li>
-												<li><a href="http://networkx.lanl.gov/">networkx</a></li>
-												<li><a href="http://www.ncbi.nlm.nih.gov/BLAST/">Blast+</a></li>
-											</ul>
-											<p>
-												Each one of this dependencies can be installed directly, through the <a href="http://pypi.python.org/pypi/pip">pip package manager</a> or through your operating system package manager (i.e. apt-get for Debian/Ubuntu, yum for Fedora, ecc..). The only exception is Blast+, which is a stand-alone application.</p>
-												<p>
-													Example of a python library install through pip (using the command line)
-												</p>
-												<p>
-													<code>sudo pip install matplotlib</code>
-												</p>
-										
-										</div>
-										
-										<div id="installation">
-												<div class="page-header">
-													<h1><div class="minititle">Installation</div></h1>
-												</div>
-												<p>There are two ways to install DuctApe:</p>
-												<p><strong>Method 1 (dependencies won't be checked)</strong></p>
-												<ol>
-													<li>Extract the archive</li>
-													<code>tar -xvf DuctApe-X.X.X.tar.gz</code>
-													<li>Enter the directory</li>
-													<code>cd DuctApe-X.X.X</code>
-													<li>Install</li>
-													<code>sudo python setup.py install</code>
-												</ol>
-												<br>
-												<p><strong>Method 2 (missing dependencies will be downloaded)</strong></p>
-												<p><code>sudo pip install DuctApe-X.X.X.tar.gz</code></p>
-												<p>To check that the install process succeeded, try to open a terminal and type the following line:</p>
-												<p>
-													<code>dape --version</code>
-												</p>
-										</div>
-										
-										<div id="general">
-												<div class="page-header">
-													<h1><div class="minititle">DuctApe</div></h1>
-												</div>
-												<p>
-													DuctApe consists of three command line utilities with many subcommands: <b>all of them act on a project file</b> (technically speaking an SQLite database) which contains all the informations about the analysis. This file can be exchanged between users and computers without the need to transfer many files, as all the outputs can be generated from this single database. The database file can be even opened with any SQLite browser by expert users for custom queries.
-												</p>
-												<p>
-													The three modules have a somewhat similar subcommands structure: an <i>add</i> command to push input data, a <i>start</i> command to perform the core analysis, an <i>export</i> command to save the outputs for further analysis and a <i>stats</i> command to print out some statistics about the data. Given this common features, each command has a set of unique subcommands and different behaviours and purposes.
-												</p>
-												<p>All the modules and subcommands have some common options:</p>
-												<dl class="dl-horizontal">
-  												<dt>-p</dt>
-  												<dd>Project file to be used [default: ductape.db]</dd>
-  												<dt>-w</dt>
-  												<dd>Working directory [default: .]</dd>
-  												<dt>-v</dt>
-  												<dd>Increase log verbosity (can be used many times)</dd>
-  												<dt>--version</dt>
-  												<dd>Print DuctApe version</dd>
-												</dl>
-										</div>										
-										
-										<div id="dape">
-												<div class="page-header">
-													<h1><div class="minititle">dape
-													<small>The main module</small></div></h1>
-												</div>
-												<p>
-													dape is the main module of the DuctApe suite, and the first one that should be used when doing an analysis from scratch; it is used to <b>setup the project</b> and to <b>conduct the final metabolic reconstruction</b>.
-												</p>
-												<h4>Project setup</h4>
-												<p>The first step is the project initialization, through the <i>init</i> command.</p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">init</b> project initialization</p>
-												<dl class="dl-horizontal">
-  												<dt>-n</dt>
-  												<dd>Project name</dd>
-  												<dt>-d</dt>
-  												<dd>Project description</dd>
-												</dl>
-												<p><code>dape init</code></p>
-												<p>There are three projects kind that can be setup with DuctApe: <a href="index.html#projects">single, mutants and pangenome</a>: for single and pangenome projects, only the <i>add</i> command has to be used, while for the mutants kind, also the <i>add-mut</i> can be used.</p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">add</b> add a single organism</p>
-												<dl class="dl-horizontal">
-													<dt>OrgID</dt>
-													<dd>Organism ID [compulsory parameter]</dd>  												
-  												<dt>-n</dt>
-  												<dd>Organism name</dd>
-  												<dt>-d</dt>
-  												<dd>Organism description</dd>
-  												<dt>-c</dt>
-  												<dd>Organism color</dd>
-												</dl>
-												<p class="muted"><small><i class="icon-flag"></i> Keep the organism ID length to a maximum of 10 charachters to help graphs readibility.</small></p>
-												<p><code>dape add -n "Sinorhizobium meliloti" -c red Rm1021</code></p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">add-mut</b> add a mutant of an existing organism</p>
-												<dl class="dl-horizontal">
-													<dt>MutID</dt>
-													<dd>Mutant ID [compulsory parameter]</dd>
-													<dt>-m</dt>
-  												<dd>This mutant wild-type OrgID [compulsory parameter]</dd>  												
-													<dt>-k</dt>
-  												<dd>Mutant kind [insertion|deletion, default: deletion]</dd>  												
-  												<dt>-n</dt>
-  												<dd>Organism name</dd>
-  												<dt>-d</dt>
-  												<dd>Organism description</dd>
-  												<dt>-c</dt>
-  												<dd>Organism color</dd>
-												</dl>							
-												<p><code>dape add-mut -n "Sinorhizobium meliloti mutant" -c blue -m Rm1021 Rm1021-mut</code></p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">rm</b> remove a single organism</p>
-												<dl class="dl-horizontal">
-													<dt>OrgID</dt>
-													<dd>Organism ID [compulsory parameter]</dd>
-												</dl>
-												<p class="muted"><small><i class="icon-flag"></i> Some analysis may be redone after the removal of an organism.</small></p>
-												<p><code>dape rm Rm1021</code></p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">clear</b> clear all the data</p>
-												<dl class="dl-horizontal">
-													<dt>-o</dt>
-													<dd>Keep organisms data</dd>  												
-  												<dt>-k</dt>
-  												<dd>Keep KEGG data</dd>
-												</dl>
-												<p><code>dape clear</code></p>
-												
-												<h4>Metabolic network reconstruction</h4>
-												<p>This step should be carried on when the other two modules (or just one of them) have already been used; the needed KEGG data is downloaded and the genomic/phenomic maps and graphs can be produced.</p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">start</b> metabolic network reconstruction</p>
-												<dl class="dl-horizontal">
-  												<dt>-p</dt>
-  												<dd>Save each pathway graph [default: no]</dd>
-  												<dt>-a</dt>
-  												<dd>Create single organisms metabolic graphs instead of the whole pangenome</dd>
-												</dl>
-												<p><code>dape start</code></p>						
-												<p><i class="icon-chevron-right"></i> <b class="text-success">map</b> output KEGG metabolic maps with genomic/phenomic data</p>
-												<dl class="dl-horizontal">
-													<dt>OrgID</dt>
-													<dd>Organism ID [optional]</dd>  												
-  												<dt>-a</dt>
-  												<dd>Plot the single organisms maps</dd>
-  												<dt>-o</dt>
-  												<dd>Diff mode: reference organism OrgID</dd>
-  												<dt>-d</dt>
-  												<dd>Phenomic activity difference threshold</dd>
-  												<dt>-s</dt>
-  												<dd>Skip the phenomic data</dd>
-												</dl>
-												<p class="muted"><small><i class="icon-flag"></i> The -a option is used only in pangenomic projects.</small></p>
-												
-												<h4>KEGG data import/export</h4>
-												<p><code>dape map</code></p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">import</b> import a KEGG data dump</p>
-												<dl class="dl-horizontal">
-													<dt>file</dt>
-													<dd>KEGG data dump file [compulsory parameter]</dd>
-												</dl>
-												<p class="muted"><small><i class="icon-flag"></i> The KEGG data dump file example can be seen by launching <i>dape export</i> on a cmplete project.</small></p>
-												<p><code>dape import kegg.tsv</code></p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">export</b> export a KEGG data dump</p>
-												<p class="muted"><small><i class="icon-flag"></i> A KEGG data dump file named "kegg.tsv" will be created.</small></p>
-												<p><code>dape export</code></p>
-										</div>
-										
-										<div id="dgenome">
-												<div class="page-header">
-													<h1><div class="minititle">dgenome
-													<small>Genome and pangenome analysis</small></div></h1>
-												</div>
-												<p>
-													dgenome is the module used to analyze the genomic data, in particular it is used to <b>map the proteins to the KEGG database</b> (through a Blast analysis or parsing a <a href="http://www.genome.jp/tools/kaas/">KAAS output</a>) and to <b>calculate the pangenome</b>.
-												</p>
+              <div class="row">
+                <div class="span3 hidden-phone">
+            <ul class="nav nav-list da-docs-sidenav">
+            <li><a href="#start"><i class="icon-chevron-right"></i> Howto</a></li>
+              <li><a href="#requirements"><i class="icon-chevron-right"></i> Requirements</a></li>
+              <li><a href="#installation"><i class="icon-chevron-right"></i> Installation</a></li>
+              <li><a href="#general"><i class="icon-chevron-right"></i> DuctApe</a></li>
+              <li><a href="#dape"><i class="icon-chevron-right"></i> dape</a></li>
+              <li><a href="#dgenome"><i class="icon-chevron-right"></i> dgenome</a></li>
+              <li><a href="#dphenome"><i class="icon-chevron-right"></i> dphenome</a></li>
+              <li><a href="#examples"><i class="icon-chevron-right"></i> Examples</a></li>
+              <li><a href="#talks"><i class="icon-chevron-right"></i> Talks</a></li>
+            </ul>
+              </div>
+              <div class="span9" id="howto">
+                  <div class="dwell">
+                          <div id="start">
+                      <div class="page-header">
+                        <h1><div class="title">Howto</div></h1>
+                        <h1><div class="title"><small>A quick tour into DuctApe</small></div></h1>
+                      </div>
+                      <p>For further questions and updates, please contact <a href="mailto:ductape-users@googlegroups.com">ductape-users@googlegroups.com</a> or subscribe to the <a href="https://groups.google.com/forum/?fromgroups#!forum/ductape-users">user group</a></p>
+                    </div>
+                    
+              
+                    <div id="requirements">
+                      <div class="page-header">
+                        <h1><div class="minititle">Requirements
+                        </div></h1>
+                      </div>
+                      <p>
+                        DuctApe should work in all Unix systems with a python install; the dependencies are the following:
+                      </p>
+                      <ul>
+                        <li><a href="http://www.python.org/">python</a> 2.6 or higher</li>
+                        <li><a href="http://www.biopython.org/">Biopython</a></li>
+                        <li><a href="http://numpy.scipy.org/">NumPy</a></li>
+                        <li><a href="http://scipy.org/">SciPy</a></li>
+                        <li><a href="http://matplotlib.org/">matplotlib</a></li>
+                        <li><a href="http://scikit-learn.org/">scikits.learn</a></li>
+                        <li><a href="http://docs.python.org/2/library/multiprocessing.html">multiprocessing</a> (included in python 2.6)</li>
+                        <li><a href="http://networkx.lanl.gov/">networkx</a></li>
+                        <li><a href="http://www.ncbi.nlm.nih.gov/BLAST/">Blast+</a></li>
+                      </ul>
+                      <p>
+                        Each one of this dependencies can be installed directly, through the <a href="http://pypi.python.org/pypi/pip">pip package manager</a> or through your operating system package manager (i.e. apt-get for Debian/Ubuntu, yum for Fedora, ecc..). The only exception is Blast+, which is a stand-alone application.</p>
+                        <p>
+                          Example of a python library install through pip (using the command line)
+                        </p>
+                        <p>
+                          <code>sudo pip install matplotlib</code>
+                        </p>
+                    
+                    </div>
+                    
+                    <div id="installation">
+                        <div class="page-header">
+                          <h1><div class="minititle">Installation</div></h1>
+                        </div>
+                        <p>There are two ways to install DuctApe:</p>
+                        <p><strong>Method 1 (dependencies won't be checked)</strong></p>
+                        <ol>
+                          <li>Extract the archive</li>
+                          <code>tar -xvf DuctApe-X.X.X.tar.gz</code>
+                          <li>Enter the directory</li>
+                          <code>cd DuctApe-X.X.X</code>
+                          <li>Install</li>
+                          <code>sudo python setup.py install</code>
+                        </ol>
+                        <br>
+                        <p><strong>Method 2 (missing dependencies will be downloaded)</strong></p>
+                        <p><code>sudo pip install DuctApe-X.X.X.tar.gz</code></p>
+                        <p>To check that the install process succeeded, try to open a terminal and type the following line:</p>
+                        <p>
+                          <code>dape --version</code>
+                        </p>
+                    </div>
+                    
+                    <div id="general">
+                        <div class="page-header">
+                          <h1><div class="minititle">DuctApe</div></h1>
+                        </div>
+                        <p>
+                          DuctApe consists of three command line utilities with many subcommands: <b>all of them act on a project file</b> (technically speaking an SQLite database) which contains all the informations about the analysis. This file can be exchanged between users and computers without the need to transfer many files, as all the outputs can be generated from this single database. The database file can be even opened with any SQLite browser by expert users for custom queries.
+                        </p>
+                        <p>
+                          The three modules have a somewhat similar subcommands structure: an <i>add</i> command to push input data, a <i>start</i> command to perform the core analysis, an <i>export</i> command to save the outputs for further analysis and a <i>stats</i> command to print out some statistics about the data. Given this common features, each command has a set of unique subcommands and different behaviours and purposes.
+                        </p>
+                        <p>All the modules and subcommands have some common options:</p>
+                        <dl class="dl-horizontal">
+                          <dt>-p</dt>
+                          <dd>Project file to be used [default: ductape.db]</dd>
+                          <dt>-w</dt>
+                          <dd>Working directory [default: .]</dd>
+                          <dt>-v</dt>
+                          <dd>Increase log verbosity (can be used many times)</dd>
+                          <dt>--version</dt>
+                          <dd>Print DuctApe version</dd>
+                        </dl>
+                    </div>                    
+                    
+                    <div id="dape">
+                        <div class="page-header">
+                          <h1><div class="minititle">dape
+                          <small>The main module</small></div></h1>
+                        </div>
+                        <p>
+                          dape is the main module of the DuctApe suite, and the first one that should be used when doing an analysis from scratch; it is used to <b>setup the project</b> and to <b>conduct the final metabolic reconstruction</b>.
+                        </p>
+                        <h4>Project setup</h4>
+                        <p>The first step is the project initialization, through the <i>init</i> command.</p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">init</b> project initialization</p>
+                        <dl class="dl-horizontal">
+                          <dt>-n</dt>
+                          <dd>Project name</dd>
+                          <dt>-d</dt>
+                          <dd>Project description</dd>
+                        </dl>
+                        <p><code>dape init</code></p>
+                        <p>There are three projects kind that can be setup with DuctApe: <a href="index.html#projects">single, mutants and pangenome</a>: for single and pangenome projects, only the <i>add</i> command has to be used, while for the mutants kind, also the <i>add-mut</i> can be used.</p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">add</b> add a single organism</p>
+                        <dl class="dl-horizontal">
+                          <dt>OrgID</dt>
+                          <dd>Organism ID [compulsory parameter]</dd>                          
+                          <dt>-n</dt>
+                          <dd>Organism name</dd>
+                          <dt>-d</dt>
+                          <dd>Organism description</dd>
+                          <dt>-c</dt>
+                          <dd>Organism color</dd>
+                        </dl>
+                        <p class="muted"><small><i class="icon-flag"></i> Keep the organism ID length to a maximum of 10 charachters to help graphs readibility.</small></p>
+                        <p><code>dape add -n "Sinorhizobium meliloti" -c red Rm1021</code></p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">add-mut</b> add a mutant of an existing organism</p>
+                        <dl class="dl-horizontal">
+                          <dt>MutID</dt>
+                          <dd>Mutant ID [compulsory parameter]</dd>
+                          <dt>-m</dt>
+                          <dd>This mutant wild-type OrgID [compulsory parameter]</dd>                          
+                          <dt>-k</dt>
+                          <dd>Mutant kind [insertion|deletion, default: deletion]</dd>                          
+                          <dt>-n</dt>
+                          <dd>Organism name</dd>
+                          <dt>-d</dt>
+                          <dd>Organism description</dd>
+                          <dt>-c</dt>
+                          <dd>Organism color</dd>
+                        </dl>              
+                        <p><code>dape add-mut -n "Sinorhizobium meliloti mutant" -c blue -m Rm1021 Rm1021-mut</code></p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">rm</b> remove a single organism</p>
+                        <dl class="dl-horizontal">
+                          <dt>OrgID</dt>
+                          <dd>Organism ID [compulsory parameter]</dd>
+                        </dl>
+                        <p class="muted"><small><i class="icon-flag"></i> Some analysis may be redone after the removal of an organism.</small></p>
+                        <p><code>dape rm Rm1021</code></p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">clear</b> clear all the data</p>
+                        <dl class="dl-horizontal">
+                          <dt>-o</dt>
+                          <dd>Keep organisms data</dd>                          
+                          <dt>-k</dt>
+                          <dd>Keep KEGG data</dd>
+                        </dl>
+                        <p><code>dape clear</code></p>
+                        
+                        <h4>Metabolic network reconstruction</h4>
+                        <p>This step should be carried on when the other two modules (or just one of them) have already been used; the needed KEGG data is downloaded and the genomic/phenomic maps and graphs can be produced.</p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">start</b> metabolic network reconstruction</p>
+                        <dl class="dl-horizontal">
+                          <dt>-p</dt>
+                          <dd>Save each pathway graph [default: no]</dd>
+                          <dt>-a</dt>
+                          <dd>Create single organisms metabolic graphs instead of the whole pangenome</dd>
+                        </dl>
+                        <p><code>dape start</code></p>            
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">map</b> output KEGG metabolic maps with genomic/phenomic data</p>
+                        <dl class="dl-horizontal">
+                          <dt>OrgID</dt>
+                          <dd>Organism ID [optional]</dd>                          
+                          <dt>-a</dt>
+                          <dd>Plot the single organisms maps</dd>
+                          <dt>-o</dt>
+                          <dd>Diff mode: reference organism OrgID</dd>
+                          <dt>-d</dt>
+                          <dd>Phenomic activity difference threshold</dd>
+                          <dt>-s</dt>
+                          <dd>Skip the phenomic data</dd>
+                        </dl>
+                        <p class="muted"><small><i class="icon-flag"></i> The -a option is used only in pangenomic projects.</small></p>
+                        
+                        <h4>KEGG data import/export</h4>
+                        <p><code>dape map</code></p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">import</b> import a KEGG data dump</p>
+                        <dl class="dl-horizontal">
+                          <dt>file</dt>
+                          <dd>KEGG data dump file [compulsory parameter]</dd>
+                        </dl>
+                        <p class="muted"><small><i class="icon-flag"></i> The KEGG data dump file example can be seen by launching <i>dape export</i> on a cmplete project.</small></p>
+                        <p><code>dape import kegg.tsv</code></p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">export</b> export a KEGG data dump</p>
+                        <p class="muted"><small><i class="icon-flag"></i> A KEGG data dump file named "kegg.tsv" will be created.</small></p>
+                        <p><code>dape export</code></p>
+                    </div>
+                    
+                    <div id="dgenome">
+                        <div class="page-header">
+                          <h1><div class="minititle">dgenome
+                          <small>Genome and pangenome analysis</small></div></h1>
+                        </div>
+                        <p>
+                          dgenome is the module used to analyze the genomic data, in particular it is used to <b>map the proteins to the KEGG database</b> (through a Blast analysis or parsing a <a href="http://www.genome.jp/tools/kaas/">KAAS output</a>) and to <b>calculate the pangenome</b>.
+                        </p>
 
-												<h4>Genome input</h4>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">add</b> add a single proteome</p>
-												<dl class="dl-horizontal">
-  												<dt>file</dt>
-  												<dd>Protein FASTA file [compulsory parameter]</dd>
-  												<dt>OrgID</dt>
-  												<dd>Organism ID [compulsory parameter]</dd>
-												</dl>
-												<p><code>dgenome add Rm1021.faa Rm1021</code></p>
-												<p>If many genomes have to be added to the project, all the FASTA files inside a directory can be imported at once.</p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">add-dir</b> add all the FASTA files inside a directory</p>
-												<dl class="dl-horizontal">
-												<dt>folder</dt>
-												<dd>Fasta files directory [compulsory parameter]</dd>  												
-  												<dt>-e</dt>
-  												<dd>FASTA files extension [default: faa]</dd>
-												</dl>
-												<p><code>dgenome add-dir genomes</code></p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">rm</b> remove a single genome</p>
-												<dl class="dl-horizontal">
-													<dt>OrgID</dt>
-													<dd>Organism ID [compulsory parameter]</dd>
-												</dl>
-												<p><code>dgenome rm Rm1021</code></p>
-												<p class="muted"><small><i class="icon-flag"></i> Some analysis may be redone after the removal of an genome.</small></p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">clear</b> clear all the genomic data</p>
-												<p><code>dgenome clear</code></p>
-												
-												<h4>Genome mapping to KEGG and pangenome construction</h4>
-												<p>The genomes can be mapped to the KEGG database in two ways: locally, through a Blast-BBH analysis against a KEGG database, or by parsing the output of the <a href="http://www.genome.jp/tools/kaas/">KAAS annotator</a>. The second option is probably the best, since to obtain a KEGG database dump you need <a href="http://www.kegg.jp/kegg/docs/plea.html">a subscription</a>.</p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">add-ko</b> import a KAAS output</p>
-												<dl class="dl-horizontal">
-  												<dt>kofile</dt>
-  												<dd>KAAS output file [compulsory parameter]</dd>
-												</dl>
-												<p><code>dgenome add-ko Rm1021.tab</code></p>
-												<p class="muted"><small><i class="icon-flag"></i> In the KAAS webpage, select the BBH option and use the appropriate organisms list. When the analysis is finished save the KO list file.</small></p>
-												<p>The pangenome is calculated through a Blast-BBH, but a custom pangenome can be imported: an example of the pangenome input file can be found <a href="https://raw.github.com/gist/4249736/813bf95de3cdf5694099da34c9083936806c278c/pangenome.tsv">here</a>.</p>												
-												<p><i class="icon-chevron-right"></i> <b class="text-success">add-orth</b> add an user defined pangenome</p>
-												<dl class="dl-horizontal">
-												<dt>orthfile</dt>
-												<dd>Pangenome file [compulsory parameter]</dd>										  												
-												</dl>
-												<p><code>dgenome add-orth pangenome.tsv</code></p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">start</b> start the KEGG mapping and the pangenome construction</p>
-												<dl class="dl-horizontal">
-												<dt>-n</dt>
-												<dd>Number of CPUs to be used</dd>												
-												<dt>-l</dt>
-												<dd>Perform the KEGG mapping locally [default: use KAAS]</dd>  												
-  												<dt>-k</dt>
-  												<dd>KEGG Blast database location [only with -l]</dd>
-  												<dt>-p</dt>
-												<dd>Orthologous groups prefix</dd>
-												<dt>-s</dt>
-												<dd>Skip pangenome creation</dd>  												
-												</dl>
-												<p class="muted"><small><i class="icon-flag"></i> With many genomes, the pangenome analysis may need several hours.</small></p>
-												<p><code>dgenome start -n 5</code></p>												
-												
-												<h4>Data export and statistics</h4>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">export</b> export the genomic data</p>
-												<p><code>dgenome export</code></p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">stats</b> print out some genome statistics</p>
-												<dl class="dl-horizontal">
-  												<dt>-s</dt>
-  												<dd>Save pictures in svg format, instead of png</dd>
-												</dl>
-												<p><code>dgenome stats</code></p>
-										</div>
-										
-										<div id="dphenome">
-												<div class="page-header">
-													<h1><div class="minititle">dphenome
-													<small>Phenome analysis</small></div></h1>
-												</div>
-												<p>
-													dphenome is the module used to analyze the phenomic data, in particular it is used to <b>analyze the growth curves</b> and to <b>map the phenomic compounds to KEGG</b>.
-												</p>
-												
-												<h4>Phenome input</h4>
-												<p>The Phenotype microarray output files that are read by DuctApe are csv files (like <a href="https://raw.github.com/gist/4249736/822016bd6383f8b2d980d2305b5770ef27d3d88e/Rm1021.csv">this one</a>).</p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">add</b> add a phenome file from a single organism</p>
-												<dl class="dl-horizontal">
-  												<dt>file</dt>
-  												<dd>Phenotype microarray csv file [compulsory parameter]</dd>
-  												<dt>OrgID</dt>
-  												<dd>Organism ID [compulsory parameter]</dd>
-												</dl>
-												<p><code>dphenome add Rm1021.csv Rm1021</code></p>
-												<p class="muted"><small><i class="icon-flag"></i> The organism ID should be present in one of the following fields of the csv file: "Strain Name", "Strain Number", "Sample Number".</small></p>
-												<p>Some phenotype microarray files may contain more than one strain: the <i>add-multi</i> subcommand should then be used.</p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">add-multi</b> add a phenomic file with more than one organism</p>
-												<dl class="dl-horizontal">
-												<dt>file</dt>
-												<dd>Phenotype microarray csv file [compulsory parameter]</dd>  												
-  												<p><code>dphenome add-multi Rm1021</code></p>
-  												<p class="muted"><small><i class="icon-flag"></i> The organism IDs should be present in the "Strain Name" field of the csv file.</small></p>
-  												<p>If many Phenotype microarray files have to be added to the project, all the csv files inside a directory can be imported at once.</p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">add-dir</b> add all the Phenotype microarray files inside a directory</p>
-												<dl class="dl-horizontal">
-												<dt>folder</dt>
-												<dd>Phenotype microarray files directory [compulsory parameter]</dd>  												
-												</dl>
-												<p><code>dphenome add-dir phenomes</code></p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">rm</b> remove a single phenome</p>
-												<dl class="dl-horizontal">
-													<dt>OrgID</dt>
-													<dd>Organism ID [compulsory parameter]</dd>
-												</dl>
-												<p class="muted"><small><i class="icon-flag"></i> Some analysis may be redone after the removal of a phenome.</small></p>
-												<p><code>dphenome rm Rm1021</code></p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">clear</b> clear all the phenomic data</p>
-												<p><code>dphenome clear</code></p>
-												
-												<h4>Growth curves analysis and KEGG mapping</h4>
-												<p>Some Phenotype microarray plates (PM1 to PM8) have a control well, which can be used to subtract the background signal. If a "blank" plate file is available, each well can be subtracted to its blank well.</p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">zero</b> subtract the control signals from some plates</p>
-												<dl class="dl-horizontal">
-  												<dt>-b</dt>
-  												<dd>Phenotype microarray blank file</dd>
-												</dl>
-												<p><code>dphenome zero</code></p>
-												<p>The growth curves parameters (min, max, height, plateau, slope, lag, area, v, y0) are extracted through a fit to one of the following sigmoid functions: logistic, gompertz and richards; some of the extracted parameters (max, area, height, lag, slope) are used to perform a k-means clustering on all the growth curves, thus obtaining the so-called <b>Activity Index (AV)</b>, which goes from 0 (no activity) to 9 (max activity).</p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">start</b> analyze the growth curves and map the phenomic compounds to KEGG</p>
-												<dl class="dl-horizontal">
-												<dt>-f</dt>
-												<dd>Save some intermediate pictures of the clustering process</dd>  												
-  												<p><code>dphenome add-multi Rm1021</code></p>
-  												
-  												<h4>Replica management</h4>
-												<p>DuctApe is able to remove the inconsistent replica from the phenomic experiment, following four distinct policies:</p>
-												<dl class="dl-horizontal">
-  												<dt>keep-max</dt>
-  												<dd>Keep the highest AV values</dd>
-  												<dt>keep-min</dt>
-  												<dd>Keep the lowest AV values</dd>
-  												<dt>keep-max-one</dt>
-  												<dd>Keep only the highest AV value</dd>
-  												<dt>keep-min-one</dt>
-  												<dd>Keep only the lowest AV value</dd>
-  												</dl>
-  												An Activity Index delta is used to decide when to apply the policy.
-												<p><i class="icon-chevron-right"></i> <b class="text-success">purge</b> remove the inconsistent replicas</p>
-												<dl class="dl-horizontal">
-  												<dt>policy</dt>
-  												<dd>Policy to be applied [compulsory parameter]</dd>
-  												<dt>plateID</dt>
-  												<dd>Plate(s) to be purged [default: all plates]</dd>
-  												<dt>-d</dt>
-  												<dd>Maximum AV delta before applying the purging policy [default: 3]</dd>
-												</dl>
-												<p><code>dphenome purge -d 4 keep-max</code></p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">restore</b> restore the purged growth curves</p>
-												<dl class="dl-horizontal">
-												<dt>plateID</dt>
-												<dd>Plate(s) to be restored [default: all plates]</dd>  												
-  												<p><code>dphenome restore</code></p>
-  												
-  												<h4>Plotting, data export and statistics</h4>
-  												<p><i class="icon-chevron-right"></i> <b class="text-success">plot</b> plot the growth curves and the AV heatmaps</p>
-												<dl class="dl-horizontal">
-  												<dt>-n</dt>
-  												<dd>Experiment name</dd>
-  												<dt>-s</dt>
-  												<dd>Save pictures in svg format, instead of png</dd>
-												</dl>
-												<p><code>dphenome plot</code></p>
-  												<p><i class="icon-chevron-right"></i> <b class="text-success">rings</b> plot the overall phenome in <a href="img/ring.png">ring format</a></p>
-												<dl class="dl-horizontal">
-  												<dt>-d</dt>
-  												<dd>Activity Index delta threshold [default: 3]</dd>
-  												<dt>-o</dt>
-  												<dd>Diff mode: reference OrgID to which compare the other organisms</dd>												
-  												<dt>-s</dt>
-  												<dd>Save pictures in svg format, instead of png</dd>
-												</dl>
-												<p><code>dphenome rings -d 4</code></p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">export</b> export the phenomic data</p>
-												<p><code>dphenome export</code></p>
-												<p><i class="icon-chevron-right"></i> <b class="text-success">stats</b> print out some phenome statistics</p>
-												<dl class="dl-horizontal">
-  												<dt>-a</dt>
-  												<dd>Activity Index threshold [default: 5]</dd>
-  												<dt>-d</dt>
-  												<dd>Activity Index delta [default: 3]</dd>												
-  												<dt>-s</dt>
-  												<dd>Save pictures in svg format, instead of png</dd>
-												</dl>
-												<p><code>dphenome stats</code></p>						
-										</div>
-										
-										<div id="examples">
-												<div class="page-header">
-													<h1><div class="minititle">Examples
-													<small>Annotated sample scripts</small></div></h1>
-												</div>										
-												
-												<div class="tabbable tabs-left">
-								              <ul class="nav nav-tabs">
-                								<li class="active"><a href="#lA" data-toggle="tab">Single</a></li>
-                								<li><a href="#lB" data-toggle="tab">Mutants</a></li>
-                								<li><a href="#lC" data-toggle="tab">Pangenome</a></li>
-              								  </ul>
-              								  <div class="tab-content">
-                								<div class="tab-pane active" id="lA">
-                  								<h4>Single organism</h4>
-                  								<p>
-															<a href="https://raw.github.com/gist/4249736/70e62e6e78e61c28fbca083b5064ec61c1e9e1a8/single.sh"
-									                  class="btn" target="_blank">
-      	          									<i class="icon-download"></i> Download &raquo;</a>
-      	          								</p>                  								
-         		     								<pre># Initialize the project
+                        <h4>Genome input</h4>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">add</b> add a single proteome</p>
+                        <dl class="dl-horizontal">
+                          <dt>file</dt>
+                          <dd>Protein FASTA file [compulsory parameter]</dd>
+                          <dt>OrgID</dt>
+                          <dd>Organism ID [compulsory parameter]</dd>
+                        </dl>
+                        <p><code>dgenome add Rm1021.faa Rm1021</code></p>
+                        <p>If many genomes have to be added to the project, all the FASTA files inside a directory can be imported at once.</p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">add-dir</b> add all the FASTA files inside a directory</p>
+                        <dl class="dl-horizontal">
+                        <dt>folder</dt>
+                        <dd>Fasta files directory [compulsory parameter]</dd>                          
+                          <dt>-e</dt>
+                          <dd>FASTA files extension [default: faa]</dd>
+                        </dl>
+                        <p><code>dgenome add-dir genomes</code></p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">rm</b> remove a single genome</p>
+                        <dl class="dl-horizontal">
+                          <dt>OrgID</dt>
+                          <dd>Organism ID [compulsory parameter]</dd>
+                        </dl>
+                        <p><code>dgenome rm Rm1021</code></p>
+                        <p class="muted"><small><i class="icon-flag"></i> Some analysis may be redone after the removal of an genome.</small></p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">clear</b> clear all the genomic data</p>
+                        <p><code>dgenome clear</code></p>
+                        
+                        <h4>Genome mapping to KEGG and pangenome construction</h4>
+                        <p>The genomes can be mapped to the KEGG database in two ways: locally, through a Blast-BBH analysis against a KEGG database, or by parsing the output of the <a href="http://www.genome.jp/tools/kaas/">KAAS annotator</a>. The second option is probably the best, since to obtain a KEGG database dump you need <a href="http://www.kegg.jp/kegg/docs/plea.html">a subscription</a>.</p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">add-ko</b> import a KAAS output</p>
+                        <dl class="dl-horizontal">
+                          <dt>kofile</dt>
+                          <dd>KAAS output file [compulsory parameter]</dd>
+                        </dl>
+                        <p><code>dgenome add-ko Rm1021.tab</code></p>
+                        <p class="muted"><small><i class="icon-flag"></i> In the KAAS webpage, select the BBH option and use the appropriate organisms list. When the analysis is finished save the KO list file.</small></p>
+                        <p>The pangenome is calculated through a Blast-BBH, but a custom pangenome can be imported: an example of the pangenome input file can be found <a href="https://raw.github.com/gist/4249736/813bf95de3cdf5694099da34c9083936806c278c/pangenome.tsv">here</a>.</p>                        
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">add-orth</b> add an user defined pangenome</p>
+                        <dl class="dl-horizontal">
+                        <dt>orthfile</dt>
+                        <dd>Pangenome file [compulsory parameter]</dd>                                              
+                        </dl>
+                        <p><code>dgenome add-orth pangenome.tsv</code></p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">start</b> start the KEGG mapping and the pangenome construction</p>
+                        <dl class="dl-horizontal">
+                        <dt>-n</dt>
+                        <dd>Number of CPUs to be used</dd>                        
+                        <dt>-l</dt>
+                        <dd>Perform the KEGG mapping locally [default: use KAAS]</dd>                          
+                          <dt>-k</dt>
+                          <dd>KEGG Blast database location [only with -l]</dd>
+                          <dt>-p</dt>
+                        <dd>Orthologous groups prefix</dd>
+                        <dt>-s</dt>
+                        <dd>Skip pangenome creation</dd>                          
+                        </dl>
+                        <p class="muted"><small><i class="icon-flag"></i> With many genomes, the pangenome analysis may need several hours.</small></p>
+                        <p><code>dgenome start -n 5</code></p>                        
+                        
+                        <h4>Data export and statistics</h4>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">export</b> export the genomic data</p>
+                        <p><code>dgenome export</code></p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">stats</b> print out some genome statistics</p>
+                        <dl class="dl-horizontal">
+                          <dt>-s</dt>
+                          <dd>Save pictures in svg format, instead of png</dd>
+                        </dl>
+                        <p><code>dgenome stats</code></p>
+                    </div>
+                    
+                    <div id="dphenome">
+                        <div class="page-header">
+                          <h1><div class="minititle">dphenome
+                          <small>Phenome analysis</small></div></h1>
+                        </div>
+                        <p>
+                          dphenome is the module used to analyze the phenomic data, in particular it is used to <b>analyze the growth curves</b> and to <b>map the phenomic compounds to KEGG</b>.
+                        </p>
+                        
+                        <h4>Phenome input</h4>
+                        <p>The Phenotype microarray output files that are read by DuctApe are csv files (like <a href="https://raw.github.com/gist/4249736/822016bd6383f8b2d980d2305b5770ef27d3d88e/Rm1021.csv">this one</a>).</p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">add</b> add a phenome file from a single organism</p>
+                        <dl class="dl-horizontal">
+                          <dt>file</dt>
+                          <dd>Phenotype microarray csv file [compulsory parameter]</dd>
+                          <dt>OrgID</dt>
+                          <dd>Organism ID [compulsory parameter]</dd>
+                        </dl>
+                        <p><code>dphenome add Rm1021.csv Rm1021</code></p>
+                        <p class="muted"><small><i class="icon-flag"></i> The organism ID should be present in one of the following fields of the csv file: "Strain Name", "Strain Number", "Sample Number".</small></p>
+                        <p>Some phenotype microarray files may contain more than one strain: the <i>add-multi</i> subcommand should then be used.</p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">add-multi</b> add a phenomic file with more than one organism</p>
+                        <dl class="dl-horizontal">
+                        <dt>file</dt>
+                        <dd>Phenotype microarray csv file [compulsory parameter]</dd>                          
+                          <p><code>dphenome add-multi Rm1021</code></p>
+                          <p class="muted"><small><i class="icon-flag"></i> The organism IDs should be present in the "Strain Name" field of the csv file.</small></p>
+                          <p>If many Phenotype microarray files have to be added to the project, all the csv files inside a directory can be imported at once.</p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">add-dir</b> add all the Phenotype microarray files inside a directory</p>
+                        <dl class="dl-horizontal">
+                        <dt>folder</dt>
+                        <dd>Phenotype microarray files directory [compulsory parameter]</dd>                          
+                        </dl>
+                        <p><code>dphenome add-dir phenomes</code></p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">rm</b> remove a single phenome</p>
+                        <dl class="dl-horizontal">
+                          <dt>OrgID</dt>
+                          <dd>Organism ID [compulsory parameter]</dd>
+                        </dl>
+                        <p class="muted"><small><i class="icon-flag"></i> Some analysis may be redone after the removal of a phenome.</small></p>
+                        <p><code>dphenome rm Rm1021</code></p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">clear</b> clear all the phenomic data</p>
+                        <p><code>dphenome clear</code></p>
+                        
+                        <h4>Growth curves analysis and KEGG mapping</h4>
+                        <p>Some Phenotype microarray plates (PM1 to PM8) have a control well, which can be used to subtract the background signal. If a "blank" plate file is available, each well can be subtracted to its blank well.</p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">zero</b> subtract the control signals from some plates</p>
+                        <dl class="dl-horizontal">
+                          <dt>-b</dt>
+                          <dd>Phenotype microarray blank file</dd>
+                        </dl>
+                        <p><code>dphenome zero</code></p>
+                        <p>The growth curves parameters (min, max, height, plateau, slope, lag, area, v, y0) are extracted through a fit to one of the following sigmoid functions: logistic, gompertz and richards; some of the extracted parameters (max, area, height, lag, slope) are used to perform a k-means clustering on all the growth curves, thus obtaining the so-called <b>Activity Index (AV)</b>, which goes from 0 (no activity) to 9 (max activity).</p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">start</b> analyze the growth curves and map the phenomic compounds to KEGG</p>
+                        <dl class="dl-horizontal">
+                        <dt>-f</dt>
+                        <dd>Save some intermediate pictures of the clustering process</dd>                          
+                          <p><code>dphenome add-multi Rm1021</code></p>
+                          
+                          <h4>Replica management</h4>
+                        <p>DuctApe is able to remove the inconsistent replica from the phenomic experiment, following four distinct policies:</p>
+                        <dl class="dl-horizontal">
+                          <dt>keep-max</dt>
+                          <dd>Keep the highest AV values</dd>
+                          <dt>keep-min</dt>
+                          <dd>Keep the lowest AV values</dd>
+                          <dt>keep-max-one</dt>
+                          <dd>Keep only the highest AV value</dd>
+                          <dt>keep-min-one</dt>
+                          <dd>Keep only the lowest AV value</dd>
+                          </dl>
+                          An Activity Index delta is used to decide when to apply the policy.
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">purge</b> remove the inconsistent replicas</p>
+                        <dl class="dl-horizontal">
+                          <dt>policy</dt>
+                          <dd>Policy to be applied [compulsory parameter]</dd>
+                          <dt>plateID</dt>
+                          <dd>Plate(s) to be purged [default: all plates]</dd>
+                          <dt>-d</dt>
+                          <dd>Maximum AV delta before applying the purging policy [default: 3]</dd>
+                        </dl>
+                        <p><code>dphenome purge -d 4 keep-max</code></p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">restore</b> restore the purged growth curves</p>
+                        <dl class="dl-horizontal">
+                        <dt>plateID</dt>
+                        <dd>Plate(s) to be restored [default: all plates]</dd>                          
+                          <p><code>dphenome restore</code></p>
+                          
+                          <h4>Plotting, data export and statistics</h4>
+                          <p><i class="icon-chevron-right"></i> <b class="text-success">plot</b> plot the growth curves and the AV heatmaps</p>
+                        <dl class="dl-horizontal">
+                          <dt>-n</dt>
+                          <dd>Experiment name</dd>
+                          <dt>-s</dt>
+                          <dd>Save pictures in svg format, instead of png</dd>
+                        </dl>
+                        <p><code>dphenome plot</code></p>
+                          <p><i class="icon-chevron-right"></i> <b class="text-success">rings</b> plot the overall phenome in <a href="img/ring.png">ring format</a></p>
+                        <dl class="dl-horizontal">
+                          <dt>-d</dt>
+                          <dd>Activity Index delta threshold [default: 3]</dd>
+                          <dt>-o</dt>
+                          <dd>Diff mode: reference OrgID to which compare the other organisms</dd>                        
+                          <dt>-s</dt>
+                          <dd>Save pictures in svg format, instead of png</dd>
+                        </dl>
+                        <p><code>dphenome rings -d 4</code></p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">export</b> export the phenomic data</p>
+                        <p><code>dphenome export</code></p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">stats</b> print out some phenome statistics</p>
+                        <dl class="dl-horizontal">
+                          <dt>-a</dt>
+                          <dd>Activity Index threshold [default: 5]</dd>
+                          <dt>-d</dt>
+                          <dd>Activity Index delta [default: 3]</dd>                        
+                          <dt>-s</dt>
+                          <dd>Save pictures in svg format, instead of png</dd>
+                        </dl>
+                        <p><code>dphenome stats</code></p>            
+                    </div>
+                    
+                    <div id="examples">
+                        <div class="page-header">
+                          <h1><div class="minititle">Examples
+                          <small>Annotated sample scripts</small></div></h1>
+                        </div>                    
+                        
+                        <div class="tabbable tabs-left">
+                              <ul class="nav nav-tabs">
+                                <li class="active"><a href="#lA" data-toggle="tab">Single</a></li>
+                                <li><a href="#lB" data-toggle="tab">Mutants</a></li>
+                                <li><a href="#lC" data-toggle="tab">Pangenome</a></li>
+                                </ul>
+                                <div class="tab-content">
+                                <div class="tab-pane active" id="lA">
+                                  <h4>Single organism</h4>
+                                  <p>
+                              <a href="https://raw.github.com/gist/4249736/70e62e6e78e61c28fbca083b5064ec61c1e9e1a8/single.sh"
+                                    class="btn" target="_blank">
+                                    <i class="icon-download"></i> Download &raquo;</a>
+                                  </p>                                  
+                                  <pre># Initialize the project
 dape init
 # add my organism using the ID MyOrg
 dape add MyOrg
@@ -523,15 +523,15 @@ dape map
 dape start
 # export the KEGG data
 dape export</pre>
-                								</div>
-                								<div class="tab-pane" id="lB">
-                  								<h4>Mutants</h4>
-                  								<p>
-															<a href="https://gist.github.com/raw/4249736/73dfab735d07a8953e39dc77ae89cf46e573dbef/mutants.sh"
-									                  class="btn" target="_blank">
-      	          									<i class="icon-download"></i> Download &raquo;</a>
-      	          								</p>
-      	          								<pre>dape init
+                                </div>
+                                <div class="tab-pane" id="lB">
+                                  <h4>Mutants</h4>
+                                  <p>
+                              <a href="https://gist.github.com/raw/4249736/73dfab735d07a8953e39dc77ae89cf46e573dbef/mutants.sh"
+                                    class="btn" target="_blank">
+                                    <i class="icon-download"></i> Download &raquo;</a>
+                                  </p>
+                                  <pre>dape init
 # Import the previous KEGG database dump
 dape import kegg.tsv
 dape add MyOrg
@@ -554,15 +554,15 @@ dphenome rings
 dape map MyMut
 # Perform the network analysis
 dape start</pre>
-                								</div>
-                								<div class="tab-pane" id="lC">
-                  								<h4>PanGenome</h4>
-                  								<p>
-															<a href="https://gist.github.com/raw/4249736/beb18805e51449c6b965e0d508834563439cea17/pangenome.sh"
-									                  class="btn" target="_blank">
-      	          									<i class="icon-download"></i> Download &raquo;</a>
-      	          								</p>
-      	          								<pre>#!/usr/bin/sh
+                                </div>
+                                <div class="tab-pane" id="lC">
+                                  <h4>PanGenome</h4>
+                                  <p>
+                              <a href="https://gist.github.com/raw/4249736/beb18805e51449c6b965e0d508834563439cea17/pangenome.sh"
+                                    class="btn" target="_blank">
+                                    <i class="icon-download"></i> Download &raquo;</a>
+                                  </p>
+                                  <pre>#!/usr/bin/sh
  
 dape init
 dape add MyOrg
@@ -586,35 +586,35 @@ dphenome plot
 dphenome rings -o MyOrg
  
 dape start</pre>
-                								</div>
-              								  </div>
-            								</div> <!-- /tabbable -->
-												
-										</div>
-										
-				        <div id="talks">
-								  <div class="page-header">
-									  <h1><div class="minititle">Talks
-									  <small>Presentations about DuctApe</small></div></h1>
-								  </div>
-								  
-								  <ul>
-									  <li>2013/03 - Conference on predicting cell metabolism and phenotype <a href="talks/2013SRI.pdf">[pdf]</a></li>
-									</ul>
-								  
-								  
-								</div>
-								
-  				    </div>
-  				   </div>
-							</div>
-							
-						</div>
-					</div>		
+                                </div>
+                                </div>
+                            </div> <!-- /tabbable -->
+                        
+                    </div>
+                    
+                <div id="talks">
+                  <div class="page-header">
+                    <h1><div class="minititle">Talks
+                    <small>Presentations about DuctApe</small></div></h1>
+                  </div>
+                  
+                  <ul>
+                    <li>2013/03 - Conference on predicting cell metabolism and phenotype <a href="talks/2013SRI.pdf">[pdf]</a></li>
+                  </ul>
+                  
+                  
+                </div>
+                
+              </div>
+             </div>
+              </div>
+              
+            </div>
+          </div>    
       
-   		<footer class="footer">
-   		<div class="container">
-   		<div class="row">
+       <footer class="footer">
+       <div class="container">
+       <div class="row">
           <div class="span4">
             <h6>Brought to you by</h6>
             <div class="muted">
@@ -663,7 +663,7 @@ dape start</pre>
           </div>
         </div>
      </div>
-	  		</footer>
+        </footer>
     
     </div>
 

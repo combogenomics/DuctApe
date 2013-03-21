@@ -190,6 +190,14 @@
                         </dl>
                         <p class="muted"><small><i class="icon-flag"></i> Keep the organism ID length to a maximum of 10 charachters to help graphs readibility.</small></p>
                         <p><code>dape add -n "Sinorhizobium meliloti" -c red Rm1021</code></p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">add-multi</b> add many single organisms</p>
+                        <dl class="dl-horizontal">
+                          <dt>OrgID</dt>
+                          <dd>Organism ID [compulsory parameter]</dd>                          
+                        </dl>
+                        <p class="muted"><small><i class="icon-flag"></i> Keep the organism ID length to a maximum of 10 charachters to help graphs readibility.</small></p>
+                        <p class="muted"><small><i class="icon-flag"></i> If you want to set more informations to each organism, use "dape add".</small></p>
+                        <p><code>dape add-multi Rm1021 AK83</code></p>
                         <p><i class="icon-chevron-right"></i> <b class="text-success">add-mut</b> add a mutant of an existing organism</p>
                         <dl class="dl-horizontal">
                           <dt>MutID</dt>
@@ -226,6 +234,8 @@
                         <p>This step should be carried on when the other two modules (or just one of them) have already been used; the needed KEGG data is downloaded and the genomic/phenomic maps and graphs can be produced.</p>
                         <p><i class="icon-chevron-right"></i> <b class="text-success">start</b> metabolic network reconstruction</p>
                         <dl class="dl-horizontal">
+                          <dt>-g</dt>
+                          <dd>Skip Kegg mapping</dd>
                           <dt>-p</dt>
                           <dd>Save each pathway graph [default: no]</dd>
                           <dt>-a</dt>
@@ -305,7 +315,7 @@
                           <dt>kofile</dt>
                           <dd>KAAS output file [compulsory parameter]</dd>
                         </dl>
-                        <p><code>dgenome add-ko Rm1021.tab</code></p>
+                        <p><code>dgenome add-ko Rm1021.tab AK83.tab</code></p>
                         <p class="muted"><small><i class="icon-flag"></i> In the KAAS webpage, select the BBH option and use the appropriate organisms list. When the analysis is finished save the KO list file.</small></p>
                         <p>The pangenome is calculated through a Blast-BBH, but a custom pangenome can be imported: an example of the pangenome input file can be found <a href="https://raw.github.com/gist/4249736/813bf95de3cdf5694099da34c9083936806c278c/pangenome.tsv">here</a>.</p>                        
                         <p><i class="icon-chevron-right"></i> <b class="text-success">add-orth</b> add an user defined pangenome</p>
@@ -325,7 +335,9 @@
                           <dt>-p</dt>
                         <dd>Orthologous groups prefix</dd>
                         <dt>-s</dt>
-                        <dd>Skip pangenome creation</dd>                          
+                        <dd>Skip pangenome creation</dd>
+                        <dt>-g</dt>
+                        <dd>Skip Kegg mapping</dd>                          
                         </dl>
                         <p class="muted"><small><i class="icon-flag"></i> With many genomes, the pangenome analysis may need several hours.</small></p>
                         <p><code>dgenome start -n 5</code></p>                        
@@ -397,8 +409,12 @@
                         <p><i class="icon-chevron-right"></i> <b class="text-success">start</b> analyze the growth curves and map the phenomic compounds to KEGG</p>
                         <dl class="dl-horizontal">
                         <dt>-f</dt>
-                        <dd>Save some intermediate pictures of the clustering process</dd>                          
-                          <p><code>dphenome add-multi Rm1021</code></p>
+                        <dd>Save some intermediate pictures of the clustering process</dd>
+                        <dt>-p</dt>
+                        <dd>Skip parameters calculation</dd>
+                        <dt>-g</dt>
+                        <dd>Skip Kegg mapping</dd>                          
+                          <p><code>dphenome start</code></p>
                           
                           <h4>Replica management</h4>
                         <p>DuctApe is able to remove the inconsistent replica from the phenomic experiment, following four distinct policies:</p>

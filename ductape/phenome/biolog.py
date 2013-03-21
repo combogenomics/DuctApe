@@ -95,6 +95,10 @@ zeroPlates = ['PM01','PM02A','PM03B','PM04A','PM05',
               'PM03', 'PM03','PM04A', 'PM04A','PM04', 'PM04']
 zeroWell = 'A01'
 
+# TODO: change the zero subtraction logic
+# Temporary handling of plate 4, which has two control wells
+zeroMultiple = {'PM05':['A01', 'F01']}
+
 wellChars = 'ABCDEFGH'
 
 def getPlatesOrder():
@@ -1475,7 +1479,39 @@ class BiologZero(object):
         Normal zero subtraction
         For some plates the first well is a the negative control
         '''
-        if plate.plate_id in zeroPlates:
+        # Temporary fix for plate 4
+        # TODO: change the zero subtraction logic
+        if plate.plate_id in zeroMultiple:
+            logger.debug('Handling multiple control plate %s'%plate.plate_id)
+            
+            zeros = [w for w in zeroMultiple[plate.plate_id]]
+            
+            # Here careful!
+            # If multiple control wells are present check the wells order
+            currZero = None
+            for p, w in getOrder([plate.plate_id]):
+                # We do nothing until the first control well is found
+                if w not in zeros and not currZero:
+                    continue
+                elif w in zeros:
+                    currZero = plate.data[w]
+                    continue
+                
+                # TODO: remove this shameless copy-pastah
+                # We assume that wells from the same plate
+                # will end at the same time
+                for hour in sorted(currZero.signals.keys()):
+                    plate.data[w].signals[hour] -= currZero.signals[hour]
+                    # Values below zero are forced to zero
+                    if self.forceZero and plate.data[w].signals[hour] <= 0:
+                        plate.data[w].signals[hour] = 0.1
+            
+            # Put each control well to zero
+            for zero in [plate.data[w] for w in zeroMultiple[plate.plate_id]]:
+                for hour in zero.signals.keys():
+                    zero.signals[hour]=0
+        
+        elif plate.plate_id in zeroPlates:
             zero = plate.data[zeroWell]
             for well in plate.data:
                 if well == zero.well_id:

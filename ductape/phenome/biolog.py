@@ -97,7 +97,7 @@ zeroWell = 'A01'
 
 # TODO: change the zero subtraction logic
 # Temporary handling of plate 4, which has two control wells
-zeroMultiple = {'PM05':['A01', 'F01']}
+zeroMultiple = {'PM04':['A01', 'F01']}
 
 wellChars = 'ABCDEFGH'
 

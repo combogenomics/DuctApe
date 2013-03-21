@@ -1,3 +1,24 @@
+Version 0.6.0
+=============
+
+UPGRADE URGENCY: HIGH; the control signal subtraction has been fixed on PM plate PM04A
+
+dgenome start
+FEATURE: roughly 3X speed improvements on BBH pangenome calculation 
+
+dphenome zero
+BUGFIX: the control signal subtraction has been fixed on PM plate PM04A
+
+dphenome export
+BUGFIX: the table with the average AV shouldn't contain the column "replica"
+
+kegg:
+FEATURE: fetch also the EC numbers for the Kegg reactions
+BUGFIX: add some spaces when a tag retrieved with the "info" request spans multiple lines
+
+dape start
+BUGFIX: fixing again the compound duplication bug when creating metabolic networks
+
 Version 0.5.4
 =============
 

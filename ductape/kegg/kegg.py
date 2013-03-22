@@ -820,8 +820,14 @@ class BaseKegg(CommonThread):
         '''
         check = [KeggAPI().baseip, KeggAPI()._apiip,
                  KeggAPI().baseurl, KeggAPI()._apiurl]
+        online = False
         for addr in check:
-            isOnline(addr)
+            try:
+                isOnline(addr)
+                online = True
+            except:pass
+        if not online:
+            raise Exception('KEGG seems to be offline')
             
 class BaseMapper(BaseKegg):
     def __init__(self, threads=40, avoid=[], queue=Queue.Queue()):

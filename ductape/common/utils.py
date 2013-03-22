@@ -7,6 +7,7 @@ Common library
 Spare parts
 """
 import logging
+import time
 
 ################################################################################
 # Log setup
@@ -141,7 +142,7 @@ def makeRoom(location='', *args):
     
     return path
 
-def isOnline(url='http://8.8.8.8', timeout=1):
+def isOnline(url='http://8.8.8.8', timeout=1, retries=2):
     '''
     Check if a particular site is online (with timeout)
     If an IP address is provided, DNS lookup is skipped, so the timeout will be
@@ -150,5 +151,21 @@ def isOnline(url='http://8.8.8.8', timeout=1):
     Thanks to @unutbu on Stack Overflow
     http://stackoverflow.com/questions/3764291/checking-network-connection
     '''
-    import urllib2
-    response=urllib2.urlopen(url, timeout=1)
+    attempts = 0
+    while True:
+        try:
+            import urllib2
+            response=urllib2.urlopen(url, timeout=1)
+            return
+        except Exception, e:
+            attempts += 1
+            logger.debug('test failed! Attempt %d'
+                          %attempts)
+            logger.debug('%s'%str(e))
+            time.sleep(0.5*attempts)
+            try:
+                logger.debug(url)
+            except:pass
+            if attempts >= retries:
+                logger.warning('test failed!')
+        #        raise Exception('connectivity test failed')

@@ -2633,7 +2633,6 @@ def dGetGenomeSteps(project):
             pass
         else:
             steps.append('map2ko')
-            steps.append('pangenome')
         
         return steps
 

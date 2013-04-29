@@ -1679,7 +1679,7 @@ class Kegg(DBBase):
                 if not html:continue
                 html = '\n'.join(html)
                 conn.execute('''update pathway set html=? where path_id=?;''',
-                     (html,path_id,))
+                     (buffer(html),path_id,))
                 
     def addPathReacts(self, pathreact):
         '''

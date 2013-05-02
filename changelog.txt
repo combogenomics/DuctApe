@@ -1,3 +1,15 @@
+Version 0.6.1
+=============
+
+UPGRADE URGENCY: HIGH; in some cases the KEGG data could not be retrieved correctly
+
+kegg:
+FEATURE: an improved connectivity check
+BUGFIX: the insertion in the database of some kegg maps resulted in failures
+
+dgenome start:
+BUGFIX: in a corner case the pangenome calculation was performed twice
+
 Version 0.6.0
 =============
 

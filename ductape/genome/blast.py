@@ -10,6 +10,7 @@ import logging
 import os
 import subprocess
 import sys
+from cStringIO import StringIO
 
 __author__ = "Marco Galardini"
 
@@ -81,9 +82,15 @@ class BlastHit:
             return None
         
 class Blaster(object):
-    def __init__(self):
+    def __init__(self, useDisk=False):
         self._hits = None
         self._out = ''
+        
+        # No-disk
+        self._useDisk = bool(useDisk)
+        self.retrieved = ''
+        self.query = ''
+        self.out = ''
         
     def createDB(self,seqFile,dbType,outFile='BlastDB',parseIDs=True,
                         title='Generic Blast DB'):
@@ -101,26 +108,36 @@ class Blaster(object):
         if return_code != 0:
             logger.warning('Blast DB creation failed with error %d'
                             %return_code)
+            logger.warning('%s'%str(out[1]))
 
         return bool(not return_code)
     
     def retrieveFromDB(self, db, accession, out='out.fsa', isFile=False):
         '''Retrieve the desired sequence(s) from a Blast DB'''
         if not isFile:
-            cmd=('blastdbcmd -db %s -entry "%s" > %s'
-                 %(db,accession,out))
+            cmd=('blastdbcmd -db %s -entry "%s"'
+                 %(db,accession))
         else:
-            cmd=('blastdbcmd -db %s -entry_batch "%s" > %s'
-                 %(db,accession,out))
+            cmd=('blastdbcmd -db %s -entry_batch "%s"'
+                 %(db,accession))
+        
+        if self._useDisk:
+            cmd += ' > %s'%out
+        
         logger.debug('BlastDBcmd cmd: %s'%cmd)
         proc = subprocess.Popen(cmd,shell=(sys.platform!="win32"),
                     stdin=subprocess.PIPE,stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE)
         out = proc.communicate()
+        
+        if not self._useDisk:
+            self.retrieved = out[0]
+        
         return_code = proc.returncode
         if return_code != 0:
             logger.warning('BlastDBcmd failed with error %d'
                             %return_code)
+            logger.warning('%s'%str(out[1]))
 
         return bool(not return_code)
     
@@ -130,12 +147,14 @@ class Blaster(object):
         # Create the command line
         from Bio.Blast.Applications import NcbiblastpCommandline
         self._out = outFile
-        cmd = NcbiblastpCommandline(query=queryFile, db=db,
+        cmd = NcbiblastpCommandline(db=db,
                 evalue=float(evalue),
                 outfmt=outfmt,
                 num_threads=ncpus)
-        if outFile != '':
-            cmd.set_parameter('out', outFile)
+        if self._useDisk:
+            cmd.set_parameter('query', queryFile)
+            if outFile != '':
+                cmd.set_parameter('out', outFile)
         if task != '':
             cmd.set_parameter('task', task)
         if additional !='':
@@ -146,19 +165,33 @@ class Blaster(object):
         proc = subprocess.Popen(cmd,shell=(sys.platform!="win32"),
                     stdin=subprocess.PIPE,stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE)
+        
+        if not self._useDisk:
+            proc.stdin.write(self.query)
+                    
         out = proc.communicate()
+        
+        if not self._useDisk:
+            self.out = out[0]
+        
         return_code = proc.returncode
         if return_code != 0:
             logger.warning('Run Blast failed with error %d'
                             %return_code)
+            logger.warning('%s'%str(out[1]))
 
         return bool(not return_code)
     
     def parseBlast(self, fileOut):
         '''Parse the xml blast output -- default file is self._out'''
         from Bio.Blast import NCBIXML
-        self._out = fileOut
-        handle = open(fileOut)
+
+        if self._useDisk:
+            self._out = fileOut
+            handle = open(fileOut)
+        else:
+            handle = StringIO(self.out)
+            
         self._hits = NCBIXML.parse(handle)
         
     def getHits(self,expect=10.0):
@@ -179,7 +212,7 @@ class RunBBH(object):
     def __init__(self, query, queryid,
                  source, target, targetorg,
                  evalue, matrix, short = False, uniqueid = 1,
-                 kegg = False, ko_entry = None, ko_id = None):
+                 kegg = False, ko_entry = None, ko_id = None, useDisk=True):
         self.query = query
         self.queryid = queryid
         self.source = source
@@ -192,12 +225,18 @@ class RunBBH(object):
         self.kegg = kegg
         self.ko_entry = ko_entry
         self.ko_id = ko_id
+        self.useDisk = bool(useDisk)
         
         self.out = self.query + '_' + str(self.uniqueid) +'.xml'
-        self.blaster = Blaster()
+        self.blaster = Blaster(useDisk=self.useDisk)
         self.additional = (' -soft_masking true -dbsize 500000000 '+
-                    '-use_sw_tback -num_alignments 1 -matrix %s'%self.matrix)
-        self.queryreturn = self.query + '_' + str(self.uniqueid) + '_return'
+                    '-use_sw_tback -max_target_seqs 1 -matrix %s'%self.matrix)
+        
+        if not self.useDisk:
+            self.blaster.query = self.query
+            self.queryreturn = ''
+        else:
+            self.queryreturn = self.query + '_' + str(self.uniqueid) + '_return'
     
     def _firstRun(self):
         if self.short:
@@ -219,6 +258,10 @@ class RunBBH(object):
                 hit_len = 29
             else:
                 hit_len = 100
+                
+        if not self.useDisk:
+            self.blaster.query = self.blaster.retrieved
+                
         if hit_len < 30:
             res = self.blaster.runBlast(self.queryreturn, self.source, self.out,
                      evalue = self.evalue,
@@ -237,9 +280,11 @@ class RunBBH(object):
             res = self._firstRun()
             
             if not res:
-                try:
-                    os.remove(self.out)
-                except:pass
+                if self.useDisk:
+                    try:
+                        os.remove(self.out)
+                    except:pass
+                    
                 return (None, self.targetorg, False)
             
             self.blaster.parseBlast(self.out)
@@ -250,9 +295,12 @@ class RunBBH(object):
     
                 if not self.blaster.retrieveFromDB(self.target, targethit.hit,
                                       out=self.queryreturn):
-                    try:
-                        os.remove(self.out)
-                    except:pass
+    
+                    if self.useDisk:
+                        try:
+                            os.remove(self.out)
+                        except:pass
+                        
                     return (None, self.targetorg, False)
     
                 # Second Blast run            
@@ -261,18 +309,21 @@ class RunBBH(object):
         else:
             if not self.blaster.retrieveFromDB(self.target, self.ko_entry,
                                       out=self.queryreturn):
-                try:
-                    os.remove(self.out)
-                except:
-                    pass
+                if self.useDisk:
+                    try:
+                        os.remove(self.out)
+                    except:
+                        pass
                 return (None, self.targetorg, False)
             res = self._secondRun()
         
         if not res:
-            try:
-                os.remove(self.out)
-                os.remove(self.queryreturn)
-            except:pass
+        
+            if self.useDisk:
+                try:
+                    os.remove(self.out)
+                    os.remove(self.queryreturn)
+                except:pass
             return (None, self.targetorg, False)
         
         self.blaster.parseBlast(self.out)
@@ -281,17 +332,20 @@ class RunBBH(object):
                 return (None, self.targetorg, True)
             sourcehit = hits[0]
             if self.queryid == sourcehit.hit:
-                os.remove(self.out)
-                os.remove(self.queryreturn)
+                if self.useDisk:
+                    os.remove(self.out)
+                    os.remove(self.queryreturn)
                 if self.kegg:
                     return (self.ko_id,self.queryid, True)
                 else:
                     return (sourcehit.query_id.replace('lcl|',''),
                         self.targetorg, True)
             else:
-                os.remove(self.out)
-                os.remove(self.queryreturn)
+                if self.useDisk:
+                    os.remove(self.out)
+                    os.remove(self.queryreturn)
                 return (None, self.targetorg, True)
 
-        os.remove(self.out)
+        if self.useDisk:
+            os.remove(self.out)
         return (None, self.targetorg, True)

@@ -138,10 +138,7 @@ class PanGenomer(CommonMultiProcess):
                 orthname = self.prefix + str(orthindex)
                 orgsincluded = [org]
                 self.orthologs[orthname] = [seq.id]
-                query = os.path.join(self._pangenomeroom,str(self._substatus))
-                if SeqIO.write([seq], open(query,'w'), 'fasta') <= 0:
-                    logger.error('Error writing sequence %s to file'%seq.id)
-                    return False
+                query = '>%s\n%s\n'%(seq.id, str(seq.seq))
                 
                 self.initiateParallel()
                 
@@ -161,7 +158,7 @@ class PanGenomer(CommonMultiProcess):
                     obj = RunBBH(query,seq.id,self.dbs[org],
                             self.dbs[otherorg],otherorg,
                             self.evalue,self.matrix,short=short,
-                            uniqueid=uniqueid)
+                            uniqueid=uniqueid,useDisk=False)
                     self._paralleltasks.put(obj)
                     
                 # Poison pill to stop the workers
@@ -220,18 +217,11 @@ class PanGenomer(CommonMultiProcess):
                         neworg = self._prot2orgs[otherprotein]
                         if neworg == org:
                             continue
-                        bFound = False
-                        for seq in SeqIO.parse(open(neworg),'fasta'):
-                            if seq.id == otherprotein:
-                                bFound = True
-                                break
-                        if not bFound:
-                            logger.error('%s not found!'%otherprotein)
-                            return False
-                        if SeqIO.write([seq], open(query,'w'), 'fasta') == 0:
-                            logger.error('Error writing sequence %s to file'
-                                         %seq.id)
-                            return False
+                            
+                        searcher = Blaster(useDisk=False)
+                        searcher.retrieveFromDB(self.dbs[neworg],
+                                                otherprotein)
+                        query = searcher.retrieved
                         
                         self.initiateParallel()
                         
@@ -249,7 +239,8 @@ class PanGenomer(CommonMultiProcess):
                             # Multi process
                             obj = RunBBH(query,otherprotein,self.dbs[neworg],
                                     self.dbs[evenneworg],evenneworg,
-                                    self.evalue,self.matrix,short=short,uniqueid=uniqueid)
+                                    self.evalue,self.matrix,short=short,
+                                    uniqueid=uniqueid,useDisk=False)
                             self._paralleltasks.put(obj)
                             
                         # Poison pill to stop the workers
@@ -299,7 +290,6 @@ class PanGenomer(CommonMultiProcess):
                         
                         self.killParallel()
                 
-                os.remove(query)   
                 orthindex += 1
         return True
     

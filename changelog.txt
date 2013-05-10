@@ -1,3 +1,15 @@
+Version 0.6.2
+=============
+
+UPGRADE URGENCY: HIGH; in some cases the KEGG html maps could not be retrieved correctly
+
+kegg:
+BUGFIX: the preparation of some kegg html maps resulted in failures
+
+dgenome start:
+FEATURE: roughly 3X speed improvements on BBH pangenome calculation, thanks to in-memory Blast searches
+
+
 Version 0.6.1
 =============
 

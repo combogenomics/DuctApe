@@ -425,6 +425,9 @@ if not os.path.exists(wdir):
     
 project = os.path.join(wdir, options.project)
 
-options.func(options, wdir, project)
+ret = options.func(options, wdir, project)
 
 touchProject(project)
+
+if not ret:
+    sys.exit(1)

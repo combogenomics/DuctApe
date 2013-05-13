@@ -13,6 +13,7 @@ from matplotlib import cm
 import argparse
 import logging.handlers
 import os
+import sys
 
 __author__ = "Marco Galardini"
 __prog__ = "dape"
@@ -995,6 +996,9 @@ if not os.path.exists(wdir):
     
 project = os.path.join(wdir, options.project)
 
-options.func(options, wdir, project)
+ret = options.func(options, wdir, project)
 
 touchProject(project)
+
+if not ret:
+    sys.exit(1)

@@ -2191,7 +2191,7 @@ class MapsFetcher(BaseKegg):
                         </div>\n'''%
                        (path.path+'.png'))
             
-            html = str(path.htmlmap).split('\n')
+            html = path.htmlmap.split('\n')
             newhtml = []
             for line in html:
                 line = line.replace('href="/dbget-bin/www_bget?',

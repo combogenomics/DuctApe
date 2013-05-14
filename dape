@@ -704,6 +704,8 @@ def dmap(options, wdir, project):
                     if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
                                        categ.category):
                         return False
+    
+    return True
 
 def dimport(options, wdir, project):
     from ductape.actions import dKeggImport

@@ -600,6 +600,34 @@ def dPhenomeRestore(project, plates=[]):
     
     return True
 
+def dGenomeAnnotate(project):
+    # Which project are we talking about?
+    kind = dSetKind(project)
+    
+    proj = Project(project)
+    proj.getProject()
+    
+    if kind != 'pangenome':
+        logger.warning("Kegg annotation merge can be performed only with pangenome analysis")
+        return False
+    
+    if not proj.isPanGenome():
+        logger.warning("The pangenome has not been predicted yet")
+        return False
+    
+    # Start to merge the annotations
+    merged, mergedg, multiple = mergeKegg(project)
+    
+    genome = Genome(project)
+    genome.addKOs(merged, True)
+    
+    logger.info('Merged %d KEGG annotations'%len(merged))
+    logger.info('%d orthologous groups have been re-annotated'%len(mergedg))
+    if len(multiple) >= 1:
+        logger.warning('Found %d orthologous groups with more than one KO entry'%len(multiple))
+                     
+    return True
+
 def dGenomeStats(project, svg=False, doPrint=True):
     # Which project are we talking about?
     kind = dSetKind(project)
@@ -1758,6 +1786,8 @@ def dGenomeExport(project):
                                                       org.org_id,
                                                       '%s.faa'%org.org_id))
         
+    proj = Project(project)
+    
     logger.info('Exporting Kegg data')
     
     logger.info('Exporting KO map data')
@@ -1780,6 +1810,66 @@ def dGenomeExport(project):
         else:
             logger.info('Saved %d KO links for %s (%s)'%(i, org.org_id,
                                                      fname))
+    
+    if proj.isPanGenome():
+        merged, mergedg, multiple = mergeKegg(project)
+        if len(merged) > 0:
+            nprots = set([x[0] for x in merged])
+            logger.warning('Annotation on %d proteins can be improved'%len(nprots))
+            logger.warning('%d orthologous groups would be affected'%len(mergedg))
+        else:
+            for org in organism.getAll():
+                fname = 'ko_merged_%s.tsv'%org.org_id
+                fout = open(fname,'w')
+                fout.write('#%s\t%s\n'%('prot_id', 'ko_id'))
+                i = 0
+                # Get the merged annotations (if any)
+                for prot_id, ko_id in kegg.getAllKO(org.org_id, merged=True):
+                    fout.write('%s\t%s\n'%(prot_id, ko_id.lstrip('ko:')))
+                    i += 1
+                fout.close()
+                
+                if i == 0:
+                    os.remove(fname)
+                    logger.info('No merged KO links available for %s'
+                                        %org.org_id)
+                else:
+                    logger.warning('Saved %d merged KO links for %s (%s)'
+                                %(i, org.org_id, fname))
+        
+        if len(multiple) > 0:
+            logger.warning('Found %d orthologous groups with more than one KO entry'%len(multiple))
+            
+            fname = 'ko_multiple.tsv'
+            fout = open(fname,'w')
+            fout.write('#%s\n'%('group_id'))
+            i = 0
+            for group_id in multiple:
+                fout.write('%s\n'%group_id)
+                i += 1
+            fout.close()
+            
+            logger.warning('Saved %d orthologs with multiple KO links (%s)'
+                            %(i, fname))
+            
+            for org in organism.getAll():
+                fname = 'ko_multiple_%s.tsv'%org.org_id
+                fout = open(fname,'w')
+                fout.write('#%s\t%s\n'%('prot_id', 'ko_id'))
+                i = 0
+                # Get the multiple annotations (if any)
+                for prot_id, ko_id in kegg.getMultipleKOs(org.org_id):
+                    fout.write('%s\t%s\n'%(prot_id, ko_id.lstrip('ko:')))
+                    i += 1
+                fout.close()
+                
+                if i == 0:
+                    os.remove(fname)
+                    logger.info('No mutiple KO links available for %s'
+                                        %org.org_id)
+                else:
+                    logger.warning('Saved %d multiple KO links for %s (%s)'
+                                %(i, org.org_id, fname))
         
     logger.info('Exporting Kegg reactions data')
     
@@ -1821,8 +1911,6 @@ def dGenomeExport(project):
         else:
             logger.info('Saved %d EC numbers links for %s (%s)'%
                     (i, org.org_id, fname))
-        
-    proj = Project(project)
     
     if proj.isPanGenome():
         logger.info('Exporting pangenome data')
@@ -2635,6 +2723,71 @@ def dGetGenomeSteps(project):
             steps.append('map2ko')
         
         return steps
+
+def mergeKegg(project):
+    '''
+    Returns some info on new kegg annotations extracted from orthologs
+    
+    set with (prot_id, ko_id)
+    set with group_id having re-annotated proteins
+    set with group_id having multiple ko ids
+    '''
+    genome = Genome(project)
+    pankegg = genome.getPanGenomeKOs()
+    
+    merged = set()
+    mergedg = set()
+    
+    multiple = set()
+    
+    for group_id, pko in pankegg.iteritems():
+        allko = set()
+        missing = 0
+        for prot_id, kos in pko.iteritems():
+            if kos is None:
+                missing += 1
+                continue
+            for ko in kos:
+                allko.add(ko)
+        
+        # How many distinct IDs do we have
+        if len(allko) == 1 and missing >= 1:
+            mergedg.add(group_id)
+            # Single-annotations missing
+            for prot_id, kos in pko.iteritems():
+                if kos is None:
+                    for ko in allko:
+                        merged.add((prot_id, ko))
+                        
+        elif len(allko) > 1:
+            # Multiple annotations!
+            if missing == 0:
+                # Only duplicates
+                multiple.add(group_id)
+                for prot_id, kos in pko.iteritems():
+                    if len(kos) != len(allko):
+                        mergedg.add(group_id)
+                        
+                        for ko in allko:
+                            if ko not in pko[prot_id]:
+                                merged.add((prot_id, ko))
+                                     
+            else:
+                # Missing (and?) multiple
+                mergedg.add(group_id)
+                multiple.add(group_id)
+                
+                for prot_id, kos in pko.iteritems():
+                    if kos is None:
+                        for ko in allko:
+                            merged.add((prot_id, ko))
+                    else:
+                        if len(kos) != len(allko):
+                            for ko in allko:
+                                if ko not in pko[prot_id]:
+                                    merged.add((prot_id, ko))
+                                    
+    return merged, mergedg, multiple
 
 def getPathsReacts(project):
     kegg = Kegg(project)

@@ -741,7 +741,11 @@ class Genome(DBBase):
         oProj = Project(self.dbname)
         oProj.clearPanGenome()
             
-    def addKOs(self, kos):
+    def addKOs(self, kos, merged=False):
+        '''
+        Add a bunch of KO IDs mappings
+        If merged, the annotation has been taken from the orthology
+        '''
         oCheck = Kegg(self.dbname)
         
         self.boost()
@@ -750,25 +754,29 @@ class Genome(DBBase):
             if not self.isProt(prot_id):
                 logger.warning('Protein %s is not present yet!'%prot_id)
                 raise Exception('This Protein (%s) is not present yet!'%prot_id)
+            
+            if ko_id.startswith('ko:'):
+                ko_id = ko_id.lstrip('ko:')
+                
             if not oCheck.isKO('ko:'+ko_id):
-                logger.warning('KO %s is not present yet!'%'ko:'+ko_id)
-                raise Exception('This KO (%s) is not present yet!'%'ko:'+ko_id)
+                logger.warning('KO %s is not present yet!'%('ko:'+ko_id))
+                raise Exception('This KO (%s) is not present yet!'%('ko:'+ko_id))
         
         with self.connection as conn:
             for prot_id,ko_id in kos:
-                conn.execute('insert or replace into mapko values (?,?);',
-                             [prot_id,'ko:'+ko_id,])
+                if ko_id.startswith('ko:'):
+                    ko_id = ko_id.lstrip('ko:')
+                    
+                conn.execute('insert or replace into mapko values (?,?,?);',
+                             [prot_id,'ko:'+ko_id,int(merged),])
     
     def getKO(self, prot_id):
         with self.connection as conn:
             cursor=conn.execute('select * from mapko where prot_id = ?;',
                                 [prot_id,])
         
-        data = cursor.fetchall()
-        if len(data) == 0:
-            return Row([], cursor.description)
-        else:
-            return Row(data[0], cursor.description)
+        for res in cursor:
+            yield Row(res, cursor.description)
     
     def delKOs(self, prots):
         with self.connection as conn:
@@ -842,6 +850,27 @@ class Genome(DBBase):
             pangenome[group] = sorted(pangenome[group])
             
         return pangenome
+    
+    def getPanGenomeKOs(self):
+        '''
+        Returns a double dictionary with pangenome and KO annotations
+        group_id --> [prot_id --> [ko_id, ...], ...]
+        '''
+        ko = {}
+        oKegg = Kegg(self.dbname)
+        for prot_id, ko_id in oKegg.getAllKO():
+            ko[prot_id] = ko.get(prot_id, set())
+            ko[prot_id].add(ko_id)
+        
+        pangenome = self.getPanGenome()
+        
+        panko = {}
+        for group_id, prots in pangenome.iteritems():
+            panko[group_id] = {}
+            for prot_id in prots:
+                panko[group_id][prot_id] = ko.get(prot_id, None)
+                
+        return panko
         
     def alterPanGenome(self):
         # TODO
@@ -1271,22 +1300,92 @@ class Kegg(DBBase):
             
         return Row(cursor.fetchall()[0], cursor.description)
     
-    def getAllKO(self, org_id):
+    def getAllKO(self, org_id=None, merged=False):
         '''
         Get all the prot_id, ko_id pair iterator from a specific org_id
+        If org_id is not provided, all the pairs are provided
+        If merged is True, only those proteins annotated by orthology are provided
         '''
-        query = '''
-                select distinct m.prot_id, ko_id
-                from mapko m, protein p
-                where m.prot_id = p.prot_id
-                and org_id = ?;
-                '''
+        if not org_id:
+            if not merged:
+                query = '''
+                        select distinct prot_id, ko_id
+                        from mapko
+                        '''
+            else:
+                query = '''
+                        select distinct prot_id, ko_id
+                        from mapko
+                        where indirect=1
+                        '''
+                
+            with self.connection as conn:
+                cursor=conn.execute(query)
         
-        with self.connection as conn:
-            cursor=conn.execute(query,[org_id,])
+        else:
+            if not merged:
+                query = '''
+                        select distinct m.prot_id, ko_id
+                        from mapko m, protein p
+                        where m.prot_id = p.prot_id
+                        and org_id = ?;
+                        '''
+            else:
+                query = '''
+                        select distinct m.prot_id, ko_id
+                        from mapko m, protein p
+                        where m.prot_id = p.prot_id
+                        and org_id = ?
+                        and indirect=1;
+                        '''
+        
+            with self.connection as conn:
+                cursor=conn.execute(query,[org_id,])
             
         for res in cursor:
             yield res[0], res[1]
+    
+    def getMultipleKOs(self, org_id=None):
+        '''
+        Generator to the multiple annotated proteins
+        If org_id is not provided, all the pairs are provided
+        '''
+        if not org_id:
+            query = '''
+                    select prot_id, count(*)
+                    from mapko
+                    group by prot_id
+                    having count(*)>1
+                    '''
+            
+            with self.connection as conn:
+                cursor=conn.execute(query)
+            
+        else:
+            query = '''
+                    select m.prot_id, count(*)
+                    from mapko m, protein p
+                    where m.prot_id=p.prot_id
+                    and org_id=?
+                    group by m.prot_id
+                    having count(*)>1
+                    '''
+        
+            with self.connection as conn:
+                cursor=conn.execute(query,[org_id,])
+            
+        for res in cursor:
+            query = '''
+                    select distinct ko_id
+                    from mapko
+                    where prot_id = ?;
+                    '''
+            
+            with self.connection as conn:
+                cursor1=conn.execute(query,[res[0]])
+                
+            for res1 in cursor1:
+                yield res[0], res1[0]
     
     def isKO(self, ko_id):
         '''

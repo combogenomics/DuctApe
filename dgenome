@@ -134,7 +134,19 @@ def dstart(options, wdir, project):
             logger.warning('Unrecognized analysis %s'%step)
     
     return True
-            
+
+def dannotate(options, wdir, project):
+    from ductape.actions import dGenomeAnnotate
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    
+    ret = dGenomeAnnotate(project)
+    if ret:
+        logger.info('Information on merged annotations and multiply annotated'+
+                    ' orthologs can be obtained with %s export'%__prog__)    
+         
 def dstats(options, wdir, project):
     from ductape.actions import dGenomeStats
     if not touchProject(project):
@@ -373,6 +385,9 @@ def getOptions():
     parser_start.add_argument('-k', action="store",
                             help='Kegg database location (for local map2ko)')
     parser_start.set_defaults(func=dstart)
+    
+    parser_annotate = subparsers.add_parser('annotate', help='Transfer and correct the KEGG annotation')
+    parser_annotate.set_defaults(func=dannotate)
     
     parser_stats = subparsers.add_parser('stats', help='Print genomic statistics')
     parser_stats.add_argument('-s', '--svg', action="store_true",

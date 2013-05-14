@@ -32,7 +32,8 @@ CREATE TABLE "protein" (
 );
 CREATE TABLE "mapko" (
     "prot_id" TEXT,
-    "ko_id" TEXT
+    "ko_id" TEXT,
+    "indirect" INTEGER DEFAULT (0)
 );
 CREATE TABLE "ortholog" (
     "group_id" TEXT,

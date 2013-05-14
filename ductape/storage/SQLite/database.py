@@ -1048,6 +1048,8 @@ class Kegg(DBBase):
                              for field in cursor.description])
     
         with self.connection as conn:
+            conn.text_factory = str
+            
             cursor=conn.execute('select * from pathway;')
             
         # Exceptionally ugly exception
@@ -1122,6 +1124,8 @@ class Kegg(DBBase):
         self.boost()
         
         with self.connection as conn:
+            conn.text_factory = str
+            
             for l in infile:
                 if l.lstrip().startswith('#'):continue
             
@@ -1148,7 +1152,7 @@ class Kegg(DBBase):
                     values = values.rstrip(', ')
                     query = '''insert or replace into %s values (%s);'''%(s[0], values)
                     
-                    conn.execute(query, s[1:])
+                    conn.execute(query, [str(x) for x in s[1:]])
         
         # Last step
         if release:
@@ -1678,11 +1682,13 @@ class Kegg(DBBase):
         self.boost()
         
         with self.connection as conn:
+            conn.text_factory = str
+            
             for path_id, html in path.iteritems():
                 if not html:continue
                 html = '\n'.join(html)
                 conn.execute('''update pathway set html=? where path_id=?;''',
-                     (buffer(html),path_id,))
+                     (html,path_id,))
                 
     def addPathReacts(self, pathreact):
         '''
@@ -1781,6 +1787,8 @@ class Kegg(DBBase):
         self.boost()
         
         with self.connection as conn:
+            conn.text_factory = str
+            
             for path_id in pathmap:
                 conn.execute('insert or ignore into pathmap (path_id, html) values (?,?);',
                                  (path_id,'\n'.join(pathmap[path_id]),))
@@ -1809,6 +1817,8 @@ class Kegg(DBBase):
             return None
         
         with self.connection as conn:
+            conn.text_factory = str
+            
             cursor=conn.execute('select * from pathway where path_id=?;',
                                 [path_id,])
             
@@ -1823,6 +1833,7 @@ class Kegg(DBBase):
         query = '''select * from pathway order by path_id;'''
         
         with self.connection as conn:
+            conn.text_factory = str
             cursor=conn.execute(query)
             
         for res in cursor:

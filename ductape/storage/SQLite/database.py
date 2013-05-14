@@ -122,6 +122,9 @@ class Project(DBBase):
         self.genome = None
         self.phenome = None
         self.pangenome = None
+        
+        # Populate the project immediately
+        self.getProject()
     
     def __str__(self):
         self.getProject()

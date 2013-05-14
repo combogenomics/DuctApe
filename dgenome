@@ -142,7 +142,7 @@ def dannotate(options, wdir, project):
                        __prog__)
         return False
     
-    ret = dGenomeAnnotate(project)
+    ret = dGenomeAnnotate(project, options.s)
     if ret:
         logger.info('Information on merged annotations and multiply annotated'+
                     ' orthologs can be obtained with %s export'%__prog__)    
@@ -387,6 +387,9 @@ def getOptions():
     parser_start.set_defaults(func=dstart)
     
     parser_annotate = subparsers.add_parser('annotate', help='Transfer and correct the KEGG annotation')
+    parser_annotate.add_argument('-s', action="store_true",
+                            default=False,
+                            help='Skip annotation merging (just check)')
     parser_annotate.set_defaults(func=dannotate)
     
     parser_stats = subparsers.add_parser('stats', help='Print genomic statistics')

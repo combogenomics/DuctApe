@@ -600,7 +600,7 @@ def dPhenomeRestore(project, plates=[]):
     
     return True
 
-def dGenomeAnnotate(project):
+def dGenomeAnnotate(project, noWrite=False):
     # Which project are we talking about?
     kind = dSetKind(project)
     
@@ -618,11 +618,17 @@ def dGenomeAnnotate(project):
     # Start to merge the annotations
     merged, mergedg, multiple = mergeKegg(project)
     
-    genome = Genome(project)
-    genome.addKOs(merged, True)
+    if not noWrite:
+        genome = Genome(project)
+        genome.addKOs(merged, True)
     
-    logger.info('Merged %d KEGG annotations'%len(merged))
-    logger.info('%d orthologous groups have been re-annotated'%len(mergedg))
+        logger.info('Merged %d KEGG annotations'%len(merged))
+        logger.info('%d orthologous groups have been re-annotated'%len(mergedg))
+        
+    else:
+        logger.info('%d KEGG annotations can be added'%len(merged))
+        logger.info('%d orthologous groups may be re-annotated'%len(mergedg))
+        
     if len(multiple) >= 1:
         logger.warning('Found %d orthologous groups with more than one KO entry'%len(multiple))
                      

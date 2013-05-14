@@ -2674,18 +2674,24 @@ def dSetKind(project):
     org = Organism(project)
     if org.howManyMutants() > 0:
         logger.info('%d mutants are present'%org.howManyMutants())
-        proj.setKind('mutants')
+        if proj.kind != 'mutants':
+            proj.setKind('mutants')
         return 'mutants'
+    
     elif org.howMany() == 1:
         logger.info('Just one organism is present')
-        proj.setKind('single')
+        if proj.kind != 'single':
+            proj.setKind('single')
         return 'single'
+    
     elif org.howMany() == 0:
         logger.info('No organisms are present yet')
         return None
+    
     else:
         logger.info('%d organisms are present'%org.howMany())
-        proj.setKind('pangenome')
+        if proj.kind != 'pangenome':
+            proj.setKind('pangenome')
         return 'pangenome'
 
 def dGetGenomeSteps(project):

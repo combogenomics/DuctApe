@@ -150,7 +150,7 @@ class Well(object):
         
         # Parameters list
         self.params = ['max', 'min', 'height',
-                       'plateu', 'slope', 'lag',
+                       'plateau', 'slope', 'lag',
                        'area', 'v', 'y0']
         
         # Fitting model used
@@ -329,6 +329,19 @@ class Well(object):
                     self.plateau = 0
                     self.lag = 0
                     self.slope = 0.0
+                    
+    def purgeNan(self):
+        '''
+        Scan the parameters list, force Nan values to zero
+        '''
+        import math
+        
+        for param in self.params:
+            if math.isnan( float( getattr(self, param) ) ):
+                logger.warning('Well %s %s %s, parameter %s had a NaN value,'
+                           %(self.plate_id, self.well_id, self.strain, param)+
+                           ' forced to zero')
+                setattr(self, param, 0)
 
 class SinglePlate(object):
     '''
@@ -924,6 +937,13 @@ class Experiment(object):
             for well in Plate.getWells():
                 if not well.max and params:
                     well.calculateParams()
+                
+                # Fix the Nan parameters, force to zero
+                try:
+                    int(well.max)  
+                    well.purgeNan()
+                except:pass
+                
                 yield well
     
     def setNoActivity(self):

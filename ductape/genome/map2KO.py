@@ -363,6 +363,7 @@ class OnlineSearch(object):
         
     def parseKAAS(self,filein):
         for l in open(filein):
+            if l.startswith('#'):continue
             s=l.strip().split('\t')
             if len(s) == 1:continue
             self.results[s[0]] = s[1]

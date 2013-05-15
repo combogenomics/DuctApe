@@ -919,6 +919,49 @@ class Genome(DBBase):
             
         return i
     
+    def _getDisp(self):
+        '''
+        Base method to get the dispensable genome
+        '''
+        # How many organisms are present?
+        oCheck = Organism(self.dbname)
+        nOrgs = oCheck.howMany()
+        
+        query = '''
+                select distinct group_id, count(distinct org_id) orgs
+                from ortholog o, protein r
+                where o.prot_id = r.prot_id
+                group by group_id
+                HAVING orgs < ?;
+                '''
+        
+        with self.connection as conn:
+            cursor = conn.execute(query,
+                             [nOrgs,])
+        
+        return cursor
+    
+    def getDisp(self):
+        '''
+        Returns a list of orthologous groups names belonging to the Dispensable genome
+        '''
+        cursor = self._getDisp()
+        
+        for res in cursor:
+            yield Row(res, cursor.description)
+    
+    def getLenDisp(self):
+        '''
+        Get dispensable genome size
+        '''
+        cursor = self._getDisp()
+        
+        i = 0
+        for res in cursor:
+            i += 1
+            
+        return i
+    
     def _getAcc(self):
         '''
         Base method to get the accessory genome
@@ -2388,6 +2431,16 @@ class Kegg(DBBase):
                                         group by o.group_id
                                         having count(*) = ?);
                     '''
+        elif pangenome == 'dispensable':
+            query = '''
+                    select count(distinct  o.group_id)
+                    from mapko m, ortholog o
+                    where m.prot_id = o.prot_id
+                    and group_id in (select o.group_id
+                                        from ortholog o
+                                        group by o.group_id
+                                        having count(*) < ?);
+                    '''
         elif pangenome == 'accessory':
             query = '''
                     select count(distinct  o.group_id)
@@ -2430,7 +2483,7 @@ class Kegg(DBBase):
         is returned
         '''
         
-        if pangenome in ['core', 'accessory', 'unique']:
+        if pangenome in ['core', 'dispensable', 'accessory', 'unique']:
             # How many organisms are present?
             organism = Organism(self.dbname)
             nOrg = organism.howMany()
@@ -2452,6 +2505,16 @@ class Kegg(DBBase):
                                 group by o.group_id
                                 having count(*) = ?);
                     '''
+        elif pangenome == 'dispensable':
+            query = '''
+                    select count(distinct ko_id)
+                    from mapko m, ortholog o
+                    where m.prot_id = o.prot_id
+                    and o.group_id in (select o.group_id
+                                from ortholog o
+                                group by o.group_id
+                                having count(*) < ?);
+                    '''
         elif pangenome == 'accessory':
             query = '''
                     select count(distinct ko_id)
@@ -2460,7 +2523,7 @@ class Kegg(DBBase):
                     and o.group_id in (select o.group_id
                                 from ortholog o
                                 group by o.group_id
-                                having count(*) < ? and count(*));
+                                having count(*) < ? and count(*) > 1);
                     '''
         elif pangenome == 'unique':
             query = '''
@@ -2481,7 +2544,76 @@ class Kegg(DBBase):
         with self.connection as conn:
             if org_id:
                 cursor=conn.execute(query,[org_id,])
-            elif pangenome in ['core', 'accessory']:
+            elif pangenome in ['core', 'dispensable', 'accessory']:
+                cursor=conn.execute(query,[nOrg,])
+            else:
+                cursor=conn.execute(query)
+        return int(cursor.fetchall()[0][0])
+    
+    def howManyUniqueReactions(self, org_id=None, pangenome=''):
+        '''
+        Returns the number of unique reaction IDs are mapped
+        If no org_id is provided, the whole number of reactions from all organism
+        is returned
+        '''
+        
+        if pangenome in ['core', 'dispensable', 'accessory', 'unique']:
+            # How many organisms are present?
+            organism = Organism(self.dbname)
+            nOrg = organism.howMany()
+        
+        if org_id:
+            query = '''
+                    select count(distinct k.re_id)
+                    from mapko m, protein p, ko_react k
+                    where m.prot_id = p.prot_id
+                    and org_id = ?
+                    and m.ko_id = k.ko_id
+                    '''
+        elif pangenome == 'core':
+            query = '''
+                    select count(distinct k.re_id)
+                    from mapko m, ortholog o, ko_react k
+                    where m.prot_id = o.prot_id
+                    and m.ko_id = k.ko_id
+                    and o.group_id in (select o.group_id
+                                    from ortholog o
+                                    group by o.group_id
+                                    having count(*) = ?);
+                    '''
+        elif pangenome == 'accessory':
+            query = '''
+                    select count(distinct k.re_id)
+                    from mapko m, ortholog o, ko_react k
+                    where m.prot_id = o.prot_id
+                    and m.ko_id = k.ko_id
+                    and o.group_id in (select o.group_id
+                                from ortholog o
+                                group by o.group_id
+                                having count(*) < ? and count(*) > 1);
+                    '''
+        elif pangenome == 'unique':
+            query = '''
+                    select count(distinct k.re_id)
+                    from mapko m, ortholog o, ko_react k
+                    where m.prot_id = o.prot_id
+                    and m.ko_id = k.ko_id
+                    and o.group_id in (select o.group_id
+                                from ortholog o
+                                group by o.group_id
+                                having count(*) = 1);
+                    '''
+        else:
+            query = '''
+                    select count(distinct k.re_id)
+                    from mapko m, ko_react k
+                    where m.ko_id = k.ko_id
+                    '''
+            
+        with self.connection as conn:
+            if org_id:
+                cursor=conn.execute(query,[org_id,])
+            elif pangenome in ['core', 'dispensable', 'accessory']:
                 cursor=conn.execute(query,[nOrg,])
             else:
                 cursor=conn.execute(query)
@@ -2494,7 +2626,7 @@ class Kegg(DBBase):
         is returned
         '''
         
-        if pangenome in ['core', 'accessory', 'unique']:
+        if pangenome in ['core', 'dispensable', 'accessory', 'unique']:
             # How many organisms are present?
             organism = Organism(self.dbname)
             nOrg = organism.howMany()
@@ -2518,6 +2650,18 @@ class Kegg(DBBase):
                                     from ortholog o
                                     group by o.group_id
                                     having count(*) = ?));
+                    '''
+        elif pangenome == 'dispensable':
+            query = '''
+                    select count(*)
+                    from (select distinct o.group_id, k.re_id
+                        from mapko m, ortholog o, ko_react k
+                        where m.prot_id = o.prot_id
+                        and m.ko_id = k.ko_id
+                        and o.group_id in (select o.group_id
+                                    from ortholog o
+                                    group by o.group_id
+                                    having count(*) < ?));
                     '''
         elif pangenome == 'accessory':
             query = '''
@@ -2553,7 +2697,7 @@ class Kegg(DBBase):
         with self.connection as conn:
             if org_id:
                 cursor=conn.execute(query,[org_id,])
-            elif pangenome in ['core', 'accessory']:
+            elif pangenome in ['core', 'dispensable', 'accessory']:
                 cursor=conn.execute(query,[nOrg,])
             else:
                 cursor=conn.execute(query)
@@ -2566,7 +2710,7 @@ class Kegg(DBBase):
         is returned
         '''
         
-        if pangenome in ['core', 'accessory', 'unique']:
+        if pangenome in ['core', 'dispensable', 'accessory', 'unique']:
             # How many organisms are present?
             organism = Organism(self.dbname)
             nOrg = organism.howMany()
@@ -2591,6 +2735,18 @@ class Kegg(DBBase):
                                         from ortholog o
                                         group by o.group_id
                                         having count(*) = ?);
+                    '''
+        elif pangenome == 'dispensable':
+            query = '''
+                    select count(distinct  path_id)
+                    from mapko m, ortholog o, ko_react k, react_path r
+                    where m.prot_id = o.prot_id
+                    and m.ko_id = k.ko_id
+                    and k.re_id = r.re_id
+                    and o.group_id  in (select o.group_id
+                                        from ortholog o
+                                        group by o.group_id
+                                        having count(*) < ?);
                     '''
         elif pangenome == 'accessory':
             query = '''
@@ -2627,7 +2783,7 @@ class Kegg(DBBase):
         with self.connection as conn:
             if org_id:
                 cursor=conn.execute(query,[org_id,])
-            elif pangenome in ['core', 'accessory']:
+            elif pangenome in ['core', 'dispensable', 'accessory']:
                 cursor=conn.execute(query,[nOrg,])
             else:
                 cursor=conn.execute(query)

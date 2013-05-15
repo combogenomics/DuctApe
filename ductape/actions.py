@@ -692,9 +692,9 @@ def dGenomeStats(project, svg=False, doPrint=True):
             # Pangenome stats
             # Header
             header = '\t'.join( ['kind', 'size',
-                                    'mapped to kegg', 'KEGG orthology IDs',
-                                    'pathways', 'reactions', 
-                                    'exclusive reaction IDs'] )
+                                'mapped to kegg', 'KEGG orthology IDs',
+                                'pathways', 'reactions', 'unique reactions', 
+                                'exclusive reaction IDs'] )
             if doPrint:
                 print header
             else:
@@ -711,24 +711,28 @@ def dGenomeStats(project, svg=False, doPrint=True):
                                  kegg.howManyKO(pangenome='core'),
                                  kegg.howManyPathways(pangenome='core'),
                                  kegg.howManyReactions(pangenome='core'),
+                                 kegg.howManyUniqueReactions(pangenome='core'),
                                  len(ecore)]]))
             stats.append('\t'.join( [str(x) for x in ['dispensable', disp,
                                  kegg.howManyMapped(pangenome='dispensable'),
                                  kegg.howManyKO(pangenome='dispensable'),
                                  kegg.howManyPathways(pangenome='dispensable'),
                                  kegg.howManyReactions(pangenome='dispensable'),
+                                 kegg.howManyUniqueReactions(pangenome='dispensable'),
                                  len(edisp)]]))
             stats.append('\t'.join( [str(x) for x in ['accessory', acc,
                                  kegg.howManyMapped(pangenome='accessory'),
                                  kegg.howManyKO(pangenome='accessory'),
                                  kegg.howManyPathways(pangenome='accessory'),
                                  kegg.howManyReactions(pangenome='accessory'),
+                                 kegg.howManyUniqueReactions(pangenome='accessory'),
                                  len(eacc)]]))
             stats.append('\t'.join( [str(x) for x in ['unique', uni,
                                  kegg.howManyMapped(pangenome='unique'),
                                  kegg.howManyKO(pangenome='unique'),
                                  kegg.howManyPathways(pangenome='unique'),
                                  kegg.howManyReactions(pangenome='unique'),
+                                 kegg.howManyUniqueReactions(pangenome='unique'),
                                  len(euni)]]))
             
             for stat in stats:

@@ -2401,6 +2401,141 @@ class Kegg(DBBase):
             
         for res in cursor:
             yield Row(res, cursor.description)
+    
+    def getExclusiveReactions(self, orgs=set()):
+        '''
+        Return the number of reactions ID exclusive to a list of organisms
+        return a dictionary of org_id --> set(re_id, ...)
+        if the organisms list is empty, all the organisms are queried
+        '''
+        if len(orgs) == 0:
+            organism = Organism(self.dbname)
+            orgs = [org.org_id for org in organism.getAll()]
+        else:
+            orgs = set(orgs)
+            for org_id in orgs:
+                if not organism.isOrg(org_id):
+                    logger.warning('Organism %s is not present yet!'%org_id)
+                    raise Exception('This Organism (%s) is not present yet!'%org_id)
+        
+        react = {}
+        
+        for org_id in orgs:
+            query = '''
+                    select distinct re_id
+                    from protein p, mapko m, ko_react k
+                    where org_id=?
+                    and p.prot_id=m.prot_id
+                    and m.ko_id=k.ko_id;
+                    '''
+            
+            with self.connection as conn:
+                cursor=conn.execute(query,[org_id,])
+            
+                r = set()
+                for res in cursor:
+                    r.add(res[0])
+                react[org_id] = r
+        
+        out = {}
+        
+        # Thanks to @balpha for this one
+        # http://stackoverflow.com/a/2042394/1237531
+        from itertools import combinations
+        all_orgs = set(react.keys())
+        for i in combinations(react, len(react)-1):
+            this_orgs = set(i)
+            org_id = all_orgs.difference(this_orgs).pop()
+            out[org_id] = react[org_id].difference(*[react[x] for x in this_orgs])            
+           
+        return out
+           
+    def getExclusiveReactionsPanGenome(self):
+        '''
+        Return the number of reactions ID exclusive to each pangenome category
+        core, dispensable, accessory, unique
+        note: the dispensable genome includes the accessory and the unique
+        '''
+        # How many organisms are present?
+        organism = Organism(self.dbname)
+        nOrg = organism.howMany()
+        
+        query = '''
+                select distinct k.re_id
+                from mapko m, ortholog o, ko_react k
+                where m.prot_id = o.prot_id
+                and m.ko_id = k.ko_id
+                and o.group_id in (select o.group_id
+                                from ortholog o
+                                group by o.group_id
+                                having count(*) = ?);
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query,[nOrg,])
+            
+        core = set()
+        for res in cursor:
+            core.add(res[0])
+            
+        query = '''
+                select distinct k.re_id
+                from mapko m, ortholog o, ko_react k
+                where m.prot_id = o.prot_id
+                and m.ko_id = k.ko_id
+                and o.group_id in (select o.group_id
+                                from ortholog o
+                                group by o.group_id
+                                having count(*) < ?);
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query,[nOrg,])
+            
+        disp = set()
+        for res in cursor:
+            disp.add(res[0])
+        
+        query = '''
+                select distinct k.re_id
+                from mapko m, ortholog o, ko_react k
+                where m.prot_id = o.prot_id
+                and m.ko_id = k.ko_id
+                and o.group_id in (select o.group_id
+                                from ortholog o
+                                group by o.group_id
+                                having count(*) < ? and count(*) > 1);
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query,[nOrg,])
+            
+        acc = set()
+        for res in cursor:
+            acc.add(res[0])
+            
+        query = '''
+                select distinct k.re_id
+                from mapko m, ortholog o, ko_react k
+                where m.prot_id = o.prot_id
+                and m.ko_id = k.ko_id
+                and o.group_id in (select o.group_id
+                                from ortholog o
+                                group by o.group_id
+                                having count(*) = 1);
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query)
+            
+        uni = set()
+        for res in cursor:
+            uni.add(res[0])
+            
+        return (core.difference(disp),
+                disp.difference(core),
+                acc.difference(core, uni),
+                uni.difference(core, acc))
             
     def howManyMapped(self, org_id=None, pangenome=''):
         '''
@@ -2409,7 +2544,7 @@ class Kegg(DBBase):
         is returned
         '''
         
-        if pangenome in ['core', 'accessory', 'unique']:
+        if pangenome in ['core', 'dispensable', 'accessory', 'unique']:
             # How many organisms are present?
             organism = Organism(self.dbname)
             nOrg = organism.howMany()
@@ -2470,7 +2605,7 @@ class Kegg(DBBase):
         with self.connection as conn:
             if org_id:
                 cursor=conn.execute(query,[org_id,])
-            elif pangenome in ['core', 'accessory']:
+            elif pangenome in ['core', 'dispensable', 'accessory']:
                 cursor=conn.execute(query,[nOrg,])
             else:
                 cursor=conn.execute(query)
@@ -2539,75 +2674,6 @@ class Kegg(DBBase):
             query = '''
                     select count(distinct ko_id)
                     from mapko m
-                    '''
-            
-        with self.connection as conn:
-            if org_id:
-                cursor=conn.execute(query,[org_id,])
-            elif pangenome in ['core', 'dispensable', 'accessory']:
-                cursor=conn.execute(query,[nOrg,])
-            else:
-                cursor=conn.execute(query)
-        return int(cursor.fetchall()[0][0])
-    
-    def howManyUniqueReactions(self, org_id=None, pangenome=''):
-        '''
-        Returns the number of unique reaction IDs are mapped
-        If no org_id is provided, the whole number of reactions from all organism
-        is returned
-        '''
-        
-        if pangenome in ['core', 'dispensable', 'accessory', 'unique']:
-            # How many organisms are present?
-            organism = Organism(self.dbname)
-            nOrg = organism.howMany()
-        
-        if org_id:
-            query = '''
-                    select count(distinct k.re_id)
-                    from mapko m, protein p, ko_react k
-                    where m.prot_id = p.prot_id
-                    and org_id = ?
-                    and m.ko_id = k.ko_id
-                    '''
-        elif pangenome == 'core':
-            query = '''
-                    select count(distinct k.re_id)
-                    from mapko m, ortholog o, ko_react k
-                    where m.prot_id = o.prot_id
-                    and m.ko_id = k.ko_id
-                    and o.group_id in (select o.group_id
-                                    from ortholog o
-                                    group by o.group_id
-                                    having count(*) = ?);
-                    '''
-        elif pangenome == 'accessory':
-            query = '''
-                    select count(distinct k.re_id)
-                    from mapko m, ortholog o, ko_react k
-                    where m.prot_id = o.prot_id
-                    and m.ko_id = k.ko_id
-                    and o.group_id in (select o.group_id
-                                from ortholog o
-                                group by o.group_id
-                                having count(*) < ? and count(*) > 1);
-                    '''
-        elif pangenome == 'unique':
-            query = '''
-                    select count(distinct k.re_id)
-                    from mapko m, ortholog o, ko_react k
-                    where m.prot_id = o.prot_id
-                    and m.ko_id = k.ko_id
-                    and o.group_id in (select o.group_id
-                                from ortholog o
-                                group by o.group_id
-                                having count(*) = 1);
-                    '''
-        else:
-            query = '''
-                    select count(distinct k.re_id)
-                    from mapko m, ko_react k
-                    where m.ko_id = k.ko_id
                     '''
             
         with self.connection as conn:
@@ -2698,6 +2764,75 @@ class Kegg(DBBase):
             if org_id:
                 cursor=conn.execute(query,[org_id,])
             elif pangenome in ['core', 'dispensable', 'accessory']:
+                cursor=conn.execute(query,[nOrg,])
+            else:
+                cursor=conn.execute(query)
+        return int(cursor.fetchall()[0][0])
+    
+    def howManyUniqueReactions(self, org_id=None, pangenome=''):
+        '''
+        Returns the number of unique reaction IDs are mapped
+        If no org_id is provided, the whole number of reactions from all organism
+        is returned
+        '''
+        
+        if pangenome in ['core', 'accessory', 'unique']:
+            # How many organisms are present?
+            organism = Organism(self.dbname)
+            nOrg = organism.howMany()
+        
+        if org_id:
+            query = '''
+                    select count(distinct k.re_id)
+                    from mapko m, protein p, ko_react k
+                    where m.prot_id = p.prot_id
+                    and org_id = ?
+                    and m.ko_id = k.ko_id
+                    '''
+        elif pangenome == 'core':
+            query = '''
+                    select count(distinct k.re_id)
+                    from mapko m, ortholog o, ko_react k
+                    where m.prot_id = o.prot_id
+                    and m.ko_id = k.ko_id
+                    and o.group_id in (select o.group_id
+                                    from ortholog o
+                                    group by o.group_id
+                                    having count(*) = ?);
+                    '''
+        elif pangenome == 'accessory':
+            query = '''
+                    select count(distinct k.re_id)
+                    from mapko m, ortholog o, ko_react k
+                    where m.prot_id = o.prot_id
+                    and m.ko_id = k.ko_id
+                    and o.group_id in (select o.group_id
+                                from ortholog o
+                                group by o.group_id
+                                having count(*) < ? and count(*) > 1);
+                    '''
+        elif pangenome == 'unique':
+            query = '''
+                    select count(distinct k.re_id)
+                    from mapko m, ortholog o, ko_react k
+                    where m.prot_id = o.prot_id
+                    and m.ko_id = k.ko_id
+                    and o.group_id in (select o.group_id
+                                from ortholog o
+                                group by o.group_id
+                                having count(*) = 1);
+                    '''
+        else:
+            query = '''
+                    select count(distinct k.re_id)
+                    from mapko m, ko_react k
+                    where m.ko_id = k.ko_id
+                    '''
+            
+        with self.connection as conn:
+            if org_id:
+                cursor=conn.execute(query,[org_id,])
+            elif pangenome in ['core', 'accessory']:
                 cursor=conn.execute(query,[nOrg,])
             else:
                 cursor=conn.execute(query)

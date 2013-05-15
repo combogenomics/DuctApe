@@ -649,11 +649,14 @@ def dGenomeStats(project, svg=False, doPrint=True):
         # Header
         header = '\t'.join( ['ID', 'name', 'description', 'proteome size',
                                 'mapped to kegg', 'KEGG orthology IDs',
-                                'pathways', 'reactions'] )
+                                'pathways', 'reactions', 'unique reactions',
+                                'exclusive reaction IDs'] )
         if doPrint:
             print header
         else:
             logger.info(header)
+        
+        eReacts = kegg.getExclusiveReactions()
         
         lOrg = []
         for org in organism.getAll():
@@ -663,54 +666,70 @@ def dGenomeStats(project, svg=False, doPrint=True):
             
             prots = genome.howMany(org_id)
             
-            mapped, ko, react, path = (kegg.howManyMapped(org_id),
+            mapped, ko, react, path, unireact, ereact = (kegg.howManyMapped(org_id),
                                         kegg.howManyKO(org_id),
                                         kegg.howManyReactions(org_id),
-                                        kegg.howManyPathways(org_id))
+                                        kegg.howManyPathways(org_id),
+                                        kegg.howManyUniqueReactions(org_id),
+                                        len(eReacts[org_id]))
             
             stats = '\t'.join( [str(x) for x in [org_id, name, description,
                                                  prots, mapped, ko, path,
-                                                 react]] )
+                                                 react, unireact, ereact]] )
             if doPrint:
                 print stats
             else:
                 logger.info(stats)
                 
-            lOrg.append([org_id, prots, mapped, react])
+            lOrg.append([org_id, prots, mapped, react, unireact])
             
         plotMapBars(lOrg, 'Single genomes statistics', 'single', svg)
         
         if proj.isPanGenome():
             logger.info('Pangenome stats')
+            logger.warning('Please note that the dispensable genome includes'+
+                           ' the accessory and unique genome')
             # Pangenome stats
             # Header
             header = '\t'.join( ['kind', 'size',
                                     'mapped to kegg', 'KEGG orthology IDs',
-                                    'pathways', 'reactions'] )
+                                    'pathways', 'reactions', 
+                                    'exclusive reaction IDs'] )
             if doPrint:
                 print header
             else:
                 logger.info(header)
                 
-            core, acc, uni = (genome.getLenCore(), genome.getLenAcc(),
-                              genome.getLenUni())
+            core, disp, acc, uni = (genome.getLenCore(), genome.getLenDisp(),
+                              genome.getLenAcc(), genome.getLenUni())
+
+            ecore, edisp, eacc, euni = kegg.getExclusiveReactionsPanGenome()
 
             stats = []
             stats.append('\t'.join( [str(x) for x in ['core', core,
                                  kegg.howManyMapped(pangenome='core'),
                                  kegg.howManyKO(pangenome='core'),
                                  kegg.howManyPathways(pangenome='core'),
-                                 kegg.howManyReactions(pangenome='core')]]))
+                                 kegg.howManyReactions(pangenome='core'),
+                                 len(ecore)]]))
+            stats.append('\t'.join( [str(x) for x in ['dispensable', disp,
+                                 kegg.howManyMapped(pangenome='dispensable'),
+                                 kegg.howManyKO(pangenome='dispensable'),
+                                 kegg.howManyPathways(pangenome='dispensable'),
+                                 kegg.howManyReactions(pangenome='dispensable'),
+                                 len(edisp)]]))
             stats.append('\t'.join( [str(x) for x in ['accessory', acc,
                                  kegg.howManyMapped(pangenome='accessory'),
                                  kegg.howManyKO(pangenome='accessory'),
                                  kegg.howManyPathways(pangenome='accessory'),
-                                 kegg.howManyReactions(pangenome='accessory')]]))
+                                 kegg.howManyReactions(pangenome='accessory'),
+                                 len(eacc)]]))
             stats.append('\t'.join( [str(x) for x in ['unique', uni,
                                  kegg.howManyMapped(pangenome='unique'),
                                  kegg.howManyKO(pangenome='unique'),
                                  kegg.howManyPathways(pangenome='unique'),
-                                 kegg.howManyReactions(pangenome='unique')]]))
+                                 kegg.howManyReactions(pangenome='unique'),
+                                 len(euni)]]))
             
             for stat in stats:
                 if doPrint:
@@ -719,13 +738,20 @@ def dGenomeStats(project, svg=False, doPrint=True):
                     logger.info(stat)
             
             lPanGenome = [['Core', core, kegg.howManyMapped(pangenome='core'),
-                           kegg.howManyReactions(pangenome='core')],
+                           kegg.howManyReactions(pangenome='core'),
+                           len(ecore)],
+                          ['Dispensable', disp,
+                           kegg.howManyMapped(pangenome='dispensable'),
+                           kegg.howManyReactions(pangenome='dispensable'),
+                           len(edisp)],
                           ['Accessory', acc,
                            kegg.howManyMapped(pangenome='accessory'),
-                           kegg.howManyReactions(pangenome='accessory')],
+                           kegg.howManyReactions(pangenome='accessory'),
+                           len(eacc)],
                           ['Unique', uni,
                            kegg.howManyMapped(pangenome='unique'),
-                           kegg.howManyReactions(pangenome='unique')]]
+                           kegg.howManyReactions(pangenome='unique'),
+                           len(euni)]]
  
             plotMapBars(lPanGenome, 'PanGenome statistics', 'pangenome_stats',
                         svg)
@@ -738,7 +764,7 @@ def dGenomeStats(project, svg=False, doPrint=True):
         
         # Header
         header = '\t'.join( ['ID', 'name', 'description', 'kind', 'proteome size',
-                                'mapped to kegg', 'reactions'] )
+                                'mapped to kegg', 'reactions', 'unique reactions'] )
         
         for ref_id in refs:
             logger.info('Mutants of %s stats'%ref_id)
@@ -766,25 +792,28 @@ def dGenomeStats(project, svg=False, doPrint=True):
                 elif mkind == 'insertion':
                     prots = genome.howMany(ref_id) + genome.howMany(org_id)
                 
-                mapped, react = (kegg.howManyMapped(org_id),
-                                kegg.howManyReactions(org_id))
+                mapped, react, unireact = (kegg.howManyMapped(org_id),
+                                kegg.howManyReactions(org_id),
+                                kegg.howManyUniqueReactions(org_id))
         
                 if mkind == 'deletion':
                     mapped = kegg.howManyMapped(ref_id) - mapped
                     react = kegg.howManyReactions(ref_id) - react
+                    unireact = kegg.howManyUniqueReactions(ref_id) - unireact
                 elif mkind == 'insertion':
                     mapped += kegg.howManyMapped(ref_id)
                     react += kegg.howManyReactions(ref_id)
+                    unireact += kegg.howManyUniqueReactions(ref_id)
                 
                 stats = '\t'.join( [str(x) for x in [org_id, name, description,
                                                  mkind, prots, mapped,
-                                                 react]] )
+                                                 react, unireact]] )
                 if doPrint:
                     print stats
                 else:
                     logger.info(stats)
                 
-                lOrg.append([org_id, prots, mapped, react])
+                lOrg.append([org_id, prots, mapped, react, unireact])
         
             plotMapBars(lOrg, 'Wild-type (%s) and mutants statistics'%ref_id,
                         '%s'%ref_id, svg)
@@ -1895,7 +1924,51 @@ def dGenomeExport(project):
         else:
             logger.info('Saved %d Kegg reactions links for %s (%s)'%
                     (i, org.org_id, fname))
+    
+    eReacts = kegg.getExclusiveReactions()
+    for org in organism.getAll():
+        if len(eReacts[org.org_id]) == 0:
+            logger.warning('No exclusive Kegg reactions available for %s'%org.org_id)
+            continue
+        
+        fname = 'reactions_exclusive_%s.tsv'%org.org_id
+        fout = open(fname,'w')
+        fout.write('#%s\n'%'re_id')
+        i = 0
+        for re_id in eReacts[org.org_id]:
+            fout.write('%s\n'%re_id.lstrip('rn:'))
+            i += 1
+        fout.close()
+        
+        logger.info('Saved %d exclusive Kegg reactions for %s (%s)'%
+                    (i, org.org_id, fname))
       
+    if proj.isPanGenome():
+        ecore, edisp, eacc, euni = kegg.getExclusiveReactionsPanGenome()
+        preact = [('core', ecore), ('dispensable', edisp),
+                  ('accessory', eacc), ('unique', euni)]
+        
+        for label, er in preact:
+            if len(er) == 0:
+                logger.warning('No exclusive Kegg reactions available'+
+                               ' for %s genome'%label)
+                continue
+            
+            fname = 'reactions_exclusive_%s.tsv'%label
+            fout = open(fname,'w')
+            fout.write('#%s\n'%'re_id')
+            i = 0
+            for re_id in er:
+                fout.write('%s\n'%re_id.lstrip('rn:'))
+                i += 1
+            fout.close()
+            
+            logger.info('Saved %d exclusive Kegg reactions for %s genome (%s)'%
+                        (i, label, fname))
+            if label == 'dispensable':
+                logger.warning('Please note that the dispensable genome includes'+
+                           ' the accessory and unique genome')
+        
     logger.info('Exporting EC numbers')
     
     for org in organism.getAll():
@@ -3048,18 +3121,19 @@ def plotMapBars(lOrg, title, fname, svg=False):
     Plot histograms for Kegg mapping statistics
     '''
     plt.clf()
-    space = np.array([0.0, 0.2, 0.4])
+    space = np.array([0.0, 0.2, 0.4, 0.6])
     maxprots = max([x[1] for x in lOrg])
     
     for data in lOrg:
         index = float(lOrg.index(data))
         patch = plt.bar(space + index, np.array(data[1:]),
                 width=0.2,
-                color=['#3366CC', 'orange', '#D32626'])
+                color=['#3366CC', 'orange', '#D32626', '#cd6464'])
         if index == 0:
             patch[0].set_label('Size')
             patch[1].set_label('Mapped to Kegg')
             patch[2].set_label('Kegg reactions')
+            patch[3].set_label('Unique Kegg reaction IDs')
     
     plt.xticks([0.2 + 1 * x for x in range(len(lOrg))] , [x[0] for x in lOrg])
     plt.ylim(0, maxprots + maxprots * 0.33)

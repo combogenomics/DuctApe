@@ -2052,10 +2052,11 @@ class Kegg(DBBase):
                 from ko_react k, mapko m, ortholog o
                 where k.ko_id = m.ko_id
                 and o.prot_id = m.prot_id
-                and group_id in (select distinct group_id
-                                    from ortholog
-                                    group by group_id
-                                    having count(*) = ?)
+                and group_id in (select o.group_id
+                                from ortholog o, protein p
+                                where o.prot_id = p.prot_id
+                                group by o.group_id
+                                having count(distinct org_id) = ?)
                 group by re_id
                 order by num DESC;
                 '''
@@ -2084,10 +2085,11 @@ class Kegg(DBBase):
                     and rr.rp_id = rp.rp_id
                     and rr.re_id=re.re_id
                     and kind like "%main%"
-                    and group_id in (select distinct group_id
-                                                        from ortholog
-                                                        group by group_id
-                                                        having count(*) = ?)
+                    and group_id in (select o.group_id
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) = ?)
                     group by k.re_id, co1, co2;
                     '''
         else:
@@ -2103,10 +2105,11 @@ class Kegg(DBBase):
                     and re.re_id=p1.re_id
                     and p1.path_id=?
                     and kind like "%main%"
-                    and group_id in (select distinct group_id
-                                                        from ortholog
-                                                        group by group_id
-                                                        having count(*) = ?)
+                    and group_id in (select o.group_id
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) = ?)
                     group by k.re_id, co1, co2;
                     '''
     
@@ -2132,10 +2135,11 @@ class Kegg(DBBase):
                 from ko_react k, mapko m, ortholog o
                 where k.ko_id = m.ko_id
                 and o.prot_id = m.prot_id
-                and group_id in (select distinct group_id
-                                    from ortholog
-                                    group by group_id
-                                    having count(*) < ?)
+                and group_id in (select o.group_id
+                                from ortholog o, protein p
+                                where o.prot_id = p.prot_id
+                                group by o.group_id
+                                having count(distinct org_id) < ?)
                 group by re_id
                 order by num DESC;
                 '''
@@ -2164,10 +2168,11 @@ class Kegg(DBBase):
                 and rr.rp_id = rp.rp_id
                 and rr.re_id=re.re_id
                 and kind like "%main%"
-                and group_id in (select distinct group_id
-                                                    from ortholog
-                                                    group by group_id
-                                                    having count(*) < ?)
+                and group_id in (select o.group_id
+                                from ortholog o, protein p
+                                where o.prot_id = p.prot_id
+                                group by o.group_id
+                                having count(distinct org_id) < ?)
                 group by k.re_id, co1, co2;
                 '''
         else:
@@ -2183,10 +2188,11 @@ class Kegg(DBBase):
                 and kind like "%main%"
                 and re.re_id = p1.re_id
                 and p1.path_id = ?
-                and group_id in (select distinct group_id
-                                                    from ortholog
-                                                    group by group_id
-                                                    having count(*) < ?)
+                and group_id in (select o.group_id
+                                from ortholog o, protein p
+                                where o.prot_id = p.prot_id
+                                group by o.group_id
+                                having count(distinct org_id) < ?)
                 group by k.re_id, co1, co2;
                 '''
                 
@@ -2212,11 +2218,12 @@ class Kegg(DBBase):
                 from ko_react k, mapko m, ortholog o
                 where k.ko_id = m.ko_id
                 and o.prot_id = m.prot_id
-                and group_id in (select distinct group_id
-                                    from ortholog
-                                    group by group_id
-                                    having count(*) < ?
-                                    and count(*) > 1)
+                and group_id in (select o.group_id
+                                from ortholog o, protein p
+                                where o.prot_id = p.prot_id
+                                group by o.group_id
+                                having count(distinct org_id) < ?
+                                and count(distinct org_id) > 1)
                 group by re_id
                 order by num DESC;
                 '''
@@ -2245,11 +2252,12 @@ class Kegg(DBBase):
                 and rr.rp_id = rp.rp_id
                 and rr.re_id=re.re_id
                 and kind like "%main%"
-                and group_id in (select distinct group_id
-                                                    from ortholog
-                                                    group by group_id
-                                                    having count(*) < ?
-                                                    and count(*) > 1)
+                and group_id in (select o.group_id
+                                from ortholog o, protein p
+                                where o.prot_id = p.prot_id
+                                group by o.group_id
+                                having count(distinct org_id) < ?
+                                and count(distinct org_id) > 1)
                 group by k.re_id, co1, co2;
                 '''
         else:
@@ -2265,11 +2273,12 @@ class Kegg(DBBase):
                 and kind like "%main%"
                 and re.re_id = p1.re_id
                 and p1.path_id = ?
-                and group_id in (select distinct group_id
-                                                    from ortholog
-                                                    group by group_id
-                                                    having count(*) < ?
-                                                    and count(*) > 1)
+                and group_id in (select o.group_id
+                                from ortholog o, protein p
+                                where o.prot_id = p.prot_id
+                                group by o.group_id
+                                having count(distinct org_id) < ?
+                                and count(distinct org_id) > 1)
                 group by k.re_id, co1, co2;
                 '''
     
@@ -2293,10 +2302,11 @@ class Kegg(DBBase):
                 from ko_react k, mapko m, ortholog o
                 where k.ko_id = m.ko_id
                 and o.prot_id = m.prot_id
-                and group_id in (select distinct group_id
-                                    from ortholog
-                                    group by group_id
-                                    having count(*) = 1)
+                and group_id in (select o.group_id
+                                from ortholog o, protein p
+                                where o.prot_id = p.prot_id
+                                group by o.group_id
+                                having count(distinct org_id) = 1)
                 group by re_id
                 order by num DESC;
                 '''
@@ -2322,10 +2332,11 @@ class Kegg(DBBase):
                 and rr.rp_id = rp.rp_id
                 and rr.re_id=re.re_id
                 and kind like "%main%"
-                and group_id in (select distinct group_id
-                                                    from ortholog
-                                                    group by group_id
-                                                    having count(*) = 1)
+                and group_id in (select o.group_id
+                                from ortholog o, protein p
+                                where o.prot_id = p.prot_id
+                                group by o.group_id
+                                having count(distinct org_id) = 1)
                 group by k.re_id, co1, co2;
                 '''
         else:
@@ -2341,10 +2352,11 @@ class Kegg(DBBase):
                 and kind like "%main%"
                 and re.re_id = p1.re_id
                 and p1.path_id = ?
-                and group_id in (select distinct group_id
-                                                    from ortholog
-                                                    group by group_id
-                                                    having count(*) = 1)
+                and group_id in (select o.group_id
+                                from ortholog o, protein p
+                                where o.prot_id = p.prot_id
+                                group by o.group_id
+                                having count(distinct org_id) = 1)
                 group by k.re_id, co1, co2;
                 '''
     
@@ -2466,9 +2478,10 @@ class Kegg(DBBase):
                 where m.prot_id = o.prot_id
                 and m.ko_id = k.ko_id
                 and o.group_id in (select o.group_id
-                                from ortholog o
+                                from ortholog o, protein p
+                                where o.prot_id = p.prot_id
                                 group by o.group_id
-                                having count(*) = ?);
+                                having count(distinct org_id) = ?);
                 '''
         
         with self.connection as conn:
@@ -2484,9 +2497,10 @@ class Kegg(DBBase):
                 where m.prot_id = o.prot_id
                 and m.ko_id = k.ko_id
                 and o.group_id in (select o.group_id
-                                from ortholog o
+                                from ortholog o, protein p
+                                where o.prot_id = p.prot_id
                                 group by o.group_id
-                                having count(*) < ?);
+                                having count(distinct org_id) < ?);
                 '''
         
         with self.connection as conn:
@@ -2502,9 +2516,11 @@ class Kegg(DBBase):
                 where m.prot_id = o.prot_id
                 and m.ko_id = k.ko_id
                 and o.group_id in (select o.group_id
-                                from ortholog o
+                                from ortholog o, protein p
+                                where o.prot_id = p.prot_id
                                 group by o.group_id
-                                having count(*) < ? and count(*) > 1);
+                                having count(distinct org_id) < ?
+                                and count(distinct org_id) > 1);
                 '''
         
         with self.connection as conn:
@@ -2520,9 +2536,10 @@ class Kegg(DBBase):
                 where m.prot_id = o.prot_id
                 and m.ko_id = k.ko_id
                 and o.group_id in (select o.group_id
-                                from ortholog o
+                                from ortholog o, protein p
+                                where o.prot_id = p.prot_id
                                 group by o.group_id
-                                having count(*) = 1);
+                                having count(distinct org_id) = 1);
                 '''
         
         with self.connection as conn:
@@ -2562,9 +2579,10 @@ class Kegg(DBBase):
                     from mapko m, ortholog o
                     where m.prot_id = o.prot_id
                     and group_id in (select o.group_id
-                                        from ortholog o
-                                        group by o.group_id
-                                        having count(*) = ?);
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) = ?);
                     '''
         elif pangenome == 'dispensable':
             query = '''
@@ -2572,9 +2590,10 @@ class Kegg(DBBase):
                     from mapko m, ortholog o
                     where m.prot_id = o.prot_id
                     and group_id in (select o.group_id
-                                        from ortholog o
-                                        group by o.group_id
-                                        having count(*) < ?);
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) < ?);
                     '''
         elif pangenome == 'accessory':
             query = '''
@@ -2582,9 +2601,11 @@ class Kegg(DBBase):
                     from mapko m, ortholog o
                     where m.prot_id = o.prot_id
                     and group_id in (select o.group_id
-                                        from ortholog o
-                                        group by o.group_id
-                                        having count(*) > 1 and count(*) < ?);
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) < ?
+                                    and count(distinct org_id) > 1);
                     '''
         elif pangenome == 'unique':
             query = '''
@@ -2592,9 +2613,10 @@ class Kegg(DBBase):
                     from mapko m, ortholog o
                     where m.prot_id = o.prot_id
                     and group_id in (select o.group_id
-                                        from ortholog o
-                                        group by o.group_id
-                                        having count(*) = 1);
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) = 1);
                     '''
         else:
             query = '''
@@ -2636,9 +2658,10 @@ class Kegg(DBBase):
                     from mapko m, ortholog o
                     where m.prot_id = o.prot_id
                     and o.group_id in (select o.group_id
-                                from ortholog o
-                                group by o.group_id
-                                having count(*) = ?);
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) = ?);
                     '''
         elif pangenome == 'dispensable':
             query = '''
@@ -2646,9 +2669,10 @@ class Kegg(DBBase):
                     from mapko m, ortholog o
                     where m.prot_id = o.prot_id
                     and o.group_id in (select o.group_id
-                                from ortholog o
-                                group by o.group_id
-                                having count(*) < ?);
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) < ?);
                     '''
         elif pangenome == 'accessory':
             query = '''
@@ -2656,9 +2680,11 @@ class Kegg(DBBase):
                     from mapko m, ortholog o
                     where m.prot_id = o.prot_id
                     and o.group_id in (select o.group_id
-                                from ortholog o
-                                group by o.group_id
-                                having count(*) < ? and count(*) > 1);
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) < ?
+                                    and count(distinct org_id) > 1);
                     '''
         elif pangenome == 'unique':
             query = '''
@@ -2666,9 +2692,10 @@ class Kegg(DBBase):
                     from mapko m, ortholog o
                     where m.prot_id = o.prot_id
                     and o.group_id in (select o.group_id
-                                from ortholog o
-                                group by o.group_id
-                                having count(*) = 1);
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) = 1);
                     '''
         else:
             query = '''
@@ -2713,9 +2740,10 @@ class Kegg(DBBase):
                         where m.prot_id = o.prot_id
                         and m.ko_id = k.ko_id
                         and o.group_id in (select o.group_id
-                                    from ortholog o
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
                                     group by o.group_id
-                                    having count(*) = ?));
+                                    having count(distinct org_id) = ?));
                     '''
         elif pangenome == 'dispensable':
             query = '''
@@ -2725,9 +2753,10 @@ class Kegg(DBBase):
                         where m.prot_id = o.prot_id
                         and m.ko_id = k.ko_id
                         and o.group_id in (select o.group_id
-                                    from ortholog o
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
                                     group by o.group_id
-                                    having count(*) < ?));
+                                    having count(distinct org_id) < ?));
                     '''
         elif pangenome == 'accessory':
             query = '''
@@ -2737,9 +2766,11 @@ class Kegg(DBBase):
                         where m.prot_id = o.prot_id
                         and m.ko_id = k.ko_id
                         and o.group_id in (select o.group_id
-                                    from ortholog o
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
                                     group by o.group_id
-                                    having count(*) < ? and count(*) > 1));
+                                    having count(distinct org_id) < ?
+                                    and count(distinct org_id) > 1));
                     '''
         elif pangenome == 'unique':
             query = '''
@@ -2749,9 +2780,10 @@ class Kegg(DBBase):
                         where m.prot_id = o.prot_id
                         and m.ko_id = k.ko_id
                         and o.group_id in (select o.group_id
-                                    from ortholog o
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
                                     group by o.group_id
-                                    having count(*) = 1));
+                                    having count(distinct org_id) = 1));
                     '''
         else:
             query = '''
@@ -2776,7 +2808,7 @@ class Kegg(DBBase):
         is returned
         '''
         
-        if pangenome in ['core', 'accessory', 'unique']:
+        if pangenome in ['core', 'dispensable', 'accessory', 'unique']:
             # How many organisms are present?
             organism = Organism(self.dbname)
             nOrg = organism.howMany()
@@ -2796,9 +2828,22 @@ class Kegg(DBBase):
                     where m.prot_id = o.prot_id
                     and m.ko_id = k.ko_id
                     and o.group_id in (select o.group_id
-                                    from ortholog o
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
                                     group by o.group_id
-                                    having count(*) = ?);
+                                    having count(distinct org_id) = ?);
+                    '''
+        elif pangenome == 'dispensable':
+            query = '''
+                    select count(distinct k.re_id)
+                    from mapko m, ortholog o, ko_react k
+                    where m.prot_id = o.prot_id
+                    and m.ko_id = k.ko_id
+                    and o.group_id in (select o.group_id
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) < ?);
                     '''
         elif pangenome == 'accessory':
             query = '''
@@ -2807,9 +2852,11 @@ class Kegg(DBBase):
                     where m.prot_id = o.prot_id
                     and m.ko_id = k.ko_id
                     and o.group_id in (select o.group_id
-                                from ortholog o
-                                group by o.group_id
-                                having count(*) < ? and count(*) > 1);
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) < ?
+                                    and count(distinct org_id) > 1);
                     '''
         elif pangenome == 'unique':
             query = '''
@@ -2818,9 +2865,10 @@ class Kegg(DBBase):
                     where m.prot_id = o.prot_id
                     and m.ko_id = k.ko_id
                     and o.group_id in (select o.group_id
-                                from ortholog o
-                                group by o.group_id
-                                having count(*) = 1);
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) = 1);
                     '''
         else:
             query = '''
@@ -2832,7 +2880,7 @@ class Kegg(DBBase):
         with self.connection as conn:
             if org_id:
                 cursor=conn.execute(query,[org_id,])
-            elif pangenome in ['core', 'accessory']:
+            elif pangenome in ['core', 'dispensable', 'accessory']:
                 cursor=conn.execute(query,[nOrg,])
             else:
                 cursor=conn.execute(query)
@@ -2867,9 +2915,10 @@ class Kegg(DBBase):
                     and m.ko_id = k.ko_id
                     and k.re_id = r.re_id
                     and o.group_id  in (select o.group_id
-                                        from ortholog o
-                                        group by o.group_id
-                                        having count(*) = ?);
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) = ?);
                     '''
         elif pangenome == 'dispensable':
             query = '''
@@ -2879,9 +2928,10 @@ class Kegg(DBBase):
                     and m.ko_id = k.ko_id
                     and k.re_id = r.re_id
                     and o.group_id  in (select o.group_id
-                                        from ortholog o
-                                        group by o.group_id
-                                        having count(*) < ?);
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) < ?);
                     '''
         elif pangenome == 'accessory':
             query = '''
@@ -2891,9 +2941,11 @@ class Kegg(DBBase):
                     and m.ko_id = k.ko_id
                     and k.re_id = r.re_id
                     and o.group_id  in (select o.group_id
-                                        from ortholog o
-                                        group by o.group_id
-                                        having count(*) < ? and count(*) > 1);
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) < ?
+                                    and count(distinct org_id) > 1);
                     '''
         elif pangenome == 'unique':
             query = '''
@@ -2903,9 +2955,10 @@ class Kegg(DBBase):
                     and m.ko_id = k.ko_id
                     and k.re_id = r.re_id
                     and o.group_id  in (select o.group_id
-                                        from ortholog o
-                                        group by o.group_id
-                                        having count(*) = 1);
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) = 1);
                     '''
         else:
             query = '''

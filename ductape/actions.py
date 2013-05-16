@@ -769,8 +769,13 @@ def dGenomeStats(project, svg=False, doPrint=True):
         
         # Header
         header = '\t'.join( ['ID', 'name', 'description', 'kind', 'proteome size',
-                                'mapped to kegg', 'reactions', 'unique reactions'] )
+                                'mapped to kegg', 'reactions', 'unique reactions',
+                                'exclusive reaction IDs'] )
         
+        logger.warning('Please note that for deletion mutants the '+
+                       '"exclusive reaction IDs" column refers to the ones '+
+                       'that are present in the wild-type and NOT '+
+                       'in the mutant')
         for ref_id in refs:
             logger.info('Mutants of %s stats'%ref_id)
             
@@ -780,6 +785,8 @@ def dGenomeStats(project, svg=False, doPrint=True):
                 logger.info(header)
             
             muts = [x for x in organism.getOrgMutants(ref_id)]
+            
+            eReacts = kegg.getExclusiveReactionsMutants(ref_id, muts)
             
             lOrg = []
             for org_id in [ref_id] + muts:
@@ -797,28 +804,34 @@ def dGenomeStats(project, svg=False, doPrint=True):
                 elif mkind == 'insertion':
                     prots = genome.howMany(ref_id) + genome.howMany(org_id)
                 
-                mapped, react, unireact = (kegg.howManyMapped(org_id),
+                mapped, react, unireact, ereact = (kegg.howManyMapped(org_id),
                                 kegg.howManyReactions(org_id),
-                                kegg.howManyUniqueReactions(org_id))
+                                kegg.howManyUniqueReactions(org_id),
+                                len(eReacts[org_id]))
         
                 if mkind == 'deletion':
                     mapped = kegg.howManyMapped(ref_id) - mapped
                     react = kegg.howManyReactions(ref_id) - react
+                    # TODO: not sure this calculation is correct
                     unireact = kegg.howManyUniqueReactions(ref_id) - unireact
+                    #
+                    
                 elif mkind == 'insertion':
                     mapped += kegg.howManyMapped(ref_id)
                     react += kegg.howManyReactions(ref_id)
+                    # TODO: not sure this calculation is correct
                     unireact += kegg.howManyUniqueReactions(ref_id)
+                    #
                 
                 stats = '\t'.join( [str(x) for x in [org_id, name, description,
                                                  mkind, prots, mapped,
-                                                 react, unireact]] )
+                                                 react, unireact, ereact]] )
                 if doPrint:
                     print stats
                 else:
                     logger.info(stats)
                 
-                lOrg.append([org_id, prots, mapped, react, unireact])
+                lOrg.append([org_id, prots, mapped, react, ereact])
         
             plotMapBars(lOrg, 'Wild-type (%s) and mutants statistics'%ref_id,
                         '%s'%ref_id, svg,
@@ -1808,6 +1821,8 @@ def dKeggExport(project):
     return True
 
 def dGenomeExport(project):
+    pkind = dSetKind(project)
+    
     from Bio import SeqIO
     
     # Is there something to be exported?
@@ -1932,23 +1947,55 @@ def dGenomeExport(project):
             logger.info('Saved %d Kegg reactions links for %s (%s)'%
                     (i, org.org_id, fname))
     
-    eReacts = kegg.getExclusiveReactions()
-    for org in organism.getAll():
-        if len(eReacts[org.org_id]) == 0:
-            logger.warning('No exclusive Kegg reactions available for %s'%org.org_id)
-            continue
+    if pkind != 'mutants':
+        eReacts = kegg.getExclusiveReactions()
+        for org in organism.getAll():
+            if len(eReacts[org.org_id]) == 0:
+                logger.warning('No exclusive Kegg reactions available for %s'%org.org_id)
+                continue
+            
+            fname = 'reactions_exclusive_%s.tsv'%org.org_id
+            fout = open(fname,'w')
+            fout.write('#%s\n'%'re_id')
+            i = 0
+            for re_id in eReacts[org.org_id]:
+                fout.write('%s\n'%re_id.lstrip('rn:'))
+                i += 1
+            fout.close()
+            
+            logger.info('Saved %d exclusive Kegg reactions for %s (%s)'%
+                        (i, org.org_id, fname))
+    else:
+        logger.warning('Please note that for deletion mutants the '+
+                       '"exclusive reaction IDs" column refers to the ones '+
+                       'that are present in the wild-type and NOT '+
+                       'in the mutant')
         
-        fname = 'reactions_exclusive_%s.tsv'%org.org_id
-        fout = open(fname,'w')
-        fout.write('#%s\n'%'re_id')
-        i = 0
-        for re_id in eReacts[org.org_id]:
-            fout.write('%s\n'%re_id.lstrip('rn:'))
-            i += 1
-        fout.close()
+        refs = [org.org_id
+                    for org in organism.getAll()
+                    if not organism.isMutant(org.org_id)]
         
-        logger.info('Saved %d exclusive Kegg reactions for %s (%s)'%
-                    (i, org.org_id, fname))
+        for ref_id in refs:
+            muts = [x for x in organism.getOrgMutants(ref_id)]
+            
+            eReacts = kegg.getExclusiveReactionsMutants(ref_id, muts)
+            
+            for org_id in [ref_id] + muts:
+                if len(eReacts[org_id]) == 0:
+                    logger.warning('No exclusive Kegg reactions available for %s'%org_id)
+                    continue
+                
+                fname = 'reactions_exclusive_%s.tsv'%org_id
+                fout = open(fname,'w')
+                fout.write('#%s\n'%'re_id')
+                i = 0
+                for re_id in eReacts[org_id]:
+                    fout.write('%s\n'%re_id.lstrip('rn:'))
+                    i += 1
+                fout.close()
+                
+                logger.info('Saved %d exclusive Kegg reactions for %s (%s)'%
+                            (i, org_id, fname))
       
     if proj.isPanGenome():
         ecore, edisp, eacc, euni = kegg.getExclusiveReactionsPanGenome()

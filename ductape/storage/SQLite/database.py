@@ -2678,6 +2678,63 @@ class Kegg(DBBase):
             out[org_id] = react[org_id].difference(*[react[x] for x in this_orgs])            
            
         return out
+    
+    def getExclusiveReactionsMutants(self, ref_id, muts=set()):
+        '''
+        Return the number of reactions ID exclusive to a list of organisms
+        return a dictionary of org_id --> set(re_id, ...)
+        if the organisms list is empty, all the organisms are queried
+        '''
+        organism = Organism(self.dbname)
+        
+        if not organism.isOrg(ref_id):
+            logger.warning('Organism %s is not present yet!'%ref_id)
+            raise Exception('This Organism (%s) is not present yet!'%ref_id)
+        
+        muts = set(muts)
+        for mut_id in muts:
+            if not organism.isOrg(mut_id) or not organism.isMutant(mut_id):
+                logger.warning('Wrong organism! (%s)'%mut_id)
+                raise Exception('Wrong organism! (%s)'%mut_id)
+        
+        out = {}
+        out[ref_id] = set()
+        
+        for mut_id in muts:
+            # which kind of mutant is this?
+            kind = organism.getOrg(mut_id).mkind
+            
+            if kind == 'insertion':
+                ref = self.getExclusiveReactions( [ref_id] )[ref_id]
+                mut = self.getExclusiveReactions( [mut_id] )[mut_id].union(ref)
+                out[mut_id] = mut.difference(ref)
+            else:
+                # prot_id --> [re_id, ...]
+                ref_react = {}
+                for prot_id, re_id in self.getAllReactions(ref_id):
+                    ref_react[prot_id] = ref_react.get(prot_id, set())
+                    ref_react[prot_id].add(re_id)
+                
+                mut_react = {}
+                for prot_id, re_id in self.getAllReactions(mut_id):
+                    mut_react[prot_id] = mut_react.get(prot_id, set())
+                    mut_react[prot_id].add(re_id)
+                    
+                for prot_id in mut_react:
+                    del ref_react[prot_id]
+                    
+                present = set()
+                for prot_id, re_ids in ref_react.iteritems():
+                    for re_id in re_ids:
+                        present.add(re_id)
+                absent = set()
+                for prot_id, re_ids in mut_react.iteritems():
+                    for re_id in re_ids:
+                        absent.add(re_id)
+                
+                out[mut_id] = absent.difference(present)       
+           
+        return out
            
     def getExclusiveReactionsPanGenome(self):
         '''

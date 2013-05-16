@@ -758,7 +758,8 @@ def dGenomeStats(project, svg=False, doPrint=True):
                            len(euni)]]
  
             plotMapBars(lPanGenome, 'PanGenome statistics', 'pangenome_stats',
-                        svg)
+                        svg, labels=['Size', 'Mapped to Kegg',
+                                'Kegg reactions', 'Excusive Kegg reaction IDs'])
             plotPanGenome(core, acc, uni, svg)
     
     elif kind == 'mutants':
@@ -820,7 +821,9 @@ def dGenomeStats(project, svg=False, doPrint=True):
                 lOrg.append([org_id, prots, mapped, react, unireact])
         
             plotMapBars(lOrg, 'Wild-type (%s) and mutants statistics'%ref_id,
-                        '%s'%ref_id, svg)
+                        '%s'%ref_id, svg,
+                        labels=['Size', 'Mapped to Kegg',
+                                'Kegg reactions', 'Excusive Kegg reaction IDs'])
     
     else:
         logger.info('No statistics can be computed at this time')
@@ -3120,7 +3123,7 @@ def colorBoxPlot(ax, bplot, colors):
         boxPolygon = Polygon(boxCoords, facecolor=color, alpha=0.66)
         ax.add_patch(boxPolygon)
     
-def plotMapBars(lOrg, title, fname, svg=False):
+def plotMapBars(lOrg, title, fname, svg=False, labels=[]):
     '''
     Plot histograms for Kegg mapping statistics
     '''
@@ -3133,11 +3136,16 @@ def plotMapBars(lOrg, title, fname, svg=False):
         patch = plt.bar(space + index, np.array(data[1:]),
                 width=0.2,
                 color=['#3366CC', 'orange', '#D32626', '#cd6464'])
-        if index == 0:
+        if index == 0 and len(labels) == 0:
             patch[0].set_label('Size')
             patch[1].set_label('Mapped to Kegg')
             patch[2].set_label('Kegg reactions')
             patch[3].set_label('Unique Kegg reaction IDs')
+        elif index == 0 and len(labels) >= 4:
+            patch[0].set_label(labels[0])
+            patch[1].set_label(labels[1])
+            patch[2].set_label(labels[2])
+            patch[3].set_label(labels[3])
     
     plt.xticks([0.2 + 1 * x for x in range(len(lOrg))] , [x[0] for x in lOrg])
     plt.ylim(0, maxprots + maxprots * 0.33)

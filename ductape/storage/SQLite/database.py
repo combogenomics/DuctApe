@@ -2637,8 +2637,8 @@ class Kegg(DBBase):
         return a dictionary of org_id --> set(re_id, ...)
         if the organisms list is empty, all the organisms are queried
         '''
+        organism = Organism(self.dbname)
         if len(orgs) == 0:
-            organism = Organism(self.dbname)
             orgs = [org.org_id for org in organism.getAll()]
         else:
             orgs = set(orgs)

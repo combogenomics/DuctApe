@@ -1505,8 +1505,7 @@ class Kegg(DBBase):
     def getAllRPairsReacts(self, org_id=None, path_id=None):
         '''
         Generator to single reactions with main rpairs
-        If org_id is set, the organism specific subset is retrieved,
-        plus the information on the number of copies.
+        If org_id is set, the organism specific subset is retrieved.
         If path_id is set, only those reactiomns from the desired pathway will be retrieved
         '''
         with self.connection as conn:
@@ -1528,7 +1527,7 @@ class Kegg(DBBase):
                                     [path_id,])
             else:
                 if not path_id:
-                    cursor=conn.execute('''select distinct k.re_id, co1, co2, count(distinct p.prot_id) weight, re.name
+                    cursor=conn.execute('''select distinct k.re_id, co1, co2, re.name
                                     from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re
                                     where k.ko_id = m.ko_id
                                     and p.prot_id = m.prot_id
@@ -1540,7 +1539,7 @@ class Kegg(DBBase):
                                     group by k.re_id, co1, co2;''',
                                     [org_id,])
                 else:
-                    cursor=conn.execute('''select distinct k.re_id, co1, co2, count(distinct p.prot_id) weight, re.name
+                    cursor=conn.execute('''select distinct k.re_id, co1, co2, re.name
                                     from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, react_path p
                                     where k.ko_id = m.ko_id
                                     and p.prot_id = m.prot_id
@@ -2004,7 +2003,7 @@ class Kegg(DBBase):
         '''
         if not path_id:
             query = '''
-                    select distinct k.re_id, co1, co2, count(distinct group_id) weight, re.name
+                    select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
                     from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
                     where k.ko_id = m.ko_id
                     and p.prot_id = m.prot_id
@@ -2017,7 +2016,7 @@ class Kegg(DBBase):
                     '''
         else:
             query = '''
-                    select distinct k.re_id, co1, co2, count(distinct group_id) weight, re.name
+                    select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
                     from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
                     where k.ko_id = m.ko_id
                     and p.prot_id = m.prot_id
@@ -2048,7 +2047,7 @@ class Kegg(DBBase):
         nOrg = Organism(self.dbname).howMany()
         
         query = '''
-                select distinct re_id, count(distinct group_id) num
+                select distinct re_id, count(distinct org_id) num
                 from ko_react k, mapko m, ortholog o
                 where k.ko_id = m.ko_id
                 and o.prot_id = m.prot_id
@@ -2076,7 +2075,7 @@ class Kegg(DBBase):
         
         if not path_id:
             query = '''
-                    select distinct k.re_id, co1, co2, count(distinct group_id) weight, re.name
+                    select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
                     from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
                     where k.ko_id = m.ko_id
                     and p.prot_id = m.prot_id
@@ -2094,7 +2093,7 @@ class Kegg(DBBase):
                     '''
         else:
             query = '''
-                    select distinct k.re_id, co1, co2, count(distinct group_id) weight, re.name
+                    select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
                     from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
                     where k.ko_id = m.ko_id
                     and p.prot_id = m.prot_id
@@ -2131,7 +2130,7 @@ class Kegg(DBBase):
         nOrg = Organism(self.dbname).howMany()
         
         query = '''
-                select distinct re_id, count(distinct group_id) num
+                select distinct re_id, count(distinct org_id) num
                 from ko_react k, mapko m, ortholog o
                 where k.ko_id = m.ko_id
                 and o.prot_id = m.prot_id
@@ -2159,7 +2158,7 @@ class Kegg(DBBase):
         
         if not path_id:
             query = '''
-                select distinct k.re_id, co1, co2, count(distinct group_id) weight, re.name
+                select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
                 from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
                 where k.ko_id = m.ko_id
                 and p.prot_id = m.prot_id
@@ -2177,7 +2176,7 @@ class Kegg(DBBase):
                 '''
         else:
             query = '''
-                select distinct k.re_id, co1, co2, count(distinct group_id) weight, re.name
+                select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
                 from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
                 where k.ko_id = m.ko_id
                 and p.prot_id = m.prot_id
@@ -2214,7 +2213,7 @@ class Kegg(DBBase):
         nOrg = Organism(self.dbname).howMany()
         
         query = '''
-                select distinct re_id, count(distinct group_id) num
+                select distinct re_id, count(distinct org_id) num
                 from ko_react k, mapko m, ortholog o
                 where k.ko_id = m.ko_id
                 and o.prot_id = m.prot_id
@@ -2243,7 +2242,7 @@ class Kegg(DBBase):
         
         if not path_id:
             query = '''
-                select distinct k.re_id, co1, co2, count(distinct group_id) weight, re.name
+                select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
                 from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
                 where k.ko_id = m.ko_id
                 and p.prot_id = m.prot_id
@@ -2262,7 +2261,7 @@ class Kegg(DBBase):
                 '''
         else:
             query = '''
-                select distinct k.re_id, co1, co2, count(distinct group_id) weight, re.name
+                select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
                 from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
                 where k.ko_id = m.ko_id
                 and p.prot_id = m.prot_id
@@ -2298,7 +2297,7 @@ class Kegg(DBBase):
         Get unique genome reactions (and numerosity)
         '''
         query = '''
-                select distinct re_id, count(distinct group_id) num
+                select distinct re_id, count(distinct org_id) num
                 from ko_react k, mapko m, ortholog o
                 where k.ko_id = m.ko_id
                 and o.prot_id = m.prot_id
@@ -2323,7 +2322,7 @@ class Kegg(DBBase):
         '''
         if not path_id:
             query = '''
-                select distinct k.re_id, co1, co2, count(distinct group_id) weight, re.name
+                select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
                 from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
                 where k.ko_id = m.ko_id
                 and p.prot_id = m.prot_id
@@ -2341,7 +2340,7 @@ class Kegg(DBBase):
                 '''
         else:
             query = '''
-                select distinct k.re_id, co1, co2, count(distinct group_id) weight, re.name
+                select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
                 from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
                 where k.ko_id = m.ko_id
                 and p.prot_id = m.prot_id

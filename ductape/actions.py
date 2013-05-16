@@ -2343,9 +2343,10 @@ def getOrgNet(project, org_id, path_id=None, category=None):
         
     return net
 
-def getPanGenomeNet(project, pangenome='all', path_id=None, category=None):
+def getPanGenomeNet(project, dpangenome, pangenome='all', path_id=None, category=None):
     '''
     Get a pangenomic slice of the metabolic network
+    dpangenome is an input dictionary with pangenomic slices
     '''
     if pangenome not in ['all', 'core', 'dispensable', 'accessory', 'unique']:
         logger.warning('Unknown pangenomic slice! (%s)'%pangenome)
@@ -2369,18 +2370,9 @@ def getPanGenomeNet(project, pangenome='all', path_id=None, category=None):
     if pangenome == 'all':
         net = MetabolicNet(kegg.getAllCompounds(path_id),
                        kegg.getMappedRPairsReact(path_id))
-    elif pangenome == 'core':
+    else:
         net = MetabolicNet(kegg.getAllCompounds(path_id),
-                       kegg.getCoreRPairsReact(path_id))
-    elif pangenome == 'dispensable':
-        net = MetabolicNet(kegg.getAllCompounds(path_id),
-                       kegg.getDispensableRPairsReact(path_id))
-    elif pangenome == 'accessory':
-        net = MetabolicNet(kegg.getAllCompounds(path_id),
-                       kegg.getAccessoryRPairsReact(path_id))
-    elif pangenome == 'unique':
-        net = MetabolicNet(kegg.getAllCompounds(path_id),
-                       kegg.getUniqueRPairsReact(path_id))
+                       dpangenome[pangenome])
     
     if category:
         logger.debug('Fetching metabolic activity for category %s'%category)
@@ -2489,7 +2481,7 @@ def dNet(project, allorgs=False, allpaths=False):
         
         slen = 'metNet_pangenome_length.tsv'
         flen = open(slen,'w')
-        flen.write('# Metabolic network length (number of reactions, including copy number)\n')
+        flen.write('# Metabolic network length (number of exclusive reaction IDs)\n')
         flen.write('\t'.join( ['network', 'name', 'overall'] + orgs + ['\n'] ))
         
         sconn = 'metNet_pangenome_connected.tsv'
@@ -2518,9 +2510,13 @@ def dNet(project, allorgs=False, allpaths=False):
         # Total network
         logger.info('Overall network stats')
         
+        ecore, edisp, eacc, euni = kegg.getExclusiveRPairsReact()
+        dpangenome = {'core':ecore, 'dispensable':edisp,
+                      'accessory':eacc, 'unique':euni}
+    
         oNet = {}
         for org in orgs:
-            oNet[org] = getPanGenomeNet(project, org)
+            oNet[org] = getPanGenomeNet(project, dpangenome, org)
             npath = makeRoom('', 'metNet', org)
             writeNet(oNet[org], npath, '%s.gml'%org)
         
@@ -2543,6 +2539,7 @@ def dNet(project, allorgs=False, allpaths=False):
                 scateg = categ.category.replace(' ','_').replace('&','and')
                 
                 oNet = getPanGenomeNet(project,
+                                       dpangenome,
                                        'all',
                                        category=categ.category)
                 npath = makeRoom('', 'metNet', 'all', scateg)
@@ -2560,10 +2557,15 @@ def dNet(project, allorgs=False, allpaths=False):
             
             if ':' in path.path_id:
                 spath = path.path_id.split(':')[1]
-                
+            
+            ecore, edisp, eacc, euni = kegg.getExclusiveRPairsReact(path.path_id)
+            dpangenome = {'core':ecore, 'dispensable':edisp,
+                      'accessory':eacc, 'unique':euni}
+               
             oNet = {}
             for org_id in orgs:
-                oNet[org_id] = getPanGenomeNet(project, org_id, path.path_id)
+                oNet[org_id] = getPanGenomeNet(project, dpangenome,
+                                               org_id, path.path_id)
                 if allpaths:
                     npath = makeRoom('', 'metNet', org_id)
                     writeNet(oNet[org_id], npath, '%s_%s.gml'%(org_id, spath))
@@ -2613,7 +2615,7 @@ def dNet(project, allorgs=False, allpaths=False):
         
         slen = 'metNet_length.tsv'
         flen = open(slen,'w')
-        flen.write('# Metabolic network length (number of reactions, including copy number)\n')
+        flen.write('# Metabolic network length (number of distinct reactions)\n')
         flen.write('\t'.join( ['network', 'name', 'overall'] + orgs + ['\n'] ))
         
         sconn = 'metNet_connected.tsv'

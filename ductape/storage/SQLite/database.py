@@ -2039,7 +2039,225 @@ class Kegg(DBBase):
             
         for res in cursor:
             yield Row(res, cursor.description)
-     
+    
+    def getExclusiveRPairsReact(self, path_id=None):
+        '''
+        Get all the exclusive RPairs Reacts in the pangenome
+        core, dispensable, accessory, unique
+        note: the dispensable genome includes the accessory and the unique
+        '''
+        # How many organisms are present?
+        organism = Organism(self.dbname)
+        nOrg = organism.howMany()
+        
+        if not path_id:
+            query = '''
+                    select distinct k.re_id, co1, co2, re.name
+                        from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
+                        where k.ko_id = m.ko_id
+                        and p.prot_id = m.prot_id
+                        and p.prot_id = o.prot_id
+                        and k.re_id = rr.re_id
+                        and rr.rp_id = rp.rp_id
+                        and rr.re_id=re.re_id
+                        and kind like "%main%"
+                        and group_id in (select o.group_id
+                                        from ortholog o, protein p
+                                        where o.prot_id = p.prot_id
+                                        group by o.group_id
+                                        having count(distinct org_id) = ?)
+                        group by k.re_id, co1, co2;
+                    '''
+        else:
+            query = '''
+                    select distinct k.re_id, co1, co2, re.name
+                    from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
+                    where k.ko_id = m.ko_id
+                    and p.prot_id = m.prot_id
+                    and p.prot_id = o.prot_id
+                    and k.re_id = rr.re_id
+                    and rr.rp_id = rp.rp_id
+                    and rr.re_id=re.re_id
+                    and re.re_id=p1.re_id
+                    and p1.path_id=?
+                    and kind like "%main%"
+                    and group_id in (select o.group_id
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) = ?)
+                    group by k.re_id, co1, co2;
+                    '''
+        
+        with self.connection as conn:
+            if not path_id:
+                cursor=conn.execute(query,[nOrg,])
+            else:
+                cursor=conn.execute(query,[path_id,nOrg,])
+            
+        core = {}
+        for res in cursor:
+            core[res[0]+res[1]+res[2]] = Row(res, cursor.description)
+        
+        if not path_id:
+            query = '''
+                    select distinct k.re_id, co1, co2, re.name
+                    from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
+                    where k.ko_id = m.ko_id
+                    and p.prot_id = m.prot_id
+                    and p.prot_id = o.prot_id
+                    and k.re_id = rr.re_id
+                    and rr.rp_id = rp.rp_id
+                    and rr.re_id=re.re_id
+                    and kind like "%main%"
+                    and group_id in (select o.group_id
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) < ?)
+                    group by k.re_id, co1, co2;
+                    '''
+        else:
+            query = '''
+                select distinct k.re_id, co1, co2, re.name
+                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
+                where k.ko_id = m.ko_id
+                and p.prot_id = m.prot_id
+                and p.prot_id = o.prot_id
+                and k.re_id = rr.re_id
+                and rr.rp_id = rp.rp_id
+                and rr.re_id=re.re_id
+                and kind like "%main%"
+                and re.re_id = p1.re_id
+                and p1.path_id = ?
+                and group_id in (select o.group_id
+                                from ortholog o, protein p
+                                where o.prot_id = p.prot_id
+                                group by o.group_id
+                                having count(distinct org_id) < ?)
+                group by k.re_id, co1, co2;
+                '''
+        
+        with self.connection as conn:
+            if not path_id:
+                cursor=conn.execute(query,[nOrg,])
+            else:
+                cursor=conn.execute(query,[path_id,nOrg,])
+            
+        disp = {}
+        for res in cursor:
+            disp[res[0]+res[1]+res[2]] = Row(res, cursor.description)
+        
+        if not path_id:
+            query = '''
+                    select distinct k.re_id, co1, co2, re.name
+                    from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
+                    where k.ko_id = m.ko_id
+                    and p.prot_id = m.prot_id
+                    and p.prot_id = o.prot_id
+                    and k.re_id = rr.re_id
+                    and rr.rp_id = rp.rp_id
+                    and rr.re_id=re.re_id
+                    and kind like "%main%"
+                    and group_id in (select o.group_id
+                                    from ortholog o, protein p
+                                    where o.prot_id = p.prot_id
+                                    group by o.group_id
+                                    having count(distinct org_id) < ?
+                                    and count(distinct org_id) > 1)
+                    group by k.re_id, co1, co2;
+                    '''
+        else:
+            query = '''
+                select distinct k.re_id, co1, co2, re.name
+                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
+                where k.ko_id = m.ko_id
+                and p.prot_id = m.prot_id
+                and p.prot_id = o.prot_id
+                and k.re_id = rr.re_id
+                and rr.rp_id = rp.rp_id
+                and rr.re_id=re.re_id
+                and kind like "%main%"
+                and re.re_id = p1.re_id
+                and p1.path_id = ?
+                and group_id in (select o.group_id
+                                from ortholog o, protein p
+                                where o.prot_id = p.prot_id
+                                group by o.group_id
+                                having count(distinct org_id) < ?
+                                and count(distinct org_id) > 1)
+                group by k.re_id, co1, co2;
+                '''
+        
+        with self.connection as conn:
+            if not path_id:
+                cursor=conn.execute(query,[nOrg,])
+            else:
+                cursor=conn.execute(query,[path_id,nOrg,])
+            
+        acc = {}
+        for res in cursor:
+            acc[res[0]+res[1]+res[2]] = Row(res, cursor.description)
+            
+        if not path_id:
+            query = '''
+                select distinct k.re_id, co1, co2, re.name
+                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
+                where k.ko_id = m.ko_id
+                and p.prot_id = m.prot_id
+                and p.prot_id = o.prot_id
+                and k.re_id = rr.re_id
+                and rr.rp_id = rp.rp_id
+                and rr.re_id=re.re_id
+                and kind like "%main%"
+                and group_id in (select o.group_id
+                                from ortholog o, protein p
+                                where o.prot_id = p.prot_id
+                                group by o.group_id
+                                having count(distinct org_id) = 1)
+                group by k.re_id, co1, co2;
+                '''
+        else:
+            query = '''
+                select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
+                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
+                where k.ko_id = m.ko_id
+                and p.prot_id = m.prot_id
+                and p.prot_id = o.prot_id
+                and k.re_id = rr.re_id
+                and rr.rp_id = rp.rp_id
+                and rr.re_id=re.re_id
+                and kind like "%main%"
+                and re.re_id = p1.re_id
+                and p1.path_id = ?
+                and group_id in (select o.group_id
+                                from ortholog o, protein p
+                                where o.prot_id = p.prot_id
+                                group by o.group_id
+                                having count(distinct org_id) = 1)
+                group by k.re_id, co1, co2;
+                '''
+        
+        with self.connection as conn:
+            if not path_id:
+                cursor=conn.execute(query)
+            else:
+                cursor=conn.execute(query,[path_id,])
+            
+        uni = {}
+        for res in cursor:
+            uni[res[0]+res[1]+res[2]] = Row(res, cursor.description)
+        
+        ecore = set(core.keys()).difference(set(disp.keys()))
+        edisp = set(disp.keys()).difference(set(core.keys()))
+        eacc = set(acc.keys()).difference(set(core.keys()), set(uni.keys()))
+        euni = set(uni.keys()).difference(set(core.keys()), set(acc.keys()))
+        
+        return ([core[x] for x in ecore],
+                [disp[x] for x in edisp],
+                [acc[x] for x in eacc],
+                [uni[x] for x in euni])
+    
     def getCoreReact(self):
         '''
         Get core genome reactions (and numerosity)
@@ -2463,7 +2681,7 @@ class Kegg(DBBase):
            
     def getExclusiveReactionsPanGenome(self):
         '''
-        Return the number of reactions ID exclusive to each pangenome category
+        Return the reactions ID exclusive to each pangenome category
         core, dispensable, accessory, unique
         note: the dispensable genome includes the accessory and the unique
         '''

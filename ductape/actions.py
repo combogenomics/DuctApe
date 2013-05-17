@@ -19,6 +19,7 @@ import matplotlib.colors as pltcls
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import math
 # No country for warnings
 np.seterr(all='ignore')
 #
@@ -2377,7 +2378,7 @@ def getOrgNet(project, org_id, path_id=None, category=None):
         toremove = set()
         for k, v in corg.iteritems():
             mean = np.array(v).mean()
-            if mean != np.nan:
+            if not math.isnan(float(mean)):
                 corg[k] = mean
             else:
                 toremove.add(k)
@@ -2459,7 +2460,7 @@ def getPanGenomeNet(project, dpangenome, pangenome='all', path_id=None, category
         toremove = set()
         for k, v in corg.iteritems():
             mean = np.array(v).mean()
-            if mean != np.nan:
+            if not math.isnan(float(mean)):
                 corg[k] = mean
             else:
                 toremove.add(k)
@@ -2606,6 +2607,12 @@ def dNet(project, allorgs=False, allpaths=False):
                 spath = path.path_id.split(':')[1]
             
             ecore, edisp, eacc, euni = kegg.getExclusiveRPairsReact(path.path_id)
+            
+            skip = False
+            if len(ecore.union(edisp, eacc, euni)) == 0:
+                logger.debug('Skipping reaction data on pathway: %s'%(path.path_id))
+                skip = True
+            
             dpangenome = {'core':ecore, 'dispensable':edisp,
                       'accessory':eacc, 'unique':euni}
                
@@ -2613,22 +2620,23 @@ def dNet(project, allorgs=False, allpaths=False):
             for org_id in orgs:
                 oNet[org_id] = getPanGenomeNet(project, dpangenome,
                                                org_id, path.path_id)
-                if allpaths:
+                if allpaths and not skip:
                     npath = makeRoom('', 'metNet', org_id)
                     writeNet(oNet[org_id], npath, '%s_%s.gml'%(org_id, spath))
                 
-            flen.write('\t'.join( [path.path_id, path.name] +
-                                  [str(len(dapNet[path.path_id]))] +
-                                  [str(len(oNet[x])) for x in orgs] + ['\n']))
-            
-            fconn.write('\t'.join( [path.path_id, path.name] +
-                                  [str(dapNet[path.path_id].getComponents())] +
-                                  [str(oNet[x].getComponents()) for x in orgs] +
-                                  [str(dapNet[path.path_id].getComponentsMean())] +
-                                  [str(oNet[x].getComponentsMean()) for x in orgs] +
-                                  [str(dapNet[path.path_id].getComponentsStd())] +
-                                  [str(oNet[x].getComponentsStd()) for x in orgs] +
-                                  ['\n']))
+            if not skip:
+                flen.write('\t'.join( [path.path_id, path.name] +
+                                      [str(len(dapNet[path.path_id]))] +
+                                      [str(len(oNet[x])) for x in orgs] + ['\n']))
+                
+                fconn.write('\t'.join( [path.path_id, path.name] +
+                                      [str(dapNet[path.path_id].getComponents())] +
+                                      [str(oNet[x].getComponents()) for x in orgs] +
+                                      [str(dapNet[path.path_id].getComponentsMean())] +
+                                      [str(oNet[x].getComponentsMean()) for x in orgs] +
+                                      [str(dapNet[path.path_id].getComponentsStd())] +
+                                      [str(oNet[x].getComponentsStd()) for x in orgs] +
+                                      ['\n']))
             
             if phenome:
                 path_co = [x.co_id for x in kegg.getPathComps(path.path_id)]
@@ -2636,6 +2644,8 @@ def dNet(project, allorgs=False, allpaths=False):
                     wells = [w for w in biolog.getAllCoByCateg(categ.category)
                         if 'cpd:'+w.co_id in path_co]
                     if len(wells) == 0:
+                        logger.debug('Skipping activity data on pathway: %s'
+                                     %(path.path_id))
                         continue
                     
                     scateg = categ.category.replace(' ','_').replace('&','and')
@@ -2644,6 +2654,12 @@ def dNet(project, allorgs=False, allpaths=False):
                                      'all',
                                      path.path_id,
                                      categ.category)
+                    
+                    if not oNet.hasNodesWeight():
+                        logger.debug('Skipping activity data on pathway: %s (%s)'
+                                    %(path.path_id, scateg))
+                        continue
+                    
                     if allpaths:
                         npath = makeRoom('', 'metNet', 'all', scateg)
                         writeNet(oNet, npath,
@@ -2715,8 +2731,15 @@ def dNet(project, allorgs=False, allpaths=False):
                               ['\n']))
         
         if phenome:
+            path_co = [x.co_id for x in kegg.getPathComps(path.path_id)]
             for categ in biolog.getCategs(True):
                 scateg = categ.category.replace(' ','_').replace('&','and')
+                wells = [w for w in biolog.getAllCoByCateg(categ.category)
+                        if 'cpd:'+w.co_id in path_co]
+                if len(wells) == 0:
+                    logger.debug('Skipping activity data on pathway: %s'
+                                 %(path.path_id))
+                    continue
                 
                 oNet = {}
                 for org_id in orgs:
@@ -2743,15 +2766,28 @@ def dNet(project, allorgs=False, allpaths=False):
             oNet = {}
             for org_id in orgs:
                 oNet[org_id] = getOrgNet(project, org_id, path.path_id)
+                
+                if len(oNet[org_id]) == 0:
+                    logger.debug('Skipping reactions data on pathway: %s (%s)'
+                                     %(path.path_id, org_id))
+                    continue
+                
                 if allpaths:
                     npath = makeRoom('', 'metNet', org_id)
                     writeNet(oNet[org_id], npath, '%s_%s.gml'%(org_id, spath))
-                
-            flen.write('\t'.join( [path.path_id, path.name] +
+            
+            skip = False
+            if sum( [len(oNet[x]) for x in oNet] ) == 0:
+                skip = True
+                logger.debug('Skipping reactions data on pathway: %s'
+                                     %(path.path_id))
+            
+            if not skip:
+                flen.write('\t'.join( [path.path_id, path.name] +
                                   [str(len(dapNet[path.path_id]))] +
                                   [str(len(oNet[x])) for x in orgs] + ['\n']))
-            
-            fconn.write('\t'.join( [path.path_id, path.name] +
+                
+                fconn.write('\t'.join( [path.path_id, path.name] +
                                   [str(dapNet[path.path_id].getComponents())] +
                                   [str(oNet[x].getComponents()) for x in orgs] +
                                   [str(dapNet[path.path_id].getComponentsMean())] +
@@ -2765,10 +2801,12 @@ def dNet(project, allorgs=False, allpaths=False):
                 for categ in biolog.getCategs(True):
                     wells = [w for w in biolog.getAllCoByCateg(categ.category)
                         if 'cpd:'+w.co_id in path_co]
-                    if len(wells) == 0:
-                        continue
                     
                     scateg = categ.category.replace(' ','_').replace('&','and')
+                    if len(wells) == 0:
+                        logger.debug('Skipping activity data on pathway: %s (%s)'
+                                     %(path.path_id, scateg))
+                        continue
                     
                     oNet = {}
                     for org_id in orgs:
@@ -2776,10 +2814,21 @@ def dNet(project, allorgs=False, allpaths=False):
                                                  org_id,
                                                  path.path_id,
                                                  categ.category)
+                        
                         if allpaths:
+                            if not oNet[org_id].hasNodesWeight():
+                                logger.debug('Skipping activity data on pathway: %s (%s %s)'
+                                     %(path.path_id, org_id, scateg))
+                                continue
                             npath = makeRoom('', 'metNet', org_id, scateg)
                             writeNet(oNet[org_id], npath,
                                      '%s_%s_%s.gml'%(org_id, scateg, spath))
+                    
+                    check = set([oNet[x].hasNodesWeight() for x in oNet])
+                    if len(check) == 1 and check.pop() == False:
+                        logger.debug('Skipping activity data on pathway: %s (%s)'
+                                     %(path.path_id, scateg))
+                        continue
                     
                     fact.write('\t'.join( [path.path_id, path.name, scateg] +
                                   [str(oNet[x].mean()) for x in orgs] +

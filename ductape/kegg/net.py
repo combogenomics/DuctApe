@@ -87,6 +87,28 @@ class MetabolicNet(object):
                 self.net.add_edge(e.co1, e.co2, re_id=e.re_id, name=e.name)
                 if hasattr(e, 'weight'):
                     self.net.edge[e.co1][e.co2]['weight'] = e.weight
+                    
+    def hasNodesWeight(self):
+        '''
+        At least one node has weight?
+        '''
+        for co in self.net.nodes():
+            try:
+                self.net.node[co]['weight']
+                return True
+            except:pass
+            
+        return False
+    
+    def hasEdgesWeight(self):
+        '''
+        At least one edge has weight?
+        '''
+        for e in self.net.edges():
+            if 'weight' in self.net.edge[e[0]][e[1]]:
+                return True
+
+        return False
     
     def removeSingletons(self):
         '''
@@ -116,7 +138,7 @@ class MetabolicNet(object):
                 
     def __len__(self):
         '''
-        Returns the number of reactions (including the copy number)
+        Returns the number of reactions
         '''
         i = 0
         for e in self.net.edges():

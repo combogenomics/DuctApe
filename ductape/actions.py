@@ -2391,6 +2391,62 @@ def getOrgNet(project, org_id, path_id=None, category=None):
         
     return net
 
+def getMutNet(project, mut_id, mut_rpairs, path_id=None, category=None):
+    '''
+    Get the overall Kegg metabolic net
+    '''
+    if path_id:
+        logger.debug('Building total metabolic network for %s (%s)'%(mut_id,
+                                                                     path_id))
+    else:
+        logger.debug('Building total metabolic network for %s'%mut_id)
+        
+    from ductape.kegg.net import MetabolicNet, Compound
+    
+    kegg = Kegg(project)
+    
+    net = MetabolicNet(kegg.getAllCompounds(path_id),
+                       mut_rpairs)
+    
+    if category:
+        logger.debug('Fetching metabolic activity for category %s'%category)
+        
+        biolog = Biolog(project)
+
+        corg = {}
+        
+        # Filter by path?
+        path_co = []
+        if path_id:
+            path_co = [x.co_id for x in kegg.getPathComps(path_id)]
+            wells = [w for w in biolog.getAllCoByCateg(category)
+                        if 'cpd:'+w.co_id in path_co]
+        else:
+            wells = [w for w in biolog.getAllCoByCateg(category)]
+        for well in wells:
+            act = biolog.getAvgActivity(well.plate_id, well.well_id, mut_id)
+            if act is not None:
+                # Some co_ids are present more than once
+                if well.co_id not in corg:
+                    corg[well.co_id] = []
+                corg[well.co_id].append(act)
+    
+        toremove = set()
+        for k, v in corg.iteritems():
+            mean = np.array(v).mean()
+            if not math.isnan(float(mean)):
+                corg[k] = mean
+            else:
+                toremove.add(k)
+        for k in toremove:
+            del corg[k]
+        
+        compounds = [Compound('cpd:'+k,kegg.getCompound('cpd:'+k).name,v) for k,v in corg.iteritems()]
+        net.addNodes(compounds)
+        logger.debug('Added %d metabolic activities'%len(compounds))
+        
+    return net
+
 def getPanGenomeNet(project, dpangenome, pangenome='all', path_id=None, category=None):
     '''
     Get a pangenomic slice of the metabolic network
@@ -2669,7 +2725,7 @@ def dNet(project, allorgs=False, allpaths=False):
                                   [str(oNet.mean())] + [str(oNet.std())] +
                                   ['\n']))
 
-    elif kind == 'single' or allorgs or kind == 'mutants':
+    elif kind == 'single' or allorgs and not kind == 'mutants':
         logger.info('Single organisms networks')
         
         organism = Organism(project)
@@ -2823,6 +2879,244 @@ def dNet(project, allorgs=False, allpaths=False):
                             npath = makeRoom('', 'metNet', org_id, scateg)
                             writeNet(oNet[org_id], npath,
                                      '%s_%s_%s.gml'%(org_id, scateg, spath))
+                    
+                    check = set([oNet[x].hasNodesWeight() for x in oNet])
+                    if len(check) == 1 and check.pop() == False:
+                        logger.debug('Skipping activity data on pathway: %s (%s)'
+                                     %(path.path_id, scateg))
+                        continue
+                    
+                    fact.write('\t'.join( [path.path_id, path.name, scateg] +
+                                  [str(oNet[x].mean()) for x in orgs] +
+                                  [str(oNet[x].std()) for x in orgs] +
+                                  ['\n']))
+                    
+    elif kind == 'mutants' or allorgs:
+        logger.info('Mutants networks')
+        
+        organism = Organism(project)
+        
+        refs = [org.org_id
+                    for org in organism.getAll()
+                    if not organism.isMutant(org.org_id)]
+        
+        orgs = []
+        ref_rpairs = {}
+        
+        for ref_id in refs:
+            muts = [x for x in organism.getOrgMutants(ref_id)]
+            ref_rpairs[ref_id] = kegg.getExclusiveRPairsReactMutants(ref_id, muts)
+        
+            orgs.append(ref_id)
+            for m in muts:
+                orgs.append(m)
+        
+        slen = 'metNet_length.tsv'
+        flen = open(slen,'w')
+        flen.write('# Metabolic network length (number of exclusive reactions w/ respect to the wild-type)\n')
+        flen.write('\t'.join( ['network', 'name', 'overall'] + orgs + ['\n'] ))
+        
+        sconn = 'metNet_connected.tsv'
+        fconn = open(sconn,'w')
+        fconn.write('# Subnetworks (Connected components)\n')
+        fconn.write('\t'.join( ['', ''] + ['Subnetworks'] +
+                                              ['' for x in range(len(orgs))] +
+                                              ['Subnetworks mean length'] +
+                                              ['' for x in range(len(orgs))] +
+                                              ['Subnetworks length std-dev'] +
+                                              ['' for x in range(len(orgs))] +
+                                              ['\n'] ))
+        fconn.write('\t'.join( ['network', 'name', 'overall'] + orgs +
+                                                  ['overall'] + orgs + 
+                                                  ['overall'] + orgs + ['\n'] ))
+        
+        if phenome:
+            sact = 'metNet_activity.tsv'
+            fact = open(sact,'w')
+            fact.write('# Metabolic network activity\n')
+            fact.write('\t'.join( ['', '', ''] + ['Mean Activity'] +
+                                              ['' for x in range(len(orgs)-1)] +
+                                              ['Activity std-dev'] +
+                                              ['' for x in range(len(orgs)-1)] +
+                                              ['\n'] ))
+            fact.write('\t'.join( ['network', 'name', 'category'] +
+                                                     orgs +
+                                                     orgs + ['\n'] ))
+        
+        # Total network
+        logger.info('Overall network stats')
+        
+        oNet = {}
+        
+        for ref_id in refs:
+            muts = [x for x in organism.getOrgMutants(ref_id)]
+            
+            oNet[ref_id] = getOrgNet(project, ref_id)
+            npath = makeRoom('', 'metNet', ref_id)
+            writeNet(oNet[ref_id], npath, '%s.gml'%ref_id)
+            
+            for mut_id in muts:
+                oNet[mut_id] = getMutNet(project, mut_id,
+                                         ref_rpairs[ref_id][mut_id].values())
+                npath = makeRoom('', 'metNet', mut_id)
+                writeNet(oNet[mut_id], npath, '%s.gml'%mut_id)
+            
+        flen.write('\t'.join( ['All', ''] +
+                              [str(len(aNet))] +
+                              [str(len(oNet[x])) for x in orgs] + ['\n']))
+        
+        fconn.write('\t'.join( ['All', ''] +
+                              [str(aNet.getComponents())] +
+                              [str(oNet[x].getComponents()) for x in orgs] +
+                              [str(aNet.getComponentsMean())] +
+                              [str(oNet[x].getComponentsMean()) for x in orgs] +
+                              [str(aNet.getComponentsStd())] +
+                              [str(oNet[x].getComponentsStd()) for x in orgs] +
+                              ['\n']))
+        
+        if phenome:
+            path_co = [x.co_id for x in kegg.getPathComps(path.path_id)]
+            for categ in biolog.getCategs(True):
+                scateg = categ.category.replace(' ','_').replace('&','and')
+                wells = [w for w in biolog.getAllCoByCateg(categ.category)
+                        if 'cpd:'+w.co_id in path_co]
+                if len(wells) == 0:
+                    logger.debug('Skipping activity data on pathway: %s'
+                                 %(path.path_id))
+                    continue
+                
+                oNet = {}
+                for ref_id in refs:
+                    muts = [x for x in organism.getOrgMutants(ref_id)]
+                    
+                    oNet[ref_id] = getOrgNet(project, ref_id,
+                                             category=categ.category)
+                    npath = makeRoom('', 'metNet', ref_id, scateg)
+                    writeNet(oNet[ref_id], npath, '%s_%s.gml'%(ref_id, scateg))
+                    
+                    for mut_id in muts:
+                        oNet[mut_id] = getMutNet(project,
+                                                 mut_id,
+                                                 ref_rpairs[ref_id][mut_id].values(),
+                                                 category=categ.category)
+                        npath = makeRoom('', 'metNet', mut_id, scateg)
+                        writeNet(oNet[mut_id], npath, '%s_%s.gml'%(mut_id, scateg))
+                
+                fact.write('\t'.join( ['All', '', scateg] +
+                              [str(oNet[x].mean()) for x in orgs] +
+                              [str(oNet[x].std()) for x in orgs] +
+                              ['\n']))
+        
+        # Single paths
+        logger.info('Single pathways stats')
+        
+        for path in kegg.getAllPathways(True):
+            logger.info('Pathway: %s // %s'%(path.path_id, path.name))
+            
+            if ':' in path.path_id:
+                spath = path.path_id.split(':')[1]
+                
+            oNet = {}
+        
+            for ref_id in refs:
+                muts = [x for x in organism.getOrgMutants(ref_id)]
+                ref_rpairs = kegg.getExclusiveRPairsReactMutants(ref_id, muts,
+                                                                 path.path_id)
+            
+                oNet[ref_id] = getOrgNet(project, ref_id, path.path_id)
+                
+                if len(oNet[ref_id]) == 0:
+                    logger.debug('Skipping reactions data on pathway: %s (%s)'
+                                     %(path.path_id, ref_id))
+                    continue
+                
+                if allpaths:
+                    npath = makeRoom('', 'metNet', ref_id)
+                    writeNet(oNet[ref_id], npath, '%s_%s.gml'%(ref_id, spath))
+            
+                for mut_id in muts:
+                    oNet[mut_id] = getMutNet(project,
+                                             mut_id,
+                                             ref_rpairs[mut_id].values(),
+                                             path.path_id)
+                
+                    if len(oNet[mut_id]) == 0:
+                        logger.debug('Skipping reactions data on pathway: %s (%s)'
+                                         %(path.path_id, mut_id))
+                        continue
+                    
+                    if allpaths:
+                        npath = makeRoom('', 'metNet', mut_id)
+                        writeNet(oNet[mut_id], npath, '%s_%s.gml'%(mut_id, spath))
+            
+            skip = False
+            if sum( [len(oNet[x]) for x in oNet] ) == 0:
+                skip = True
+                logger.debug('Skipping reactions data on pathway: %s'
+                                     %(path.path_id))
+            
+            if not skip:
+                flen.write('\t'.join( [path.path_id, path.name] +
+                                  [str(len(dapNet[path.path_id]))] +
+                                  [str(len(oNet[x])) for x in orgs] + ['\n']))
+                
+                fconn.write('\t'.join( [path.path_id, path.name] +
+                                  [str(dapNet[path.path_id].getComponents())] +
+                                  [str(oNet[x].getComponents()) for x in orgs] +
+                                  [str(dapNet[path.path_id].getComponentsMean())] +
+                                  [str(oNet[x].getComponentsMean()) for x in orgs] +
+                                  [str(dapNet[path.path_id].getComponentsStd())] +
+                                  [str(oNet[x].getComponentsStd()) for x in orgs] +
+                                  ['\n']))
+            
+            if phenome:
+                path_co = [x.co_id for x in kegg.getPathComps(path.path_id)]
+                for categ in biolog.getCategs(True):
+                    wells = [w for w in biolog.getAllCoByCateg(categ.category)
+                        if 'cpd:'+w.co_id in path_co]
+                    
+                    scateg = categ.category.replace(' ','_').replace('&','and')
+                    if len(wells) == 0:
+                        logger.debug('Skipping activity data on pathway: %s (%s)'
+                                     %(path.path_id, scateg))
+                        continue
+                    
+                    oNet = {}
+                    
+                    for ref_id in refs:
+                        muts = [x for x in organism.getOrgMutants(ref_id)]
+                        ref_rpairs = kegg.getExclusiveRPairsReactMutants(ref_id, muts,
+                                                                         path.path_id)
+                    
+                        oNet[ref_id] = getOrgNet(project,
+                                                 ref_id,
+                                                 path.path_id,
+                                                 categ.category)
+                        
+                        if allpaths:
+                            if not oNet[ref_id].hasNodesWeight():
+                                logger.debug('Skipping activity data on pathway: %s (%s %s)'
+                                     %(path.path_id, ref_id, scateg))
+                                continue
+                            npath = makeRoom('', 'metNet', ref_id, scateg)
+                            writeNet(oNet[ref_id], npath,
+                                     '%s_%s_%s.gml'%(ref_id, scateg, spath))
+                        
+                        for mut_id in muts:
+                            oNet[mut_id] = getMutNet(project,
+                                                 mut_id,
+                                                 ref_rpairs[mut_id].values(),
+                                                 path.path_id,
+                                                 categ.category)
+                        
+                            if allpaths:
+                                if not oNet[mut_id].hasNodesWeight():
+                                    logger.debug('Skipping activity data on pathway: %s (%s %s)'
+                                         %(path.path_id, mut_id, scateg))
+                                    continue
+                                npath = makeRoom('', 'metNet', mut_id, scateg)
+                                writeNet(oNet[mut_id], npath,
+                                         '%s_%s_%s.gml'%(mut_id, scateg, spath))
                     
                     check = set([oNet[x].hasNodesWeight() for x in oNet])
                     if len(check) == 1 and check.pop() == False:

@@ -2258,6 +2258,74 @@ class Kegg(DBBase):
                 [acc[x] for x in eacc],
                 [uni[x] for x in euni])
     
+    def getExclusiveRPairsReactMutants(self, ref_id, muts=set(), path_id=None):
+        '''
+        Return the RPairs Reacts in a list of mutants
+        return a dictionary of org_id --> re_id+co1+co2 --> row
+        '''
+        organism = Organism(self.dbname)
+        
+        if not organism.isOrg(ref_id):
+            logger.warning('Organism %s is not present yet!'%ref_id)
+            raise Exception('This Organism (%s) is not present yet!'%ref_id)
+        
+        muts = set(muts)
+        for mut_id in muts:
+            if not organism.isOrg(mut_id) or not organism.isMutant(mut_id):
+                logger.warning('Wrong organism! (%s)'%mut_id)
+                raise Exception('Wrong organism! (%s)'%mut_id)
+        
+        out = {}
+        out[ref_id] = {}
+        for row in self.getAllRPairsReacts(ref_id, path_id):
+            out[ref_id] = out.get(ref_id, {})
+            out[ref_id][row.re_id+row.co1+row.co2] = row
+        
+        for mut_id in muts:
+            # which kind of mutant is this?
+            kind = organism.getOrg(mut_id).mkind
+            
+            if kind == 'insertion':
+                ref = out[ref_id]
+                mut = {}
+                for row in self.getAllRPairsReacts(mut_id, path_id):
+                    mut[row.re_id+row.co1+row.co2] = row
+                mut = dict(mut.items() + ref.items())
+                
+                out[mut_id] = {}
+                
+                keys = set(mut.keys()).difference(set(ref.keys()))
+                for k in keys:
+                    out[mut_id][k] = mut[k]
+            else:
+                ref_temp = {}
+                for row in self.getAllRPairsReacts(ref_id, path_id):
+                    ref_temp[row.re_id+row.co1+row.co2] = row
+                
+                mut = {}
+                for row in self.getAllRPairsReacts(mut_id, path_id):
+                    mut[row.re_id+row.co1+row.co2] = row
+                    
+                for k in mut:
+                    del ref_temp[k]
+                    
+                present = set()
+                for k, r in ref_temp.iteritems():
+                    present.add(r.re_id+r.co1+r.co2)
+                absent = set()
+                for k, r in mut.iteritems():
+                    absent.add(r.re_id+r.co1+r.co2)
+                
+                out[mut_id] = {}
+                
+                for k in absent.difference(present):
+                    if k in out[ref_id]:
+                        out[mut_id][k] = out[ref_id][k]
+                    else:
+                        out[mut_id][k] = mut[k]
+           
+        return out
+    
     def getCoreReact(self):
         '''
         Get core genome reactions (and numerosity)

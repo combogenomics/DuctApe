@@ -1535,8 +1535,7 @@ class Kegg(DBBase):
                                     and rr.rp_id = rp.rp_id
                                     and rr.re_id=re.re_id
                                     and kind like "%main%"
-                                    and org_id = ?
-                                    group by k.re_id, co1, co2;''',
+                                    and org_id = ?;''',
                                     [org_id,])
                 else:
                     cursor=conn.execute('''select distinct k.re_id, co1, co2, re.name
@@ -1549,8 +1548,7 @@ class Kegg(DBBase):
                                     and kind like "%main%"
                                     and org_id = ?
                                     and re.re_id=p.re_id
-                                    and path_id = ?
-                                    group by k.re_id, co1, co2;''',
+                                    and path_id = ?;''',
                                     [org_id,path_id,])
             
         for res in cursor:
@@ -2338,8 +2336,7 @@ class Kegg(DBBase):
                 from ko_react k, mapko m, ortholog o
                 where k.ko_id = m.ko_id
                 and o.prot_id = m.prot_id
-                group by group_id
-                order by num DESC;
+                group by group_id;
                 '''
         
         with self.connection as conn:
@@ -2349,7 +2346,7 @@ class Kegg(DBBase):
         groups = set([x.group_id for x in genome.getCore()])
         
         for r in filter(lambda x: x.group_id in groups, rall):
-            setattr(r, 'weight', nOrg)
+            setattr(r, 'num', nOrg)
             yield r
             
     def getCoreRPairsReact(self, path_id=None):
@@ -2357,10 +2354,11 @@ class Kegg(DBBase):
         Get core genome rpairs reactions (and numerosity)
         '''
         nOrg = Organism(self.dbname).howMany()
+        genome = Genome(self.dbname)
         
         if not path_id:
             query = '''
-                    select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
+                    select distinct k.re_id, co1, co2, o.group_id, re.name
                     from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
                     where k.ko_id = m.ko_id
                     and p.prot_id = m.prot_id
@@ -2368,17 +2366,11 @@ class Kegg(DBBase):
                     and k.re_id = rr.re_id
                     and rr.rp_id = rp.rp_id
                     and rr.re_id=re.re_id
-                    and kind like "%main%"
-                    and group_id in (select o.group_id
-                                    from ortholog o, protein p
-                                    where o.prot_id = p.prot_id
-                                    group by o.group_id
-                                    having count(distinct org_id) = ?)
-                    group by k.re_id, co1, co2;
+                    and kind like "%main%";
                     '''
         else:
             query = '''
-                    select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
+                    select distinct k.re_id, co1, co2, o.group_id, re.name
                     from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
                     where k.ko_id = m.ko_id
                     and p.prot_id = m.prot_id
@@ -2388,261 +2380,8 @@ class Kegg(DBBase):
                     and rr.re_id=re.re_id
                     and re.re_id=p1.re_id
                     and p1.path_id=?
-                    and kind like "%main%"
-                    and group_id in (select o.group_id
-                                    from ortholog o, protein p
-                                    where o.prot_id = p.prot_id
-                                    group by o.group_id
-                                    having count(distinct org_id) = ?)
-                    group by k.re_id, co1, co2;
+                    and kind like "%main%";
                     '''
-    
-        with self.connection as conn:
-            if not path_id:
-                cursor=conn.execute(query,
-                                    [nOrg,])
-            else:
-                cursor=conn.execute(query,
-                                    [path_id,nOrg,])
-            
-        for res in cursor:
-            yield Row(res, cursor.description)
-    
-    def getDispensableReact(self):
-        '''
-        Get dispensable genome reactions (and numerosity)
-        '''
-        nOrg = Organism(self.dbname).howMany()
-        
-        query = '''
-                select distinct re_id, count(distinct org_id) num
-                from ko_react k, mapko m, ortholog o
-                where k.ko_id = m.ko_id
-                and o.prot_id = m.prot_id
-                and group_id in (select o.group_id
-                                from ortholog o, protein p
-                                where o.prot_id = p.prot_id
-                                group by o.group_id
-                                having count(distinct org_id) < ?)
-                group by re_id
-                order by num DESC;
-                '''
-        
-        with self.connection as conn:
-            cursor=conn.execute(query,
-                                [nOrg,])
-            
-        for res in cursor:
-            yield Row(res, cursor.description)
-    
-    def getDispensableRPairsReact(self, path_id=None):
-        '''
-        Get dispensable genome rpairs reactions (and numerosity)
-        '''
-        nOrg = Organism(self.dbname).howMany()
-        
-        if not path_id:
-            query = '''
-                select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
-                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
-                where k.ko_id = m.ko_id
-                and p.prot_id = m.prot_id
-                and p.prot_id = o.prot_id
-                and k.re_id = rr.re_id
-                and rr.rp_id = rp.rp_id
-                and rr.re_id=re.re_id
-                and kind like "%main%"
-                and group_id in (select o.group_id
-                                from ortholog o, protein p
-                                where o.prot_id = p.prot_id
-                                group by o.group_id
-                                having count(distinct org_id) < ?)
-                group by k.re_id, co1, co2;
-                '''
-        else:
-            query = '''
-                select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
-                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
-                where k.ko_id = m.ko_id
-                and p.prot_id = m.prot_id
-                and p.prot_id = o.prot_id
-                and k.re_id = rr.re_id
-                and rr.rp_id = rp.rp_id
-                and rr.re_id=re.re_id
-                and kind like "%main%"
-                and re.re_id = p1.re_id
-                and p1.path_id = ?
-                and group_id in (select o.group_id
-                                from ortholog o, protein p
-                                where o.prot_id = p.prot_id
-                                group by o.group_id
-                                having count(distinct org_id) < ?)
-                group by k.re_id, co1, co2;
-                '''
-                
-        with self.connection as conn:
-            if not path_id:
-                cursor=conn.execute(query,
-                                    [nOrg,])
-            else:
-                cursor=conn.execute(query,
-                                    [path_id,nOrg,])
-            
-        for res in cursor:
-            yield Row(res, cursor.description)
-    
-    def getAccessoryReact(self):
-        '''
-        Get accessory genome reactions (and numerosity)
-        '''
-        nOrg = Organism(self.dbname).howMany()
-        
-        query = '''
-                select distinct re_id, count(distinct org_id) num
-                from ko_react k, mapko m, ortholog o
-                where k.ko_id = m.ko_id
-                and o.prot_id = m.prot_id
-                and group_id in (select o.group_id
-                                from ortholog o, protein p
-                                where o.prot_id = p.prot_id
-                                group by o.group_id
-                                having count(distinct org_id) < ?
-                                and count(distinct org_id) > 1)
-                group by re_id
-                order by num DESC;
-                '''
-        
-        with self.connection as conn:
-            cursor=conn.execute(query,
-                                [nOrg,])
-            
-        for res in cursor:
-            yield Row(res, cursor.description)
-    
-    def getAccessoryRPairsReact(self, path_id=None):
-        '''
-        Get accessory genome rpairs reactions (and numerosity)
-        '''
-        nOrg = Organism(self.dbname).howMany()
-        
-        if not path_id:
-            query = '''
-                select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
-                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
-                where k.ko_id = m.ko_id
-                and p.prot_id = m.prot_id
-                and p.prot_id = o.prot_id
-                and k.re_id = rr.re_id
-                and rr.rp_id = rp.rp_id
-                and rr.re_id=re.re_id
-                and kind like "%main%"
-                and group_id in (select o.group_id
-                                from ortholog o, protein p
-                                where o.prot_id = p.prot_id
-                                group by o.group_id
-                                having count(distinct org_id) < ?
-                                and count(distinct org_id) > 1)
-                group by k.re_id, co1, co2;
-                '''
-        else:
-            query = '''
-                select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
-                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
-                where k.ko_id = m.ko_id
-                and p.prot_id = m.prot_id
-                and p.prot_id = o.prot_id
-                and k.re_id = rr.re_id
-                and rr.rp_id = rp.rp_id
-                and rr.re_id=re.re_id
-                and kind like "%main%"
-                and re.re_id = p1.re_id
-                and p1.path_id = ?
-                and group_id in (select o.group_id
-                                from ortholog o, protein p
-                                where o.prot_id = p.prot_id
-                                group by o.group_id
-                                having count(distinct org_id) < ?
-                                and count(distinct org_id) > 1)
-                group by k.re_id, co1, co2;
-                '''
-    
-        with self.connection as conn:
-            if not path_id:
-                cursor=conn.execute(query,
-                                    [nOrg,])
-            else:
-                cursor=conn.execute(query,
-                                    [path_id,nOrg,])
-            
-        for res in cursor:
-            yield Row(res, cursor.description)
-    
-    def getUniqueReact(self):
-        '''
-        Get unique genome reactions (and numerosity)
-        '''
-        query = '''
-                select distinct re_id, count(distinct org_id) num
-                from ko_react k, mapko m, ortholog o
-                where k.ko_id = m.ko_id
-                and o.prot_id = m.prot_id
-                and group_id in (select o.group_id
-                                from ortholog o, protein p
-                                where o.prot_id = p.prot_id
-                                group by o.group_id
-                                having count(distinct org_id) = 1)
-                group by re_id
-                order by num DESC;
-                '''
-        
-        with self.connection as conn:
-            cursor=conn.execute(query)
-            
-        for res in cursor:
-            yield Row(res, cursor.description)
-            
-    def getUniqueRPairsReact(self, path_id=None):
-        '''
-        Get unique genome rpairs reactions (and numerosity)
-        '''
-        if not path_id:
-            query = '''
-                select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
-                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
-                where k.ko_id = m.ko_id
-                and p.prot_id = m.prot_id
-                and p.prot_id = o.prot_id
-                and k.re_id = rr.re_id
-                and rr.rp_id = rp.rp_id
-                and rr.re_id=re.re_id
-                and kind like "%main%"
-                and group_id in (select o.group_id
-                                from ortholog o, protein p
-                                where o.prot_id = p.prot_id
-                                group by o.group_id
-                                having count(distinct org_id) = 1)
-                group by k.re_id, co1, co2;
-                '''
-        else:
-            query = '''
-                select distinct k.re_id, co1, co2, count(distinct org_id) weight, re.name
-                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
-                where k.ko_id = m.ko_id
-                and p.prot_id = m.prot_id
-                and p.prot_id = o.prot_id
-                and k.re_id = rr.re_id
-                and rr.rp_id = rp.rp_id
-                and rr.re_id=re.re_id
-                and kind like "%main%"
-                and re.re_id = p1.re_id
-                and p1.path_id = ?
-                and group_id in (select o.group_id
-                                from ortholog o, protein p
-                                where o.prot_id = p.prot_id
-                                group by o.group_id
-                                having count(distinct org_id) = 1)
-                group by k.re_id, co1, co2;
-                '''
     
         with self.connection as conn:
             if not path_id:
@@ -2650,9 +2389,263 @@ class Kegg(DBBase):
             else:
                 cursor=conn.execute(query,
                                     [path_id,])
+                
+        rall = [Row(res, cursor.description) for res in cursor]
+        groups = set([x.group_id for x in genome.getCore()])
+        
+        already = set()
+        for r in filter(lambda x: x.group_id in groups, rall):
+            setattr(r, 'weight', nOrg)
+            if r.re_id+r.co1+r.co2 in already:
+                continue
+            already.add(r.re_id+r.co1+r.co2)
+            yield r
+    
+    def getDispensableReact(self):
+        '''
+        Get dispensable genome reactions (and numerosity)
+        '''
+        genome = Genome(self.dbname)
+        
+        query = '''
+                select distinct re_id, o.group_id, count(distinct org_id) num
+                from ko_react k, mapko m, ortholog o, protein p
+                where k.ko_id = m.ko_id
+                and o.prot_id = m.prot_id
+                and o.prot_id = p.prot_id
+                group by group_id;
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query)
             
-        for res in cursor:
-            yield Row(res, cursor.description)
+        rall = [Row(res, cursor.description) for res in cursor]
+        groups = set([x.group_id for x in genome.getDisp()])
+        
+        for r in filter(lambda x: x.group_id in groups, rall):
+            yield r
+    
+    def getDispensableRPairsReact(self, path_id=None):
+        '''
+        Get dispensable genome rpairs reactions (and numerosity)
+        '''
+        genome = Genome(self.dbname)
+        
+        if not path_id:
+            query = '''
+                select distinct k.re_id, co1, co2, o.group_id, count(distinct org_id) weight, re.name
+                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
+                where k.ko_id = m.ko_id
+                and p.prot_id = m.prot_id
+                and p.prot_id = o.prot_id
+                and k.re_id = rr.re_id
+                and rr.rp_id = rp.rp_id
+                and rr.re_id=re.re_id
+                and kind like "%main%"
+                group by o.group_id;
+                '''
+        else:
+            query = '''
+                select distinct k.re_id, co1, co2, o.group_id, count(distinct org_id) weight, re.name
+                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
+                where k.ko_id = m.ko_id
+                and p.prot_id = m.prot_id
+                and p.prot_id = o.prot_id
+                and k.re_id = rr.re_id
+                and rr.rp_id = rp.rp_id
+                and rr.re_id=re.re_id
+                and kind like "%main%"
+                and re.re_id = p1.re_id
+                and p1.path_id = ?
+                group by o.group_id;
+                '''
+                
+        with self.connection as conn:
+            if not path_id:
+                cursor=conn.execute(query)
+            else:
+                cursor=conn.execute(query,
+                                    [path_id,])
+            
+        rall = [Row(res, cursor.description) for res in cursor]
+        groups = set([x.group_id for x in genome.getDisp()])
+        
+        # Get max organism numerosity
+        rpath = {}
+        for r in filter(lambda x: x.group_id in groups, rall):
+            rpath[r.re_id+r.co1+r.co2] = rpath.get(r.re_id+r.co1+r.co2, set())
+            rpath[r.re_id+r.co1+r.co2].add(r.weight)
+        
+        already = set()
+        for r in filter(lambda x: x.group_id in groups, rall):
+            if r.re_id+r.co1+r.co2 in already:
+                continue
+            already.add(r.re_id+r.co1+r.co2)
+            setattr(r, 'weight', max([w for w in rpath[r.re_id+r.co1+r.co2]]))
+            yield r
+    
+    def getAccessoryReact(self):
+        '''
+        Get accessory genome reactions (and numerosity)
+        '''
+        genome = Genome(self.dbname)
+        
+        query = '''
+                select distinct re_id, o.group_id, count(distinct org_id) num
+                from ko_react k, mapko m, ortholog o, protein p
+                where k.ko_id = m.ko_id
+                and o.prot_id = m.prot_id
+                and o.prot_id = p.prot_id
+                group by group_id;
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query)
+            
+        rall = [Row(res, cursor.description) for res in cursor]
+        groups = set([x.group_id for x in genome.getAcc()])
+        
+        # Max number of orgs
+        morgs = max([r.num for r in rall])
+        
+        for r in filter(lambda x: x.group_id in groups, rall):
+            yield r
+    
+    def getAccessoryRPairsReact(self, path_id=None):
+        '''
+        Get accessory genome rpairs reactions (and numerosity)
+        '''
+        genome = Genome(self.dbname)
+        
+        if not path_id:
+            query = '''
+                select distinct k.re_id, co1, co2, o.group_id, count(distinct org_id) weight, re.name
+                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
+                where k.ko_id = m.ko_id
+                and p.prot_id = m.prot_id
+                and p.prot_id = o.prot_id
+                and k.re_id = rr.re_id
+                and rr.rp_id = rp.rp_id
+                and rr.re_id=re.re_id
+                and kind like "%main%"
+                group by o.group_id;
+                '''
+        else:
+            query = '''
+                select distinct k.re_id, co1, co2, o.group_id, count(distinct org_id) weight, re.name
+                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
+                where k.ko_id = m.ko_id
+                and p.prot_id = m.prot_id
+                and p.prot_id = o.prot_id
+                and k.re_id = rr.re_id
+                and rr.rp_id = rp.rp_id
+                and rr.re_id=re.re_id
+                and kind like "%main%"
+                and re.re_id = p1.re_id
+                and p1.path_id = ?
+                group by o.group_id;
+                '''
+                
+        with self.connection as conn:
+            if not path_id:
+                cursor=conn.execute(query)
+            else:
+                cursor=conn.execute(query,
+                                    [path_id,])
+            
+        rall = [Row(res, cursor.description) for res in cursor]
+        groups = set([x.group_id for x in genome.getAcc()])
+        
+        # Get max organism numerosity
+        rpath = {}
+        for r in filter(lambda x: x.group_id in groups, rall):
+            rpath[r.re_id+r.co1+r.co2] = rpath.get(r.re_id+r.co1+r.co2, set())
+            rpath[r.re_id+r.co1+r.co2].add(r.weight)
+        
+        already = set()
+        for r in filter(lambda x: x.group_id in groups, rall):
+            if r.re_id+r.co1+r.co2 in already:
+                continue
+            already.add(r.re_id+r.co1+r.co2)
+            setattr(r, 'weight', max([w for w in rpath[r.re_id+r.co1+r.co2]]))
+            yield r
+    
+    def getUniqueReact(self):
+        '''
+        Get unique genome reactions (and numerosity)
+        '''
+        genome = Genome(self.dbname)
+        
+        query = '''
+                select distinct re_id, o.group_id
+                from ko_react k, mapko m, ortholog o
+                where k.ko_id = m.ko_id
+                and o.prot_id = m.prot_id
+                group by group_id;
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query)
+            
+        rall = [Row(res, cursor.description) for res in cursor]
+        groups = set([x.group_id for x in genome.getUni()])
+        
+        for r in filter(lambda x: x.group_id in groups, rall):
+            setattr(r, 'num', 1)
+            yield r
+            
+    def getUniqueRPairsReact(self, path_id=None):
+        '''
+        Get unique genome rpairs reactions (and numerosity)
+        '''
+        genome = Genome(self.dbname)
+        
+        if not path_id:
+            query = '''
+                select distinct k.re_id, co1, co2, o.group_id, count(distinct org_id) weight, re.name
+                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
+                where k.ko_id = m.ko_id
+                and p.prot_id = m.prot_id
+                and p.prot_id = o.prot_id
+                and k.re_id = rr.re_id
+                and rr.rp_id = rp.rp_id
+                and rr.re_id=re.re_id
+                and kind like "%main%"
+                group by o.group_id;
+                '''
+        else:
+            query = '''
+                select distinct k.re_id, co1, co2, o.group_id, count(distinct org_id) weight, re.name
+                from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
+                where k.ko_id = m.ko_id
+                and p.prot_id = m.prot_id
+                and p.prot_id = o.prot_id
+                and k.re_id = rr.re_id
+                and rr.rp_id = rp.rp_id
+                and rr.re_id=re.re_id
+                and kind like "%main%"
+                and re.re_id = p1.re_id
+                and p1.path_id = ?
+                group by o.group_id;
+                '''
+                
+        with self.connection as conn:
+            if not path_id:
+                cursor=conn.execute(query)
+            else:
+                cursor=conn.execute(query,
+                                    [path_id,])
+            
+        rall = [Row(res, cursor.description) for res in cursor]
+        groups = set([x.group_id for x in genome.getUni()])
+        
+        already = set()
+        for r in filter(lambda x: x.group_id in groups, rall):
+            if r.re_id+r.co1+r.co2 in already:
+                continue
+            already.add(r.re_id+r.co1+r.co2)
+            setattr(r, 'weight', 1)
+            yield r
             
     def getOrgReact(self, org_id):
         '''

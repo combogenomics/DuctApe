@@ -2,13 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>DuctApe</title>
+    <title>Howto &lt;&lt; DuctApe, a combogenomics program</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Analyze and link genomics and phenomics experiments">
     <meta name="author" content="Marco Galardini" >
     
     <!-- Le meta tag to refresh the cache -->
-    <meta http-equiv="last-modified" content="Thu, 10 May 2013 16:00:00 GMT" />
+    <meta http-equiv="last-modified" content="Thu, 24 May 2013 15:30:00 CET" />
 
     <!-- Le styles -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -37,8 +37,8 @@
       <a class="brand" href="index.html">DuctApe</a>
  
       <div class="nav-collapse collapse brandmini">
-          <div class="nav"><a href="https://github.com/combogenomics/DuctApe/archive/DuctApe-0.6.1.tar.gz"><i class="icon-download"></i> Download &raquo;</a></div>
-          <div class="nav"><a href="index.html#info"><i class="icon-info-sign"></i> More info</a></div>
+          <div class="nav"><a href="https://github.com/combogenomics/DuctApe/archive/DuctApe-0.7.0.tar.gz"><i class="icon-download"></i> Download &raquo;</a></div>
+          <div class="nav"><a href="info.html"><i class="icon-info-sign"></i> More info</a></div>
       </div>
  
       </div>
@@ -68,6 +68,7 @@
               <li><a href="#dgenome"><i class="icon-chevron-right"></i> dgenome</a></li>
               <li><a href="#dphenome"><i class="icon-chevron-right"></i> dphenome</a></li>
               <li><a href="#examples"><i class="icon-chevron-right"></i> Examples</a></li>
+              <li><a href="#test"><i class="icon-chevron-right"></i> Test</a></li>
               <li><a href="#talks"><i class="icon-chevron-right"></i> Talks</a></li>
             </ul>
               </div>
@@ -342,6 +343,18 @@
                         <p class="muted"><small><i class="icon-flag"></i> With many genomes, the pangenome analysis may need several hours.</small></p>
                         <p><code>dgenome start -n 5</code></p>                        
                         
+                        <p>It is possible to transfer the KEGG annotations between orthologs: these annotations will be flagged and saved when using <i>dgenome export</i>.</p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">annotate</b> transfer KEGG annotations inside orthologous groups</p>
+                        <dl class="dl-horizontal">
+                        <dt>-s</dt>
+                        <dd>Skip annotation merging (just check)</dd>                                                  
+                        </dl>
+                        <p><code>dgenome annotate</code></p>
+                        
+                        <p>It is possible to revert the annotation transfer at any time.</p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">deannotate</b> revert the KEGG annotations merge</p>
+                        <p><code>dgenome deannotate</code></p>
+                        
                         <h4>Data export and statistics</h4>
                         <p><i class="icon-chevron-right"></i> <b class="text-success">export</b> export the genomic data</p>
                         <p><code>dgenome export</code></p>
@@ -607,6 +620,19 @@ dape start</pre>
                             </div> <!-- /tabbable -->
                         
                     </div>
+                    
+                <div id="test">
+                    <div class="page-header">
+                      <h1><div class="minititle">Test</div></h1>
+                    </div>
+                    <p>You can test the program using the test suite provided</p>
+                    <ol>
+                      <li>Enter the directory</li>
+                      <code>cd test</code>
+                      <li>Launch the tests (it takes some hours)</li>
+                      <code>bash test.sh</code>
+                    </ol>
+                </div>
                     
                 <div id="talks">
                   <div class="page-header">

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Info &lt;&lt; DuctApe, a combogenomics program</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Analyze and link genomics and phenomics experiments">
+    <meta name="author" content="Marco Galardini" >
+    
+    <!-- Le meta tag to refresh the cache -->
+    <meta http-equiv="last-modified" content="Thu, 24 May 2013 15:30:00 CET" />
+
+    <!-- Le styles -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+       <link href="css/custom.css" rel="stylesheet">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le fav and touch icons -->
+    <link rel="shortcut icon" href="favicon.ico">
+  </head>
+
+  <body>
+      <div class="navbar navbar-static-top">
+      <div class="navbar-inner">
+        <div class="container">
+
+        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </a>
+ 
+      <a class="brand" href="index.html">DuctApe</a>
+ 
+      <div class="nav-collapse collapse brandmini">
+          <div class="nav"><a href="https://github.com/combogenomics/DuctApe/archive/DuctApe-0.7.0.tar.gz"><i class="icon-download"></i> Download &raquo;</a></div>
+          <div class="nav"><a href="howto.html"><i class="icon-info-sign"></i> Howto</a></div>
+      </div>
+ 
+      </div>
+        </div>  
+      </div>
+
+    <div class="container">
+      <div id="home">
+            <div class="row">
+                <noscript>
+                  <div class="alert alert-error">
+                    <strong>Whoops! You have javascript disabled</strong>
+                      <br/>                
+                    You may be unable to enjoy this site, sorry :(
+                  </div>
+                 </noscript>
+               </div>
+               
+               <div id="info">
+                <div class="row hidden-phone">
+                  <div class="span5 dwell">
+                    <div class="page-header">
+                      <h1><div class="minititle">Features
+                      <small>A flexible software suite</small></div></h1>
+                    </div>
+                      <dl>
+                      <dt>Easy genomics</dt>
+                        <dd>Many options to map proteins to the KEGG database; easy and accurate pangenome reconstruction</dd>
+                      <dt>Painless phenomics</dt>
+                        <dd>Easy import of phenomic data; fast growth parameters extraction; curves categorization and comparisons</dd>
+                      <dt>Metabolic insights</dt>
+                        <dd>Genomics and phenomics data are compared in KEGG metabolic maps</dd>
+                      <dt>Portable</dt>
+                        <dd>All the analysis are saved in a single file,  to avoid complexity and to encourage exchange of data</dd>
+                      <dt>Powerful</dt>
+                        <dd>Many analyses are parallelized for an efficient use of multi-core computers</dd>
+                      </dl>
+                    
+                  </div>
+                  <div class="span6 hidden-phone">
+                    <div id="myCarousel" class="carousel slide" data-interval="2500">
+                      <!-- Carousel items -->
+                     <div class="carousel-inner">
+                      <div class="active item">
+                         <img src="img/1.png" alt="" class="img-rounded">
+                 <div class="carousel-caption">
+                   <h4>Genomic analyses</h4>
+                  <p>If may organisms are used, the pangenome can be reconstructed through a Blast-BBH.</p>
+                 </div>
+                      </div>
+                      <div class="item">
+                          <img src="img/2.png" alt="" class="img-rounded">
+                 <div class="carousel-caption">
+                   <h4>Painless high-throughput phenomics</h4>
+                  <p>Our activity index allows a fine classification of growth curves.</p>
+                 </div>                    
+                      </div>
+                      <div class="item">
+                          <img src="img/3.png" alt="" class="img-rounded">
+                 <div class="carousel-caption">
+                   <h4>Painless high-throughput phenomics</h4>
+                  <p>Easy compare whole phenomic experiments on many organisms.</p>
+                 </div>                    
+                      </div>
+                      <div class="item">
+                          <img src="img/4.png" alt="" class="img-rounded">
+                 <div class="carousel-caption">
+                   <h4>Painless high-throughput phenomics</h4>
+                  <p>Visualize all the growth curves in a glance.</p>
+                 </div>                    
+                      </div>
+                      <div class="item">
+                          <img src="img/5.png" alt="" class="img-rounded">
+                 <div class="carousel-caption">
+                   <h4>Metabolic network reconstruction</h4>
+                  <p>Combine genomic and phenomic data.</p>
+                 </div>                    
+                      </div>
+                      <div class="item">
+                          <img src="img/6.png" alt="" class="img-rounded">
+                 <div class="carousel-caption">
+                   <h4>Easily share your results</h4>
+                  <p>All the data is stored in one file.</p>
+                 </div>                    
+                      </div>
+                      </div>
+                      <!-- Carousel nav -->
+                      <a class="carousel-control left" href="#myCarousel" data-slide="prev">&lsaquo;</a>
+                      <a class="carousel-control right" href="#myCarousel" data-slide="next">&rsaquo;</a>
+                    </div>                
+                  </div>              
+                </div>
+                
+                <div class="row dwell" id="projects">
+                <div class="span12">
+                  <div class="page-header">
+                    <h1><div class="minititle">Experimental setups
+                    <small>The three flavours of DuctApe</small></div></h1>
+                  </div>
+                  <div class="span9 offset1">
+                  <ul class="thumbnails" align="center">
+                    <li class="span3">
+                    <div class="thumbnail">
+                    <img src="img/single.png" alt="">
+                    <h3>Single</h3>
+                    <p>Simple genomics and phenomics analyses on a single strain.</p>
+                    </div>
+                    </li>
+                    <li class="span3">
+                    <div class="thumbnail">
+                    <img src="img/mutants.png" alt="">
+                    <h3>Mutants</h3>
+                    <p>One or more mutants of a reference strain can be added, (deletion and insertion). The mutants genome and phenome will be compared to the reference strain.</p>
+                    </div>
+                    </li>
+                    <li class="span3">
+                    <div class="thumbnail">
+                    <img src="img/pangenome.png" alt="">
+                    <h3>Pangenome</h3>
+                    <p>Multiple strains can be added simultaneously. The pangenome can be calculated using the BBH algorithm and the pangenome is used in the metabolic network reconstruction.</p>
+                    </div>
+                    </li>
+                  </ul>
+                </div>
+                </div>
+                <div class="span12">
+                <div class="page-header">
+                    <h1><div class="minititle">Flexible tools
+                    <small>The three modules of DuctApe</small></div></h1>
+                  </div>
+                  <div class="span9 offset1">
+                  <ul class="thumbnails" align="center">
+                    <li class="span3">
+                    <div class="thumbnail">
+                    <img src="img/scotchgenome.png" alt="">
+                    <h3>dgenome</h3>
+                    <ul>
+                      <li>Maps the proteins to the KEGG database</li>
+                      <li>Constructs the pangenome</li>
+                      <li>Outputs stats about the input genomes</li>
+                    </ul>
+                    </div>
+                    </li>
+                    <li class="span3">
+                    <div class="thumbnail">
+                    <img src="img/scotch.png" alt="">
+                    <h3>dape</h3>
+                    <ul>
+                      <li>Project setup</li>
+                      <li>Metabolic network reconstruction</li>
+                      <li>Imports/exports KEGG data</li>
+                    </ul>
+                    </div>
+                    </li>
+                    <li class="span3">
+                    <div class="thumbnail">
+                    <img src="img/scotchphenome.png" alt="">
+                    <h3>dphenome</h3>
+                    <ul>
+                      <li>Imports the Phenotype Microarray experiments</li>
+                      <li>Extracts the growth parameters and calculates the Activity Index</li>
+                      <li>Creates growth curves plots</li>
+                      <li>Checks the replica consistency</li>
+                      <li>Maps the Phenotype Microarray compounds to the KEGG database</li>
+                      <li>Outputs stats about the input phenome</li>
+                    </ul>
+                    </div>
+                    </li>
+                  </ul>
+                </div>
+                </div>
+                </div>
+                
+</div>
+            </div>
+          </div>    
+      
+       <footer class="footer">
+       <div class="container">
+       <div class="row">
+          <div class="span4">
+            <h6>Brought to you by</h6>
+            <div class="muted">
+              <p>
+                <a href="http://www.unifi.it/dbefcb/" target="_blank">
+                  <img alt="Combo" src="img/combo.png"  width="100" class="bg-container"/>
+                </a>
+              </p>
+              <p>
+                <a href="http://www.unifi.it/dbefcb/" target="_blank">Florence computational biology group</a>
+              </p>
+              <p>
+                <a href="http://www.unifi.it/dblage/" target="_blank">Department of evolutionary biology</a> - <a href="http://www.unifi.it/">University of Florence</a>
+              </p>
+            </div>
+          </div>
+          <div class="span4">
+            <h6>Contacts</h6>
+            <div class="muted">
+              <p>
+                For feedbacks, bug reports and other informations:
+                <ul>
+                  <li><b>ductape-users@googlegroups.com</b></li>
+                  <li><a href="https://groups.google.com/forum/?fromgroups#!forum/ductape-users"><b>Users group</b></a></li>
+                  <li>mgalardini@unifi.it</li>
+                  <li>alessio.mengoni@unifi.it</li>
+                  <li>stefano.mocali@entecra.it</li>
+                  <li>combo.unifi@gmail.com</li>
+                </ul>
+              </p>
+              <h6>Hosting</h6>
+              <p>
+                <a href="http://github.com/combogenomics/DuctApe" target="_blank">
+                  <img src="img/github.png" width="50" height="15" alt="Browse the source code at github" />
+                </a>
+              </p>
+            </div>
+          </div>
+          <div class="span4">
+            <h6>Cite us</h6>
+            <p class="muted">
+              <strong>
+                Coming soon... (hopefully)
+              </strong>
+            </p>
+          </div>
+        </div>
+     </div>
+        </footer>
+    
+    </div>
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script src="js/misc.js"></script>
+    
+    <!-- Le Google analytics -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34201518-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+  </body>
+</html>

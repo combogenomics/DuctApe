@@ -10,6 +10,7 @@ from ductape.common.colorlog import ColorFormatter
 from ductape.storage.SQLite.database import Organism, Project, Kegg, Biolog
 # TODO: handle this imports somewhere else
 from matplotlib import cm
+from matplotlib import colors
 import argparse
 import logging.handlers
 import os
@@ -82,6 +83,7 @@ def dstart(options, wdir, project):
 
 def dmap(options, wdir, project):
     from ductape.actions import dSetKind, getPathsReacts, getPathsComps
+    from ductape.actions import getExclusiveReactions, getExclusiveReactionsMutants
     from ductape.actions import prepareColors, createLegend
     from ductape.kegg.kegg import KeggColor, MapsFetcher
     from ductape.terminal import RunThread
@@ -138,41 +140,40 @@ def dmap(options, wdir, project):
                     for org in organism.getAll()
                     if org.org_id != ref_id]
                 
+                orgs = set([x.org_id for x in organism.getAll()])
+                
+                mreacts, ereacts = getExclusiveReactions(project, orgs)
+                
                 logger.info('Going to generate the metabolic map for reference %s'%
-                            options.o)
+                            ref_id)
                 
                 # Create the legend
                 legend = createLegend('single')
                 
                 if phenome:
                     logger.info('Generating the reactions-only map')
-                if not doFetchMaps(project, ref_id, rpaths, cpaths, legend):
+                if not doFetchMaps(project, ref_id, rpaths, cpaths, legend,
+                               rorg=mreacts[ref_id], eorg=ereacts[ref_id]):
                     return False
                 
                 if phenome:
                     for categ in biolog.getCategs():
                         logger.info('Plotting maps for biolog category %s'%categ.category)
                         if not doFetchMaps(project, ref_id, rpaths, cpaths, legend,
-                                           categ.category):
+                                           categ.category,
+                                           rorg=mreacts[ref_id],
+                                           eorg=ereacts[ref_id]):
                             return False
                     
                     for org_id in diffs:
                         logger.info('Going to generate the metabolic map for %s (reference %s)'%
                                 (org_id,ref_id))
                         
-                        # Get the reactions in the organism space
-                        rorg = {}
-                        for oR in kegg.getOrgReact(org_id):
-                            rorg[oR.re_id] = oR.num
-                        
                         # Create the legend
                         legend = createLegend('singlediff')
                         
                         if phenome:
                             logger.info('Generating the reactions-only map')
-                        
-                        # Go for the colors (reactions)!
-                        rhexorg = prepareColors(max(rorg.values()), cm.Greens(np.arange(85,256)))
                          
                         # Create the input objects
                         colorPaths = []
@@ -183,8 +184,10 @@ def dmap(options, wdir, project):
                             dreact = {}
                             if path in rpaths:
                                 for re_id in rpaths[path]:
-                                    if re_id in rorg:
-                                        dreact[re_id] = rhexorg[rorg[re_id]]
+                                    if re_id in mreacts[org_id]:
+                                        dreact[re_id] = colors.cnames['blue']
+                                    elif re_id in ereacts[org_id]:
+                                        dreact[re_id] = colors.cnames['yellow']
                                     else:
                                         dreact[re_id] = '#FFFFFF'
                             KC.setReactions(dreact)
@@ -241,8 +244,10 @@ def dmap(options, wdir, project):
                                     dreact = {}
                                     if path in rpaths:
                                         for re_id in rpaths[path]:
-                                            if re_id in rorg:
-                                                dreact[re_id] = rhexorg[rorg[re_id]]
+                                            if re_id in mreacts[org_id]:
+                                                dreact[re_id] = colors.cnames['blue']
+                                            elif re_id in ereacts[org_id]:
+                                                dreact[re_id] = colors.cnames['yellow']
                                             else:
                                                 dreact[re_id] = '#FFFFFF'
                                     
@@ -279,22 +284,28 @@ def dmap(options, wdir, project):
                 logger.warning('No phenomic data available for the diff mode')
             
             else:
-                for org_id in [x.org_id for x in organism.getAll()]:
+                orgs = [x.org_id for x in organism.getAll()]
+                
+                mreacts, ereacts = getExclusiveReactions(project, orgs)
+        
+                for org_id in orgs:
                     logger.info('Going to generate the metabolic map for %s'%org_id)
-                    
+                
                     # Create the legend
                     legend = createLegend('single')
                     
                     if phenome:
                         logger.info('Generating the reactions-only map')
-                    if not doFetchMaps(project, org_id, rpaths, cpaths, legend):
+                    if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
+                                       rorg=mreacts[org_id], eorg=ereacts[org_id]):
                         return False
-                    
                     if phenome:
                         for categ in biolog.getCategs():
                             logger.info('Plotting maps for biolog category %s'%categ.category)
                             if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
-                                               categ.category):
+                                               categ.category,
+                                               rorg=mreacts[org_id],
+                                               eorg=ereacts[org_id]):
                                 return False
                 
         elif proj.isPanGenome() and kind == 'pangenome':
@@ -306,42 +317,48 @@ def dmap(options, wdir, project):
             logger.info('All the single genome maps can be created using %s map -a'%
                         __prog__)
             
+            ecore, edisp, eacc, euni = kegg.getExclusiveReactionsPanGenome()
             # Get the reactions in the pangenome space
-            core = {}
+            core = set()
             for cR in kegg.getCoreReact():
-                core[cR.re_id] = cR.num
+                core.add(cR.re_id)
             
-            disp = {}
+            disp = set()
+            ndisp = {}
             for cR in kegg.getDispensableReact():
-                disp[cR.re_id] = cR.num
-                
+                disp.add(cR.re_id)
+                if cR.re_id in ndisp:
+                    if cR.num > ndisp[cR.re_id]:
+                        ndisp[cR.re_id] = cR.num
+                else:
+                    ndisp[cR.re_id] = cR.num
+            
             # Get the intersected reactions
-            mix_id = set(core.keys()).intersection(set(disp.keys()))
-            mix = {}
-            for re_id in mix_id:
-                mix[re_id] = core[re_id] + disp[re_id]
-            for re_id in mix_id:
-                del core[re_id]
-                del disp[re_id]
+            mix = set()
+            
+            toremove = set()
+            for re_id in core:
+                if re_id not in ecore:
+                    mix.add(re_id)
+                    toremove.add(re_id)
+            for re_id in toremove:          
+                core.remove(re_id)
+                
+            toremove = set()
+            for re_id in disp:
+                if re_id not in edisp:
+                    mix.add(re_id)
+                    toremove.add(re_id)
+            for re_id in toremove:          
+                disp.remove(re_id)
             
             # Go for the colors!
-            # Mix
-            if len(mix.values()) == 0:
-                hexmix = {}
-            else:
-                hexmix = prepareColors(max(mix.values()), cm.Greens(np.arange(85,256)))
-            
-            # Core
-            if len(core.values()) == 0:
-                hexcore = {}
-            else:
-                hexcore = prepareColors(max(core.values()), cm.Blues(np.arange(85,256)))
-                
             # Dispensable
-            if len(disp.values()) == 0:
+            if len(disp) == 0:
                 hexdisp = {}
             else:
-                hexdisp = prepareColors(max(disp.values()), cm.Oranges(np.arange(85,256)))
+                hexdisp = prepareColors(max([ndisp[x] for x in edisp]),
+                                        cm.autumn(np.arange(85,256))[::-1])
             
             # Create the legend
             legend = createLegend('pangenome')
@@ -355,11 +372,11 @@ def dmap(options, wdir, project):
                 dreact = {}
                 for re_id in rpaths[path]:
                     if re_id in mix:
-                        dreact[re_id] = hexmix[mix[re_id]]
+                        dreact[re_id] = colors.cnames['green']
                     elif re_id in core:
-                        dreact[re_id] = hexcore[core[re_id]]
+                        dreact[re_id] = colors.cnames['blue']
                     elif re_id in disp:
-                        dreact[re_id] = hexdisp[disp[re_id]]
+                        dreact[re_id] = hexdisp[ndisp[re_id]]
                     else:
                         dreact[re_id] = '#FFFFFF'
                 KC.setReactions(dreact)
@@ -436,11 +453,11 @@ def dmap(options, wdir, project):
                         if path in rpaths:
                             for re_id in rpaths[path]:
                                 if re_id in mix:
-                                    dreact[re_id] = hexmix[mix[re_id]]
+                                    dreact[re_id] = colors.cnames['green']
                                 elif re_id in core:
-                                    dreact[re_id] = hexcore[core[re_id]]
+                                    dreact[re_id] = colors.cnames['blue']
                                 elif re_id in disp:
-                                    dreact[re_id] = hexdisp[disp[re_id]]
+                                    dreact[re_id] = hexdisp[ndisp[re_id]]
                                 else:
                                     dreact[re_id] = '#FFFFFF'
                         
@@ -505,6 +522,12 @@ def dmap(options, wdir, project):
                     if not organism.isMutant(org.org_id)]
         
             for ref_id in refs:
+                muts = [x for x in organism.getOrgMutants(ref_id)]
+                
+                mreacts, mix, ereacts = getExclusiveReactionsMutants(project,
+                                                                     ref_id,
+                                                                     muts)
+                
                 logger.info('Going to generate the metabolic map for reference %s'%
                             ref_id)
                 
@@ -523,47 +546,9 @@ def dmap(options, wdir, project):
                                            categ.category):
                             return False
                 
-                muts = [x for x in organism.getOrgMutants(ref_id)]
                 for mut_id in muts:
                     logger.info('Going to generate the metabolic map for mutant %s (parent %s)'%
                             (mut_id,ref_id))
-                    
-                    # Get the reactions in the mutant space
-                    mut = {}
-                    for mR in kegg.getOrgReact(mut_id):
-                        mut[mR.re_id] = mR.num
-                    
-                    ref = {}
-                    for rR in kegg.getReferenceReact(mut_id, ref_id):
-                        ref[rR.re_id] = rR.num
-                    
-                    # Get the intersected reactions
-                    mix_id = set(mut.keys()).intersection(set(ref.keys()))
-                    mix = {}
-                    for re_id in mix_id:
-                        mix[re_id] = ref[re_id] + mut[re_id]
-                    for re_id in mix_id:
-                        del mut[re_id]
-                        del ref[re_id]
-                    
-                    # Go for the colors!
-                    # Mix
-                    if len(mix.values()) == 0:
-                        hexmix = {}
-                    else:
-                        hexmix = prepareColors(max(mix.values()), cm.copper_r(np.arange(1,170)))
-                    
-                    # mut
-                    if len(mut.values()) == 0:
-                        hexmut = {}
-                    else:
-                        hexmut = prepareColors(max(mut.values()), cm.Reds(np.arange(85,256)))
-                        
-                    # ref
-                    if len(ref.values()) == 0:
-                        hexref = {}
-                    else:
-                        hexref = prepareColors(max(ref.values()), cm.Greens(np.arange(85,256)))
                     
                     # Create the legend
                     legend = createLegend('mutants')
@@ -577,12 +562,12 @@ def dmap(options, wdir, project):
                         KC = KeggColor(path)
                         dreact = {}
                         for re_id in rpaths[path]:
-                            if re_id in mix:
-                                dreact[re_id] = hexmix[mix[re_id]]
-                            elif re_id in mut:
-                                dreact[re_id] = hexmut[mut[re_id]]
-                            elif re_id in ref:
-                                dreact[re_id] = hexref[ref[re_id]]
+                            if re_id in mix[mut_id]:
+                                dreact[re_id] = colors.cnames['green']
+                            elif re_id in mreacts[mut_id]:
+                                dreact[re_id] = colors.cnames['blue']
+                            elif re_id in ereacts[mut_id]:
+                                dreact[re_id] = colors.cnames['yellow']
                             else:
                                 dreact[re_id] = '#FFFFFF'
                         KC.setReactions(dreact)
@@ -639,12 +624,12 @@ def dmap(options, wdir, project):
                                 dreact = {}
                                 if path in rpaths:
                                     for re_id in rpaths[path]:
-                                        if re_id in mix:
-                                            dreact[re_id] = hexmix[mix[re_id]]
-                                        elif re_id in mut:
-                                            dreact[re_id] = hexmut[mut[re_id]]
-                                        elif re_id in ref:
-                                            dreact[re_id] = hexref[ref[re_id]]
+                                        if re_id in mix[mut_id]:
+                                            dreact[re_id] = colors.cnames['green']
+                                        elif re_id in mreacts[mut_id]:
+                                            dreact[re_id] = colors.cnames['blue']
+                                        elif re_id in ereacts[mut_id]:
+                                            dreact[re_id] = colors.cnames['yellow']
                                         else:
                                             dreact[re_id] = '#FFFFFF'
                                 
@@ -678,31 +663,65 @@ def dmap(options, wdir, project):
                                                                        kmap._keggroom))
         else:
             logger.warning('Unattended case %s'%kind)
+            return False
             
+    elif len(options.organisms) == 1:
+        org_id = set(options.organisms).pop()
+        
+        organism = Organism(project)
+        
+        if not organism.isOrg(org_id):
+            logger.warning('Organism %s is not present!'%org_id)
+            return False
+        
+        logger.info('Going to generate the metabolic map for %s'%org_id)
+        
+        # Create the legend
+        legend = createLegend('single')
+        
+        if phenome:
+            logger.info('Generating the reactions-only map')
+        if not doFetchMaps(project, org_id, rpaths, cpaths, legend):
+            return False
+        if phenome:
+            for categ in biolog.getCategs():
+                logger.info('Plotting maps for biolog category %s'%categ.category)
+                if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
+                                   categ.category):
+                    return False
+                    
     else:
         orgs = set(options.organisms)
         
         organism = Organism(project)
         
+        # Check
         for org_id in orgs:
             if not organism.isOrg(org_id):
                 logger.warning('Organism %s is not present: skipping'%org_id)
+                orgs.remove(org_id)
                 continue
             
+        mreacts, ereacts = getExclusiveReactions(project, orgs)
+        
+        for org_id in orgs:
             logger.info('Going to generate the metabolic map for %s'%org_id)
-            
+        
             # Create the legend
             legend = createLegend('single')
             
             if phenome:
                 logger.info('Generating the reactions-only map')
-            if not doFetchMaps(project, org_id, rpaths, cpaths, legend):
+            if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
+                               rorg=mreacts[org_id], eorg=ereacts[org_id]):
                 return False
             if phenome:
                 for categ in biolog.getCategs():
                     logger.info('Plotting maps for biolog category %s'%categ.category)
                     if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
-                                       categ.category):
+                                       categ.category,
+                                       rorg=mreacts[org_id],
+                                       eorg=ereacts[org_id]):
                         return False
     
     return True
@@ -741,8 +760,8 @@ def dclear(options, wdir, project):
         return False
     return dClear(project, options.keep_org, options.keep_kegg)
 
-def doFetchMaps(project, org_id, rpaths, cpaths, legend=None, category=None):
-    from ductape.actions import prepareColors
+def doFetchMaps(project, org_id, rpaths, cpaths, legend=None, category=None,
+                rorg=set(), eorg=set()):
     from ductape.kegg.kegg import KeggColor, MapsFetcher
     from ductape.terminal import RunThread
     from ductape.common.utils import rgb_to_hex
@@ -752,9 +771,10 @@ def doFetchMaps(project, org_id, rpaths, cpaths, legend=None, category=None):
     biolog = Biolog(project)
     
     # Get the reactions in the organism space
-    rorg = {}
-    for oR in kegg.getOrgReact(org_id):
-        rorg[oR.re_id] = oR.num
+    if len(rorg) == 0:
+        rorg = set()
+        for oR in kegg.getOrgReact(org_id):
+            rorg.add(oR.re_id)
         
     # Get the compounds in the phenomics space
     corg = {}
@@ -783,9 +803,6 @@ def doFetchMaps(project, org_id, rpaths, cpaths, legend=None, category=None):
     if category and len(corg) == 0:
         logger.warning('No compounds available for category %s (%s)'%(category, org_id))
         return True
-    
-    # Go for the colors (reactions)!
-    rhexorg = prepareColors(max(rorg.values()), cm.Greens(np.arange(85,256)))
      
     # Create the input objects
     colorPaths = []
@@ -797,7 +814,9 @@ def doFetchMaps(project, org_id, rpaths, cpaths, legend=None, category=None):
         if path in rpaths:
             for re_id in rpaths[path]:
                 if re_id in rorg:
-                    dreact[re_id] = rhexorg[rorg[re_id]]
+                    dreact[re_id] = colors.cnames['blue']
+                elif re_id in eorg:
+                    dreact[re_id] = colors.cnames['yellow']
                 else:
                     dreact[re_id] = '#FFFFFF'
                     

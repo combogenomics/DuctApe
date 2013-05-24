@@ -3299,6 +3299,63 @@ def getPathsComps(project):
         
     return paths
 
+def getExclusiveReactions(project, orgs=set()):
+    '''
+    Given a bunch of organisms, get two dicts
+    mreacts: org_id -->  set(re_id, ...) (common)
+    ereacts: org_id -->  set(re_id, ...) (exclusive)
+    '''
+    from ductape.storage.SQLite.database import Kegg
+    
+    kegg = Kegg(project)
+    
+    # Get the exclusive reactions
+    ereacts = kegg.getExclusiveReactions(orgs)
+    # Get the reactions of each organisms
+    mreacts = {}
+    for org_id in orgs:
+        mreacts[org_id] = set()
+        for oR in kegg.getOrgReact(org_id):
+            mreacts[org_id].add(oR.re_id)
+    
+    # Remove the exclusives
+    for org_id in orgs:
+        mreacts[org_id].difference_update(ereacts[org_id])
+        
+    return mreacts, ereacts
+
+def getExclusiveReactionsMutants(project, ref_id, muts=set()):
+    '''
+    Given a bunch of organisms, get two dicts
+    mreacts: org_id -->  set(re_id, ...) (wild-type)
+    mix: org_id --> set(re_id, ...) (mutated but also in wild-type)
+    ereacts: org_id -->  set(re_id, ...) (exclusive mutated)
+    '''
+    from ductape.storage.SQLite.database import Kegg
+    
+    kegg = Kegg(project)
+    
+    # Get the exclusive reactions
+    ereacts = kegg.getExclusiveReactionsMutants(ref_id, muts)    
+    # Get the reactions of each organisms
+    mreacts = {}
+    mix = {}
+    for mut_id in muts:
+        # Reference genome reactions
+        mut = set()
+        for oR in kegg.getOrgReact(mut_id):
+            mut.add(oR.re_id)
+        
+        mreacts[mut_id] = set()
+        mix[mut_id] = set()
+        for oR in kegg.getReferenceReact(mut_id, ref_id):
+            if oR.re_id in mut:
+                mix[mut_id].add(oR.re_id)
+            else:
+                mreacts[mut_id].add(oR.re_id)
+        
+    return mreacts, mix, ereacts
+
 def getOrganismsColors(project):
     '''
     Check the colors assigned to the organisms and return a dictionary

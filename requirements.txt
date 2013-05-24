@@ -1,7 +1,0 @@
-biopython
-numpy
-scipy
-matplotlib
-scikits.learn
-multiprocessing
-networkx

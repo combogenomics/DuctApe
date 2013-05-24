@@ -1,3 +1,22 @@
+Version 0.7.0
+=============
+
+UPGRADE URGENCY: MODERATE; many features have changed, especially for the genomic analysis
+
+FEATURES:
+* Reactions copy number is no more analyzed: for pangenome and mutants experiments the program now focus on exclusive and distinct reaction IDs
+    * dgenome stats/export, dape start/map have been changed accordingly
+* dgenome annotate: new command to transfer kegg annotations inside an orthologous group
+* dgenome deannotate: revert the annotation transfer
+* Added a test directory with a simple script to test the three modules
+
+BUGFIXES:
+* PM data: prevent crashes in the clusterization step
+* PM data: prevent crashes when parsing csv files
+* kegg: final fix to handle correctly HTMLs from kegg 
+* DB: speed improvements on big pangenomes
+* Other small bugfixes
+
 Version 0.6.2
 =============
 

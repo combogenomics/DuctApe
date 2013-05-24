@@ -54,6 +54,8 @@ def daddMulti(options, wdir, project):
         res = dAdd(project, organism)
         if not res:
             logger.warning('Could not add organism (%s)'%organism)
+    
+    return True
 
 def daddMut(options, wdir, project):
     from ductape.actions import dMutAdd

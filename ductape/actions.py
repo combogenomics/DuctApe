@@ -3417,16 +3417,14 @@ def createLegend(kind):
         cmatrix = np.outer(np.arange(0,9,0.1),np.ones(7))
          
     if kind == 'pangenome':
-        ax = fig.add_subplot(141)
-        ax.imshow(rmatrix, cmap=cm.Blues, vmin=0, vmax=1)
+        ax = fig.add_subplot(141, axisbg='b')
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
         ax.axes.get_xaxis().set_ticks([])
         ax.set_title('Core')
         
-        ax = fig.add_subplot(142)
-        ax.imshow(rmatrix, cmap=cm.Greens, vmin=0, vmax=1)
+        ax = fig.add_subplot(142, axisbg='g')
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
@@ -3434,7 +3432,7 @@ def createLegend(kind):
         ax.set_title('Core and Disp.')
         
         ax = fig.add_subplot(143)
-        ax.imshow(rmatrix, cmap=cm.Oranges, vmin=0, vmax=1)
+        ax.imshow(rmatrix, cmap=cm.autumn, vmin=0, vmax=1)
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
@@ -3452,8 +3450,7 @@ def createLegend(kind):
         fig.savefig(fname)
             
     elif kind == 'single':
-        ax = fig.add_subplot(121)
-        ax.imshow(rmatrix, cmap=cm.Greens, vmin=0, vmax=1)
+        ax = fig.add_subplot(121, axisbg='b')
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
@@ -3471,8 +3468,7 @@ def createLegend(kind):
         fig.savefig(fname)
         
     elif kind == 'singlediff':
-        ax = fig.add_subplot(121)
-        ax.imshow(rmatrix, cmap=cm.Greens, vmin=0, vmax=1)
+        ax = fig.add_subplot(121, axisbg='b')
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
@@ -3490,24 +3486,21 @@ def createLegend(kind):
         fig.savefig(fname)
 
     elif kind == 'mutants':
-        ax = fig.add_subplot(141)
-        ax.imshow(rmatrix, cmap=cm.Greens, vmin=0, vmax=1)
+        ax = fig.add_subplot(141, axisbg='b')
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
         ax.axes.get_xaxis().set_ticks([])
         ax.set_title('Wild-type')
         
-        ax = fig.add_subplot(142)
-        ax.imshow(rmatrix, cmap=cm.copper_r, vmin=0, vmax=1)
+        ax = fig.add_subplot(142, axisbg='g')
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
         ax.axes.get_xaxis().set_ticks([])
         ax.set_title('Wild-type and Mutated')
         
-        ax = fig.add_subplot(143)
-        ax.imshow(rmatrix, cmap=cm.Reds, vmin=0, vmax=1)
+        ax = fig.add_subplot(143, axisbg=pltcls.cnames['yellow'])
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])

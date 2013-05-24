@@ -1043,7 +1043,23 @@ class Genome(DBBase):
         for res in cursor:
             i += 1
             
-        return i    
+        return i  
+    
+    def getGroupNum(self, group_id):
+        '''
+        Get the number of organisms having the provided ortholog
+        '''
+        query = '''
+                select count(distinct org_id) num
+                from ortholog o, protein p
+                where o.prot_id = p.prot_id
+                and group_id = ?;
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query,[group_id,])
+        
+        return int(Row(cursor.fetchall()[0], cursor.description).num)
         
     def delPanGenome(self):
         '''
@@ -1994,6 +2010,24 @@ class Kegg(DBBase):
             logger.debug('Got error %s on id %s, assuming id is present'%
                          (str(e),path_id))
             return True
+    
+    def getReactNum(self, re_id):
+        '''
+        Get the number of organisms sharing this re_id
+        '''
+        query = '''
+                select count(distinct org_id) num
+                from ortholog o, mapko m, protein p, ko_react k
+                where o.prot_id = p.prot_id
+                and p.prot_id = m.prot_id
+                and m.ko_id = k.ko_id
+                and re_id=?
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query,[re_id,])
+        
+        return int(Row(cursor.fetchall()[0], cursor.description).num)
     
     def getMappedRPairsReact(self, path_id=None):
         '''

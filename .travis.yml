@@ -3,6 +3,6 @@ python:
   - "2.7"
   - "2.6"
 before_install:
- - sudo apt-get install -qq python-numpy python-scipy python-sklearn python-matplotlib
+ - sudo apt-get install -qq python-numpy python-scipy python-sklearn python-matplotlib python-biopython
 install: pip install -r .travis.require --use-mirrors
 script: bash test/.travis.sh

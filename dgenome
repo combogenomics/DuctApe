@@ -189,6 +189,8 @@ def daddKo(options, wdir, project):
     proj.setGenome('map2ko')
     org.setAllGenomeStatus('map2ko')
     
+    return True
+    
 def daddPanGenome(options, wdir, project):
     from ductape.actions import dPanGenomeAdd
     if not touchProject(project):

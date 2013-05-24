@@ -1402,7 +1402,8 @@ class BiologParser(object):
         data = False
         wells = []
         
-        tblreader = csv.reader(open(self.file, 'rbU'), delimiter=',')
+        tblreader = csv.reader(open(self.file, 'rbU'), delimiter=',',
+                               quotechar='"')
         for line in tblreader:
             if len(line) < 2:
                 continue

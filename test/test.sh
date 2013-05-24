@@ -105,6 +105,9 @@ echo -e $green"Pangenome"$reset
 ../dgenome add-dir input/pangenome || die "dgenome add-dir"
 ../dgenome add-ko input/pangenome/ko.tab || die "dgenome add-ko"
 ../dgenome start || die "dgenome start"
+../dgenome annotate || die "dgenome annotate"
+../dgenome deannotate || die "dgenome deannotate"
+../dgenome annotate || die "dgenome annotate"
 ../dgenome stats || die "dgenome stats"
 ../dgenome export || die "dgenome export"
 

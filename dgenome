@@ -145,7 +145,18 @@ def dannotate(options, wdir, project):
     ret = dGenomeAnnotate(project, options.s)
     if ret:
         logger.info('Information on merged annotations and multiply annotated'+
-                    ' orthologs can be obtained with %s export'%__prog__)    
+                    ' orthologs can be obtained with %s export'%__prog__)
+        
+    return True
+
+def ddeannotate(options, wdir, project):
+    from ductape.actions import dGenomeDeAnnotate
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    
+    return dGenomeDeAnnotate(project)
          
 def dstats(options, wdir, project):
     from ductape.actions import dGenomeStats
@@ -393,6 +404,9 @@ def getOptions():
                             default=False,
                             help='Skip annotation merging (just check)')
     parser_annotate.set_defaults(func=dannotate)
+    
+    parser_deannotate = subparsers.add_parser('deannotate', help='Revert transfered annotations')
+    parser_deannotate.set_defaults(func=ddeannotate)
     
     parser_stats = subparsers.add_parser('stats', help='Print genomic statistics')
     parser_stats.add_argument('-s', '--svg', action="store_true",

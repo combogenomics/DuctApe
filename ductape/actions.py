@@ -635,6 +635,24 @@ def dGenomeAnnotate(project, noWrite=False):
                      
     return True
 
+def dGenomeDeAnnotate(project):
+    howmany = Genome(project).howManyMergedKOs()
+
+    if howmany == 0:
+        logger.info('No merged KO links have been found')
+        return True
+    
+    Genome(project).delMergedKOs()
+    
+    now = Genome(project).howManyMergedKOs()
+    if now > 0:
+        logger.error('%d merged KO links are still present!'%now)
+        return False
+
+    logger.info('%d merged KO links have been removed'%howmany)
+    logger.warning('You may want to re-run some analysis')
+    return True
+
 def dGenomeStats(project, svg=False, doPrint=True):
     # Which project are we talking about?
     kind = dSetKind(project)

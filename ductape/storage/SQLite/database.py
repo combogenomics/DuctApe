@@ -784,6 +784,24 @@ class Genome(DBBase):
                 conn.execute('delete from mapko where prot_id=?;', (prot_id,))
                 
         self.resetProject()
+        
+    def delMergedKOs(self):
+        with self.connection as conn:
+            conn.execute('delete from mapko where indirect=1;')
+            
+    def howManyMergedKOs(self):
+        '''
+        Get the number of merged KO links
+        '''
+        query = '''
+                select count(distinct ko_id)
+                from mapko m
+                where indirect=1;
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query)
+        return int(cursor.fetchall()[0][0])
                     
     def addPanGenome(self, orthologs):
         '''

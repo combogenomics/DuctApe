@@ -35,17 +35,20 @@ Quick how-to
 Three command line utilities will be installed
 
 * dape
+
         * Used to initialize the project and add/remove the organism
         * Reconstructs the whole KEGG metabolic map
         * Produces a series of explorable metabolic maps
         * Performs the combination of genomics and phenomics experiments
 
 * dgenome
+
         * Handles protein sequences for each organism of the project
         * For pangenomic studies it can build the pangenome using the BBH algorithm (user-defined pangenomes can be added)
         * The proteins are mapped to KEGG metabolic pathways
 
 * dphenome
+
         * Handles phenomic experiments for each organism of the project (Phenotype microarray experiments)
         * Performs zero-subtraction on the biolog plates
         * Calculates the growth parameters
@@ -55,6 +58,7 @@ Three command line utilities will be installed
 Examples
 --------
 * Single organism experiment
+
         * dape init (initializes the project)
         * dape add MyOrg (adds my organism using the ID MyOrg)
 
@@ -79,6 +83,7 @@ Examples
         * dape export (KEGG data is exported)
 
 * Mutant experiment
+
         * dape init
         * dape add MyOrg
         * dape add-mut -m MyOrg -k deletion MyMut (adds mutant MyMut, a deletion mutant of MyOrg)
@@ -97,6 +102,7 @@ Examples
         * dape map MyMut (only the metabolic map of the mutant is produced)
 
 * Pangenomic experiment
+
         * dape init
         * dape add MyOrg
         * dape add MyOrg2

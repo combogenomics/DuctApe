@@ -18,13 +18,13 @@ echo -e $green"Single organism"$reset
 ./dape -v add Rm1021 -c red || die "./dape -v add"
 ./dgenome -v add test/input/Rm1021.faa Rm1021 || die "./dgenome -v add"
 ./dgenome -v add-ko test/input/ko_Rm1021.tsv || die "./dgenome -v add-ko"
-./dgenome -v start || die "./dgenome -v start"
+./dgenome -v start > /dev/null || die "./dgenome -v start"
 ./dgenome -v stats || die "./dgenome -v stats"
 ./dgenome -v export || die "./dgenome -v export"
 
 ./dphenome -v add test/input/Rm1021.csv Rm1021 || die "./dphenome -v add"
 ./dphenome -v zero || die "./dphenome -v zero"
-./dphenome -v start -f || die "./dphenome -v start"
+./dphenome -v start -f > /dev/null || die "./dphenome -v start"
 ./dphenome -v purge keep-max || die "./dphenome -v purge"
 ./dphenome -v restore || die "./dphenome -v restore"
 ./dphenome -v plot || die "./dphenome -v plot"
@@ -32,7 +32,7 @@ echo -e $green"Single organism"$reset
 ./dphenome -v stats || die "./dphenome -v stats"
 ./dphenome -v export || die "./dphenome -v export"
 
-./dape -v start -p || die "./dape -v start"
+./dape -v start -p > /dev/null || die "./dape -v start"
 
 ./dape -v export || die "./dape -v export"
 
@@ -41,12 +41,13 @@ echo -e $green"Single organism"$reset
 
 ./dape -v clear --keep-kegg || die "./dape -v clear"
 
-mv ductape.db single.db
+rm ductape.db
+rm -rf tmp
 
 echo -e $green"Deletion AND insertion mutants"$reset
 
 ./dape -v init || die "./dape -v init"
-./dape -v import test/input/kegg.tsv || die "./dape -v import"
+./dape -v import kegg.tsv || die "./dape -v import"
 ./dape -v add Rm1021 -c red || die "./dape -v add"
 ./dape -v add-mut -k deletion -c blue -m Rm1021 del || die "./dape -v add-mut"
 ./dape -v add-mut -k insertion -c green -m Rm1021 add || die "./dape -v add-mut"
@@ -56,7 +57,7 @@ echo -e $green"Deletion AND insertion mutants"$reset
 ./dgenome -v add-ko test/input/ko_Rm1021.tsv || die "./dgenome -v add-ko"
 ./dgenome -v add-ko test/input/del.tsv || die "./dgenome -v add-ko"
 ./dgenome -v add-ko test/input/add.tsv || die "./dgenome -v add-ko"
-./dgenome -v start || die "./dgenome -v start"
+./dgenome -v start > /dev/null || die "./dgenome -v start"
 ./dgenome -v stats || die "./dgenome -v stats"
 ./dgenome -v export || die "./dgenome -v export"
 
@@ -64,7 +65,7 @@ echo -e $green"Deletion AND insertion mutants"$reset
 ./dphenome -v add test/input/del.csv del || die "./dphenome -v add"
 ./dphenome -v add test/input/add.csv add || die "./dphenome -v add"
 ./dphenome -v zero || die "./dphenome -v zero"
-./dphenome -v start -f || die "./dphenome -v start"
+./dphenome -v start -f > /dev/null || die "./dphenome -v start"
 ./dphenome -v purge keep-max || die "./dphenome -v purge"
 ./dphenome -v restore || die "./dphenome -v restore"
 ./dphenome -v plot || die "./dphenome -v plot"
@@ -72,7 +73,7 @@ echo -e $green"Deletion AND insertion mutants"$reset
 ./dphenome -v stats || die "./dphenome -v stats"
 ./dphenome -v export || die "./dphenome -v export"
 
-./dape -v start -p || die "./dape -v start"
+./dape -v start -p > /dev/null || die "./dape -v start"
 
 ./dape -v export || die "./dape -v export"
 
@@ -81,18 +82,19 @@ echo -e $green"Deletion AND insertion mutants"$reset
 
 ./dape -v clear --keep-kegg || die "./dape -v clear"
 
-mv ductape.db mut.db
+rm ductape.db
+rm -rf tmp
 
 echo -e $green"Pangenome"$reset
 
 ./dape -v init || die "./dape -v init"
 ./dape -v add-multi Rm1021 AK83 AK58 BL225C || die "./dape -v add-multi"
-./dape -v import test/input/kegg.tsv || die "./dape -v import"
+./dape -v import kegg.tsv || die "./dape -v import"
 
 ./dgenome -v add-dir test/input/pangenome || die "./dgenome -v add-dir"
 ./dgenome -v add-ko test/input/pangenome/ko.tab || die "./dgenome -v add-ko"
 ./dgenome -v add-orth test/input/pangenome/pangenome.tsv || die "./dgenome -v add-orth"
-./dgenome -v start || die "./dgenome -v start"
+./dgenome -v start > /dev/null || die "./dgenome -v start"
 ./dgenome -v annotate || die "./dgenome -v annotate"
 ./dgenome -v deannotate || die "./dgenome -v deannotate"
 ./dgenome -v annotate || die "./dgenome -v annotate"
@@ -101,7 +103,7 @@ echo -e $green"Pangenome"$reset
 
 ./dphenome -v add-dir test/input/pangenome || die "./dphenome -v add-dir"
 ./dphenome -v zero || die "./dphenome -v zero"
-./dphenome -v start -f || die "./dphenome -v start"
+./dphenome -v start -f > /dev/null || die "./dphenome -v start"
 ./dphenome -v purge keep-max || die "./dphenome -v purge"
 ./dphenome -v restore PM03B || die "./dphenome -v restore"
 ./dphenome -v purge keep-min PM03B || die "./dphenome -v purge"
@@ -110,7 +112,7 @@ echo -e $green"Pangenome"$reset
 ./dphenome -v stats || die "./dphenome -v stats"
 ./dphenome -v export || die "./dphenome -v export"
 
-./dape -v start -p || die "./dape -v start"
+./dape -v start -p > /dev/null || die "./dape -v start"
 
 ./dape -v export || die "./dape -v export"
 ./dape -v clear --keep-org || die "./dape -v clear"
@@ -118,6 +120,6 @@ echo -e $green"Pangenome"$reset
 
 ./dape -v clear --keep-kegg || die "./dape -v clear"
 
-mv ductape.db pangenome.db
+rm ductape.db
 
 echo -e $green"All tests passed"$reset

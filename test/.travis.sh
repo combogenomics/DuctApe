@@ -105,7 +105,7 @@ echo -e $green"Pangenome"$reset
 ./dphenome -v purge keep-max || die "./dphenome -v purge"
 ./dphenome -v restore PM03B || die "./dphenome -v restore"
 ./dphenome -v purge keep-min PM03B || die "./dphenome -v purge"
-./dphenome plot || die "./dphenome plot"
+./dphenome plot > /dev/null || die "./dphenome plot"
 ./dphenome -v rings || die "./dphenome -v rings"
 ./dphenome -v stats || die "./dphenome -v stats"
 ./dphenome -v export || die "./dphenome -v export"

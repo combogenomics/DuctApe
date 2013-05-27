@@ -1,6 +1,8 @@
 DuctApe
 =======
 
+[![Build Status](https://travis-ci.org/combogenomics/DuctApe.png)](https://travis-ci.org/combogenomics/DuctApe)
+
 Analyzing and linking genomics and phenomics experiments
 --------------------------------------------------------
 

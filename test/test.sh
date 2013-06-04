@@ -136,6 +136,14 @@ echo -e $green"Pangenome"$reset
 ../dgenome add-orth pangenome.tsv || die "dgenome add-orth"
 
 rm input/kegg.tsv &> /dev/null
-#cleanUp
+cleanUp
+
+echo -e $green"Other functions"$reset
+
+../dape init || die "dape init"
+../dphenome import-plates input/newplate.tsv || die "dphenome import-plates (good)"
+../dphenome export || die "dphenome export"
+../dphenome import-plates input/newplate_wrong.tsv && die "dphenome import-plates (wrong)"
+cleanUp
 
 echo -e $green"All tests passed"$reset

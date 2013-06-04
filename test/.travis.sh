@@ -114,8 +114,18 @@ echo -e $green"Pangenome"$reset
 
 ./dape -v export || die "./dape -v export"
 ./dape -v clear --keep-org || die "./dape -v clear"
-sleep
+sleep 5
 ./dape -v import kegg.tsv || die "./dape -v import"
+
+rm ductape.db
+
+echo -e $green"Other functions"$reset
+
+./dape init || die "./dape init"
+./dphenome import-plates test/input/newplate.tsv || die "./dphenome import-plates (good)"
+sleep 5
+./dphenome export || die "./dphenome export"
+./dphenome import-plates test/input/newplate_wrong.tsv && die "./dphenome import-plates (wrong)"
 
 rm ductape.db
 

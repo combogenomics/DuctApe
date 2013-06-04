@@ -3086,7 +3086,7 @@ class Biolog(DBBase):
                 s = l.rstrip('\n').split('\t')
                
                 for i in range(len(s)):
-                    if s[i] == 'None':
+                    if s[i] == 'None' or s[i] == '':
                         s[i] = None
                 
                 values = ''

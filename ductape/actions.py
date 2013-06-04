@@ -2149,7 +2149,7 @@ def dPhenomeExport(project):
     
     if organism.howMany() == 0:
         logger.info('No phenomic data can be exported at this time')
-        return False
+        return True
     
     # Which project are we talking about?
     kind = dSetKind(project)    

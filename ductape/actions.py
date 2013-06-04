@@ -2103,14 +2103,31 @@ def dGenomeExport(project):
     
     return True
 
-def dPhenomeExport(project):
-    # Is there something to be exported?
-    organism = Organism(project)
+def dBiologImport(project, infile):
+    biolog = Biolog(project)
     
-    if organism.howMany() == 0:
-        logger.info('No phenomic data can be exported at this time')
+    logger.info('Importing custom plate(s)')
+    
+    before = 0
+    for r in biolog.getPlates():
+        before += 1
+    
+    try:
+        biolog.importBiolog(infile)
+    except Exception, e:
+        logger.error('Could not import the custom plate(s)!')
+        logger.error(e)
         return False
     
+    after = 0
+    for r in biolog.getPlates():
+        after += 1
+        
+    logger.info('Imported %d custom plate(s)'%(after-before))
+    
+    return True
+
+def dPhenomeExport(project):
     biolog = Biolog(project)    
     
     logger.info('Exporting Biolog plate data')
@@ -2125,6 +2142,13 @@ def dPhenomeExport(project):
     fout.close()
     
     logger.info('Exported %d Biolog wells (%s)'%(i, fname))
+    
+    # Is there something to be exported?
+    organism = Organism(project)
+    
+    if organism.howMany() == 0:
+        logger.info('No phenomic data can be exported at this time')
+        return False
     
     # Which project are we talking about?
     kind = dSetKind(project)    

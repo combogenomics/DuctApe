@@ -221,6 +221,19 @@ def drings(options, wdir, project):
     return dPhenomeRings(project, delta=options.delta, difforg=options.o,
                          svg=options.svg)
 
+def dimportplates(options, wdir, project):
+    from ductape.actions import dBiologImport
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    
+    if not dBiologImport(project, options.file):
+        logger.warning('Use %s export to see an example input file'%__prog__)
+        return False
+
+    return True
+
 def dexport(options, wdir, project):
     from ductape.actions import dPhenomeExport
     if not touchProject(project):
@@ -454,6 +467,11 @@ def getOptions():
                             default=False,
                             help='Figures in svg format instead of png')
     parser_rings.set_defaults(func=drings)
+    
+    parser_import = subparsers.add_parser('import-plates', help='Import custom plates')
+    parser_import.add_argument('file', action="store",
+                            help='Plates (tab-delimited file)')
+    parser_import.set_defaults(func=dimportplates)
     
     parser_export = subparsers.add_parser('export', help='Export phenomic data')
     parser_export.set_defaults(func=dexport)

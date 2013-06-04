@@ -40,7 +40,8 @@ def dInit(project, wdir='.', name='', descr=''):
     '''
     if not os.path.exists(project):
         create = DBBase(project)
-        create.create()
+        if not create.create():
+            return False
         proj = Project(project)
         tmp = os.path.join(wdir, 'tmp')
         proj.addProject(name=name, description=descr, tmp=tmp)

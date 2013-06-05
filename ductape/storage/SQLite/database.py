@@ -3147,6 +3147,19 @@ class Biolog(DBBase):
         
         for res in cursor:
             yield Row(res, cursor.description)
+            
+    def getPlateWells(self, plate_id):
+        '''
+        Get the (ordered) list of wells from a distinct plate
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select distinct well_id
+                                   from biolog
+                                   where plate_id=?
+                                   order by well_id;''',[plate_id,])
+        
+        for res in cursor:
+            yield Row(res, cursor.description)
     
     def getPlate(self, plate_id):
         with self.connection as conn:
@@ -3896,6 +3909,61 @@ class Biolog(DBBase):
         
         for res in cursor:
             yield Row(res, cursor.description)
+    
+    def getZeroSubtractablePlates(self):
+        '''
+        Generator to the plate IDs that can be zero subtracted
+        '''
+        query='''select distinct plate_id
+                from biolog
+                where zero_well_id is not null;
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query)
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+            
+    def getControlWells(self):
+        '''
+        Generator to tuples of plate_id, zero_well
+        '''
+        query = '''
+                select distinct plate_id, well_id
+                from biolog
+                where zero_well_id is null
+                and plate_id in (select distinct plate_id
+                                   from biolog
+                                   where zero_well_id is not null);
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query)
+            
+        for res in cursor:
+            r = Row(res, cursor.description)
+            yield r.plate_id, r.well_id
+            
+    def getControlPairs(self):
+        '''
+        Generator to a tuple with plate_id, well_id, zero_well_id
+        '''
+        query = '''
+                select distinct plate_id, well_id, zero_well_id
+                from biolog
+                where zero_well_id is not null
+                and plate_id in (select distinct plate_id
+                                   from biolog
+                                   where zero_well_id is not null);
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query)
+            
+        for res in cursor:
+            r = Row(res, cursor.description)
+            yield r.plate_id, r.well_id, r.zero_well_id
     
     def getZeroSubtractableSignals(self):
         '''

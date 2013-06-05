@@ -99,6 +99,9 @@ def dPhenomeAdd(project, orgID, filename):
     '''
     from ductape.phenome.biolog import BiologParser, Plate
     
+    # Add to the project
+    biolog = Biolog(project)
+    
     if not os.path.exists(filename):
         logger.error('Phenomic file %s may not be present'%(filename))
         return False
@@ -110,7 +113,9 @@ def dPhenomeAdd(project, orgID, filename):
     
     filename = os.path.abspath(filename)
     
-    bparser = BiologParser(filename)
+    bparser = BiologParser(filename, 
+                           set([x.plate_id
+                                for x in biolog.getPlates()]))
     bparser.parse()
     
     if len(bparser.plates) == 0:
@@ -179,8 +184,6 @@ def dPhenomeAdd(project, orgID, filename):
         for w in wells:
             w.strain = orgID
     
-    # Add to the project
-    biolog = Biolog(project)
     biolog.addWells(wells, clustered=False)
     
     logger.info('Added phenome %s, having %d biolog plates (%d wells)'%
@@ -198,9 +201,13 @@ def dPhenomeMultiAdd(project, filename):
         logger.error('Phenomic file %s may not be present'%(filename))
         return False
     
+    # Add to the project
+    biolog = Biolog(project)
+    
     filename = os.path.abspath(filename)
     
-    bparser = BiologParser(filename)
+    bparser = BiologParser(filename, set([x.plate_id
+                                          for x in biolog.getPlates()]))
     bparser.parse()
     
     if len(bparser.plates) == 0:
@@ -247,8 +254,6 @@ def dPhenomeMultiAdd(project, filename):
         wells = [w for plate in dPlates.itervalues() 
                  for w in plate.getWells()]
         
-        # Add to the project
-        biolog = Biolog(project)
         biolog.addWells(wells, clustered=False)
         
         logger.info('Added phenome %s, having %d biolog plates (%d wells)'%
@@ -496,7 +501,9 @@ def dPhenomeZero(project, blankfile=None):
     for zero subtraction
     '''
     from ductape.phenome.biolog import BiologParser, getSinglePlates
-    from ductape.phenome.biolog import zeroPlates, BiologZero
+    from ductape.phenome.biolog import BiologZero
+    
+    biolog = Biolog(project)
     
     if blankfile:
         logger.info('Going to use a blank file for zero subtraction')
@@ -505,14 +512,16 @@ def dPhenomeZero(project, blankfile=None):
             logger.error('Blank file %s may not be present'%(blankfile))
             return False
         
-        bparser = BiologParser(blankfile)
+        bparser = BiologParser(blankfile, set([x.plate_id
+                                               for x in biolog.getPlates()]))
         bparser.parse()
         
         if len(bparser.plates) == 0:
             logger.warning('The blank file contains no plates!')
             return False
     
-    biolog = Biolog(project)
+    zeroPlates = [x.plate_id for x in biolog.getZeroSubtractablePlates()]
+    
     # Fetch the signals to be subtracted, then convert them
     # to appropriate objects
     sigs = [s for s in biolog.getZeroSubtractableSignals()]
@@ -537,7 +546,21 @@ def dPhenomeZero(project, blankfile=None):
     if blankfile:
         zsub = BiologZero(plates, blank = True, blankData=bparser.plates)
     else:
-        zsub = BiologZero(plates)
+        # We have to provide the plates which can be subtracted,
+        # along with the information on the control well of each well
+        controlWells = {}
+        for plate_id, zero_well_id in biolog.getControlWells():
+            controlWells[plate_id] = controlWells.get(plate_id, set())
+            controlWells[plate_id].add(zero_well_id)
+        
+        zeroWells = {}
+        for plate_id, well_id, zero_well_id in biolog.getControlPairs():
+            zeroWells[plate_id] = zeroWells.get(plate_id, {})
+            zeroWells[plate_id][well_id] = zero_well_id
+        
+        zsub = BiologZero(plates, zeroPlates=zeroPlates,
+                          controlWells=controlWells,
+                          zeroWells=zeroWells)
         
     if not zsub.zeroSubTract():
         logger.warning('Zero subtraction failed!')
@@ -577,7 +600,9 @@ def dPhenomePurge(project, policy, delta=1, filterplates=[]):
     else:
         logger.info('Purging %d phenomic plates'%len(plates))
 
-    exp = Experiment(plates=plates, zero=isZero)
+    zeroPlates = [x.plate_id for x in biolog.getZeroSubtractablePlates()]
+    
+    exp = Experiment(plates=plates, zero=isZero, zeroPlates=zeroPlates)
     
     if not exp.purgeReplicas(delta=delta,policy=policy):
         logger.error('Could not purge the phenomic experiment')
@@ -866,7 +891,6 @@ def dGenomeStats(project, svg=False, doPrint=True):
 
 def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     from ductape.phenome.biolog import getPlates, Experiment
-    from ductape.phenome.biolog import getOrder
     from itertools import combinations
     
     # Which project are we talking about?
@@ -897,8 +921,11 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         if categ not in categorder:
             categorder.append(categ)
     
+    zeroPlates = [x.plate_id for x in biolog.getZeroSubtractablePlates()]
+    
     exp = Experiment(plates=plates, zero=isZero,
-                     category=category, categorder=categorder)
+                     category=category, categorder=categorder,
+                     zeroPlates=zeroPlates)
     
     exp.plot(svg=svg)
     
@@ -1445,7 +1472,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         
     for categ in categorder:
         pwlist = filter(lambda x: x[0] in category[categ],
-                    [pw for pw in getOrder()])
+                    [pw for pw in getOrder(project)])
         
         pwdiff = []
         pwavgdiff = []
@@ -1531,7 +1558,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     for oid in orgs:
         DownUnique[oid] = 0
     pwcount = 0
-    for pid, wid in getOrder():
+    for pid, wid in getOrder(project):
         try:
             # Sort by activity
             acts = sorted([exp.sumexp[pid][wid][oid] for oid in orgs],
@@ -1579,7 +1606,6 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
 
 def dPhenomeRings(project, delta=1, difforg=None, svg=False):
     from ductape.phenome.biolog import getPlates, Experiment
-    from ductape.phenome.biolog import getOrder
     
     # Which project are we talking about?
     kind = dSetKind(project)
@@ -1615,8 +1641,11 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
         if categ not in categorder:
             categorder.append(categ)
     
+    zeroPlates = [x.plate_id for x in biolog.getZeroSubtractablePlates()]
+    
     exp = Experiment(plates=plates, zero=isZero,
-                     category=category, categorder=categorder)
+                     category=category, categorder=categorder,
+                     zeroPlates=zeroPlates)
     
     ############################################################################
     # Activity rings (!!!)
@@ -1675,7 +1704,7 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
     categpworder = {}
     for categ in categorder:
         categpworder[categ] = []
-        for pid, wid in getOrder(sorted(category[categ])):
+        for pid, wid in getOrder(project, sorted(category[categ])):
             # Check what we can discard (plates)
             if pid in exp.sumexp:
                 categpworder[categ].append((pid, wid))
@@ -3185,7 +3214,26 @@ def dNet(project, allorgs=False, allpaths=False):
         logger.info('Metabolic network activity stats saved to %s'%sact)
     
     return True
+
+def getPlatesOrder(project):
+    from ductape.storage.SQLite.database import Biolog
     
+    return [x.plate_id for x in Biolog(project).getPlates()]
+
+def getOrder(project, plates=None):
+    '''
+    Generator of plate/well IDs
+    If plates is provided as a list of plates IDs, only those plates are used
+    '''
+    from ductape.storage.SQLite.database import Biolog
+    
+    if not plates:
+        plates = getPlatesOrder(project)
+        
+    for pid in plates:
+        for wid in Biolog(project).getPlateWells(pid):
+            yield (pid, wid)
+ 
 def dSetKind(project):
     '''
     Set the kind of genomic project and return its value

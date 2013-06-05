@@ -29,100 +29,6 @@ __author__ = "Marco Galardini"
 logger = logging.getLogger('ductape.biolog')
 
 ################################################################################
-# Plate ID conversion and sanity checks
-
-dPlates = { 'PM01-':'PM01', 'PM02-A':'PM02A',
-            'PM03-B':'PM03B', 'PM04-A':'PM04A',
-            'PM05-':'PM05', 'PM06-':'PM06',
-            'PM07-':'PM07', 'PM08-':'PM08',
-            'PM09-':'PM09',
-            'PM 1-':'PM01', 'PM 2-A':'PM02A',
-            'PM 3-B':'PM03B', 'PM 4-A':'PM04A',
-            'PM 5-':'PM05', 'PM 6-':'PM06',
-            'PM 7-':'PM07', 'PM 8-':'PM08',
-            'PM 9-':'PM09', 'PM10-':'PM10',
-            'PM11-C':'PM11C', 'PM12-B':'PM12B',
-            'PM13-B':'PM13B', 'PM14-A':'PM14A',
-            'PM15-B':'PM15B', 'PM16-A':'PM16A',
-            'PM17-A':'PM17A', 'PM18-C':'PM18C',
-            'PM19-':'PM19', 'PM20-B':'PM20B',
-            'PM01-':'PM01', 'PM02-A':'PM02',
-            'PM03-B':'PM03B','PM04-A':'PM04A',
-            'PM05-':'PM05', 'PM06-':'PM06',
-            'PM07-':'PM07','PM08-':'PM08',
-            'PM09-':'PM09',
-            # TODO: These are just guesses for now
-            'PM21-D':'PM21D', 'PM22-C':'PM22C',
-            'PM23-A':'PM23A', 'PM24-B':'PM24B',
-            #TODO: Guesses for old plates versions
-            'PM 2-':'PM02', 'PM 3-B':'PM03B', 'PM3-B':'PM03B',
-            'PM 3-A':'PM03A', 'PM3-A':'PM03A',
-            'PM 3-':'PM03', 'PM3-':'PM03',
-            'PM 4-A':'PM04A', 'PM4-A':'PM04A',
-            'PM 4-':'PM04', 'PM4-':'PM04',
-            'PM02-':'PM02', 'PM03-B':'PM03B', 'PM3-B':'PM03B',
-            'PM03-A':'PM03A', 'PM3-A':'PM03A',
-            'PM03-':'PM03', 'PM3-':'PM03',
-            'PM04-A':'PM04A', 'PM4-A':'PM04A',
-            'PM04-':'PM04', 'PM4-':'PM04',
-            'PM11-C':'PM11C', 'PM11-B':'PM11B', 
-            'PM11-A':'PM11A', 'PM11-':'PM11', 
-            'PM12-B':'PM12B', 'PM12-A':'PM12A', 
-            'PM12-':'PM12', 'PM13-B':'PM13B', 
-            'PM13-A':'PM13A', 'PM13-':'PM13', 
-            'PM14-A':'PM14A', 'PM14-':'PM14', 
-            'PM15-B':'PM15B', 'PM15-A':'PM15A', 
-            'PM15-':'PM15', 'PM16-A':'PM16A', 
-            'PM16-':'PM16', 'PM17-A':'PM17A', 
-            'PM17-':'PM17', 'PM18-C':'PM18C', 
-            'PM18-B':'PM18B', 'PM18-A':'PM18A', 
-            'PM18-':'PM18', 'PM20-B':'PM20B', 
-            'PM20-A':'PM20A', 'PM20-':'PM20', 
-            'PM21-D':'PM21D', 'PM21-C':'PM21C', 
-            'PM21-B':'PM21B', 'PM21-A':'PM21A', 
-            'PM21-':'PM21', 'PM22-C':'PM22C', 
-            'PM22-B':'PM22B', 'PM22-A':'PM22A', 
-            'PM22-':'PM22', 'PM23-A':'PM23A', 
-            'PM23-':'PM23', 'PM24-B':'PM24B', 
-            'PM24-A':'PM24A', 'PM24-':'PM24'}
-
-acceptedPlates = dPlates.values()
-
-#TODO: on new plates import find a way to signal which plates can be zero-subtracted
-zeroPlates = ['PM01','PM02A','PM03B','PM04A','PM05',
-              'PM06','PM07','PM08','PM03B','PM04A',
-              'PM03B', 'PM03B','PM03A', 'PM03A',
-              'PM03', 'PM03','PM04A', 'PM04A','PM04', 'PM04']
-zeroWell = 'A01'
-
-# TODO: change the zero subtraction logic
-# Temporary handling of plate 4, which has two control wells
-zeroMultiple = {'PM04A':['A01', 'F01'],
-                'PM04':['A01', 'F01']}
-
-wellChars = 'ABCDEFGH'
-
-def getPlatesOrder():
-    return sorted(set(dPlates.values()))
-
-def getOrder(plates=None):
-    '''
-    Generator of plate/well IDs
-    If plates is provided as a list of plates IDs, only those plates are used
-    '''
-    if not plates:
-        plates = getPlatesOrder()
-        
-    for pid in plates:
-        for wh in wellChars:
-            for wi in range(1,13):
-                if wi < 10:
-                    wid = '%s0%d'%(wh, wi)
-                else:
-                    wid = '%s%d'%(wh, wi)
-                yield (pid, wid)
-
-################################################################################
 # Classes
 
 class Well(object):
@@ -802,13 +708,14 @@ class Experiment(object):
         pass
     
     def __init__(self, exp_id='', name='', plates=[], zero=False,
-                 category = {}, categorder = []):
+                 category = {}, categorder = [], zeroPlates=set()):
         self.exp_id = exp_id
         self.name = name
         
         self.zero = zero
         self.category = category
         self.categorder = categorder
+        self.zeroPlates = zeroPlates
         
         self.plates = {}
         for plate in plates:
@@ -899,7 +806,7 @@ class Experiment(object):
         otherwise it calculates them
         '''
         for well in self.getWells(params):
-            if well.plate_id in zeroPlates:
+            if well.plate_id in self.zeroPlates:
                 yield well
                 
     def getNoZeroWells(self, params=True):
@@ -909,7 +816,7 @@ class Experiment(object):
         otherwise it calculates them
         '''
         for well in self.getWells(params):
-            if well.plate_id not in zeroPlates:
+            if well.plate_id not in self.zeroPlates:
                 yield well
                 
     def getCategoryWells(self, params=True):
@@ -1125,7 +1032,7 @@ class Experiment(object):
         
         params_labels = ['max', 'area', 'height', 'lag', 'slope']
         for param in self.getWells():
-            if self.zero and param.plate_id in zeroPlates:
+            if self.zero and param.plate_id in self.zeroPlates:
                 dWells['zero'].append(param)
                 dParams['zero'].append([param.max, param.area, 
                                         param.height, param.lag, param.slope])
@@ -1391,9 +1298,71 @@ class BiologParser(object):
     _other = 'Other'
     _dataStart = 'Hour'
     
-    def __init__(self,infile):
+    _dPlates = { 'PM01-':'PM01', 'PM02-A':'PM02A',
+            'PM03-B':'PM03B', 'PM04-A':'PM04A',
+            'PM05-':'PM05', 'PM06-':'PM06',
+            'PM07-':'PM07', 'PM08-':'PM08',
+            'PM09-':'PM09',
+            'PM 1-':'PM01', 'PM 2-A':'PM02A',
+            'PM 3-B':'PM03B', 'PM 4-A':'PM04A',
+            'PM 5-':'PM05', 'PM 6-':'PM06',
+            'PM 7-':'PM07', 'PM 8-':'PM08',
+            'PM 9-':'PM09', 'PM10-':'PM10',
+            'PM11-C':'PM11C', 'PM12-B':'PM12B',
+            'PM13-B':'PM13B', 'PM14-A':'PM14A',
+            'PM15-B':'PM15B', 'PM16-A':'PM16A',
+            'PM17-A':'PM17A', 'PM18-C':'PM18C',
+            'PM19-':'PM19', 'PM20-B':'PM20B',
+            'PM01-':'PM01', 'PM02-A':'PM02',
+            'PM03-B':'PM03B','PM04-A':'PM04A',
+            'PM05-':'PM05', 'PM06-':'PM06',
+            'PM07-':'PM07','PM08-':'PM08',
+            'PM09-':'PM09',
+            # TODO: These are just guesses for now
+            'PM21-D':'PM21D', 'PM22-C':'PM22C',
+            'PM23-A':'PM23A', 'PM24-B':'PM24B',
+            #TODO: Guesses for old plates versions
+            'PM 2-':'PM02', 'PM 3-B':'PM03B', 'PM3-B':'PM03B',
+            'PM 3-A':'PM03A', 'PM3-A':'PM03A',
+            'PM 3-':'PM03', 'PM3-':'PM03',
+            'PM 4-A':'PM04A', 'PM4-A':'PM04A',
+            'PM 4-':'PM04', 'PM4-':'PM04',
+            'PM02-':'PM02', 'PM03-B':'PM03B', 'PM3-B':'PM03B',
+            'PM03-A':'PM03A', 'PM3-A':'PM03A',
+            'PM03-':'PM03', 'PM3-':'PM03',
+            'PM04-A':'PM04A', 'PM4-A':'PM04A',
+            'PM04-':'PM04', 'PM4-':'PM04',
+            'PM11-C':'PM11C', 'PM11-B':'PM11B', 
+            'PM11-A':'PM11A', 'PM11-':'PM11', 
+            'PM12-B':'PM12B', 'PM12-A':'PM12A', 
+            'PM12-':'PM12', 'PM13-B':'PM13B', 
+            'PM13-A':'PM13A', 'PM13-':'PM13', 
+            'PM14-A':'PM14A', 'PM14-':'PM14', 
+            'PM15-B':'PM15B', 'PM15-A':'PM15A', 
+            'PM15-':'PM15', 'PM16-A':'PM16A', 
+            'PM16-':'PM16', 'PM17-A':'PM17A', 
+            'PM17-':'PM17', 'PM18-C':'PM18C', 
+            'PM18-B':'PM18B', 'PM18-A':'PM18A', 
+            'PM18-':'PM18', 'PM20-B':'PM20B', 
+            'PM20-A':'PM20A', 'PM20-':'PM20', 
+            'PM21-D':'PM21D', 'PM21-C':'PM21C', 
+            'PM21-B':'PM21B', 'PM21-A':'PM21A', 
+            'PM21-':'PM21', 'PM22-C':'PM22C', 
+            'PM22-B':'PM22B', 'PM22-A':'PM22A', 
+            'PM22-':'PM22', 'PM23-A':'PM23A', 
+            'PM23-':'PM23', 'PM24-B':'PM24B', 
+            'PM24-A':'PM24A', 'PM24-':'PM24'}
+
+    _acceptedPlates = set(_dPlates.values())
+    
+    def __init__(self, infile, validPlates=[]):
         # Biolog
         self.file = infile
+        
+        # Accepted plate IDs
+        for pid in validPlates:
+            self._acceptedPlates.add(pid)
+        
         # Results
         self.plates = []
         
@@ -1417,7 +1386,8 @@ class BiologParser(object):
             elif self._plate in line[0].strip():
                 plateID = line[1].strip()
                 
-                if plateID not in dPlates and plateID not in acceptedPlates:
+                if(plateID not in self._dPlates
+                        and plateID not in self._acceptedPlates):
                     logger.warning('Unknown plate ID has been found (%s)'%plateID)
                     logger.warning(
                         'Please send your csv file to %s'%__email__)
@@ -1425,10 +1395,10 @@ class BiologParser(object):
                     plate = None
                     continue
                 
-                if plateID in acceptedPlates:
+                if plateID in self._acceptedPlates:
                     plate.plate_id = plateID
                 else:
-                    plate.plate_id = dPlates[plateID]
+                    plate.plate_id = self._dPlates[plateID]
             elif self._strainType in line[0].strip():
                 if not plate:continue
                 plate.strainType = line[1].strip()
@@ -1487,12 +1457,19 @@ class BiologZero(object):
     plates [SinglePlate] --> well_id --> Well
     '''
     def __init__(self, data, blank=False, blankData=[], 
-                 forceZero = True):
+                 forceZero = True, zeroPlates=[], controlWells={},
+                 zeroWells={}):
         # Biolog
         self.data = data
         self.blank = bool(blank)
         self.blankData = blankData
         self.forceZero = bool(forceZero)
+        
+        # User provided rules for control subtraction
+        self.zeroPlates = set(zeroPlates)
+        self.controlWells = controlWells
+        self.zeroWells = zeroWells
+        
         # Results
         self.plates = []
     
@@ -1501,43 +1478,19 @@ class BiologZero(object):
         Normal zero subtraction
         For some plates the first well is a the negative control
         '''
-        # Temporary fix for plate 4
-        # TODO: change the zero subtraction logic
-        if plate.plate_id in zeroMultiple:
-            logger.debug('Handling multiple control plate %s'%plate.plate_id)
+        if plate.plate_id in self.zeroPlates:
+            if(plate.plate_id not in self.controlWells or
+                    plate.plate_id not in self.zeroWells):
+                logger.warning('Missing control well information: '+
+                           'zero subtraction on plate %s aborted'%plate.plate_id)
+                return
             
-            zeros = [w for w in zeroMultiple[plate.plate_id]]
-            
-            # Here careful!
-            # If multiple control wells are present check the wells order
-            currZero = None
-            for p, w in getOrder([plate.plate_id]):
-                # We do nothing until the first control well is found
-                if w not in zeros and not currZero:
-                    continue
-                elif w in zeros:
-                    currZero = plate.data[w]
-                    continue
-                
-                # TODO: remove this shameless copy-pastah
-                # We assume that wells from the same plate
-                # will end at the same time
-                for hour in sorted(currZero.signals.keys()):
-                    plate.data[w].signals[hour] -= currZero.signals[hour]
-                    # Values below zero are forced to zero
-                    if self.forceZero and plate.data[w].signals[hour] <= 0:
-                        plate.data[w].signals[hour] = 0.1
-            
-            # Put each control well to zero
-            for zero in [plate.data[w] for w in zeroMultiple[plate.plate_id]]:
-                for hour in zero.signals.keys():
-                    zero.signals[hour]=0
-        
-        elif plate.plate_id in zeroPlates:
-            zero = plate.data[zeroWell]
             for well in plate.data:
-                if well == zero.well_id:
+                # Is it a control well?
+                if well in self.controlWells[plate.plate_id]:
                     continue
+                # Get the specific control well for this well
+                zero = plate.data[ self.zeroWells[plate.plate_id][well] ]
                 # We assume that wells from the same plate
                 # will end at the same time
                 for hour in sorted(zero.signals.keys()):
@@ -1546,9 +1499,11 @@ class BiologZero(object):
                     if self.forceZero and plate.data[well].signals[hour] <= 0:
                         plate.data[well].signals[hour] = 0.1
                     
-            # Last step: put the zero well to zero
-            for hour in zero.signals.keys():
-                zero.signals[hour]=0
+            # Last step: put the control wells to zero
+            for zerowell in self.controlWells[plate.plate_id]:
+                zero = plate.data[zerowell]
+                for hour in zero.signals.keys():
+                    zero.signals[hour]=0
                     
     def _zeroBlank(self, plate):
         '''

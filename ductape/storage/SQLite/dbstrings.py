@@ -97,6 +97,7 @@ CREATE TABLE biolog (
     "plate_id" TEXT NOT NULL,
     "well_id" TEXT NOT NULL,
     "concentration" INTEGER,
+    "zero_well_id" TEXT,
     "chemical" TEXT,
     "cas_id" TEXT,
     "co_id" TEXT,

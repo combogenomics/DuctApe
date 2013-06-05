@@ -281,7 +281,9 @@ def doClusterPhenome(project, save_fig_clusters=False):
         logger.warning('No phenomic data available, skipping clustering')
         return True
 
-    exp = Experiment(plates=plates, zero=isZero)
+    zeroPlates = [x.plate_id for x in biolog.getZeroSubtractablePlates()]
+
+    exp = Experiment(plates=plates, zero=isZero, zeroPlates=zeroPlates)
     
     bclust = BiologCluster(exp, save_fig_clusters=save_fig_clusters)
         

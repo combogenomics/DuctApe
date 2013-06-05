@@ -1,7 +1,1 @@
-# DuctApe generated dump of the Biolog plates									
-#									
-# NOTE: the column "concentration" should be set to 0									
-# set values from 1 to N (i.e. 4) in chemical sensitivity plates									
-#									
-#plate_id	well_id	concentration	zero_plate_id	zero_well_id	chemical	cas_id	co_id	moa	category
-PM34	A01	0	None	None	Negative Control	None	None	C-Source, negative control
+PM33C	A01	0		Negative Control			C-Source, negative control

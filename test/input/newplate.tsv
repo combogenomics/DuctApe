@@ -1,102 +1,96 @@
-# DuctApe generated dump of the Biolog plates									
-#									
-# NOTE: the column "concentration" should be set to 0									
-# set values from 1 to N (i.e. 4) in chemical sensitivity plates									
-#									
-#plate_id	well_id	concentration	zero_plate_id	zero_well_id	chemical	cas_id	co_id	moa	category
-PM33	A01	0	None	None	Negative Control	None	None	C-Source, negative control	carbon
-PM33	A02	0	PM33	A01	L-Arabinose	CAS 87-72-9	C00259	C-Source, carbohydrate	carbon
-PM33	A03	0	PM33	A01	N-Acetyl-D-Glucosamine	CAS 7512-17-6	C00140	C-Source, carbohydrate	carbon
-PM33	A04	0	PM33	A01	D-Saccharic acid	CAS 576-42-1	C00818	C-Source, carboxylic acid	carbon
-PM33	A05	0	PM33	A01	Succinic acid	CAS 6106-21-4	C00042	C-Source, carboxylic acid	carbon
-PM33	A06	0	PM33	A01	D-Galactose	CAS 59-23-4	C00124	C-Source, carbohydrate	carbon
-PM33	A07	0	PM33	A01	L-Aspartic acid	CAS 3792-50-5	C00049	C-Source, amino acid	carbon
-PM33	A08	0	PM33	A01	L-Proline	CAS 147-85-3 	C00148	C-Source, amino acid	carbon
-PM33	A09	0	PM33	A01	D-Alanine	CAS 338-69-2	C00133	C-Source, amino acid	carbon
-PM33	A10	0	PM33	A01	D-Trehalose	CAS 6138-23-4	C01083	C-Source, carbohydrate	carbon
-PM33	A11	0	PM33	A01	D-Mannose	CAS 3458-28-4	C00159	C-Source, carbohydrate	carbon
-PM33	A12	0	PM33	A01	Dulcitol	CAS 608-66-2	C01697	C-Source, carbohydrate	carbon
-PM33	B01	0	PM33	A01	D-Serine	CAS 312-84-5	C00740	C-Source, amino acid	carbon
-PM33	B02	0	PM33	A01	D-Sorbitol	CAS 50-70-4	C00794	C-Source, carbohydrate	carbon
-PM33	B03	0	PM33	A01	Glycerol	CAS 56-81-5 	C00116	C-Source, carbohydrate	carbon
-PM33	B04	0	PM33	A01	L-Fucose	CAS 2438-80-4	C01019	C-Source, carbohydrate	carbon
-PM33	B05	0	PM33	A01	D-Glucuronic acid	CAS 14984-34-0	C00191	C-Source, carboxylic acid	carbon
-PM33	B06	0	PM33	A01	D-Gluconic acid	CAS 527-07-1	C00257	C-Source, carboxylic acid	carbon
-PM33	B07	0	PM33	A01	DL-a-Glycerol Phosphate	CAS 3325-00-6	C00093	C-Source, carbohydrate	carbon
-PM33	B08	0	PM33	A01	D-Xylose	CAS 58-86-6	C00181	C-Source, carbohydrate	carbon
-PM33	B09	0	PM33	A01	L-Lactic acid	CAS 312-85-6	C01432	C-Source, carboxylic acid	carbon
-PM33	B10	0	PM33	A01	Formic acid	CAS 141-53-7	C00058	C-Source, carboxylic acid	carbon
-PM33	B11	0	PM33	A01	D-Mannitol	CAS 69-65-8	C00392	C-Source, carbohydrate	carbon
-PM33	B12	0	PM33	A01	L-Glutamic acid	CAS 6106-04-3	C00025	C-Source, amino acid	carbon
-PM33	C01	0	PM33	A01	D-Glucose-6-Phosphate	CAS 3671-99-6	C00092	C-Source, carbohydrate	carbon
-PM33	C02	0	PM33	A01	D-Galactonic acid-g-Lactone	CAS 2782-07-2	C03383	C-Source, carboxylic acid	carbon
-PM33	C03	0	PM33	A01	DL-Malic acid	CAS 6915-15-7	C00497	C-Source, carboxylic acid	carbon
-PM33	C04	0	PM33	A01	D-Ribose	CAS 50-69-1	C00121	C-Source, carbohydrate	carbon
-PM33	C05	0	PM33	A01	Tween 20	CAS 9005-64-5	C11624	C-Source, fatty acid	carbon
-PM33	C06	0	PM33	A01	L-Rhamnose	CAS 3615-41-6	C00507	C-Source, carbohydrate	carbon
-PM33	C07	0	PM33	A01	D-Fructose	CAS 57-48-7	C00095	C-Source, carbohydrate	carbon
-PM33	C08	0	PM33	A01	Acetic acid	CAS 127-09-3	C00033	C-Source, carboxylic acid	carbon
-PM33	C09	0	PM33	A01	a-D-Glucose	CAS 50-99-7	C00031	C-Source, carbohydrate	carbon
-PM33	C10	0	PM33	A01	Maltose	CAS 6363-53-7	C00208	C-Source, carbohydrate	carbon
-PM33	C11	0	PM33	A01	D-Melibiose	CAS 585-99-9	C05402	C-Source, carbohydrate	carbon
-PM33	C12	0	PM33	A01	Thymidine	CAS 50-89-5	C00214	C-Source, carbohydrate	carbon
-PM33	D01	0	PM33	A01	L-Asparagine	CAS 70-47-3	C00152	C-Source, amino acid	carbon
-PM33	D02	0	PM33	A01	D-Aspartic acid	CAS 1783-96-6	C00402	C-Source, amino acid	carbon
-PM33	D03	0	PM33	A01	D-Glucosaminic acid	CAS 3646-68-2	C03752	C-Source, carboxylic acid	carbon
-PM33	D04	0	PM33	A01	1,2-Propanediol	CAS 57-55-6	C00583	C-Source, alcohol	carbon
-PM33	D05	0	PM33	A01	Tween 40	CAS 9005-66-7	None	C-Source, fatty acid	carbon
-PM33	D06	0	PM33	A01	a-Ketoglutaric acid	CAS 22202-68-2	C00026	C-Source, carboxylic acid	carbon
-PM33	D07	0	PM33	A01	a-Ketobutyric acid	CAS 2013-26-5	C00109	C-Source, carboxylic acid	carbon
-PM33	D08	0	PM33	A01	a-Methyl-D-Galactoside	CAS 3396-99-4	C03619	C-Source, carbohydrate	carbon
-PM33	D09	0	PM33	A01	a-D-Lactose	CAS 5989-81-1	C00243	C-Source, carbohydrate	carbon
-PM33	D10	0	PM33	A01	Lactulose	CAS 4618-18-2	C07064	C-Source, carbohydrate	carbon
-PM33	D11	0	PM33	A01	Sucrose	CAS 57-50-1	C00089	C-Source, carbohydrate	carbon
-PM33	D12	0	PM33	A01	Uridine	CAS 58-96-8	C00299	C-Source, carbohydrate	carbon
-PM33	E01	0	PM33	A01	L-Glutamine	CAS 56-85-9	C00064	C-Source, amino acid	carbon
-PM33	E02	0	PM33	A01	m-Tartaric acid	CAS 147-73-9	C00552	C-Source, carboxylic acid	carbon
-PM33	E03	0	PM33	A01	D-Glucose-1-Phosphate	CAS 56401-20-8	C00103	C-Source, carbohydrate	carbon
-PM33	E04	0	PM33	A01	D-Fructose-6-Phosphate	CAS 26177-86-6	C00085	C-Source, carbohydrate	carbon
-PM33	E05	0	PM33	A01	Tween 80	CAS 9005-65-6	C11625	C-Source, fatty acid	carbon
-PM33	E06	0	PM33	A01	a-Hydroxyglutaric acid-g-Lactone	CAS 21461-84-7	None	C-Source, carboxylic acid	carbon
-PM33	E07	0	PM33	A01	a-Hydroxybutyric acid	CAS 19054-57-0	C05984	C-Source, carboxylic acid	carbon
-PM33	E08	0	PM33	A01	b-Methyl-D-Glucoside	CAS 709-50-2	None	C-Source, carbohydrate	carbon
-PM33	E09	0	PM33	A01	Adonitol	CAS 488-81-3	C00474	C-Source, carbohydrate	carbon
-PM33	E10	0	PM33	A01	Maltotriose	CAS 1109-28-0	C01835	C-Source, carbohydrate	carbon
-PM33	E11	0	PM33	A01	2`-Deoxyadenosine	CAS 16373-93-6	C00559	C-Source, carbohydrate	carbon
-PM33	E12	0	PM33	A01	Adenosine	CAS 58-61-7	C00212	C-Source, carbohydrate	carbon
-PM33	F01	0	PM33	A01	Gly-Asp	CAS 4685-12-5	C02871	C-Source, amino acid	carbon
-PM33	F02	0	PM33	A01	Citric acid	CAS 6132-04-3	C00158	C-Source, carboxylic acid	carbon
-PM33	F03	0	PM33	A01	m-Inositol	CAS 87-89-8	C00137	C-Source, carbohydrate	carbon
-PM33	F04	0	PM33	A01	D-Threonine	CAS 632-20-2	C00820	C-Source, amino acid	carbon
-PM33	F05	0	PM33	A01	Fumaric acid	CAS 17013-01-3	C00122	C-Source, carboxylic acid	carbon
-PM33	F06	0	PM33	A01	Bromosuccinic acid	CAS 923-06-8	None	C-Source, carboxylic acid	carbon
-PM33	F07	0	PM33	A01	Propionic acid	CAS 137-40-6	C00163	C-Source, carboxylic acid	carbon
-PM33	F08	0	PM33	A01	Mucic acid	CAS 526-99-8	C01807	C-Source, carboxylic acid	carbon
-PM33	F09	0	PM33	A01	Glycolic acid	CAS 79-14-1	C00160	C-Source, carboxylic acid	carbon
-PM33	F10	0	PM33	A01	Glyoxylic acid	CAS 563-96-2	C00048	C-Source, carboxylic acid	carbon
-PM33	F11	0	PM33	A01	D-Cellobiose	CAS 528-50-7	C00185	C-Source, carbohydrate	carbon
-PM33	F12	0	PM33	A01	Inosine	CAS 58-63-9	C00294	C-Source, carbohydrate	carbon
-PM33	G01	0	PM33	A01	Gly-Glu	CAS 7412-78-4	None	C-Source, amino acid	carbon
-PM33	G02	0	PM33	A01	Tricarballylic acid	CAS 99-14-9	None	C-Source, carboxylic acid	carbon
-PM33	G03	0	PM33	A01	L-Serine	CAS 56-45-1	C00065	C-Source, amino acid	carbon
-PM33	G04	0	PM33	A01	L-Threonine	CAS 72-19-5	C00188	C-Source, amino acid	carbon
-PM33	G05	0	PM33	A01	L-Alanine	CAS 56-41-7	C00041	C-Source, amino acid	carbon
-PM33	G06	0	PM33	A01	Ala-Gly	CAS 687-69-4	None	C-Source, amino acid	carbon
-PM33	G07	0	PM33	A01	Acetoacetic acid	CAS 3483-11-2	C00164	C-Source, carboxylic acid	carbon
-PM33	G08	0	PM33	A01	N-Acetyl-D-Mannosamine	CAS 7772-94-3	C00645	C-Source, carbohydrate	carbon
-PM33	G09	0	PM33	A01	Mono-Methylsuccinate	CAS 3878-55-5	None	C-Source, carboxylic acid	carbon
-PM33	G10	0	PM33	A01	Methylpyruvate	CAS 600-22-6	None	C-Source, ester	carbon
-PM33	G11	0	PM33	A01	D-Malic acid	CAS 636-61-3	C00497	C-Source, carboxylic acid	carbon
-PM33	G12	0	PM33	A01	L-Malic acid	CAS 138-09-0	C00149	C-Source, carboxylic acid	carbon
-PM33	H01	0	PM33	A01	Gly-Pro	CAS 704-15-4	None	C-Source, amino acid	carbon
-PM33	H02	0	PM33	A01	p-Hydroxyphenyl Acetic acid	CAS 156-38-7	C00642	C-Source, carboxylic acid	carbon
-PM33	H03	0	PM33	A01	m-Hydroxyphenyl Acetic acid	CAS 621-37-4	C05593	C-Source, carboxylic acid	carbon
-PM33	H04	0	PM33	A01	Tyramine	CAS 60-19-5	C00483	C-Source, amine	carbon
-PM33	H05	0	PM33	A01	D-Psicose	CAS 551-68-8	C06468	C-Source, carbohydrate	carbon
-PM33	H06	0	PM33	A01	L-Lyxose	CAS 1949-78-6	C01508	C-Source, carbohydrate	carbon
-PM33	H07	0	PM33	A01	Glucuronamide	CAS 3789-97-7	D01791	C-Source, amide	carbon
-PM33	H08	0	PM33	A01	Pyruvic acid	CAS 113-24-6	C00022	C-Source, carboxylic acid	carbon
-PM33	H09	0	PM33	A01	L-Galactonic acid-g-Lactone	CAS 1668-08-2	C01115	C-Source, carboxylic acid	carbon
-PM33	H10	0	PM33	A01	D-Galacturonic acid	CAS 91510-62-2	C00333	C-Source, carboxylic acid	carbon
-PM33	H11	0	PM33	A01	Phenylethylamine	CAS 156-28-5	C05332	C-Source, amine	carbon
-PM33	H12	0	PM33	A01	2-Aminoethanol	CAS 141-43-5	C00189	C-Source, alcohol	carbon
+PM33C	A01	0		Negative Control			C-Source, negative control	carbon
+PM33C	A02	0	A01	L-Arabinose	CAS 87-72-9	C00259	C-Source, carbohydrate	carbon
+PM33C	A03	0	A01	N-Acetyl-D-Glucosamine	CAS 7512-17-6	C00140	C-Source, carbohydrate	carbon
+PM33C	A04	0	A01	D-Saccharic acid	CAS 576-42-1	C00818	C-Source, carboxylic acid	carbon
+PM33C	A05	0	A01	Succinic acid	CAS 6106-21-4	C00042	C-Source, carboxylic acid	carbon
+PM33C	A06	0	A01	D-Galactose	CAS 59-23-4	C00124	C-Source, carbohydrate	carbon
+PM33C	A07	0	A01	L-Aspartic acid	CAS 3792-50-5	C00049	C-Source, amino acid	carbon
+PM33C	A08	0	A01	L-Proline	CAS 147-85-3 	C00148	C-Source, amino acid	carbon
+PM33C	A09	0	A01	D-Alanine	CAS 338-69-2	C00133	C-Source, amino acid	carbon
+PM33C	A10	0	A01	D-Trehalose	CAS 6138-23-4	C01083	C-Source, carbohydrate	carbon
+PM33C	A11	0	A01	D-Mannose	CAS 3458-28-4	C00159	C-Source, carbohydrate	carbon
+PM33C	A12	0	A01	Dulcitol	CAS 608-66-2	C01697	C-Source, carbohydrate	carbon
+PM33C	B01	0	A01	D-Serine	CAS 312-84-5	C00740	C-Source, amino acid	carbon
+PM33C	B02	0	A01	D-Sorbitol	CAS 50-70-4	C00794	C-Source, carbohydrate	carbon
+PM33C	B03	0	A01	Glycerol	CAS 56-81-5 	C00116	C-Source, carbohydrate	carbon
+PM33C	B04	0	A01	L-Fucose	CAS 2438-80-4	C01019	C-Source, carbohydrate	carbon
+PM33C	B05	0	A01	D-Glucuronic acid	CAS 14984-34-0	C00191	C-Source, carboxylic acid	carbon
+PM33C	B06	0	A01	D-Gluconic acid	CAS 527-07-1	C00257	C-Source, carboxylic acid	carbon
+PM33C	B07	0	A01	DL-a-Glycerol Phosphate	CAS 3325-00-6	C00093	C-Source, carbohydrate	carbon
+PM33C	B08	0	A01	D-Xylose	CAS 58-86-6	C00181	C-Source, carbohydrate	carbon
+PM33C	B09	0	A01	L-Lactic acid	CAS 312-85-6	C01432	C-Source, carboxylic acid	carbon
+PM33C	B10	0	A01	Formic acid	CAS 141-53-7	C00058	C-Source, carboxylic acid	carbon
+PM33C	B11	0	A01	D-Mannitol	CAS 69-65-8	C00392	C-Source, carbohydrate	carbon
+PM33C	B12	0	A01	L-Glutamic acid	CAS 6106-04-3	C00025	C-Source, amino acid	carbon
+PM33C	C01	0	A01	D-Glucose-6-Phosphate	CAS 3671-99-6	C00092	C-Source, carbohydrate	carbon
+PM33C	C02	0	A01	D-Galactonic acid-g-Lactone	CAS 2782-07-2	C03383	C-Source, carboxylic acid	carbon
+PM33C	C03	0	A01	DL-Malic acid	CAS 6915-15-7	C00497	C-Source, carboxylic acid	carbon
+PM33C	C04	0	A01	D-Ribose	CAS 50-69-1	C00121	C-Source, carbohydrate	carbon
+PM33C	C05	0	A01	Tween 20	CAS 9005-64-5	C11624	C-Source, fatty acid	carbon
+PM33C	C06	0	A01	L-Rhamnose	CAS 3615-41-6	C00507	C-Source, carbohydrate	carbon
+PM33C	C07	0	A01	D-Fructose	CAS 57-48-7	C00095	C-Source, carbohydrate	carbon
+PM33C	C08	0	A01	Acetic acid	CAS 127-09-3	C00033	C-Source, carboxylic acid	carbon
+PM33C	C09	0	A01	a-D-Glucose	CAS 50-99-7	C00031	C-Source, carbohydrate	carbon
+PM33C	C10	0	A01	Maltose	CAS 6363-53-7	C00208	C-Source, carbohydrate	carbon
+PM33C	C11	0	A01	D-Melibiose	CAS 585-99-9	C05402	C-Source, carbohydrate	carbon
+PM33C	C12	0	A01	Thymidine	CAS 50-89-5	C00214	C-Source, carbohydrate	carbon
+PM33C	D01	0	A01	L-Asparagine	CAS 70-47-3	C00152	C-Source, amino acid	carbon
+PM33C	D02	0	A01	D-Aspartic acid	CAS 1783-96-6	C00402	C-Source, amino acid	carbon
+PM33C	D03	0	A01	D-Glucosaminic acid	CAS 3646-68-2	C03752	C-Source, carboxylic acid	carbon
+PM33C	D04	0	A01	1,2-Propanediol	CAS 57-55-6	C00583	C-Source, alcohol	carbon
+PM33C	D05	0	A01	Tween 40	CAS 9005-66-7		C-Source, fatty acid	carbon
+PM33C	D06	0	A01	a-Ketoglutaric acid	CAS 22202-68-2	C00026	C-Source, carboxylic acid	carbon
+PM33C	D07	0	A01	a-Ketobutyric acid	CAS 2013-26-5	C00109	C-Source, carboxylic acid	carbon
+PM33C	D08	0	A01	a-Methyl-D-Galactoside	CAS 3396-99-4	C03619	C-Source, carbohydrate	carbon
+PM33C	D09	0	A01	a-D-Lactose	CAS 5989-81-1	C00243	C-Source, carbohydrate	carbon
+PM33C	D10	0	A01	Lactulose	CAS 4618-18-2	C07064	C-Source, carbohydrate	carbon
+PM33C	D11	0	A01	Sucrose	CAS 57-50-1	C00089	C-Source, carbohydrate	carbon
+PM33C	D12	0	A01	Uridine	CAS 58-96-8	C00299	C-Source, carbohydrate	carbon
+PM33C	E01	0	A01	L-Glutamine	CAS 56-85-9	C00064	C-Source, amino acid	carbon
+PM33C	E02	0	A01	m-Tartaric acid	CAS 147-73-9	C00552	C-Source, carboxylic acid	carbon
+PM33C	E03	0	A01	D-Glucose-1-Phosphate	CAS 56401-20-8	C00103	C-Source, carbohydrate	carbon
+PM33C	E04	0	A01	D-Fructose-6-Phosphate	CAS 26177-86-6	C00085	C-Source, carbohydrate	carbon
+PM33C	E05	0	A01	Tween 80	CAS 9005-65-6	C11625	C-Source, fatty acid	carbon
+PM33C	E06	0	A01	a-Hydroxyglutaric acid-g-Lactone	CAS 21461-84-7		C-Source, carboxylic acid	carbon
+PM33C	E07	0	A01	a-Hydroxybutyric acid	CAS 19054-57-0	C05984	C-Source, carboxylic acid	carbon
+PM33C	E08	0	A01	b-Methyl-D-Glucoside	CAS 709-50-2		C-Source, carbohydrate	carbon
+PM33C	E09	0	A01	Adonitol	CAS 488-81-3	C00474	C-Source, carbohydrate	carbon
+PM33C	E10	0	A01	Maltotriose	CAS 1109-28-0	C01835	C-Source, carbohydrate	carbon
+PM33C	E11	0	A01	2`-Deoxyadenosine	CAS 16373-93-6	C00559	C-Source, carbohydrate	carbon
+PM33C	E12	0	A01	Adenosine	CAS 58-61-7	C00212	C-Source, carbohydrate	carbon
+PM33C	F01	0	A01	Gly-Asp	CAS 4685-12-5	C02871	C-Source, amino acid	carbon
+PM33C	F02	0	A01	Citric acid	CAS 6132-04-3	C00158	C-Source, carboxylic acid	carbon
+PM33C	F03	0	A01	m-Inositol	CAS 87-89-8	C00137	C-Source, carbohydrate	carbon
+PM33C	F04	0	A01	D-Threonine	CAS 632-20-2	C00820	C-Source, amino acid	carbon
+PM33C	F05	0	A01	Fumaric acid	CAS 17013-01-3	C00122	C-Source, carboxylic acid	carbon
+PM33C	F06	0	A01	Bromosuccinic acid	CAS 923-06-8		C-Source, carboxylic acid	carbon
+PM33C	F07	0	A01	Propionic acid	CAS 137-40-6	C00163	C-Source, carboxylic acid	carbon
+PM33C	F08	0	A01	Mucic acid	CAS 526-99-8	C01807	C-Source, carboxylic acid	carbon
+PM33C	F09	0	A01	Glycolic acid	CAS 79-14-1	C00160	C-Source, carboxylic acid	carbon
+PM33C	F10	0	A01	Glyoxylic acid	CAS 563-96-2	C00048	C-Source, carboxylic acid	carbon
+PM33C	F11	0	A01	D-Cellobiose	CAS 528-50-7	C00185	C-Source, carbohydrate	carbon
+PM33C	F12	0	A01	Inosine	CAS 58-63-9	C00294	C-Source, carbohydrate	carbon
+PM33C	G01	0	A01	Gly-Glu	CAS 7412-78-4		C-Source, amino acid	carbon
+PM33C	G02	0	A01	Tricarballylic acid	CAS 99-14-9		C-Source, carboxylic acid	carbon
+PM33C	G03	0	A01	L-Serine	CAS 56-45-1	C00065	C-Source, amino acid	carbon
+PM33C	G04	0	A01	L-Threonine	CAS 72-19-5	C00188	C-Source, amino acid	carbon
+PM33C	G05	0	A01	L-Alanine	CAS 56-41-7	C00041	C-Source, amino acid	carbon
+PM33C	G06	0	A01	Ala-Gly	CAS 687-69-4		C-Source, amino acid	carbon
+PM33C	G07	0	A01	Acetoacetic acid	CAS 3483-11-2	C00164	C-Source, carboxylic acid	carbon
+PM33C	G08	0	A01	N-Acetyl-D-Mannosamine	CAS 7772-94-3	C00645	C-Source, carbohydrate	carbon
+PM33C	G09	0	A01	Mono-Methylsuccinate	CAS 3878-55-5		C-Source, carboxylic acid	carbon
+PM33C	G10	0	A01	Methylpyruvate	CAS 600-22-6		C-Source, ester	carbon
+PM33C	G11	0	A01	D-Malic acid	CAS 636-61-3	C00497	C-Source, carboxylic acid	carbon
+PM33C	G12	0	A01	L-Malic acid	CAS 138-09-0	C00149	C-Source, carboxylic acid	carbon
+PM33C	H01	0	A01	Gly-Pro	CAS 704-15-4		C-Source, amino acid	carbon
+PM33C	H02	0	A01	p-Hydroxyphenyl Acetic acid	CAS 156-38-7	C00642	C-Source, carboxylic acid	carbon
+PM33C	H03	0	A01	m-Hydroxyphenyl Acetic acid	CAS 621-37-4	C05593	C-Source, carboxylic acid	carbon
+PM33C	H04	0	A01	Tyramine	CAS 60-19-5	C00483	C-Source, amine	carbon
+PM33C	H05	0	A01	D-Psicose	CAS 551-68-8	C06468	C-Source, carbohydrate	carbon
+PM33C	H06	0	A01	L-Lyxose	CAS 1949-78-6	C01508	C-Source, carbohydrate	carbon
+PM33C	H07	0	A01	Glucuronamide	CAS 3789-97-7	D01791	C-Source, amide	carbon
+PM33C	H08	0	A01	Pyruvic acid	CAS 113-24-6	C00022	C-Source, carboxylic acid	carbon
+PM33C	H09	0	A01	L-Galactonic acid-g-Lactone	CAS 1668-08-2	C01115	C-Source, carboxylic acid	carbon
+PM33C	H10	0	A01	D-Galacturonic acid	CAS 91510-62-2	C00333	C-Source, carboxylic acid	carbon
+PM33C	H11	0	A01	Phenylethylamine	CAS 156-28-5	C05332	C-Source, amine	carbon
+PM33C	H12	0	A01	2-Aminoethanol	CAS 141-43-5	C00189	C-Source, alcohol	carbon

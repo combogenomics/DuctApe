@@ -138,12 +138,23 @@ echo -e $green"Pangenome"$reset
 rm input/kegg.tsv &> /dev/null
 cleanUp
 
-echo -e $green"Other functions"$reset
+echo -e $green"Custom plates"$reset
 
 ../dape init || die "dape init"
 ../dphenome import-plates input/newplate.tsv || die "dphenome import-plates (good)"
 ../dphenome export || die "dphenome export"
 ../dphenome import-plates input/newplate_wrong.tsv && die "dphenome import-plates (wrong)"
+../dape add Rm1021 -c red || die "dape add"
+../dphenome add input/Rm1021newplate.csv Rm1021 || die "dphenome add"
+../dphenome zero || die "dphenome zero"
+../dphenome start -f || die "dphenome start"
+../dphenome purge keep-min || die "dphenome purge"
+../dphenome restore || die "dphenome restore"
+../dphenome plot || die "dphenome plot"
+../dphenome rings || die "dphenome rings"
+../dphenome stats || die "dphenome stats"
+../dphenome export || die "dphenome export"
+
 cleanUp
 
 echo -e $green"All tests passed"$reset

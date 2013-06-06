@@ -9,7 +9,7 @@ die () {
 	echo -e $red$1$reset
 	echo -e $red"Test failed!"$reset
 	echo -e $red"############"$reset
-	cleanUp
+	#cleanUp
 	exit 1
 }
 

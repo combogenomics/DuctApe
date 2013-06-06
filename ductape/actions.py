@@ -2193,7 +2193,7 @@ def dPhenomeExport(project):
                                 'category',
                                 'moa', 'co_id', 'replica', 'activity',
                                 'min', 'max', 'height', 'plateau', 'slope',
-                                'lag', 'area']) + '\n')
+                                'lag', 'area', 'source']) + '\n')
         i = 0
         for w in biolog.getOrgWells(org.org_id):
             wdet = biolog.getWell(w.plate_id, w.well_id)
@@ -2202,7 +2202,8 @@ def dPhenomeExport(project):
                                   [xstr(x) for x in [w.replica, w.activity,
                                                     w.min, w.max, w.height,
                                                     w.plateau, w.slope,
-                                                    w.lag, w.area]])
+                                                    w.lag, w.area,
+                                                    w.source]])
                        + '\n')
             i += 1
         fout.close()

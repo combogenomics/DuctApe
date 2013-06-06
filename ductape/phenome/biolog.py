@@ -62,8 +62,13 @@ class Well(object):
         # Fitting model used
         self.model = None
         
+        # Source of the parameters (i.e. the program)
+        self.source = None
+        
         # Relative activity index
         self.activity = None
+        
+        self.otherparams = ['activity', 'model', 'source']
         
         # Additional info added by well parents
         self.replica = None
@@ -77,7 +82,7 @@ class Well(object):
         return '\t'.join( ['Plate', 'Well', 'Strain',
                            'Replica', 'Activity', 'Min',
                            'Max', 'Height', 'Plateau',
-                           'Slope', 'Lag', 'Area'] )
+                           'Slope', 'Lag', 'Area', 'Source'] )
         
     def __str__(self):
         '''
@@ -92,7 +97,8 @@ class Well(object):
                                             self.plateau,
                                             self.slope,
                                             self.lag,
-                                            self.area]] )
+                                            self.area,
+                                            self.source]] )
 
     def addSignal(self,time,signal):
         self.signals[time] = signal
@@ -199,6 +205,8 @@ class Well(object):
         
         # Trapezoid integration for area calculation
         self.area = trapz(y = ydata, x = xdata)
+        
+        self.source = "DuctApe"
         
         # If any of the values are null generate them by hand
         if not y0:
@@ -2093,7 +2101,7 @@ def getSinglePlatesFromParameters(wells, nonmean=False):
             
             dExp[plate_id][org_id][replica].data[well_id].activity = well.activity
             
-            for param in Well('fake', 'fake').params:
+            for param in Well('fake', 'fake').params + Well('fake', 'fake').otherparams:
                 setattr(dExp[plate_id][org_id][replica].data[well_id],
                         param,
                         getattr(well, param, None)) 

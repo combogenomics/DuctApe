@@ -3365,7 +3365,7 @@ class Biolog(DBBase):
         query = '''insert or replace into biolog_exp 
                             (plate_id, well_id, org_id, replica, activity, 
                             zero, min, max, height, plateau, slope, lag,
-                            area, v, y0, model)
+                            area, v, y0, model, source)
                             values '''
         query1a = '''insert or replace into biolog_exp 
                             (plate_id, well_id, org_id, replica, 
@@ -3404,10 +3404,11 @@ class Biolog(DBBase):
             if clustered:
                 blist = ['''('%s','%s','%s',%s,
                             %s,%s,%s,%s,%s,%s,
-                            %s,%s,%s,%s,%s,'%s')'''
+                            %s,%s,%s,%s,%s,'%s','%s')'''
                          %(w.plate_id,w.well_id,w.strain,w.replica,
                                   w.activity,int(w.zero),w.min,w.max,w.height,
-                                  w.plateau,w.slope,w.lag,w.area,w.v,w.y0,w.model)
+                                  w.plateau,w.slope,w.lag,w.area,w.v,w.y0,
+                                  w.model,w.source)
                               for w in explist]
             else:
                 blist = ['''('%s','%s','%s','%s','%s')'''
@@ -3436,6 +3437,52 @@ class Biolog(DBBase):
             
             conn.execute('''update biolog_exp
                             set model = null where model = '';''')
+            conn.execute('''update biolog_exp
+                            set source = null where source = '';''')
+    
+    def delWellsParams(self, wells):
+        '''
+        Remove all the parameters from the selected wells
+        '''
+        oCheck = Organism(self.dbname)
+        
+        query = '''
+                update biolog_exp
+                set activity=null, 
+                    min=null,
+                    max=null,
+                    height=null,
+                    plateau=null,
+                    slope=null,
+                    lag=null,
+                    area=null,
+                    v=null,
+                    y0=null,
+                    model=null,
+                    source=null
+                where plate_id=? and
+                      well_id=? and
+                      org_id=? and
+                      replica=?;
+                '''
+        
+        for w in wells:
+            if not self.isPlate(w.plate_id):
+                logger.warning('Plate %s is not known!'%w.plate_id)
+                raise Exception('This plate (%s) is not known!'%w.plate_id)
+            if not self.isWell(w.well_id):
+                logger.warning('Well %s is not known!'%w.well_id)
+                raise Exception('This well (%s) is not known!'%w.well_id)
+            if not oCheck.isOrg(w.strain):
+                logger.warning('Organism %s is not present yet!'%w.strain)
+                raise Exception('This organism (%s) is not present yet!'%w.strain)
+        
+        self.boost()
+        
+        with self.connection as conn:
+            for w in wells:
+                conn.execute(query,
+                              [w.plate_id,w.well_id,w.strain,w.replica,])
     
     def delWells(self, explist):
         '''
@@ -3900,12 +3947,52 @@ class Biolog(DBBase):
         with self.connection as conn:
             cursor=conn.execute('''select b.plate_id, b.well_id, b.org_id,
                                           b.replica, b1.times, b1.signals,
-                                          b.activity
+                                          b.activity, b.min, b.max, b.height,
+                                          b.plateau, b.slope, b.lag, b.area,
+                                          b.v, b.y0,
+                                          b.model, b.source
                                    from biolog_exp_det b1, biolog_exp b
                                    where b.plate_id=b1.plate_id
                                    and b.well_id=b1.well_id
                                    and b.org_id=b1.org_id
                                    and b.replica=b1.replica;''')
+        
+        for res in cursor:
+            yield Row(res, cursor.description)
+    
+    def getAllSignalsNoParams(self):
+        '''
+        Get all the signals for which we have no parameters from the storage
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select b.plate_id, b.well_id, b.org_id,
+                                          b.replica, b1.times, b1.signals,
+                                          b.activity
+                                   from biolog_exp_det b1, biolog_exp b
+                                   where b.plate_id=b1.plate_id
+                                   and b.well_id=b1.well_id
+                                   and b.org_id=b1.org_id
+                                   and b.replica=b1.replica
+                                   and (activity=null and min=null
+                                       and max=null and height=null
+                                       and plateau=null and slope=null
+                                       and lag=null and area=null
+                                       and v=null and y0=null
+                                       and model=null and source=null);''')
+        
+        for res in cursor:
+            yield Row(res, cursor.description)
+      
+    def getParamsSources(self):
+        '''
+        Generator to the distinct sources for the parameters calculation
+        '''
+        query = '''
+                select distinct source
+                from biolog_exp;
+                '''
+        with self.connection as conn:
+            cursor=conn.execute(query)
         
         for res in cursor:
             yield Row(res, cursor.description)
@@ -4073,11 +4160,11 @@ class Biolog(DBBase):
                                 and replica = ?;''',[p,w,o,r,])
                 well = Row(cursor.fetchall()[0], cursor.description)
                 conn.execute('''insert into biolog_purged_exp
-                        values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);''',
+                        values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);''',
                         [p,w,o,r,well.activity, well.zero,well.min,
                          well.max,well.height,well.plateau,
                          well.slope,well.lag,well.area,
-                         well.v,well.y0,well.model])
+                         well.v,well.y0,well.model,well.source])
                 conn.execute('''delete from biolog_exp
                                 where plate_id = ?
                                 and well_id = ?
@@ -4127,13 +4214,13 @@ class Biolog(DBBase):
                                                   well.org_id, well.replica,])
                 well = Row(cursor.fetchall()[0], cursor.description)
                 conn.execute('''insert into biolog_exp
-                        values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);''',
+                        values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);''',
                         [well.plate_id, well.well_id,
                          well.org_id, well.replica,
                          well.activity, well.zero,well.min,
                          well.max,well.height,well.plateau,
                          well.slope,well.lag,well.area,
-                         well.v,well.y0,well.model])
+                         well.v,well.y0,well.model,well.source])
                 conn.execute('''delete from biolog_purged_exp
                                 where plate_id = ?
                                 and well_id = ?

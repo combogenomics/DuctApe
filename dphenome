@@ -77,9 +77,10 @@ def dstart(options, wdir, project):
 
     if options.p:
         logger.warning('Skipping parameters calculation')
-    else:   
+    else:
         # Clusterize the biolog experiment
-        if not doClusterPhenome(project, save_fig_clusters=options.f):
+        if not doClusterPhenome(project, save_fig_clusters=options.f,
+                                force_params=options.r):
             logger.error('Phenome experiment could not be clustered!')
             return False
 
@@ -269,7 +270,8 @@ def dclear(options, wdir, project):
         return False
     return dPhenomeClear(project)
 
-def doClusterPhenome(project, save_fig_clusters=False):
+def doClusterPhenome(project, save_fig_clusters=False,
+                     force_params=False):
     biolog = Biolog(project)
     # Get Plate Objects
     # TODO: here check the zero subtraction state? (it may be mixed up)
@@ -285,7 +287,8 @@ def doClusterPhenome(project, save_fig_clusters=False):
 
     exp = Experiment(plates=plates, zero=isZero, zeroPlates=zeroPlates)
     
-    bclust = BiologCluster(exp, save_fig_clusters=save_fig_clusters)
+    bclust = BiologCluster(exp, save_fig_clusters=save_fig_clusters,
+                           force_params=force_params)
         
     if not RunThread(bclust):
         return False
@@ -295,6 +298,7 @@ def doClusterPhenome(project, save_fig_clusters=False):
     for w in wells:
         if biolog.isZeroSubtracted(w.plate_id, w.well_id, w.strain, w.replica):
             w.zero = True
+    
     biolog.addWells(wells, clustered=True, replace=True)
     
     logger.info('Analyzed and clustered %d phenomic experiments'%len(wells))
@@ -410,6 +414,9 @@ def getOptions():
     parser_start.add_argument('-f', action="store_true",
                             default=False,
                             help='Save intermediate clusters figures')
+    parser_start.add_argument('-r', action="store_true",
+                            default=False,
+                            help='Force parameters re-calculation')
     parser_start.set_defaults(func=dstart)
     
     parser_plot = subparsers.add_parser('plot', help='Plot the phenomic data')

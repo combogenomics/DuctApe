@@ -575,7 +575,8 @@ def dPhenomeZero(project, blankfile=None):
     
     logger.info('Zero subtraction done on %d plates'%len(plates))
     if biolog.atLeastOneParameter():
-        logger.warning('The activity must be recalculated')
+        logger.warning('The parameters and the activity must be recalculated')
+        biolog.delWellsParams(wells)
     
     return True
 

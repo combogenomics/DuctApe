@@ -248,6 +248,26 @@ class Well(object):
                            %(self.plate_id, self.well_id, self.strain, param)+
                            ' forced to zero')
                 setattr(self, param, 0)
+                
+    def isParams(self):
+        '''
+        Do we have at least one parameter calculated?
+        '''
+        params = filter(lambda x: x!=None,
+                      [self.max,
+                       self.min,
+                       self.height,
+                       self.plateau,
+                       self.slope,
+                       self.lag,
+                       self.area,
+                       self.v,
+                       self.y0])
+        
+        if len(params) == 0:
+            return False
+        else:
+            return True
 
 class SinglePlate(object):
     '''
@@ -295,7 +315,7 @@ class SinglePlate(object):
         A generator is returned
         '''
         for well_id, well in self.data.iteritems():
-            if not well.max:
+            if not well.isParams():
                 well.calculateParams()
             yield True
     
@@ -842,7 +862,7 @@ class Experiment(object):
         for plate_id in self.plates:
             Plate = self.plates[plate_id]
             for well in Plate.getWells():
-                if not well.max and params:
+                if not well.isParams() and params:
                     well.calculateParams()
                 
                 # Fix the Nan parameters, force to zero
@@ -1911,7 +1931,11 @@ class CalcParams(object):
             try:
                 logger.debug('Calculating parameters for %s - %s'%
                              (self.well.plate_id, self.well.well_id))
-                self.well.calculateParams()
+                if self.well.isParams():
+                    self.well.calculateParams()
+                else:
+                    logger.debug('Parameters already present, ',
+                                 'skipping parameters calculation')
             except:
                 return False
         
@@ -1928,13 +1952,17 @@ class BiologCluster(CommonThread):
     _substatuses = [1]
     
     def __init__(self,experiment,
-                 save_fig_clusters=False,queue=Queue.Queue()):
+                 save_fig_clusters=False, force_params=False,
+                 queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         # Experiment
         self.exp = experiment
         
         # Save clusters figure?
         self.save_fig = bool(save_fig_clusters)
+        
+        # Force parameters calculation (even if they are there already?)
+        self.force = force_params
     
     def calculateParams(self):
         wellcount = 0
@@ -1949,7 +1977,11 @@ class BiologCluster(CommonThread):
             self._substatus += 1
             self.updateStatus(sub=True)
             
-            well.calculateParams()
+            if not well.isParams() or self.force:
+                well.calculateParams()
+            else:
+                logger.debug('Parameters already present, '
+                                 'skipping parameters calculation')
         
         return True
     
@@ -2017,6 +2049,13 @@ def getSinglePlatesFromSignals(signals):
         if hasattr(well, "activity"):
             dExp[plate_id][org_id][replica].data[well_id].activity = well.activity
         #
+        
+        # And the other parameters as well
+        for param in Well('fake', 'fake').params + Well('fake', 'fake').otherparams:
+            if hasattr(well, param):
+                setattr(dExp[plate_id][org_id][replica].data[well_id],
+                        param,
+                        getattr(well, param, None))
         
     # Return all the SinglePlates objects 
     for orgs in dExp.itervalues():

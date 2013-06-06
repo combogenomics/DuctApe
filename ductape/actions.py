@@ -1568,7 +1568,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             amaxindex = acts.index(amax)
             if amax.activity - acts[amaxindex - 1].activity >= delta:
                 UpUnique[amax.strain] += 1
-
+    
             amin = acts[0]
             if acts[1].activity - amin.activity >= delta:
                 DownUnique[amin.strain] += 1

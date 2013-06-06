@@ -3159,7 +3159,7 @@ class Biolog(DBBase):
                                    order by well_id;''',[plate_id,])
         
         for res in cursor:
-            yield Row(res, cursor.description)
+            yield Row(res, cursor.description).well_id
     
     def getPlate(self, plate_id):
         with self.connection as conn:

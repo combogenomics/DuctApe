@@ -141,11 +141,13 @@ cleanUp
 echo -e $green"Custom plates"$reset
 
 ../dape init || die "dape init"
+../dape import input/kegg.tsv || die "dape import"
 ../dphenome import-plates input/newplate.tsv || die "dphenome import-plates (good)"
 ../dphenome export || die "dphenome export"
 ../dphenome import-plates input/newplate_wrong.tsv && die "dphenome import-plates (wrong)"
 ../dape add Rm1021 -c red || die "dape add"
 ../dphenome add input/Rm1021newplate.csv Rm1021 || die "dphenome add"
+../dphenome add input/Rm1021.yml Rm1021 || die "dphenome add (yml)"
 ../dphenome zero || die "dphenome zero"
 ../dphenome start -f || die "dphenome start"
 ../dphenome purge keep-min || die "dphenome purge"
@@ -154,6 +156,7 @@ echo -e $green"Custom plates"$reset
 ../dphenome rings || die "dphenome rings"
 ../dphenome stats || die "dphenome stats"
 ../dphenome export || die "dphenome export"
+../dphenome start -f -r || die "dphenome start"
 
 cleanUp
 

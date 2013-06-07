@@ -122,12 +122,15 @@ rm ductape.db
 echo -e $green"Custom plates"$reset
 
 ./dape -v init || die "dape init"
+sleep 5
+./dape -v import kegg.tsv || die "./dape -v import"
 ./dphenome -v import-plates test/input/newplate.tsv || die "dphenome import-plates (good)"
 sleep 5
 ./dphenome -v export || die "dphenome export"
 ./dphenome -v import-plates test/input/newplate_wrong.tsv && die "dphenome import-plates (wrong)"
 ./dape -v add Rm1021 -c red || die "dape add"
 ./dphenome -v add test/input/Rm1021newplate.csv Rm1021 || die "dphenome add"
+./dphenome -v add input/Rm1021.yml Rm1021 || die "dphenome add (yml)"
 ./dphenome -v zero || die "dphenome zero"
 ./dphenome start -f > /dev/null || die "dphenome start"
 sleep 5
@@ -137,6 +140,7 @@ sleep 5
 ./dphenome -v rings || die "dphenome rings"
 ./dphenome -v stats || die "dphenome stats"
 ./dphenome -v export || die "dphenome export"
+./dphenome start -f -r > /dev/null || die "dphenome start"
 
 rm ductape.db
 

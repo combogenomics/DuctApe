@@ -1,3 +1,19 @@
+Version 0.8.0
+=============
+
+UPGRADE URGENCY: LOW, if you work exclusively with DuctApe and use the standard bacterial PM plates
+
+FEATURES:
+* dphenome import-plates: the user can now analyze even custom plates
+    * the table in test/input/newplate.tsv contains an example
+* dphenome add/add-multi: PM data analyzed by different programs (i.e. opm) can now be imported
+    * YAML/JSON file formats are supported
+* dgenome export: PM data can now be exported in YAML/JSON format
+
+BUGFIXES:
+* dape init: if something goes wrong during DB creation raise an error
+* Other small bugfixes
+
 Version 0.7.0
 =============
 

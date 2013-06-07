@@ -18,7 +18,7 @@ echo -e $green"Single organism"$reset
 ./dape -v add Rm1021 -c red || die "./dape -v add"
 ./dgenome -v add test/input/Rm1021.faa Rm1021 || die "./dgenome -v add"
 ./dgenome -v add-ko test/input/ko_Rm1021.tsv || die "./dgenome -v add-ko"
-./dgenome start > /dev/null || die "./dgenome start"
+./dgenome start || die "./dgenome start"
 ./dgenome -v stats || die "./dgenome -v stats"
 ./dgenome -v export || die "./dgenome -v export"
 

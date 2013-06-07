@@ -2250,6 +2250,111 @@ def getPlates(signals, nonmean=False):
     for plate in dExp.itervalues():
         yield plate
 
+def toOPM(p):
+    d={}
+    
+    d['csv_data'] = {}
+    d['csv_data']['Data file'] = ''
+    d['csv_data']['File'] = ''
+    d['csv_data']['Other'] = ''
+    d['csv_data']['Plate Type'] = p.plate_id
+    d['csv_data']['Position'] = ''
+    d['csv_data']['Sample Number'] = p.strain
+    d['csv_data']['Setup Time'] = ''
+    d['csv_data']['Strain Name'] = p.strain
+    d['csv_data']['Strain Number'] = p.strain
+    d['csv_data']['Strain Type'] = ''
+    
+    d['metadata'] = []
+    
+    d['measurements'] = {}
+    d['measurements']['Hour'] = []
+    times = set()
+    for wid in p.data:
+        d['measurements'][wid] = []
+        for hour in p.data[wid].signals:
+            times.add(hour)
+    
+    for hour in sorted(times):
+        d['measurements']['Hour'].append(hour)
+        for wid in p.data:
+            if hour in p.data[wid].signals:
+                d['measurements'][wid].append(p.data[wid].signals[hour])
+            # This shouldn't happen
+            else:
+                d['measurements'][wid].append(float('nan'))
+      
+    # Do we have some parameters?
+    isaggr = set([p.data[x].isParams() for x in p.data])
+    if True not in isaggr:
+        return d        
+                
+    d['aggr_settings'] = {}
+    
+    # We may have more than one parameters sources!
+    sources = set([p.data[x].source for x in p.data])
+    if len(sources) > 1:
+        logger.error('Cannot export plate %s (replica %s, %s), having %d'
+                     %(p.plate_id, p.replica, p.strain, len(sources))+
+                     ' different parameters sources')
+        for s in sources:
+            logger.error('Method: %s'%s)
+        raise ValueError('Too many different parameters sources')
+    source = sources.pop()
+    
+    d['aggr_settings']['software'] = source
+    d['aggr_settings']['method'] = source
+    d['aggr_settings']['options'] = {'Dummy':'Dummy'}
+    
+    d['aggregated'] = {}
+    for wid in p.data:
+        d['aggregated'][wid] = {}
+        
+        if p.data[wid].slope is not None:
+            d['aggregated'][wid]['mu'] = p.data[wid].slope
+        else:
+            d['aggregated'][wid]['mu'] = '.na.real'
+            
+        if p.data[wid].lag is not None:
+            d['aggregated'][wid]['lambda'] = p.data[wid].lag
+        else:
+            d['aggregated'][wid]['lambda'] = '.na.real'
+        
+        if p.data[wid].max is not None:
+            d['aggregated'][wid]['A'] = p.data[wid].max
+        else:
+            d['aggregated'][wid]['A'] = '.na.real'
+            
+        if p.data[wid].area is not None:
+            d['aggregated'][wid]['AUC'] = p.data[wid].area
+        else:
+            d['aggregated'][wid]['AUC'] = '.na.real'
+        
+        d['aggregated'][wid]['mu CI95 low'] = '.na.real'
+        d['aggregated'][wid]['lambda CI95 low'] = '.na.real'
+        d['aggregated'][wid]['A CI95 low'] = '.na.real'
+        d['aggregated'][wid]['AUC CI95 low'] = '.na.real'
+        d['aggregated'][wid]['mu CI95 high'] = '.na.real'
+        d['aggregated'][wid]['lambda CI95 high'] = '.na.real'
+        d['aggregated'][wid]['A CI95 high'] = '.na.real'
+        d['aggregated'][wid]['AUC CI95 high'] = '.na.real'
+        
+    return d
+
+def toYAML(plate):
+    '''
+    Take a SimplePlate object and return YAML strings 
+    '''
+    import yaml
+    return yaml.safe_dump(toOPM(plate), default_flow_style=False)
+
+def toJSON(plate):
+    '''
+    Take a SimplePlate object and return JSON strings 
+    '''
+    import json
+    return json.dumps(toOPM(plate))
+
 def nullifyNAN(value):
     '''
     Takes a value, if it is not convertible to float returns None

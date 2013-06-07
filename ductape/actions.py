@@ -2162,7 +2162,10 @@ def dBiologImport(project, infile):
     
     return True
 
-def dPhenomeExport(project):
+def dPhenomeExport(project, json=False):
+    from ductape.phenome.biolog import getSinglePlatesFromSignals
+    from ductape.phenome.biolog import toYAML, toJSON
+    
     biolog = Biolog(project)    
     
     logger.info('Exporting Biolog plate data')
@@ -2186,7 +2189,22 @@ def dPhenomeExport(project):
         return True
     
     # Which project are we talking about?
-    kind = dSetKind(project)    
+    kind = dSetKind(project)
+    
+    logger.info('Exporting phenomic data for other programs')
+    
+    sigs = [x for x in biolog.getAllSignals()]
+    for plate in getSinglePlatesFromSignals(sigs):
+        if not json:
+            fout = open('%s_%s_%s.yml'%(plate.plate_id, plate.strain,
+                                    plate.replica), 'w')
+            fout.write(toYAML(plate))
+            fout.close()
+        else:
+            fout = open('%s_%s_%s.json'%(plate.plate_id, plate.strain,
+                                    plate.replica), 'w')
+            fout.write(toJSON(plate))
+            fout.close()
     
     logger.info('Exporting single organism(s) phenomic data')
     

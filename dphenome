@@ -250,7 +250,7 @@ def dexport(options, wdir, project):
                        __prog__)
         return False
     
-    return dPhenomeExport(project)
+    return dPhenomeExport(project, options.json)
 
 def dremove(options, wdir, project):
     from ductape.actions import dPhenomeRemove
@@ -493,6 +493,9 @@ def getOptions():
     parser_import.set_defaults(func=dimportplates)
     
     parser_export = subparsers.add_parser('export', help='Export phenomic data')
+    parser_export.add_argument('-j', '--json', action="store_true",
+                            default=False,
+                            help='Export JSON files instead of YAML')
     parser_export.set_defaults(func=dexport)
 
     parser_rm = subparsers.add_parser('rm', help='Remove phenome analysis')

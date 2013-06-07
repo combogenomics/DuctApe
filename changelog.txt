@@ -8,6 +8,7 @@ FEATURES:
     * the table in test/input/newplate.tsv contains an example
 * dphenome add/add-multi: PM data analyzed by different programs (i.e. opm) can now be imported
     * YAML/JSON file formats are supported
+    * Curve parameters calculated by other programs are considered: they may be overridden by using dphenome start -r
 * dgenome export: PM data can now be exported in YAML/JSON format
 
 BUGFIXES:

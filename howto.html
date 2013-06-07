@@ -410,6 +410,14 @@
                         <p><code>dphenome rm Rm1021</code></p>
                         <p><i class="icon-chevron-right"></i> <b class="text-success">clear</b> clear all the phenomic data</p>
                         <p><code>dphenome clear</code></p>
+                        <p>Not all the PM plates are present inside DuctApe, including putative custom plates; they can be analyzed by importing <a href="https://raw.github.com/combogenomics/DuctApe/master/test/input/newplate.tsv">a tab-delimited file like this one</a>.</p>
+                        <p><i class="icon-chevron-right"></i> <b class="text-success">import-plates</b> add new plates to DuctApe</p>
+                        <dl class="dl-horizontal">
+                          <dt>file</dt>
+                          <dd>Tab delimited file with custom plate data [compulsory parameter]</dd>
+                        </dl>
+                        <p class="muted"><small><i class="icon-flag"></i> Some analysis may be redone after the removal of a phenome.</small></p>
+                        <p><code>dphenome rm Rm1021</code></p>
                         
                         <h4>Growth curves analysis and KEGG mapping</h4>
                         <p>Some Phenotype microarray plates (PM1 to PM8) have a control well, which can be used to subtract the background signal. If a "blank" plate file is available, each well can be subtracted to its blank well.</p>

@@ -47,6 +47,7 @@ echo -e $green"Deletion AND insertion mutants"$reset
 
 ./dape -v init || die "./dape -v init"
 ./dape -v import kegg.tsv || die "./dape -v import"
+sleep 5
 ./dape -v add Rm1021 -c red || die "./dape -v add"
 ./dape -v add-mut -k deletion -c blue -m Rm1021 del || die "./dape -v add-mut"
 ./dape -v add-mut -k insertion -c green -m Rm1021 add || die "./dape -v add-mut"
@@ -88,6 +89,7 @@ echo -e $green"Pangenome"$reset
 ./dape -v init || die "./dape -v init"
 ./dape -v add-multi Rm1021 AK83 AK58 BL225C || die "./dape -v add-multi"
 ./dape -v import kegg.tsv || die "./dape -v import"
+sleep 5
 
 ./dgenome -v add-dir test/input/pangenome || die "./dgenome -v add-dir"
 ./dgenome -v add-ko test/input/pangenome/ko.tab || die "./dgenome -v add-ko"
@@ -122,15 +124,15 @@ rm ductape.db
 echo -e $green"Custom plates"$reset
 
 ./dape -v init || die "dape init"
-sleep 5
 ./dape -v import kegg.tsv || die "./dape -v import"
+sleep 5
 ./dphenome -v import-plates test/input/newplate.tsv || die "dphenome import-plates (good)"
 sleep 5
 ./dphenome -v export || die "dphenome export"
 ./dphenome -v import-plates test/input/newplate_wrong.tsv && die "dphenome import-plates (wrong)"
 ./dape -v add Rm1021 -c red || die "dape add"
 ./dphenome -v add test/input/Rm1021newplate.csv Rm1021 || die "dphenome add"
-./dphenome -v add input/Rm1021.yml Rm1021 || die "dphenome add (yml)"
+./dphenome -v add test/input/Rm1021.yml Rm1021 || die "dphenome add (yml)"
 ./dphenome -v zero || die "dphenome zero"
 ./dphenome start -f > /dev/null || die "dphenome start"
 sleep 5

@@ -3353,7 +3353,7 @@ class Biolog(DBBase):
         for res in cursor:
             yield Row(res, cursor.description)
     
-    def addWells(self, explist, clustered=True, replace=False):
+    def addWells(self, explist, clustered=True, replace=False, imported=False):
         '''
         Input: a series of Well objects
         If clustered = True, it is assumed that we have generated the 
@@ -3387,7 +3387,7 @@ class Biolog(DBBase):
             if not oCheck.isOrg(w.strain):
                 logger.warning('Organism %s is not present yet!'%w.strain)
                 raise Exception('This organism (%s) is not present yet!'%w.strain)
-            if w.activity is None and clustered:
+            if w.activity is None and clustered and not imported:
                 logger.warning('Parameters extraction not yet performed!')
                 raise Exception('Parameters extraction not yet performed!')
         
@@ -3402,14 +3402,26 @@ class Biolog(DBBase):
         
         with self.connection as conn:
             if clustered:
-                blist = ['''('%s','%s','%s',%s,
-                            %s,%s,%s,%s,%s,%s,
-                            %s,%s,%s,%s,%s,'%s','%s')'''
-                         %(w.plate_id,w.well_id,w.strain,w.replica,
-                                  w.activity,int(w.zero),w.min,w.max,w.height,
-                                  w.plateau,w.slope,w.lag,w.area,w.v,w.y0,
-                                  w.model,w.source)
-                              for w in explist]
+                blist = []
+                for w in explist:
+                    bstr = ('''('%s','%s','%s',%s,'''
+                            %(w.plate_id,w.well_id,w.strain,w.replica))
+                    for param in [w.activity,int(w.zero),w.min,w.max,
+                                  w.height,w.plateau,w.slope,w.lag,
+                                  w.area,w.v,w.y0]:
+                        if param is None:
+                            bstr += ' null,'
+                        else:
+                            bstr += ' %s,'%param
+                    if w.model is None:
+                        bstr += ' null,'
+                    else:
+                        bstr += ''' '%s','''%w.model
+                    if w.source is None:
+                        bstr += ' null)'
+                    else:
+                        bstr += ''' '%s')'''%w.source
+                    blist.append(bstr)
             else:
                 blist = ['''('%s','%s','%s','%s','%s')'''
                          %(w.plate_id,w.well_id,w.strain,w.replica,int(w.zero))

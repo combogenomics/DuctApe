@@ -247,12 +247,18 @@ class Well(object):
     def purgeNan(self):
         '''
         Scan the parameters list, force Nan values to zero
+        Works also for missing parameters (None)
         '''
         import math
         
         for param in self.params:
+            if getattr(self, param) is None:
+                logger.debug('Well %s %s %s, parameter %s had a None value,'
+                           %(self.plate_id, self.well_id, self.strain, param)+
+                           ' forced to zero')
+                setattr(self, param, 0)
             if math.isnan( float( getattr(self, param) ) ):
-                logger.warning('Well %s %s %s, parameter %s had a NaN value,'
+                logger.debug('Well %s %s %s, parameter %s had a NaN value,'
                            %(self.plate_id, self.well_id, self.strain, param)+
                            ' forced to zero')
                 setattr(self, param, 0)
@@ -276,6 +282,17 @@ class Well(object):
             return False
         else:
             return True
+        
+    def hasMissingParams(self):
+        return None in set([self.max,
+                           self.min,
+                           self.height,
+                           self.plateau,
+                           self.slope,
+                           self.lag,
+                           self.area,
+                           self.v,
+                           self.y0])
 
 class SinglePlate(object):
     '''
@@ -873,12 +890,6 @@ class Experiment(object):
                 if not well.isParams() and params:
                     well.calculateParams()
                 
-                # Fix the Nan parameters, force to zero
-                try:
-                    int(well.max)  
-                    well.purgeNan()
-                except:pass
-                
                 yield well
     
     def setNoActivity(self):
@@ -1062,12 +1073,14 @@ class Experiment(object):
         for param in self.getWells():
             if self.zero and param.plate_id in self.zeroPlates:
                 dWells['zero'].append(param)
-                dParams['zero'].append([param.max, param.area, 
-                                        param.height, param.lag, param.slope])
+                dParams['zero'].append([purgeNAN(param.max), purgeNAN(param.area), 
+                                        purgeNAN(param.height), purgeNAN(param.lag),
+                                        purgeNAN(param.slope)])
             else:
                 dWells['nonzero'].append(param)
-                dParams['nonzero'].append([param.max, param.area,
-                                           param.height, param.lag, param.slope])
+                dParams['nonzero'].append([purgeNAN(param.max), purgeNAN(param.area),
+                                           purgeNAN(param.height), purgeNAN(param.lag),
+                                           purgeNAN(param.slope)])
         
         # Add some fake wells with no signal to make sure we will got a 
         # "zero cluster"
@@ -1312,10 +1325,7 @@ class Experiment(object):
 
 class BiologParser(object):
     '''
-    Class BiologParser
-    Takes a csv output file and returns a series of objects
-    plates [SinglePlate] --> well_id --> Well
-    There could be more than one organism for each biolog file!
+    Abstract class for parsing of PM data files
     '''
     _start = 'Data File'
     _plate = 'Plate Type'
@@ -1393,8 +1403,22 @@ class BiologParser(object):
         
         # Results
         self.plates = []
-        
+    
     def parse(self):
+        try:
+            self.parseOPM()
+        except Exception, e:
+            logger.warning('YAML/OPM parsing failed!')
+            #logger.warning('%s'%e)
+            try:
+                self.parseCSV()
+            except Exception, e:
+                logger.error('CSV parsing failed!')
+                #logger.error('%s'%e)
+                return False
+        return True
+    
+    def parseCSV(self):
         plate = None
         data = False
         wells = []
@@ -1473,6 +1497,78 @@ class BiologParser(object):
         if plate and plate not in self.plates:
             self.plates.append(plate)
         
+        return True
+    
+    def parseOPM(self):
+        import yaml
+        
+        data = yaml.load(open(self.file))
+        
+        # We can have one single plate or several
+        # we need to discriminate
+        try:
+            data.keys()
+            data = [data]
+        except:pass
+            
+        for pobj in data:
+            plate = SinglePlate()
+            
+            # General plate attributes
+            plateID = pobj['csv_data'][self._plate]
+                
+            if(plateID not in self._dPlates
+                    and plateID not in self._acceptedPlates):
+                logger.warning('Unknown plate ID has been found (%s)'%plateID)
+                logger.warning(
+                    'Please send your input file to %s'%__email__)
+                logger.warning('Or you can import your custom plate')
+                plate = None
+                continue
+            
+            if plateID in self._acceptedPlates:
+                plate.plate_id = plateID
+            else:
+                plate.plate_id = self._dPlates[plateID]
+                
+            plate.strainType = pobj['csv_data'][self._strainType]
+            plate.sample = pobj['csv_data'][self._strainType]
+            plate.strainNumber = pobj['csv_data'][self._strainNumber]
+            plate.strainName = pobj['csv_data'][self._strainName]
+            plate.other = pobj['csv_data'][self._other]
+            
+            # Well signals
+            # we assume that they are always there
+            times = pobj['measurements']['Hour']
+            for wid in pobj['measurements']:
+                if wid == 'Hour':continue
+                
+                plate.data[wid] = Well(plate.plate_id, wid)
+                for i in range(len(times)):
+                    plate.data[wid].addSignal(times[i],
+                                              pobj['measurements'][wid][i])
+            
+            # Curve parameters
+            # Do we have them?
+            if 'aggregated' not in pobj:
+                self.plates.append(plate)
+                continue
+            
+            # Collect the software source 
+            if 'aggr_settings' in pobj and 'software' in pobj['aggr_settings']:
+                soft = pobj['aggr_settings']['software']
+                for wid in plate.data:
+                    plate.data[wid].source = soft
+            
+            # Collect the curve parameters
+            for wid in pobj['aggregated']:
+                plate.data[wid].max = nullifyNAN(pobj['aggregated'][wid]['A'])
+                plate.data[wid].area = nullifyNAN(pobj['aggregated'][wid]['AUC'])
+                plate.data[wid].lag = nullifyNAN(pobj['aggregated'][wid]['lambda'])
+                plate.data[wid].slope = nullifyNAN(pobj['aggregated'][wid]['mu'])
+            
+            self.plates.append(plate)
+            
         return True
 
 class BiologZero(object):
@@ -2153,3 +2249,22 @@ def getPlates(signals, nonmean=False):
     
     for plate in dExp.itervalues():
         yield plate
+
+def nullifyNAN(value):
+    '''
+    Takes a value, if it is not convertible to float returns None
+    '''
+    try:
+        return float(value)
+    except:
+        return None
+    
+def purgeNAN(value):
+    if value is None:
+        return 0
+    
+    import math
+    if math.isnan( float(value) ):
+        return 0
+    
+    return value

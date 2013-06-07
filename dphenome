@@ -303,6 +303,16 @@ def doClusterPhenome(project, save_fig_clusters=False,
     
     logger.info('Analyzed and clustered %d phenomic experiments'%len(wells))
     
+    # Check if we have mixed parameter sources
+    sources = set([x.source for x in biolog.getParamsSources()])
+    if len(sources) > 1:
+        logger.warning('The curve parameters have been calculated with '+
+                       '%d methods!'%len(sources))
+        for s in sources:
+            logger.warning('Method: %s'%s)
+        logger.warning('You may want to run %s start -r to force '%(__prog__)+
+                       ' force a single method parameter calculation')
+    
     return True
 
 def doMap2KEGG(project):
@@ -378,7 +388,7 @@ def getOptions():
     parser_add = subparsers.add_parser('add',
                            help='Add a single phenomic experiment')
     parser_add.add_argument('file', action="store",
-                            help='Phenomic data file (biolog generated .csv)')
+                            help='Phenomic data file (csv/yaml/json)')
     parser_add.add_argument('orgID', action='store',
                             help='Organism ID')
     parser_add.set_defaults(func=dadd)
@@ -386,7 +396,7 @@ def getOptions():
     parser_add_multi = subparsers.add_parser('add-multi',
                            help='Add a single phenomic file (with multiple strains)')
     parser_add_multi.add_argument('file', action="store",
-                            help='Phenomic data file (biolog generated .csv)')
+                            help='Phenomic data file (csv/yaml/json)')
     parser_add_multi.set_defaults(func=daddMulti)
     
     parser_add_dir = subparsers.add_parser('add-dir',

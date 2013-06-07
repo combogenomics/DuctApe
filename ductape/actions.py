@@ -185,6 +185,8 @@ def dPhenomeAdd(project, orgID, filename):
             w.strain = orgID
     
     biolog.addWells(wells, clustered=False)
+    # If we have parsed a yaml/json we may have the parameters as well
+    biolog.addWells(wells, clustered=True, imported=True)
     
     logger.info('Added phenome %s, having %d biolog plates (%d wells)'%
                 (orgID, len(bparser.plates), len(wells)))
@@ -255,6 +257,8 @@ def dPhenomeMultiAdd(project, filename):
                  for w in plate.getWells()]
         
         biolog.addWells(wells, clustered=False)
+        # If we have parsed a yaml/json we may have the parameters as well
+        biolog.addWells(wells, clustered=True, imported=True)
         
         logger.info('Added phenome %s, having %d biolog plates (%d wells)'%
                     (orgID, len(dPlates), len(wells)))

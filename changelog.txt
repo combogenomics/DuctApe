@@ -1,3 +1,39 @@
+Version 0.8.0
+=============
+
+UPGRADE URGENCY: LOW, if you work exclusively with DuctApe and use the standard bacterial PM plates
+
+FEATURES:
+* dphenome import-plates: the user can now analyze even custom plates
+    * the table in test/input/newplate.tsv contains an example
+* dphenome add/add-multi: PM data analyzed by different programs (i.e. opm) can now be imported
+    * YAML/JSON file formats are supported
+    * Curve parameters calculated by other programs are considered: they may be overridden by using dphenome start -r
+* dgenome export: PM data can now be exported in YAML/JSON format
+
+BUGFIXES:
+* dape init: if something goes wrong during DB creation raise an error
+* Other small bugfixes
+
+Version 0.7.0
+=============
+
+UPGRADE URGENCY: MODERATE; many features have changed, especially for the genomic analysis
+
+FEATURES:
+* Reactions copy number is no more analyzed: for pangenome and mutants experiments the program now focus on exclusive and distinct reaction IDs
+    * dgenome stats/export, dape start/map have been changed accordingly
+* dgenome annotate: new command to transfer kegg annotations inside an orthologous group
+* dgenome deannotate: revert the annotation transfer
+* Added a test directory with a simple script to test the three modules
+
+BUGFIXES:
+* PM data: prevent crashes in the clusterization step
+* PM data: prevent crashes when parsing csv files
+* kegg: final fix to handle correctly HTMLs from kegg 
+* DB: speed improvements on big pangenomes
+* Other small bugfixes
+
 Version 0.6.2
 =============
 

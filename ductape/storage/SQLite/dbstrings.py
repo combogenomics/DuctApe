@@ -97,6 +97,7 @@ CREATE TABLE biolog (
     "plate_id" TEXT NOT NULL,
     "well_id" TEXT NOT NULL,
     "concentration" INTEGER,
+    "zero_well_id" TEXT,
     "chemical" TEXT,
     "cas_id" TEXT,
     "co_id" TEXT,
@@ -119,7 +120,8 @@ CREATE TABLE biolog_exp (
     "area" REAL,
     "v" REAL,
     "y0" REAL,
-    "model" TEXT
+    "model" TEXT,
+    "source" TEXT
 );
 CREATE TABLE biolog_exp_det (
     "plate_id" TEXT NOT NULL,
@@ -145,7 +147,8 @@ CREATE TABLE biolog_purged_exp (
     "area" REAL,
     "v" REAL,
     "y0" REAL,
-    "model" TEXT
+    "model" TEXT,
+    "source" TEXT
 );
 CREATE TABLE biolog_purged_exp_det (
     "plate_id" TEXT NOT NULL,

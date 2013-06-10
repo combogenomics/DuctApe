@@ -40,7 +40,8 @@ def dInit(project, wdir='.', name='', descr=''):
     '''
     if not os.path.exists(project):
         create = DBBase(project)
-        create.create()
+        if not create.create():
+            return False
         proj = Project(project)
         tmp = os.path.join(wdir, 'tmp')
         proj.addProject(name=name, description=descr, tmp=tmp)
@@ -98,6 +99,9 @@ def dPhenomeAdd(project, orgID, filename):
     '''
     from ductape.phenome.biolog import BiologParser, Plate
     
+    # Add to the project
+    biolog = Biolog(project)
+    
     if not os.path.exists(filename):
         logger.error('Phenomic file %s may not be present'%(filename))
         return False
@@ -109,7 +113,9 @@ def dPhenomeAdd(project, orgID, filename):
     
     filename = os.path.abspath(filename)
     
-    bparser = BiologParser(filename)
+    bparser = BiologParser(filename, 
+                           set([x.plate_id
+                                for x in biolog.getPlates()]))
     bparser.parse()
     
     if len(bparser.plates) == 0:
@@ -178,9 +184,9 @@ def dPhenomeAdd(project, orgID, filename):
         for w in wells:
             w.strain = orgID
     
-    # Add to the project
-    biolog = Biolog(project)
     biolog.addWells(wells, clustered=False)
+    # If we have parsed a yaml/json we may have the parameters as well
+    biolog.addWells(wells, clustered=True, imported=True)
     
     logger.info('Added phenome %s, having %d biolog plates (%d wells)'%
                 (orgID, len(bparser.plates), len(wells)))
@@ -197,9 +203,13 @@ def dPhenomeMultiAdd(project, filename):
         logger.error('Phenomic file %s may not be present'%(filename))
         return False
     
+    # Add to the project
+    biolog = Biolog(project)
+    
     filename = os.path.abspath(filename)
     
-    bparser = BiologParser(filename)
+    bparser = BiologParser(filename, set([x.plate_id
+                                          for x in biolog.getPlates()]))
     bparser.parse()
     
     if len(bparser.plates) == 0:
@@ -246,9 +256,9 @@ def dPhenomeMultiAdd(project, filename):
         wells = [w for plate in dPlates.itervalues() 
                  for w in plate.getWells()]
         
-        # Add to the project
-        biolog = Biolog(project)
         biolog.addWells(wells, clustered=False)
+        # If we have parsed a yaml/json we may have the parameters as well
+        biolog.addWells(wells, clustered=True, imported=True)
         
         logger.info('Added phenome %s, having %d biolog plates (%d wells)'%
                     (orgID, len(dPlates), len(wells)))
@@ -495,7 +505,9 @@ def dPhenomeZero(project, blankfile=None):
     for zero subtraction
     '''
     from ductape.phenome.biolog import BiologParser, getSinglePlates
-    from ductape.phenome.biolog import zeroPlates, BiologZero
+    from ductape.phenome.biolog import BiologZero
+    
+    biolog = Biolog(project)
     
     if blankfile:
         logger.info('Going to use a blank file for zero subtraction')
@@ -504,14 +516,16 @@ def dPhenomeZero(project, blankfile=None):
             logger.error('Blank file %s may not be present'%(blankfile))
             return False
         
-        bparser = BiologParser(blankfile)
+        bparser = BiologParser(blankfile, set([x.plate_id
+                                               for x in biolog.getPlates()]))
         bparser.parse()
         
         if len(bparser.plates) == 0:
             logger.warning('The blank file contains no plates!')
             return False
     
-    biolog = Biolog(project)
+    zeroPlates = [x.plate_id for x in biolog.getZeroSubtractablePlates()]
+    
     # Fetch the signals to be subtracted, then convert them
     # to appropriate objects
     sigs = [s for s in biolog.getZeroSubtractableSignals()]
@@ -536,7 +550,21 @@ def dPhenomeZero(project, blankfile=None):
     if blankfile:
         zsub = BiologZero(plates, blank = True, blankData=bparser.plates)
     else:
-        zsub = BiologZero(plates)
+        # We have to provide the plates which can be subtracted,
+        # along with the information on the control well of each well
+        controlWells = {}
+        for plate_id, zero_well_id in biolog.getControlWells():
+            controlWells[plate_id] = controlWells.get(plate_id, set())
+            controlWells[plate_id].add(zero_well_id)
+        
+        zeroWells = {}
+        for plate_id, well_id, zero_well_id in biolog.getControlPairs():
+            zeroWells[plate_id] = zeroWells.get(plate_id, {})
+            zeroWells[plate_id][well_id] = zero_well_id
+        
+        zsub = BiologZero(plates, zeroPlates=zeroPlates,
+                          controlWells=controlWells,
+                          zeroWells=zeroWells)
         
     if not zsub.zeroSubTract():
         logger.warning('Zero subtraction failed!')
@@ -551,7 +579,8 @@ def dPhenomeZero(project, blankfile=None):
     
     logger.info('Zero subtraction done on %d plates'%len(plates))
     if biolog.atLeastOneParameter():
-        logger.warning('The activity must be recalculated')
+        logger.warning('The parameters and the activity must be recalculated')
+        biolog.delWellsParams(wells)
     
     return True
 
@@ -576,7 +605,9 @@ def dPhenomePurge(project, policy, delta=1, filterplates=[]):
     else:
         logger.info('Purging %d phenomic plates'%len(plates))
 
-    exp = Experiment(plates=plates, zero=isZero)
+    zeroPlates = [x.plate_id for x in biolog.getZeroSubtractablePlates()]
+    
+    exp = Experiment(plates=plates, zero=isZero, zeroPlates=zeroPlates)
     
     if not exp.purgeReplicas(delta=delta,policy=policy):
         logger.error('Could not purge the phenomic experiment')
@@ -633,6 +664,24 @@ def dGenomeAnnotate(project, noWrite=False):
     if len(multiple) >= 1:
         logger.warning('Found %d orthologous groups with more than one KO entry'%len(multiple))
                      
+    return True
+
+def dGenomeDeAnnotate(project):
+    howmany = Genome(project).howManyMergedKOs()
+
+    if howmany == 0:
+        logger.info('No merged KO links have been found')
+        return True
+    
+    Genome(project).delMergedKOs()
+    
+    now = Genome(project).howManyMergedKOs()
+    if now > 0:
+        logger.error('%d merged KO links are still present!'%now)
+        return False
+
+    logger.info('%d merged KO links have been removed'%howmany)
+    logger.warning('You may want to re-run some analysis')
     return True
 
 def dGenomeStats(project, svg=False, doPrint=True):
@@ -847,7 +896,6 @@ def dGenomeStats(project, svg=False, doPrint=True):
 
 def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     from ductape.phenome.biolog import getPlates, Experiment
-    from ductape.phenome.biolog import getOrder
     from itertools import combinations
     
     # Which project are we talking about?
@@ -878,8 +926,11 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         if categ not in categorder:
             categorder.append(categ)
     
+    zeroPlates = [x.plate_id for x in biolog.getZeroSubtractablePlates()]
+    
     exp = Experiment(plates=plates, zero=isZero,
-                     category=category, categorder=categorder)
+                     category=category, categorder=categorder,
+                     zeroPlates=zeroPlates)
     
     exp.plot(svg=svg)
     
@@ -1426,7 +1477,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         
     for categ in categorder:
         pwlist = filter(lambda x: x[0] in category[categ],
-                    [pw for pw in getOrder()])
+                    [pw for pw in getOrder(project)])
         
         pwdiff = []
         pwavgdiff = []
@@ -1512,7 +1563,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     for oid in orgs:
         DownUnique[oid] = 0
     pwcount = 0
-    for pid, wid in getOrder():
+    for pid, wid in getOrder(project):
         try:
             # Sort by activity
             acts = sorted([exp.sumexp[pid][wid][oid] for oid in orgs],
@@ -1522,7 +1573,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             amaxindex = acts.index(amax)
             if amax.activity - acts[amaxindex - 1].activity >= delta:
                 UpUnique[amax.strain] += 1
-
+    
             amin = acts[0]
             if acts[1].activity - amin.activity >= delta:
                 DownUnique[amin.strain] += 1
@@ -1560,7 +1611,6 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
 
 def dPhenomeRings(project, delta=1, difforg=None, svg=False):
     from ductape.phenome.biolog import getPlates, Experiment
-    from ductape.phenome.biolog import getOrder
     
     # Which project are we talking about?
     kind = dSetKind(project)
@@ -1596,8 +1646,11 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
         if categ not in categorder:
             categorder.append(categ)
     
+    zeroPlates = [x.plate_id for x in biolog.getZeroSubtractablePlates()]
+    
     exp = Experiment(plates=plates, zero=isZero,
-                     category=category, categorder=categorder)
+                     category=category, categorder=categorder,
+                     zeroPlates=zeroPlates)
     
     ############################################################################
     # Activity rings (!!!)
@@ -1656,7 +1709,7 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
     categpworder = {}
     for categ in categorder:
         categpworder[categ] = []
-        for pid, wid in getOrder(sorted(category[categ])):
+        for pid, wid in getOrder(project, sorted(category[categ])):
             # Check what we can discard (plates)
             if pid in exp.sumexp:
                 categpworder[categ].append((pid, wid))
@@ -2085,13 +2138,33 @@ def dGenomeExport(project):
     
     return True
 
-def dPhenomeExport(project):
-    # Is there something to be exported?
-    organism = Organism(project)
+def dBiologImport(project, infile):
+    biolog = Biolog(project)
     
-    if organism.howMany() == 0:
-        logger.info('No phenomic data can be exported at this time')
+    logger.info('Importing custom plate(s)')
+    
+    before = 0
+    for r in biolog.getPlates():
+        before += 1
+    
+    try:
+        biolog.importBiolog(infile)
+    except Exception, e:
+        logger.error('Could not import the custom plate(s)!')
+        logger.error(e)
         return False
+    
+    after = 0
+    for r in biolog.getPlates():
+        after += 1
+        
+    logger.info('Imported %d custom plate(s)'%(after-before))
+    
+    return True
+
+def dPhenomeExport(project, json=False):
+    from ductape.phenome.biolog import getSinglePlatesFromSignals
+    from ductape.phenome.biolog import toYAML, toJSON
     
     biolog = Biolog(project)    
     
@@ -2108,8 +2181,30 @@ def dPhenomeExport(project):
     
     logger.info('Exported %d Biolog wells (%s)'%(i, fname))
     
+    # Is there something to be exported?
+    organism = Organism(project)
+    
+    if organism.howMany() == 0:
+        logger.info('No phenomic data can be exported at this time')
+        return True
+    
     # Which project are we talking about?
-    kind = dSetKind(project)    
+    kind = dSetKind(project)
+    
+    logger.info('Exporting phenomic data for other programs')
+    
+    sigs = [x for x in biolog.getAllSignals()]
+    for plate in getSinglePlatesFromSignals(sigs):
+        if not json:
+            fout = open('%s_%s_%s.yml'%(plate.plate_id, plate.strain,
+                                    plate.replica), 'w')
+            fout.write(toYAML(plate))
+            fout.close()
+        else:
+            fout = open('%s_%s_%s.json'%(plate.plate_id, plate.strain,
+                                    plate.replica), 'w')
+            fout.write(toJSON(plate))
+            fout.close()
     
     logger.info('Exporting single organism(s) phenomic data')
     
@@ -2120,7 +2215,7 @@ def dPhenomeExport(project):
                                 'category',
                                 'moa', 'co_id', 'replica', 'activity',
                                 'min', 'max', 'height', 'plateau', 'slope',
-                                'lag', 'area']) + '\n')
+                                'lag', 'area', 'source']) + '\n')
         i = 0
         for w in biolog.getOrgWells(org.org_id):
             wdet = biolog.getWell(w.plate_id, w.well_id)
@@ -2129,7 +2224,8 @@ def dPhenomeExport(project):
                                   [xstr(x) for x in [w.replica, w.activity,
                                                     w.min, w.max, w.height,
                                                     w.plateau, w.slope,
-                                                    w.lag, w.area]])
+                                                    w.lag, w.area,
+                                                    w.source]])
                        + '\n')
             i += 1
         fout.close()
@@ -2369,6 +2465,62 @@ def getOrgNet(project, org_id, path_id=None, category=None):
             wells = [w for w in biolog.getAllCoByCateg(category)]
         for well in wells:
             act = biolog.getAvgActivity(well.plate_id, well.well_id, org_id)
+            if act is not None:
+                # Some co_ids are present more than once
+                if well.co_id not in corg:
+                    corg[well.co_id] = []
+                corg[well.co_id].append(act)
+    
+        toremove = set()
+        for k, v in corg.iteritems():
+            mean = np.array(v).mean()
+            if not math.isnan(float(mean)):
+                corg[k] = mean
+            else:
+                toremove.add(k)
+        for k in toremove:
+            del corg[k]
+        
+        compounds = [Compound('cpd:'+k,kegg.getCompound('cpd:'+k).name,v) for k,v in corg.iteritems()]
+        net.addNodes(compounds)
+        logger.debug('Added %d metabolic activities'%len(compounds))
+        
+    return net
+
+def getMutNet(project, mut_id, mut_rpairs, path_id=None, category=None):
+    '''
+    Get the overall Kegg metabolic net
+    '''
+    if path_id:
+        logger.debug('Building total metabolic network for %s (%s)'%(mut_id,
+                                                                     path_id))
+    else:
+        logger.debug('Building total metabolic network for %s'%mut_id)
+        
+    from ductape.kegg.net import MetabolicNet, Compound
+    
+    kegg = Kegg(project)
+    
+    net = MetabolicNet(kegg.getAllCompounds(path_id),
+                       mut_rpairs)
+    
+    if category:
+        logger.debug('Fetching metabolic activity for category %s'%category)
+        
+        biolog = Biolog(project)
+
+        corg = {}
+        
+        # Filter by path?
+        path_co = []
+        if path_id:
+            path_co = [x.co_id for x in kegg.getPathComps(path_id)]
+            wells = [w for w in biolog.getAllCoByCateg(category)
+                        if 'cpd:'+w.co_id in path_co]
+        else:
+            wells = [w for w in biolog.getAllCoByCateg(category)]
+        for well in wells:
+            act = biolog.getAvgActivity(well.plate_id, well.well_id, mut_id)
             if act is not None:
                 # Some co_ids are present more than once
                 if well.co_id not in corg:
@@ -2669,7 +2821,7 @@ def dNet(project, allorgs=False, allpaths=False):
                                   [str(oNet.mean())] + [str(oNet.std())] +
                                   ['\n']))
 
-    elif kind == 'single' or allorgs or kind == 'mutants':
+    elif kind == 'single' or allorgs and not kind == 'mutants':
         logger.info('Single organisms networks')
         
         organism = Organism(project)
@@ -2834,6 +2986,244 @@ def dNet(project, allorgs=False, allpaths=False):
                                   [str(oNet[x].mean()) for x in orgs] +
                                   [str(oNet[x].std()) for x in orgs] +
                                   ['\n']))
+                    
+    elif kind == 'mutants' or allorgs:
+        logger.info('Mutants networks')
+        
+        organism = Organism(project)
+        
+        refs = [org.org_id
+                    for org in organism.getAll()
+                    if not organism.isMutant(org.org_id)]
+        
+        orgs = []
+        ref_rpairs = {}
+        
+        for ref_id in refs:
+            muts = [x for x in organism.getOrgMutants(ref_id)]
+            ref_rpairs[ref_id] = kegg.getExclusiveRPairsReactMutants(ref_id, muts)
+        
+            orgs.append(ref_id)
+            for m in muts:
+                orgs.append(m)
+        
+        slen = 'metNet_length.tsv'
+        flen = open(slen,'w')
+        flen.write('# Metabolic network length (number of exclusive reactions w/ respect to the wild-type)\n')
+        flen.write('\t'.join( ['network', 'name', 'overall'] + orgs + ['\n'] ))
+        
+        sconn = 'metNet_connected.tsv'
+        fconn = open(sconn,'w')
+        fconn.write('# Subnetworks (Connected components)\n')
+        fconn.write('\t'.join( ['', ''] + ['Subnetworks'] +
+                                              ['' for x in range(len(orgs))] +
+                                              ['Subnetworks mean length'] +
+                                              ['' for x in range(len(orgs))] +
+                                              ['Subnetworks length std-dev'] +
+                                              ['' for x in range(len(orgs))] +
+                                              ['\n'] ))
+        fconn.write('\t'.join( ['network', 'name', 'overall'] + orgs +
+                                                  ['overall'] + orgs + 
+                                                  ['overall'] + orgs + ['\n'] ))
+        
+        if phenome:
+            sact = 'metNet_activity.tsv'
+            fact = open(sact,'w')
+            fact.write('# Metabolic network activity\n')
+            fact.write('\t'.join( ['', '', ''] + ['Mean Activity'] +
+                                              ['' for x in range(len(orgs)-1)] +
+                                              ['Activity std-dev'] +
+                                              ['' for x in range(len(orgs)-1)] +
+                                              ['\n'] ))
+            fact.write('\t'.join( ['network', 'name', 'category'] +
+                                                     orgs +
+                                                     orgs + ['\n'] ))
+        
+        # Total network
+        logger.info('Overall network stats')
+        
+        oNet = {}
+        
+        for ref_id in refs:
+            muts = [x for x in organism.getOrgMutants(ref_id)]
+            
+            oNet[ref_id] = getOrgNet(project, ref_id)
+            npath = makeRoom('', 'metNet', ref_id)
+            writeNet(oNet[ref_id], npath, '%s.gml'%ref_id)
+            
+            for mut_id in muts:
+                oNet[mut_id] = getMutNet(project, mut_id,
+                                         ref_rpairs[ref_id][mut_id].values())
+                npath = makeRoom('', 'metNet', mut_id)
+                writeNet(oNet[mut_id], npath, '%s.gml'%mut_id)
+            
+        flen.write('\t'.join( ['All', ''] +
+                              [str(len(aNet))] +
+                              [str(len(oNet[x])) for x in orgs] + ['\n']))
+        
+        fconn.write('\t'.join( ['All', ''] +
+                              [str(aNet.getComponents())] +
+                              [str(oNet[x].getComponents()) for x in orgs] +
+                              [str(aNet.getComponentsMean())] +
+                              [str(oNet[x].getComponentsMean()) for x in orgs] +
+                              [str(aNet.getComponentsStd())] +
+                              [str(oNet[x].getComponentsStd()) for x in orgs] +
+                              ['\n']))
+        
+        if phenome:
+            path_co = [x.co_id for x in kegg.getPathComps(path.path_id)]
+            for categ in biolog.getCategs(True):
+                scateg = categ.category.replace(' ','_').replace('&','and')
+                wells = [w for w in biolog.getAllCoByCateg(categ.category)
+                        if 'cpd:'+w.co_id in path_co]
+                if len(wells) == 0:
+                    logger.debug('Skipping activity data on pathway: %s'
+                                 %(path.path_id))
+                    continue
+                
+                oNet = {}
+                for ref_id in refs:
+                    muts = [x for x in organism.getOrgMutants(ref_id)]
+                    
+                    oNet[ref_id] = getOrgNet(project, ref_id,
+                                             category=categ.category)
+                    npath = makeRoom('', 'metNet', ref_id, scateg)
+                    writeNet(oNet[ref_id], npath, '%s_%s.gml'%(ref_id, scateg))
+                    
+                    for mut_id in muts:
+                        oNet[mut_id] = getMutNet(project,
+                                                 mut_id,
+                                                 ref_rpairs[ref_id][mut_id].values(),
+                                                 category=categ.category)
+                        npath = makeRoom('', 'metNet', mut_id, scateg)
+                        writeNet(oNet[mut_id], npath, '%s_%s.gml'%(mut_id, scateg))
+                
+                fact.write('\t'.join( ['All', '', scateg] +
+                              [str(oNet[x].mean()) for x in orgs] +
+                              [str(oNet[x].std()) for x in orgs] +
+                              ['\n']))
+        
+        # Single paths
+        logger.info('Single pathways stats')
+        
+        for path in kegg.getAllPathways(True):
+            logger.info('Pathway: %s // %s'%(path.path_id, path.name))
+            
+            if ':' in path.path_id:
+                spath = path.path_id.split(':')[1]
+                
+            oNet = {}
+        
+            for ref_id in refs:
+                muts = [x for x in organism.getOrgMutants(ref_id)]
+                ref_rpairs = kegg.getExclusiveRPairsReactMutants(ref_id, muts,
+                                                                 path.path_id)
+            
+                oNet[ref_id] = getOrgNet(project, ref_id, path.path_id)
+                
+                if len(oNet[ref_id]) == 0:
+                    logger.debug('Skipping reactions data on pathway: %s (%s)'
+                                     %(path.path_id, ref_id))
+                    continue
+                
+                if allpaths:
+                    npath = makeRoom('', 'metNet', ref_id)
+                    writeNet(oNet[ref_id], npath, '%s_%s.gml'%(ref_id, spath))
+            
+                for mut_id in muts:
+                    oNet[mut_id] = getMutNet(project,
+                                             mut_id,
+                                             ref_rpairs[mut_id].values(),
+                                             path.path_id)
+                
+                    if len(oNet[mut_id]) == 0:
+                        logger.debug('Skipping reactions data on pathway: %s (%s)'
+                                         %(path.path_id, mut_id))
+                        continue
+                    
+                    if allpaths:
+                        npath = makeRoom('', 'metNet', mut_id)
+                        writeNet(oNet[mut_id], npath, '%s_%s.gml'%(mut_id, spath))
+            
+            skip = False
+            if sum( [len(oNet[x]) for x in oNet] ) == 0:
+                skip = True
+                logger.debug('Skipping reactions data on pathway: %s'
+                                     %(path.path_id))
+            
+            if not skip:
+                flen.write('\t'.join( [path.path_id, path.name] +
+                                  [str(len(dapNet[path.path_id]))] +
+                                  [str(len(oNet[x])) for x in orgs] + ['\n']))
+                
+                fconn.write('\t'.join( [path.path_id, path.name] +
+                                  [str(dapNet[path.path_id].getComponents())] +
+                                  [str(oNet[x].getComponents()) for x in orgs] +
+                                  [str(dapNet[path.path_id].getComponentsMean())] +
+                                  [str(oNet[x].getComponentsMean()) for x in orgs] +
+                                  [str(dapNet[path.path_id].getComponentsStd())] +
+                                  [str(oNet[x].getComponentsStd()) for x in orgs] +
+                                  ['\n']))
+            
+            if phenome:
+                path_co = [x.co_id for x in kegg.getPathComps(path.path_id)]
+                for categ in biolog.getCategs(True):
+                    wells = [w for w in biolog.getAllCoByCateg(categ.category)
+                        if 'cpd:'+w.co_id in path_co]
+                    
+                    scateg = categ.category.replace(' ','_').replace('&','and')
+                    if len(wells) == 0:
+                        logger.debug('Skipping activity data on pathway: %s (%s)'
+                                     %(path.path_id, scateg))
+                        continue
+                    
+                    oNet = {}
+                    
+                    for ref_id in refs:
+                        muts = [x for x in organism.getOrgMutants(ref_id)]
+                        ref_rpairs = kegg.getExclusiveRPairsReactMutants(ref_id, muts,
+                                                                         path.path_id)
+                    
+                        oNet[ref_id] = getOrgNet(project,
+                                                 ref_id,
+                                                 path.path_id,
+                                                 categ.category)
+                        
+                        if allpaths:
+                            if not oNet[ref_id].hasNodesWeight():
+                                logger.debug('Skipping activity data on pathway: %s (%s %s)'
+                                     %(path.path_id, ref_id, scateg))
+                                continue
+                            npath = makeRoom('', 'metNet', ref_id, scateg)
+                            writeNet(oNet[ref_id], npath,
+                                     '%s_%s_%s.gml'%(ref_id, scateg, spath))
+                        
+                        for mut_id in muts:
+                            oNet[mut_id] = getMutNet(project,
+                                                 mut_id,
+                                                 ref_rpairs[mut_id].values(),
+                                                 path.path_id,
+                                                 categ.category)
+                        
+                            if allpaths:
+                                if not oNet[mut_id].hasNodesWeight():
+                                    logger.debug('Skipping activity data on pathway: %s (%s %s)'
+                                         %(path.path_id, mut_id, scateg))
+                                    continue
+                                npath = makeRoom('', 'metNet', mut_id, scateg)
+                                writeNet(oNet[mut_id], npath,
+                                         '%s_%s_%s.gml'%(mut_id, scateg, spath))
+                    
+                    check = set([oNet[x].hasNodesWeight() for x in oNet])
+                    if len(check) == 1 and check.pop() == False:
+                        logger.debug('Skipping activity data on pathway: %s (%s)'
+                                     %(path.path_id, scateg))
+                        continue
+                    
+                    fact.write('\t'.join( [path.path_id, path.name, scateg] +
+                                  [str(oNet[x].mean()) for x in orgs] +
+                                  [str(oNet[x].std()) for x in orgs] +
+                                  ['\n']))
     
     try:
         flen.close()
@@ -2848,7 +3238,26 @@ def dNet(project, allorgs=False, allpaths=False):
         logger.info('Metabolic network activity stats saved to %s'%sact)
     
     return True
+
+def getPlatesOrder(project):
+    from ductape.storage.SQLite.database import Biolog
     
+    return [x.plate_id for x in Biolog(project).getPlates()]
+
+def getOrder(project, plates=None):
+    '''
+    Generator of plate/well IDs
+    If plates is provided as a list of plates IDs, only those plates are used
+    '''
+    from ductape.storage.SQLite.database import Biolog
+    
+    if not plates:
+        plates = getPlatesOrder(project)
+        
+    for pid in plates:
+        for wid in Biolog(project).getPlateWells(pid):
+            yield (pid, wid)
+ 
 def dSetKind(project):
     '''
     Set the kind of genomic project and return its value
@@ -3005,6 +3414,63 @@ def getPathsComps(project):
         
     return paths
 
+def getExclusiveReactions(project, orgs=set()):
+    '''
+    Given a bunch of organisms, get two dicts
+    mreacts: org_id -->  set(re_id, ...) (common)
+    ereacts: org_id -->  set(re_id, ...) (exclusive)
+    '''
+    from ductape.storage.SQLite.database import Kegg
+    
+    kegg = Kegg(project)
+    
+    # Get the exclusive reactions
+    ereacts = kegg.getExclusiveReactions(orgs)
+    # Get the reactions of each organisms
+    mreacts = {}
+    for org_id in orgs:
+        mreacts[org_id] = set()
+        for oR in kegg.getOrgReact(org_id):
+            mreacts[org_id].add(oR.re_id)
+    
+    # Remove the exclusives
+    for org_id in orgs:
+        mreacts[org_id].difference_update(ereacts[org_id])
+        
+    return mreacts, ereacts
+
+def getExclusiveReactionsMutants(project, ref_id, muts=set()):
+    '''
+    Given a bunch of organisms, get two dicts
+    mreacts: org_id -->  set(re_id, ...) (wild-type)
+    mix: org_id --> set(re_id, ...) (mutated but also in wild-type)
+    ereacts: org_id -->  set(re_id, ...) (exclusive mutated)
+    '''
+    from ductape.storage.SQLite.database import Kegg
+    
+    kegg = Kegg(project)
+    
+    # Get the exclusive reactions
+    ereacts = kegg.getExclusiveReactionsMutants(ref_id, muts)    
+    # Get the reactions of each organisms
+    mreacts = {}
+    mix = {}
+    for mut_id in muts:
+        # Reference genome reactions
+        mut = set()
+        for oR in kegg.getOrgReact(mut_id):
+            mut.add(oR.re_id)
+        
+        mreacts[mut_id] = set()
+        mix[mut_id] = set()
+        for oR in kegg.getReferenceReact(mut_id, ref_id):
+            if oR.re_id in mut:
+                mix[mut_id].add(oR.re_id)
+            else:
+                mreacts[mut_id].add(oR.re_id)
+        
+    return mreacts, mix, ereacts
+
 def getOrganismsColors(project):
     '''
     Check the colors assigned to the organisms and return a dictionary
@@ -3066,16 +3532,14 @@ def createLegend(kind):
         cmatrix = np.outer(np.arange(0,9,0.1),np.ones(7))
          
     if kind == 'pangenome':
-        ax = fig.add_subplot(141)
-        ax.imshow(rmatrix, cmap=cm.Blues, vmin=0, vmax=1)
+        ax = fig.add_subplot(141, axisbg='b')
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
         ax.axes.get_xaxis().set_ticks([])
         ax.set_title('Core')
         
-        ax = fig.add_subplot(142)
-        ax.imshow(rmatrix, cmap=cm.Greens, vmin=0, vmax=1)
+        ax = fig.add_subplot(142, axisbg='g')
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
@@ -3083,7 +3547,7 @@ def createLegend(kind):
         ax.set_title('Core and Disp.')
         
         ax = fig.add_subplot(143)
-        ax.imshow(rmatrix, cmap=cm.Oranges, vmin=0, vmax=1)
+        ax.imshow(rmatrix, cmap=cm.autumn, vmin=0, vmax=1)
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
@@ -3101,8 +3565,7 @@ def createLegend(kind):
         fig.savefig(fname)
             
     elif kind == 'single':
-        ax = fig.add_subplot(121)
-        ax.imshow(rmatrix, cmap=cm.Greens, vmin=0, vmax=1)
+        ax = fig.add_subplot(121, axisbg='b')
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
@@ -3120,8 +3583,7 @@ def createLegend(kind):
         fig.savefig(fname)
         
     elif kind == 'singlediff':
-        ax = fig.add_subplot(121)
-        ax.imshow(rmatrix, cmap=cm.Greens, vmin=0, vmax=1)
+        ax = fig.add_subplot(121, axisbg='b')
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
@@ -3139,24 +3601,21 @@ def createLegend(kind):
         fig.savefig(fname)
 
     elif kind == 'mutants':
-        ax = fig.add_subplot(141)
-        ax.imshow(rmatrix, cmap=cm.Greens, vmin=0, vmax=1)
+        ax = fig.add_subplot(141, axisbg='b')
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
         ax.axes.get_xaxis().set_ticks([])
         ax.set_title('Wild-type')
         
-        ax = fig.add_subplot(142)
-        ax.imshow(rmatrix, cmap=cm.copper_r, vmin=0, vmax=1)
+        ax = fig.add_subplot(142, axisbg='g')
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
         ax.axes.get_xaxis().set_ticks([])
         ax.set_title('Wild-type and Mutated')
         
-        ax = fig.add_subplot(143)
-        ax.imshow(rmatrix, cmap=cm.Reds, vmin=0, vmax=1)
+        ax = fig.add_subplot(143, axisbg=pltcls.cnames['yellow'])
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])

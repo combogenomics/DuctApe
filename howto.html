@@ -2,9 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Howto &lt;&lt; DuctApe, a combogenomics program</title>
+    <title>Howto &lt;&lt; DuctApe, genomics and phenomics made easy</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Analyze and link genomics and phenomics experiments">
+    <meta name="description" content="DuctApe, Analyze and link genomics and phenomics experiments, using KEGG metabolic pathways and Biolog Phenotype Microarrays.">
     <meta name="author" content="Marco Galardini" >
     
     <!-- Le meta tag to refresh the cache -->
@@ -416,8 +416,7 @@
                           <dt>file</dt>
                           <dd>Tab delimited file with custom plate data [compulsory parameter]</dd>
                         </dl>
-                        <p class="muted"><small><i class="icon-flag"></i> Some analysis may be redone after the removal of a phenome.</small></p>
-                        <p><code>dphenome rm Rm1021</code></p>
+                        <p><code>dphenome import-plates newtables.tsv</code></p>
                         
                         <h4>Growth curves analysis and KEGG mapping</h4>
                         <p>Some Phenotype microarray plates (PM1 to PM8) have a control well, which can be used to subtract the background signal. If a "blank" plate file is available, each well can be subtracted to its blank well.</p>

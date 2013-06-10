@@ -3409,7 +3409,7 @@ class Biolog(DBBase):
                     for param in [w.activity,int(w.zero),w.min,w.max,
                                   w.height,w.plateau,w.slope,w.lag,
                                   w.area,w.v,w.y0]:
-                        if param is None:
+                        if param is None or str(param) == 'nan':
                             bstr += ' null,'
                         else:
                             bstr += ' %s,'%param
@@ -3754,7 +3754,7 @@ class Biolog(DBBase):
         
         for res in cursor:
             yield Row(res, cursor.description)
-    
+            
     def getActiveByPlate(self, plate_id, activity):
         '''
         Get those wells at least active activity

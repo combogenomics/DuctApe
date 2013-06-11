@@ -2047,6 +2047,26 @@ class Kegg(DBBase):
         
         return int(Row(cursor.fetchall()[0], cursor.description).num)
     
+    def getAllReactNum(self):
+        '''
+        Get the number of organisms sharing each re_id
+        '''
+        query = '''
+                select k.re_id, count(distinct org_id) num
+                from ortholog o, mapko m, protein p, ko_react k
+                where o.prot_id = p.prot_id
+                and p.prot_id = m.prot_id
+                and m.ko_id = k.ko_id
+                group by k.re_id
+                order by num
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query)
+        
+        for res in cursor:
+            yield Row(res, cursor.description)
+    
     def getMappedRPairsReact(self, path_id=None):
         '''
         Get all the RPairs Reacts in the pangenome
@@ -2085,9 +2105,13 @@ class Kegg(DBBase):
                 cursor=conn.execute(query,
                                     [path_id,])
             
+        rnums = {}
+        for r in self.getAllReactNum():
+            rnums[r.re_id] = r.num
+            
         for res in cursor:
             r = Row(res, cursor.description)
-            setattr(r, 'weight', self.getReactNum(r.re_id))
+            setattr(r, 'weight', rnums[r.re_id])
             yield r
     
     def getExclusiveRPairsReact(self, path_id=None):
@@ -2143,21 +2167,25 @@ class Kegg(DBBase):
         racc = set([r for r in filter(lambda x: x.group_id in oacc, rall)])
         runi = set([r for r in filter(lambda x: x.group_id in ouni, rall)])
         
+        rnums = {}
+        for r in self.getAllReactNum():
+            rnums[r.re_id] = r.num
+        
         core = {}
         for r in rcore:
-            setattr(r, 'weight', self.getReactNum(r.re_id))
+            setattr(r, 'weight', rnums[r.re_id])
             core[r.re_id+r.co1+r.co2] = r
         disp = {}
         for r in rdisp:
-            setattr(r, 'weight', self.getReactNum(r.re_id))
+            setattr(r, 'weight', rnums[r.re_id])
             disp[r.re_id+r.co1+r.co2] = r
         acc = {}
         for r in racc:
-            setattr(r, 'weight', self.getReactNum(r.re_id))
+            setattr(r, 'weight', rnums[r.re_id])
             acc[r.re_id+r.co1+r.co2] = r
         uni = {}
         for r in runi:
-            setattr(r, 'weight', self.getReactNum(r.re_id))
+            setattr(r, 'weight', rnums[r.re_id])
             uni[r.re_id+r.co1+r.co2] = r
         
         ecore = set(core.keys()).difference(set(disp.keys()))

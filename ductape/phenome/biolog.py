@@ -901,7 +901,7 @@ class Experiment(object):
             Plate = self.plates[plate_id]
             for strain, plates in Plate.strains.iteritems():
                 for plate in plates:
-                    for well in plate.data:
+                    for wid, well in plate.data.iteritems():
                         well.activity = 0
     
     def getPurgedWells(self):

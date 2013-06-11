@@ -2195,6 +2195,9 @@ def dPhenomeExport(project, json=False):
     
     sigs = [x for x in biolog.getAllSignals()]
     for plate in getSinglePlatesFromSignals(sigs):
+        logger.info('Exporting plate %s, strain %s, replica %d'%(plate.plate_id,
+                                                                 plate.strain,
+                                                                plate.replica))
         if not json:
             fout = open('%s_%s_%s.yml'%(plate.plate_id, plate.strain,
                                     plate.replica), 'w')

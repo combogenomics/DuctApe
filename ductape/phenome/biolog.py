@@ -1053,7 +1053,7 @@ class Experiment(object):
         self.purged = True
         return True
     
-    def clusterize(self, save_fig=False):
+    def clusterize(self, save_fig=False, n_clusters=10):
         '''
         Perform the biolog data clusterizzation
         The data is divided in two chunks if Zero subtraction has been done
@@ -1114,7 +1114,7 @@ class Experiment(object):
         if self.zero and len(dParams['zero']) >= 1:
             xZero = [x for x in dParams['zero']]
             m_z_labels = mean(xZero)
-            k_z_labels = kmeans(xZero)
+            k_z_labels = kmeans(xZero, n_clusters)
         
         if self.zero  and len(dParams['zero']) >= 1:
             m_z_nclusters = len(np.unique(m_z_labels))
@@ -1160,7 +1160,7 @@ class Experiment(object):
         if len(dParams['nonzero']) >= 1:
             xNonZero = [x for x in dParams['nonzero']]
             m_nz_labels = mean(xNonZero)
-            k_nz_labels = kmeans(xNonZero)
+            k_nz_labels = kmeans(xNonZero, n_clusters)
         
         if len(dParams['nonzero']) >= 1:
             m_nz_nclusters = len(np.unique(m_nz_labels))
@@ -2056,11 +2056,14 @@ class BiologCluster(CommonThread):
     _substatuses = [1]
     
     def __init__(self,experiment,
-                 save_fig_clusters=False, force_params=False,
+                 save_fig_clusters=False, force_params=False, n_clusters=10,
                  queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         # Experiment
         self.exp = experiment
+        
+        # Number of clusters?
+        self.n_clusters = int(n_clusters)
         
         # Save clusters figure?
         self.save_fig = bool(save_fig_clusters)
@@ -2100,7 +2103,7 @@ class BiologCluster(CommonThread):
             return
         
         self.updateStatus()
-        self.exp.clusterize(self.save_fig)
+        self.exp.clusterize(self.save_fig, self.n_clusters)
 
 def getSinglePlates(binput, nonmean=False):
     '''

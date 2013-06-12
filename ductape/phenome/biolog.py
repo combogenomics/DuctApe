@@ -1055,6 +1055,13 @@ class Experiment(object):
         self.purged = True
         return True
     
+    def getMaxActivity(self):
+        '''
+        Get the maximum activity
+        Which is also the number of clusters used...
+        '''
+        return max([w.activity for w in self.getWells(False)])
+    
     def setMaxParams(self):
         '''
         Find the maximum value of each parameter
@@ -1317,7 +1324,8 @@ class Experiment(object):
         ax.set_xlabel('Hour', size='small')
         ax.set_ylabel('Signal', size='small')
         
-        colors = rangeColors(0, 9, cm.RdYlGn(np.arange(0,256)))
+        colors = rangeColors(0, self.getMaxActivity(),
+                             cm.RdYlGn(np.arange(0,256)))
         
         counter = 0
         maxsig = 0.0

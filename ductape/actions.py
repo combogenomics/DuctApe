@@ -934,13 +934,26 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     
     exp.plot(svg=svg)
     
+    # Max value for activity
+    maxAct = exp.getMaxActivity()
+    
+    # Check the activity threshold
+    if activity >= maxAct:
+        logger.warning('The activity threshold is higher than the maximum '+
+                       'activity found (%d vs. %d)'%(activity, maxAct))
+        
+    # Check the activity delta value
+    if delta >= maxAct:
+        logger.warning('The delta activity threshold is higher than the maximum '+
+                       'activity found (%d vs. %d)'%(delta, maxAct))
+    
     ############################################################################
     # Activity distribution
     
     logger.info('Activity distributions')
     
     # Fake plot top get the correct bin centers
-    y,binEdges=np.histogram(range(10),bins=10)
+    y,binEdges=np.histogram(range(10),bins=maxAct + 1)
     bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
     
     if kind == 'single':
@@ -957,7 +970,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
                 
         if len(x) != 0:                   
             ax = fig.add_subplot(1,2,1)
-            y,binEdges=np.histogram(x,bins=10)
+            y,binEdges=np.histogram(x,bins=maxAct + 1)
             ax.plot(bincenters,y,'-o', color='black', linewidth=2)
             
             ax.set_ylim(0,max([x for x in d.itervalues()]) + 20)
@@ -968,7 +981,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             ax.set_aspect((x1-x0)/(y1-y0))
             
             ax.set_xticks(bincenters)
-            ax.set_xticklabels([str(x) for x in range(10)])
+            ax.set_xticklabels([str(x) for x in range(maxAct + 1)])
             
             ax.xaxis.grid(color='gray', linestyle='dashed')
             ax.set_axisbelow(True)
@@ -997,7 +1010,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         if len(x) == 0:
             continue
                 
-        y,binEdges=np.histogram(x,bins=10)
+        y,binEdges=np.histogram(x,bins=maxAct + 1)
         ax.plot(bincenters,y,'-o', color=dcolors[org.org_id], linewidth=2,
                 alpha=0.66, label=org.org_id)
         
@@ -1011,7 +1024,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     ax.set_aspect((x1-x0)/(y1-y0))
     
     ax.set_xticks(bincenters)
-    ax.set_xticklabels([str(x) for x in range(10)])
+    ax.set_xticklabels([str(x) for x in range(maxAct + 1)])
     
     ax.xaxis.grid(color='gray', linestyle='dashed')
     ax.set_axisbelow(True)
@@ -1073,7 +1086,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             if len(x) == 0:
                 continue
             
-            y,binEdges=np.histogram(x,bins=10)
+            y,binEdges=np.histogram(x,bins=maxAct + 1)
             ax.plot(bincenters,y,'-o', color=dcolors[org.org_id], linewidth=2,
                     alpha=0.66, label=org.org_id)
             
@@ -1093,7 +1106,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         ax.set_axisbelow(True)
         
         ax.set_xticks(bincenters)
-        ax.set_xticklabels([str(x) for x in range(10)])
+        ax.set_xticklabels([str(x) for x in range(maxAct + 1)])
             
         ax.set_xlabel('Activity', size='small')
         ax.set_ylabel('# of wells', size='small')
@@ -1160,7 +1173,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             if len(x) == 0:
                 continue
             
-            y,binEdges=np.histogram(x,bins=10)
+            y,binEdges=np.histogram(x,bins=maxAct + 1)
             ax.plot(bincenters,y,'-o', color=dcolors[org.org_id], linewidth=2,
                     alpha=0.66, label=org.org_id)
             
@@ -1180,7 +1193,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         ax.set_axisbelow(True)
         
         ax.set_xticks(bincenters)
-        ax.set_xticklabels([str(x) for x in range(10)])
+        ax.set_xticklabels([str(x) for x in range(maxAct + 1)])
             
         ax.set_xlabel('Activity', size='small')
         ax.set_ylabel('# of wells', size='small')
@@ -1226,8 +1239,8 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             
             colorBoxPlot(ax, bplot, ['black'])
             
-            ax.set_xlim(-1,10)
-            ax.set_xticks(range(10))
+            ax.set_xlim(-1,maxAct + 1)
+            ax.set_xticks(range(maxAct + 1))
             
             ax.get_yaxis().set_ticks([])
             
@@ -1291,8 +1304,8 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     colorBoxPlot(ax, bplot, bcolors)
     
     if len(borgs) > 0:
-        ax.set_xlim(-1,10)
-        ax.set_xticks(range(10))
+        ax.set_xlim(-1,maxAct + 1)
+        ax.set_xticks(range(maxAct + 1))
         
         ax.set_yticklabels(borgs, size='x-small')
         
@@ -1378,8 +1391,8 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         colorBoxPlot(ax, bplot, bcolors)
         
         if len(borgs) > 0:
-            ax.set_xlim(-1,10)
-            ax.set_xticks(range(10))
+            ax.set_xlim(-1,maxAct + 1)
+            ax.set_xticks(range(maxAct + 1))
             
             ax.set_yticklabels(borgs, size='x-small')
             
@@ -1652,6 +1665,14 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
                      category=category, categorder=categorder,
                      zeroPlates=zeroPlates)
     
+    # Max value for activity
+    maxAct = exp.getMaxActivity()
+    
+    # Check the activity delta value
+    if delta >= maxAct:
+        logger.warning('The delta activity threshold is higher than the maximum '+
+                       'activity found (%d vs. %d)'%(delta, maxAct))
+    
     ############################################################################
     # Activity rings (!!!)
     # Thanks to stackoverflow for that
@@ -1697,7 +1718,7 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
         R,T  = np.meshgrid(radius,theta)
     
         ax.pcolor(T, R, [[1 for y in range(10)] for x in range(628)], cmap=cm.Greys,
-                  vmin=0, vmax=9)
+                  vmin=0, vmax=maxAct)
         
         ax.text(0, i+0.03, org_id, size=17, weight='black', alpha=0.77, ha='center')
         
@@ -1760,12 +1781,12 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
         
         if (kind == 'mutants' or difforg) and org_id in muts:
             cmap = cm.PuOr
-            vmin = -9
-            vmax = 9
+            vmin = -maxAct
+            vmax = maxAct
         else:
             cmap = cm.RdYlGn
             vmin = 0
-            vmax = 9
+            vmax = maxAct
             
         cmap.set_under('#F8F8F8',1.)
         
@@ -1805,17 +1826,17 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
 
     # Colorbar
     import matplotlib.colors as colors
-    cNorm  = colors.Normalize(vmin=0, vmax=9)
+    cNorm  = colors.Normalize(vmin=0, vmax=maxAct)
     scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.RdYlGn)
-    scalarMap.set_array(np.array(range(10)))
+    scalarMap.set_array(np.array(range(maxAct + 1)))
     cax = fig.add_axes([0.93, 0.2, 0.03, 0.6])
     cax.text(0.50, 1.01, 'Activity', size=20, ha='center')
     plt.colorbar(scalarMap, cax=cax)
     
     if (kind == 'mutants' or difforg):
-        cNorm  = colors.Normalize(vmin=-9, vmax=9)
+        cNorm  = colors.Normalize(vmin=-maxAct, vmax=maxAct)
         scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.PuOr)
-        scalarMap.set_array(np.array(range(-9,9,20)))
+        scalarMap.set_array(np.array(range(-maxAct,maxAct,20)))
         cax = fig.add_axes([0.04, 0.2, 0.03, 0.6])
         cax.text(0.50, 1.01, 'Delta activity', size=20, ha='center')
         plt.colorbar(scalarMap, cax=cax)

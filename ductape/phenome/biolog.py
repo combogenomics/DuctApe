@@ -184,7 +184,7 @@ class Well(object):
         if not self.compressed and not noCompress:
             self.compress()
         if not self.smoothed and not noSmooth:
-            self.smooth(window_len=len(self.signals)/3, window_type='blackman')
+            self.smooth(window_len=11, window_type='blackman')
             
         # Let's start with the easy ones!
         self.max = self.getMax()

@@ -767,7 +767,9 @@ class Experiment(object):
             if not self._addPlate(plate):
                 self.plates = {}
                 break
-            
+        
+        self.maxParams = {}
+        
         self.experiment = {}
         self.sumexp = {}
         self._organize()
@@ -1053,6 +1055,44 @@ class Experiment(object):
         self.purged = True
         return True
     
+    def setMaxParams(self):
+        '''
+        Find the maximum value of each parameter
+        '''
+        w = Well('dummy', 'dummy')
+        self.maxParams['zero'] = {}
+        self.maxParams['nonzero'] = {}
+        for param in w.params:
+            self.maxParams['zero'][param] = self.maxParams.get(param, 0)
+            self.maxParams['nonzero'][param] = self.maxParams.get(param, 0)
+            
+        for w in self.getWells(False):
+            if self.zero and w.plate_id in self.zeroPlates:
+                z = 'zero'
+            else:
+                z = 'nonzero'
+                
+            for param in w.params:
+                if getattr(w, param) > self.maxParams[z][param]:
+                    self.maxParams[z][param] = getattr(w, param)
+    
+    def normalizeParam(self, param, value, zero=False):
+        '''
+        Take a parameter and return its normalization
+        '''
+        if self.maxParams == {}:
+            self.setMaxParams()
+        
+        if zero:
+            z = 'zero'
+        else:
+            z = 'nonzero'
+        
+        try:  
+            return float(value)/float(self.maxParams[z][param])
+        except ZeroDivisionError:
+            return None
+    
     def clusterize(self, save_fig=False):
         '''
         Perform the biolog data clusterizzation
@@ -1073,14 +1113,18 @@ class Experiment(object):
         for param in self.getWells():
             if self.zero and param.plate_id in self.zeroPlates:
                 dWells['zero'].append(param)
-                dParams['zero'].append([purgeNAN(param.max), purgeNAN(param.area), 
-                                        purgeNAN(param.height), purgeNAN(param.lag),
-                                        purgeNAN(param.slope)])
+                dParams['zero'].append([self.normalizeParam('max', purgeNAN(param.max), True),
+                                        self.normalizeParam('area', purgeNAN(param.area), True), 
+                                        self.normalizeParam('height', purgeNAN(param.height), True),
+                                        self.normalizeParam('lag', purgeNAN(param.lag), True),
+                                        self.normalizeParam('slope', purgeNAN(param.slope), True)])
             else:
                 dWells['nonzero'].append(param)
-                dParams['nonzero'].append([purgeNAN(param.max), purgeNAN(param.area),
-                                           purgeNAN(param.height), purgeNAN(param.lag),
-                                           purgeNAN(param.slope)])
+                dParams['nonzero'].append([self.normalizeParam('max', purgeNAN(param.max)),
+                                           self.normalizeParam('area', purgeNAN(param.area)),
+                                           self.normalizeParam('height', purgeNAN(param.height)),
+                                           self.normalizeParam('lag', purgeNAN(param.lag)),
+                                           self.normalizeParam('slope', purgeNAN(param.slope))])
         
         # Add some fake wells with no signal to make sure we will got a 
         # "zero cluster"
@@ -2373,3 +2417,4 @@ def purgeNAN(value):
         return 0
     
     return value
+

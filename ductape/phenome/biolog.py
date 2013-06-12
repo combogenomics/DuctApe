@@ -184,7 +184,7 @@ class Well(object):
         if not self.compressed and not noCompress:
             self.compress()
         if not self.smoothed and not noSmooth:
-            self.smooth(window_len=len(self.signals)/3, window_type='blackman')
+            self.smooth(window_len=11, window_type='blackman')
             
         # Let's start with the easy ones!
         self.max = self.getMax()
@@ -767,7 +767,9 @@ class Experiment(object):
             if not self._addPlate(plate):
                 self.plates = {}
                 break
-            
+        
+        self.maxParams = {}
+        
         self.experiment = {}
         self.sumexp = {}
         self._organize()
@@ -901,7 +903,7 @@ class Experiment(object):
             Plate = self.plates[plate_id]
             for strain, plates in Plate.strains.iteritems():
                 for plate in plates:
-                    for well in plate.data:
+                    for wid, well in plate.data.iteritems():
                         well.activity = 0
     
     def getPurgedWells(self):
@@ -1053,6 +1055,44 @@ class Experiment(object):
         self.purged = True
         return True
     
+    def setMaxParams(self):
+        '''
+        Find the maximum value of each parameter
+        '''
+        w = Well('dummy', 'dummy')
+        self.maxParams['zero'] = {}
+        self.maxParams['nonzero'] = {}
+        for param in w.params:
+            self.maxParams['zero'][param] = self.maxParams.get(param, 0)
+            self.maxParams['nonzero'][param] = self.maxParams.get(param, 0)
+            
+        for w in self.getWells(False):
+            if self.zero and w.plate_id in self.zeroPlates:
+                z = 'zero'
+            else:
+                z = 'nonzero'
+                
+            for param in w.params:
+                if getattr(w, param) > self.maxParams[z][param]:
+                    self.maxParams[z][param] = getattr(w, param)
+    
+    def normalizeParam(self, param, value, zero=False):
+        '''
+        Take a parameter and return its normalization
+        '''
+        if self.maxParams == {}:
+            self.setMaxParams()
+        
+        if zero:
+            z = 'zero'
+        else:
+            z = 'nonzero'
+        
+        try:  
+            return float(value)/float(self.maxParams[z][param])
+        except ZeroDivisionError:
+            return None
+    
     def clusterize(self, save_fig=False, n_clusters=10):
         '''
         Perform the biolog data clusterizzation
@@ -1073,14 +1113,18 @@ class Experiment(object):
         for param in self.getWells():
             if self.zero and param.plate_id in self.zeroPlates:
                 dWells['zero'].append(param)
-                dParams['zero'].append([purgeNAN(param.max), purgeNAN(param.area), 
-                                        purgeNAN(param.height), purgeNAN(param.lag),
-                                        purgeNAN(param.slope)])
+                dParams['zero'].append([self.normalizeParam('max', purgeNAN(param.max), True),
+                                        self.normalizeParam('area', purgeNAN(param.area), True), 
+                                        self.normalizeParam('height', purgeNAN(param.height), True),
+                                        self.normalizeParam('lag', purgeNAN(param.lag), True),
+                                        self.normalizeParam('slope', purgeNAN(param.slope), True)])
             else:
                 dWells['nonzero'].append(param)
-                dParams['nonzero'].append([purgeNAN(param.max), purgeNAN(param.area),
-                                           purgeNAN(param.height), purgeNAN(param.lag),
-                                           purgeNAN(param.slope)])
+                dParams['nonzero'].append([self.normalizeParam('max', purgeNAN(param.max)),
+                                           self.normalizeParam('area', purgeNAN(param.area)),
+                                           self.normalizeParam('height', purgeNAN(param.height)),
+                                           self.normalizeParam('lag', purgeNAN(param.lag)),
+                                           self.normalizeParam('slope', purgeNAN(param.slope))])
         
         # Add some fake wells with no signal to make sure we will got a 
         # "zero cluster"
@@ -1351,45 +1395,17 @@ class BiologParser(object):
             'PM15-B':'PM15B', 'PM16-A':'PM16A',
             'PM17-A':'PM17A', 'PM18-C':'PM18C',
             'PM19-':'PM19', 'PM20-B':'PM20B',
-            'PM01-':'PM01', 'PM02-A':'PM02',
-            'PM03-B':'PM03B','PM04-A':'PM04A',
-            'PM05-':'PM05', 'PM06-':'PM06',
-            'PM07-':'PM07','PM08-':'PM08',
-            'PM09-':'PM09',
+            # opm-bugfix
+            'PM02':'PM02A', 'PM03':'PM03B', 'PM04':'PM04A',
+            'PM11':'PM11C', 'PM12':'PM12B',
+            'PM13':'PM13B', 'PM14':'PM14A',
+            'PM15':'PM15B', 'PM16':'PM16A',
+            'PM17':'PM17A', 'PM18':'PM18C',
+            'PM20':'PM20B',
             # TODO: These are just guesses for now
             'PM21-D':'PM21D', 'PM22-C':'PM22C',
             'PM23-A':'PM23A', 'PM24-B':'PM24B',
-            #TODO: Guesses for old plates versions
-            'PM 2-':'PM02', 'PM 3-B':'PM03B', 'PM3-B':'PM03B',
-            'PM 3-A':'PM03A', 'PM3-A':'PM03A',
-            'PM 3-':'PM03', 'PM3-':'PM03',
-            'PM 4-A':'PM04A', 'PM4-A':'PM04A',
-            'PM 4-':'PM04', 'PM4-':'PM04',
-            'PM02-':'PM02', 'PM03-B':'PM03B', 'PM3-B':'PM03B',
-            'PM03-A':'PM03A', 'PM3-A':'PM03A',
-            'PM03-':'PM03', 'PM3-':'PM03',
-            'PM04-A':'PM04A', 'PM4-A':'PM04A',
-            'PM04-':'PM04', 'PM4-':'PM04',
-            'PM11-C':'PM11C', 'PM11-B':'PM11B', 
-            'PM11-A':'PM11A', 'PM11-':'PM11', 
-            'PM12-B':'PM12B', 'PM12-A':'PM12A', 
-            'PM12-':'PM12', 'PM13-B':'PM13B', 
-            'PM13-A':'PM13A', 'PM13-':'PM13', 
-            'PM14-A':'PM14A', 'PM14-':'PM14', 
-            'PM15-B':'PM15B', 'PM15-A':'PM15A', 
-            'PM15-':'PM15', 'PM16-A':'PM16A', 
-            'PM16-':'PM16', 'PM17-A':'PM17A', 
-            'PM17-':'PM17', 'PM18-C':'PM18C', 
-            'PM18-B':'PM18B', 'PM18-A':'PM18A', 
-            'PM18-':'PM18', 'PM20-B':'PM20B', 
-            'PM20-A':'PM20A', 'PM20-':'PM20', 
-            'PM21-D':'PM21D', 'PM21-C':'PM21C', 
-            'PM21-B':'PM21B', 'PM21-A':'PM21A', 
-            'PM21-':'PM21', 'PM22-C':'PM22C', 
-            'PM22-B':'PM22B', 'PM22-A':'PM22A', 
-            'PM22-':'PM22', 'PM23-A':'PM23A', 
-            'PM23-':'PM23', 'PM24-B':'PM24B', 
-            'PM24-A':'PM24A', 'PM24-':'PM24'}
+            }
 
     _acceptedPlates = set(_dPlates.values())
     
@@ -2376,3 +2392,4 @@ def purgeNAN(value):
         return 0
     
     return value
+

@@ -123,6 +123,13 @@ def dmap(options, wdir, project):
     rpaths = getPathsReacts(project)
     cpaths = getPathsComps(project)
     
+    # Check the delta threshold
+    maxAct = biolog.getMaxActivity()
+    if phenome and maxAct <= options.delta:
+        logger.warning('The delta activity threshold is higher than the maximum '+
+                       'activity found (%d vs. %d)'%(delta,
+                                                    maxAct))
+    
     if len(options.organisms) == 0:
         # PanGenome or all genomes?
         if kind != 'mutants' and options.all:
@@ -150,7 +157,7 @@ def dmap(options, wdir, project):
                             ref_id)
                 
                 # Create the legend
-                legend = createLegend('single')
+                legend = createLegend('single', project)
                 
                 if phenome:
                     logger.info('Generating the reactions-only map')
@@ -172,7 +179,7 @@ def dmap(options, wdir, project):
                                 (org_id,ref_id))
                         
                         # Create the legend
-                        legend = createLegend('singlediff')
+                        legend = createLegend('singlediff', project)
                         
                         if phenome:
                             logger.info('Generating the reactions-only map')
@@ -257,8 +264,8 @@ def dmap(options, wdir, project):
                                     if path in cpaths:
                                         for co_id in cpaths[path]:
                                             if co_id.lstrip('cpd:') in corg:
-                                                # We map the values 0-9 in a 0-256 window
-                                                numcolor = int((corg[co_id.lstrip('cpd:')]*256)/9)
+                                                # We map the values 0-maxAct in a 0-256 window
+                                                numcolor = int((corg[co_id.lstrip('cpd:')]*256)/maxAct)
                                                 color = cm.PuOr( numcolor )[:3]
                                                 color = tuple([int(round(x*255)) for x in color])
                                                 dcomp[co_id] = rgb_to_hex(color).upper()
@@ -294,7 +301,7 @@ def dmap(options, wdir, project):
                     logger.info('Going to generate the metabolic map for %s'%org_id)
                 
                     # Create the legend
-                    legend = createLegend('single')
+                    legend = createLegend('single', project)
                     
                     if phenome:
                         logger.info('Generating the reactions-only map')
@@ -363,7 +370,7 @@ def dmap(options, wdir, project):
                                         cm.autumn(np.arange(85,256))[::-1])
             
             # Create the legend
-            legend = createLegend('pangenome')
+            legend = createLegend('pangenome', project)
             
             if phenome:
                 logger.info('Generating the reactions-only map')
@@ -467,8 +474,8 @@ def dmap(options, wdir, project):
                         if path in cpaths:
                             for co_id in cpaths[path]:
                                 if co_id.lstrip('cpd:') in corg:
-                                    # We map the values 0-9 in a 85-256 window
-                                    numcolor = int((corg[co_id.lstrip('cpd:')]*171)/9) + 85
+                                    # We map the values 0-maxAct in a 85-256 window
+                                    numcolor = int((corg[co_id.lstrip('cpd:')]*171)/maxAct) + 85
                                     color = cm.Purples( numcolor )[:3]
                                     color = tuple([int(round(x*255)) for x in color])
                                     dcomp[co_id] = rgb_to_hex(color).upper()
@@ -500,7 +507,7 @@ def dmap(options, wdir, project):
             org_id = [x.org_id for x in organism.getAll()][0]
             
             # Create the legend
-            legend = createLegend('single')
+            legend = createLegend('single', project)
             
             if phenome:
                 logger.info('Generating the reactions-only map')
@@ -534,7 +541,7 @@ def dmap(options, wdir, project):
                             ref_id)
                 
                 # Create the legend
-                legend = createLegend('single')
+                legend = createLegend('single', project)
                 
                 if phenome:
                     logger.info('Generating the reactions-only map')
@@ -553,7 +560,7 @@ def dmap(options, wdir, project):
                             (mut_id,ref_id))
                     
                     # Create the legend
-                    legend = createLegend('mutants')
+                    legend = createLegend('mutants', project)
                     
                     if phenome:
                         logger.info('Generating the reactions-only map')
@@ -639,8 +646,8 @@ def dmap(options, wdir, project):
                                 if path in cpaths:
                                     for co_id in cpaths[path]:
                                         if co_id.lstrip('cpd:') in corg:
-                                            # We map the values 0-9 in a 0-256 window
-                                            numcolor = int((corg[co_id.lstrip('cpd:')]*256)/9)
+                                            # We map the values 0-maxAct in a 0-256 window
+                                            numcolor = int((corg[co_id.lstrip('cpd:')]*256)/maxAct)
                                             color = cm.PuOr( numcolor )[:3]
                                             color = tuple([int(round(x*255)) for x in color])
                                             dcomp[co_id] = rgb_to_hex(color).upper()
@@ -679,7 +686,7 @@ def dmap(options, wdir, project):
         logger.info('Going to generate the metabolic map for %s'%org_id)
         
         # Create the legend
-        legend = createLegend('single')
+        legend = createLegend('single', project)
         
         if phenome:
             logger.info('Generating the reactions-only map')
@@ -710,7 +717,7 @@ def dmap(options, wdir, project):
             logger.info('Going to generate the metabolic map for %s'%org_id)
         
             # Create the legend
-            legend = createLegend('single')
+            legend = createLegend('single', project)
             
             if phenome:
                 logger.info('Generating the reactions-only map')
@@ -827,8 +834,8 @@ def doFetchMaps(project, org_id, rpaths, cpaths, legend=None, category=None,
         if path in cpaths:
             for co_id in cpaths[path]:
                 if co_id.lstrip('cpd:') in corg:
-                    # We map the values 0-9 in a 0-256 window
-                    numcolor = int((corg[co_id.lstrip('cpd:')]*256)/9)
+                    # We map the values 0-maxAct in a 0-256 window
+                    numcolor = int((corg[co_id.lstrip('cpd:')]*256)/biolog.getMaxActivity())
                     color = cm.RdYlGn( numcolor )[:3]
                     color = tuple([int(round(x*255)) for x in color])
                     dcomp[co_id] = rgb_to_hex(color).upper()

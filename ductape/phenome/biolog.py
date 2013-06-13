@@ -403,6 +403,9 @@ class Plate(object):
         return max([plate.getMax() 
                     for strain, plates in self.strains.iteritems()
                     for plate in plates])
+                    
+    def getMaxActivity(self):
+        return max([w.activity for w in self.getWells()])
         
     def calculateParams(self):
         '''
@@ -591,7 +594,7 @@ class Plate(object):
         
         return acts
     
-    def plotActivity(self, strains=[]):
+    def plotActivity(self, strains=[], maxAct=9):
         '''
         Generator:
         Plots the activity for each strain as heatmaps
@@ -626,8 +629,7 @@ class Plate(object):
                          for strain in strains])
             acts = self.arrayReshape(acts, strains)
                     
-            # TODO: here the vmax value is hard-coded
-            ax.matshow(acts, cmap=cm.RdYlGn, vmin=0, vmax=9)
+            ax.matshow(acts, cmap=cm.RdYlGn, vmin=0, vmax=maxAct)
             
             if self._figidx%12 == 1:
                 ax.set_ylabel(well_id[0], rotation='horizontal')
@@ -1254,7 +1256,7 @@ class Experiment(object):
         '''
         fig.suptitle(title, size='large')
         
-        cNorm  = colors.Normalize(vmin=0, vmax=9)
+        cNorm  = colors.Normalize(vmin=0, vmax=self.getMaxActivity())
         scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.RdYlGn)
         scalarMap.set_array(np.array(range(10)))
         cax = fig.add_axes([0.925, 0.2, 0.03, 0.6])
@@ -2021,10 +2023,11 @@ class BiologPlot(CommonThread):
         if self.plotActivity:
             self._maxsubstatus = len(self.results)*96
             self.updateStatus()
+            maxAct = max([p.getMaxActivity() for pid, p in self.avgresults.iteritems()])
             for plate_id in sorted(self.avgresults.keys()):
                 logger.debug('Plotting heatmap %s'%plate_id)
                 
-                for i in self.avgresults[plate_id].plotActivity(strains=self.order):
+                for i in self.avgresults[plate_id].plotActivity(strains=self.order, maxAct=maxAct):
                     self._substatus += 1
                     self.updateStatus(True)
                     

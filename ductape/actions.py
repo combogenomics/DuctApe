@@ -609,6 +609,10 @@ def dPhenomePurge(project, policy, delta=1, filterplates=[]):
     
     exp = Experiment(plates=plates, zero=isZero, zeroPlates=zeroPlates)
     
+    if delta >= exp.getMaxActivity():
+        logger.warning('The delta activity threshold is higher than the maximum '+
+                       'activity found (%d vs. %d)'%(delta, exp.getMaxActivity()))
+    
     if not exp.purgeReplicas(delta=delta,policy=policy):
         logger.error('Could not purge the phenomic experiment')
         return False
@@ -3540,20 +3544,24 @@ def prepareColors(maximum, colorrange):
     
     return hexs
 
-def createLegend(kind):
+def createLegend(kind, project):
     '''
     Create a color scheme legend
     '''
     # TODO: a more centralized color scheme
     fig = plt.figure()
     fname = 'legend.png'
+    
+    # Get the maximum activity now present
+    maxAct = Biolog(project).getMaxActivity()
+    
     rmatrix = np.outer(np.arange(0.33,1,0.01),np.ones(7))
     if kind == 'mutants' or 'singlediff':
-        cmatrix = np.outer(np.arange(-9,9,0.1),np.ones(7))
+        cmatrix = np.outer(np.arange(-maxAct,maxAct,0.1),np.ones(7))
     elif kind == 'pangenome':
         cmatrix = np.outer(np.arange(0.33,1,0.01),np.ones(7))
     else:
-        cmatrix = np.outer(np.arange(0,9,0.1),np.ones(7))
+        cmatrix = np.outer(np.arange(0,maxAct,0.1),np.ones(7))
          
     if kind == 'pangenome':
         ax = fig.add_subplot(141, axisbg='b')
@@ -3579,7 +3587,7 @@ def createLegend(kind):
         ax.set_title('Dispensable')
         
         ax = fig.add_subplot(144)
-        ax.imshow(cmatrix, cmap=cm.Purples, vmin=0, vmax=1)
+        ax.imshow(cmatrix, cmap=cm.Purples, vmin=0, vmax=maxAct)
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
@@ -3597,7 +3605,7 @@ def createLegend(kind):
         ax.set_title('Reactions')
         
         ax = fig.add_subplot(122)
-        ax.imshow(cmatrix, cmap=cm.RdYlGn, vmin=0, vmax=9)
+        ax.imshow(cmatrix, cmap=cm.RdYlGn, vmin=0, vmax=maxAct)
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
@@ -3615,7 +3623,7 @@ def createLegend(kind):
         ax.set_title('Reactions')
         
         ax = fig.add_subplot(122)
-        ax.imshow(cmatrix, cmap=cm.PuOr, vmin=-9, vmax=9)
+        ax.imshow(cmatrix, cmap=cm.PuOr, vmin=-maxAct, vmax=maxAct)
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
@@ -3647,7 +3655,7 @@ def createLegend(kind):
         ax.set_title('Mutated')
         
         ax = fig.add_subplot(144)
-        ax.imshow(cmatrix, cmap=cm.PuOr, vmin=-9, vmax=9)
+        ax.imshow(cmatrix, cmap=cm.PuOr, vmin=-maxAct, vmax=maxAct)
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])

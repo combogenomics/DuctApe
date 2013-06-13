@@ -3740,6 +3740,16 @@ class Biolog(DBBase):
             act[a.activity] = a.howmany
             
         return act
+        
+    def getMaxActivity(self):
+        '''
+        Returns the maximum activity present
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select max(activity)
+                                    from biolog_exp;''')
+        
+        return cursor.fetchall()[0][0]
     
     def getAvgActivity(self, plate_id, well_id, org_id):
         '''

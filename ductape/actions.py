@@ -2750,8 +2750,8 @@ def dNet(project, allorgs=False, allpaths=False):
         
             
         flen.write('\t'.join( ['All', ''] +
-                              [str(len(aNet))] +
-                              [str(len(oNet[x])) for x in orgs] + ['\n']))
+                              [str(len(aNet.getDistinctReactions()))] +
+                              [str(len(oNet[x].getDistinctReactions())) for x in orgs] + ['\n']))
         
         fconn.write('\t'.join( ['All', ''] +
                               [str(aNet.getComponents())] +
@@ -2806,8 +2806,8 @@ def dNet(project, allorgs=False, allpaths=False):
                 
             if not skip:
                 flen.write('\t'.join( [path.path_id, path.name] +
-                                      [str(len(dapNet[path.path_id]))] +
-                                      [str(len(oNet[x])) for x in orgs] + ['\n']))
+                                      [str(len(dapNet[path.path_id].getDistinctReactions()))] +
+                                      [str(len(oNet[x].getDistinctReactions())) for x in orgs] + ['\n']))
                 
                 fconn.write('\t'.join( [path.path_id, path.name] +
                                       [str(dapNet[path.path_id].getComponents())] +
@@ -2898,8 +2898,8 @@ def dNet(project, allorgs=False, allpaths=False):
             writeNet(oNet[org_id], npath, '%s.gml'%org_id)
             
         flen.write('\t'.join( ['All', ''] +
-                              [str(len(aNet))] +
-                              [str(len(oNet[x])) for x in orgs] + ['\n']))
+                              [str(len(aNet.getDistinctReactions()))] +
+                              [str(len(oNet[x].getDistinctReactions())) for x in orgs] + ['\n']))
         
         fconn.write('\t'.join( ['All', ''] +
                               [str(aNet.getComponents())] +
@@ -2964,8 +2964,8 @@ def dNet(project, allorgs=False, allpaths=False):
             
             if not skip:
                 flen.write('\t'.join( [path.path_id, path.name] +
-                                  [str(len(dapNet[path.path_id]))] +
-                                  [str(len(oNet[x])) for x in orgs] + ['\n']))
+                                  [str(len(dapNet[path.path_id].getDistinctReactions()))] +
+                                  [str(len(oNet[x].getDistinctReactions())) for x in orgs] + ['\n']))
                 
                 fconn.write('\t'.join( [path.path_id, path.name] +
                                   [str(dapNet[path.path_id].getComponents())] +
@@ -3086,8 +3086,8 @@ def dNet(project, allorgs=False, allpaths=False):
                 writeNet(oNet[mut_id], npath, '%s.gml'%mut_id)
             
         flen.write('\t'.join( ['All', ''] +
-                              [str(len(aNet))] +
-                              [str(len(oNet[x])) for x in orgs] + ['\n']))
+                              [str(len(aNet.getDistinctReactions()))] +
+                              [str(len(oNet[x].getDistinctReactions())) for x in orgs] + ['\n']))
         
         fconn.write('\t'.join( ['All', ''] +
                               [str(aNet.getComponents())] +
@@ -3181,8 +3181,8 @@ def dNet(project, allorgs=False, allpaths=False):
             
             if not skip:
                 flen.write('\t'.join( [path.path_id, path.name] +
-                                  [str(len(dapNet[path.path_id]))] +
-                                  [str(len(oNet[x])) for x in orgs] + ['\n']))
+                                  [str(len(dapNet[path.path_id].getDistinctReactions()))] +
+                                  [str(len(oNet[x].getDistinctReactions())) for x in orgs] + ['\n']))
                 
                 fconn.write('\t'.join( [path.path_id, path.name] +
                                   [str(dapNet[path.path_id].getComponents())] +

@@ -1,3 +1,20 @@
+Version 0.8.2
+=============
+
+UPGRADE URGENCY: HIGH, the curve parameters extraction and clustering have been improved
+
+FEATURES:
+* dphenome start: slight changes to parameters calculation
+    * the smoothing algorithm is now less aggressive
+    * the recursive attempts on curve parameters estimation are reduced two
+* dphenome start: clustering improvements
+    * the curve parameters are normalized prior to clusterization, in order to give all the parameters the same weight
+    * added a new option (-n) to set the number of clusters (and therefore tha maximum AV)
+
+BUGFIXES:
+* dape start: give the right number of distinct reaction IDs in the metabolic network tables
+* Other small bugfixes and speed improvements
+
 Version 0.8.0
 =============
 

@@ -313,6 +313,12 @@ def doClusterPhenome(project, save_fig_clusters=False,
             logger.warning('Method: %s'%s)
         logger.warning('You may want to run %s start -r to force '%(__prog__)+
                        ' force a single method parameter calculation')
+        
+    # Parameters numerosity on the fly
+    logger.info('Activity index distribution')
+    dist = biolog.getActivityDistribution()
+    for act in sorted(dist.keys()):
+        logger.info('Activity: %d, Number of wells %d'%(act, dist[act]))
     
     return True
 

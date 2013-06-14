@@ -945,11 +945,13 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     if activity >= maxAct:
         logger.warning('The activity threshold is higher than the maximum '+
                        'activity found (%d vs. %d)'%(activity, maxAct))
+        return False
         
     # Check the activity delta value
     if delta >= maxAct:
         logger.warning('The delta activity threshold is higher than the maximum '+
                        'activity found (%d vs. %d)'%(delta, maxAct))
+        return False
     
     ############################################################################
     # Activity distribution
@@ -1676,6 +1678,7 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
     if delta >= maxAct:
         logger.warning('The delta activity threshold is higher than the maximum '+
                        'activity found (%d vs. %d)'%(delta, maxAct))
+        return False
     
     ############################################################################
     # Activity rings (!!!)

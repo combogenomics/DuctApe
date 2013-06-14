@@ -127,8 +127,9 @@ def dmap(options, wdir, project):
     maxAct = biolog.getMaxActivity()
     if phenome and maxAct <= options.delta:
         logger.warning('The delta activity threshold is higher than the maximum '+
-                       'activity found (%d vs. %d)'%(delta,
+                       'activity found (%d vs. %d)'%(options.delta,
                                                     maxAct))
+        return
     
     if len(options.organisms) == 0:
         # PanGenome or all genomes?

@@ -120,7 +120,7 @@ def fitData(xdata, ydata):
 
     Please note that the plateau may be reached outside the final time point
     '''
-    retries = 3
+    retries = 2
     while retries > 0:
         params = [None, None, None, None, None]
         model = ''

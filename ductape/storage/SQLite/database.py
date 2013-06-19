@@ -1535,7 +1535,21 @@ class Kegg(DBBase):
             cursor=conn.execute(query,
                                 (path_id,))
         return bool(cursor.fetchall()[0][0])
-        
+    
+    def getAllRPairCoPaths(self):
+        '''
+        Generator to compounds to pathways association
+        Only those compounds partecipating in a "main" RPair reaction are returned
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select distinct cp.co_id, cp.path_id
+                                    from rpair rp, comp_path cp
+                                    where kind like "%main%"
+                            and (rp.co1 = cp.co_id or rp.co2 = cp.co_id);''')
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+       
     def getAllRPairsReacts(self, org_id=None, path_id=None):
         '''
         Generator to single reactions with main rpairs

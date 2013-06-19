@@ -2669,6 +2669,7 @@ def dNet(project, allorgs=False, allpaths=False):
     Metabolic network reconstruction and analysis
     '''
     from ductape.common.utils import makeRoom
+    from ductape.kegg.kegg import avoidedPaths
     
     kind = dSetKind(project)
     
@@ -2696,6 +2697,7 @@ def dNet(project, allorgs=False, allpaths=False):
     aNet = getTotalNet(project)
     dapNet = {}
     for path in kegg.getAllPathways(True):
+        if path.path_id in avoidedPaths:continue
         dapNet[path.path_id] = getTotalNet(project, path.path_id)
         
     # Write
@@ -2784,6 +2786,7 @@ def dNet(project, allorgs=False, allpaths=False):
         logger.info('Single pathways stats')
         
         for path in kegg.getAllPathways(True):
+            if path.path_id in avoidedPaths:continue
             logger.info('Pathway: %s // %s'%(path.path_id, path.name))
             
             if ':' in path.path_id:
@@ -2941,6 +2944,7 @@ def dNet(project, allorgs=False, allpaths=False):
         logger.info('Single pathways stats')
         
         for path in kegg.getAllPathways(True):
+            if path.path_id in avoidedPaths:continue
             logger.info('Pathway: %s // %s'%(path.path_id, path.name))
             
             if ':' in path.path_id:
@@ -3138,6 +3142,7 @@ def dNet(project, allorgs=False, allpaths=False):
         logger.info('Single pathways stats')
         
         for path in kegg.getAllPathways(True):
+            if path.path_id in avoidedPaths:continue
             logger.info('Pathway: %s // %s'%(path.path_id, path.name))
             
             if ':' in path.path_id:
@@ -3420,11 +3425,12 @@ def mergeKegg(project):
     return merged, mergedg, multiple
 
 def getPathsReacts(project):
+    from ductape.kegg.kegg import avoidedPaths
     kegg = Kegg(project)
     # Get the pathway - reaction links
     paths = {}
     for pR in kegg.getPathReacts():
-        if pR.path_id in ['path:rn01100','path:rn01110','path:rn01120']:
+        if pR.path_id in avoidedPaths:
             continue
         if pR.path_id not in paths:
             paths[pR.path_id] = []
@@ -3433,11 +3439,12 @@ def getPathsReacts(project):
     return paths
 
 def getPathsComps(project):
+    from ductape.kegg.kegg import avoidedPaths
     kegg = Kegg(project)
     # Get the pathway - compounds links
     paths = {}
     for pR in kegg.getPathComps():
-        if pR.path_id in ['path:rn01100','path:rn01110','path:rn01120']:
+        if pR.path_id in avoidedPaths:
             continue
         if pR.path_id not in paths:
             paths[pR.path_id] = []

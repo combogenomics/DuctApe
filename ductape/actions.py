@@ -2917,11 +2917,9 @@ def dNet(project, allorgs=False, allpaths=False):
                               ['\n']))
         
         if phenome:
-            path_co = [x.co_id for x in kegg.getPathComps(path.path_id)]
             for categ in biolog.getCategs(True):
                 scateg = categ.category.replace(' ','_').replace('&','and')
-                wells = [w for w in biolog.getAllCoByCateg(categ.category)
-                        if 'cpd:'+w.co_id in path_co]
+                wells = [w for w in biolog.getAllCoByCateg(categ.category)]
                 if len(wells) == 0:
                     logger.debug('Skipping activity data on pathway: %s'
                                  %(path.path_id))
@@ -3106,11 +3104,9 @@ def dNet(project, allorgs=False, allpaths=False):
                               ['\n']))
         
         if phenome:
-            path_co = [x.co_id for x in kegg.getPathComps(path.path_id)]
             for categ in biolog.getCategs(True):
                 scateg = categ.category.replace(' ','_').replace('&','and')
-                wells = [w for w in biolog.getAllCoByCateg(categ.category)
-                        if 'cpd:'+w.co_id in path_co]
+                wells = [w for w in biolog.getAllCoByCateg(categ.category)]
                 if len(wells) == 0:
                     logger.debug('Skipping activity data on pathway: %s'
                                  %(path.path_id))

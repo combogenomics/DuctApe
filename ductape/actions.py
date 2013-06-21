@@ -2880,7 +2880,7 @@ def dNet(project, allorgs=False, allpaths=False):
         slen = 'metNet_pangenome_length.tsv'
         flen = open(slen,'w')
         flen.write('# Metabolic network length (number of exclusive reaction IDs)\n')
-        flen.write('\t'.join( ['network', 'name', 'overall'] + orgs + ['\n'] ))
+        flen.write('\t'.join( ['network', 'name', 'overall'] + orgs) + '\n')
         
         sconn = 'metNet_pangenome_connected.tsv'
         fconn = open(sconn,'w')
@@ -2890,11 +2890,10 @@ def dNet(project, allorgs=False, allpaths=False):
                                               ['Subnetworks mean length'] +
                                               ['' for x in range(len(orgs))] +
                                               ['Subnetworks length std-dev'] +
-                                              ['' for x in range(len(orgs))] +
-                                              ['\n'] ))
+                                              ['' for x in range(len(orgs))]) + '\n')
         fconn.write('\t'.join( ['network', 'name', 'overall'] + orgs +
                                                   ['overall'] + orgs + 
-                                                  ['overall'] + orgs + ['\n'] ))
+                                                  ['overall'] + orgs) + '\n')
         
         if phenome:
             sact = 'metNet_pangenome_activity.tsv'
@@ -2902,8 +2901,7 @@ def dNet(project, allorgs=False, allpaths=False):
             fact.write('# Metabolic network activity\n')
             fact.write('\t'.join( ['network', 'name', 'category'] +
                                                  ['Avg Activity Difference'] +
-                                                 ['Std Activity Difference'] +
-                                                 ['\n'] ))
+                                                 ['Std Activity Difference']) + '\n')
 
         # Total network
         logger.info('Overall network stats')
@@ -2921,7 +2919,7 @@ def dNet(project, allorgs=False, allpaths=False):
             
         flen.write('\t'.join( ['All', ''] +
                               [str(len(aNet.getDistinctReactions()))] +
-                              [str(len(oNet[x].getDistinctReactions())) for x in orgs] + ['\n']))
+                              [str(len(oNet[x].getDistinctReactions())) for x in orgs]) + '\n')
         
         fconn.write('\t'.join( ['All', ''] +
                               [str(aNet.getComponents())] +
@@ -2929,8 +2927,7 @@ def dNet(project, allorgs=False, allpaths=False):
                               [str(aNet.getComponentsMean())] +
                               [str(oNet[x].getComponentsMean()) for x in orgs] +
                               [str(aNet.getComponentsStd())] +
-                              [str(oNet[x].getComponentsStd()) for x in orgs] +
-                              ['\n']))
+                              [str(oNet[x].getComponentsStd()) for x in orgs]) + '\n')
                               
         if phenome:
             for categ in biolog.getCategs(True):
@@ -2944,8 +2941,7 @@ def dNet(project, allorgs=False, allpaths=False):
                 writeNet(oNet, npath, '%s_%s.gml'%('all', scateg))
                 
                 fact.write('\t'.join( ['All', '', scateg] +
-                              [str(oNet.mean())] + [str(oNet.std())] +
-                              ['\n']))
+                              [str(oNet.mean())] + [str(oNet.std())]) + '\n')
                               
         # Single paths
         logger.info('Single pathways stats')
@@ -2984,7 +2980,7 @@ def dNet(project, allorgs=False, allpaths=False):
             if not skip:
                 flen.write('\t'.join( [path.path_id, path.name] +
                                       [str(len(dapNet[path.path_id].getDistinctReactions()))] +
-                                      [str(len(oNet[x].getDistinctReactions())) for x in orgs] + ['\n']))
+                                      [str(len(oNet[x].getDistinctReactions())) for x in orgs]) + '\n')
                 
                 fconn.write('\t'.join( [path.path_id, path.name] +
                                       [str(dapNet[path.path_id].getComponents())] +
@@ -2992,8 +2988,7 @@ def dNet(project, allorgs=False, allpaths=False):
                                       [str(dapNet[path.path_id].getComponentsMean())] +
                                       [str(oNet[x].getComponentsMean()) for x in orgs] +
                                       [str(dapNet[path.path_id].getComponentsStd())] +
-                                      [str(oNet[x].getComponentsStd()) for x in orgs] +
-                                      ['\n']))
+                                      [str(oNet[x].getComponentsStd()) for x in orgs]) + '\n')
             
             dAV = {}
             if phenome:
@@ -3064,7 +3059,7 @@ def dNet(project, allorgs=False, allpaths=False):
         slen = 'metNet_length.tsv'
         flen = open(slen,'w')
         flen.write('# Metabolic network length (number of distinct reactions)\n')
-        flen.write('\t'.join( ['network', 'name', 'overall'] + orgs + ['\n'] ))
+        flen.write('\t'.join( ['network', 'name', 'overall'] + orgs) + '\n')
         
         sconn = 'metNet_connected.tsv'
         fconn = open(sconn,'w')
@@ -3074,11 +3069,10 @@ def dNet(project, allorgs=False, allpaths=False):
                                               ['Subnetworks mean length'] +
                                               ['' for x in range(len(orgs))] +
                                               ['Subnetworks length std-dev'] +
-                                              ['' for x in range(len(orgs))] +
-                                              ['\n'] ))
+                                              ['' for x in range(len(orgs))]) + '\n')
         fconn.write('\t'.join( ['network', 'name', 'overall'] + orgs +
                                                   ['overall'] + orgs + 
-                                                  ['overall'] + orgs + ['\n'] ))
+                                                  ['overall'] + orgs) + '\n')
         
         if phenome:
             sact = 'metNet_activity.tsv'
@@ -3087,11 +3081,11 @@ def dNet(project, allorgs=False, allpaths=False):
             fact.write('\t'.join( ['', '', ''] + ['Mean Activity'] +
                                               ['' for x in range(len(orgs)-1)] +
                                               ['Activity std-dev'] +
-                                              ['' for x in range(len(orgs)-1)] +
-                                              ['\n'] ))
+                                              ['' for x in range(len(orgs)-1)])
+                                            + '\n')
             fact.write('\t'.join( ['network', 'name', 'category'] +
                                                      orgs +
-                                                     orgs + ['\n'] ))
+                                                     orgs) + '\n')
         
         # Total network
         logger.info('Overall network stats')
@@ -3104,7 +3098,8 @@ def dNet(project, allorgs=False, allpaths=False):
             
         flen.write('\t'.join( ['All', ''] +
                               [str(len(aNet.getDistinctReactions()))] +
-                              [str(len(oNet[x].getDistinctReactions())) for x in orgs] + ['\n']))
+                              [str(len(oNet[x].getDistinctReactions())) for x in orgs])
+                               + '\n')
         
         fconn.write('\t'.join( ['All', ''] +
                               [str(aNet.getComponents())] +
@@ -3112,8 +3107,8 @@ def dNet(project, allorgs=False, allpaths=False):
                               [str(aNet.getComponentsMean())] +
                               [str(oNet[x].getComponentsMean()) for x in orgs] +
                               [str(aNet.getComponentsStd())] +
-                              [str(oNet[x].getComponentsStd()) for x in orgs] +
-                              ['\n']))
+                              [str(oNet[x].getComponentsStd()) for x in orgs])
+                              + '\n')
         
         if phenome:
             for categ in biolog.getCategs(True):
@@ -3134,8 +3129,7 @@ def dNet(project, allorgs=False, allpaths=False):
                 
                 fact.write('\t'.join( ['All', '', scateg] +
                               [str(oNet[x].mean()) for x in orgs] +
-                              [str(oNet[x].std()) for x in orgs] +
-                              ['\n']))
+                              [str(oNet[x].std()) for x in orgs]) + '\n')
         
         # Single paths
         logger.info('Single pathways stats')
@@ -3179,7 +3173,8 @@ def dNet(project, allorgs=False, allpaths=False):
             if not skip:
                 flen.write('\t'.join( [path.path_id, path.name] +
                                   [str(len(dapNet[path.path_id].getDistinctReactions()))] +
-                                  [str(len(oNet[x].getDistinctReactions())) for x in orgs] + ['\n']))
+                                  [str(len(oNet[x].getDistinctReactions())) for x in orgs])
+                                  + '\n')
                 
                 fconn.write('\t'.join( [path.path_id, path.name] +
                                   [str(dapNet[path.path_id].getComponents())] +
@@ -3187,8 +3182,7 @@ def dNet(project, allorgs=False, allpaths=False):
                                   [str(dapNet[path.path_id].getComponentsMean())] +
                                   [str(oNet[x].getComponentsMean()) for x in orgs] +
                                   [str(dapNet[path.path_id].getComponentsStd())] +
-                                  [str(oNet[x].getComponentsStd()) for x in orgs] +
-                                  ['\n']))
+                                  [str(oNet[x].getComponentsStd()) for x in orgs]) + '\n')
             
             dAV = {}
             for org_id in orgs:
@@ -3268,7 +3262,7 @@ def dNet(project, allorgs=False, allpaths=False):
         slen = 'metNet_length.tsv'
         flen = open(slen,'w')
         flen.write('# Metabolic network length (number of exclusive reactions w/ respect to the wild-type)\n')
-        flen.write('\t'.join( ['network', 'name', 'overall'] + orgs + ['\n'] ))
+        flen.write('\t'.join( ['network', 'name', 'overall'] + orgs) + '\n')
         
         sconn = 'metNet_connected.tsv'
         fconn = open(sconn,'w')
@@ -3278,11 +3272,10 @@ def dNet(project, allorgs=False, allpaths=False):
                                               ['Subnetworks mean length'] +
                                               ['' for x in range(len(orgs))] +
                                               ['Subnetworks length std-dev'] +
-                                              ['' for x in range(len(orgs))] +
-                                              ['\n'] ))
+                                              ['' for x in range(len(orgs))]) + '\n')
         fconn.write('\t'.join( ['network', 'name', 'overall'] + orgs +
                                                   ['overall'] + orgs + 
-                                                  ['overall'] + orgs + ['\n'] ))
+                                                  ['overall'] + orgs) + '\n')
         
         if phenome:
             sact = 'metNet_activity.tsv'
@@ -3291,11 +3284,11 @@ def dNet(project, allorgs=False, allpaths=False):
             fact.write('\t'.join( ['', '', ''] + ['Mean Activity'] +
                                               ['' for x in range(len(orgs)-1)] +
                                               ['Activity std-dev'] +
-                                              ['' for x in range(len(orgs)-1)] +
-                                              ['\n'] ))
+                                              ['' for x in range(len(orgs)-1)])
+                                            + '\n')
             fact.write('\t'.join( ['network', 'name', 'category'] +
                                                      orgs +
-                                                     orgs + ['\n'] ))
+                                                     orgs) + '\n')
         
         # Total network
         logger.info('Overall network stats')
@@ -3317,7 +3310,8 @@ def dNet(project, allorgs=False, allpaths=False):
             
         flen.write('\t'.join( ['All', ''] +
                               [str(len(aNet.getDistinctReactions()))] +
-                              [str(len(oNet[x].getDistinctReactions())) for x in orgs] + ['\n']))
+                              [str(len(oNet[x].getDistinctReactions())) for x in orgs])
+                              + '\n')
         
         fconn.write('\t'.join( ['All', ''] +
                               [str(aNet.getComponents())] +
@@ -3325,8 +3319,8 @@ def dNet(project, allorgs=False, allpaths=False):
                               [str(aNet.getComponentsMean())] +
                               [str(oNet[x].getComponentsMean()) for x in orgs] +
                               [str(aNet.getComponentsStd())] +
-                              [str(oNet[x].getComponentsStd()) for x in orgs] +
-                              ['\n']))
+                              [str(oNet[x].getComponentsStd()) for x in orgs])
+                              + '\n')
         
         if phenome:
             for categ in biolog.getCategs(True):
@@ -3356,8 +3350,7 @@ def dNet(project, allorgs=False, allpaths=False):
                 
                 fact.write('\t'.join( ['All', '', scateg] +
                               [str(oNet[x].mean()) for x in orgs] +
-                              [str(oNet[x].std()) for x in orgs] +
-                              ['\n']))
+                              [str(oNet[x].std()) for x in orgs]) + '\n')
         
         # Single paths
         logger.info('Single pathways stats')
@@ -3427,7 +3420,8 @@ def dNet(project, allorgs=False, allpaths=False):
             if not skip:
                 flen.write('\t'.join( [path.path_id, path.name] +
                                   [str(len(dapNet[path.path_id].getDistinctReactions()))] +
-                                  [str(len(oNet[x].getDistinctReactions())) for x in orgs] + ['\n']))
+                                  [str(len(oNet[x].getDistinctReactions())) for x in orgs])
+                                  + '\n')
                 
                 fconn.write('\t'.join( [path.path_id, path.name] +
                                   [str(dapNet[path.path_id].getComponents())] +

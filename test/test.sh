@@ -16,7 +16,6 @@ die () {
 cleanUp () {
 	find . ! -name . -prune -type f -not -name '*sh' -not -name "*log" | xargs rm
 	rm -rf tmp &> /dev/null
-	rm input/kegg.tsv &> /dev/null
 }
 
 echo -e $green"Single organism"$reset
@@ -48,6 +47,7 @@ cp kegg.tsv input/ &> /dev/null
 
 ../dape clear --keep-org || die "dape clear"
 ../dape import kegg.tsv || die "dape import"
+sleep 5
 
 ../dape clear --keep-kegg || die "dape clear"
 
@@ -57,6 +57,7 @@ echo -e $green"Deletion AND insertion mutants"$reset
 
 ../dape init || die "dape init"
 ../dape import input/kegg.tsv || die "dape import"
+sleep 5
 ../dape add Rm1021 -c red || die "dape add"
 ../dape add-mut -k deletion -c blue -m Rm1021 del || die "dape add-mut"
 ../dape add-mut -k insertion -c green -m Rm1021 add || die "dape add-mut"
@@ -91,6 +92,7 @@ cp kegg.tsv input/ &> /dev/null
 
 ../dape clear --keep-org || die "dape clear"
 ../dape import kegg.tsv || die "dape import"
+sleep 5
 
 ../dape clear --keep-kegg || die "dape clear"
 
@@ -101,6 +103,7 @@ echo -e $green"Pangenome"$reset
 ../dape init || die "dape init"
 ../dape add-multi Rm1021 AK83 AK58 BL225C || die "dape add-multi"
 ../dape import input/kegg.tsv || die "dape import"
+sleep 5
 
 ../dgenome add-dir input/pangenome || die "dgenome add-dir"
 ../dgenome add-ko input/pangenome/ko.tab || die "dgenome add-ko"
@@ -135,13 +138,13 @@ echo -e $green"Pangenome"$reset
 ../dgenome add-dir input/pangenome || die "dgenome add-dir"
 ../dgenome add-orth pangenome.tsv || die "dgenome add-orth"
 
-rm input/kegg.tsv &> /dev/null
 cleanUp
 
 echo -e $green"Custom plates"$reset
 
 ../dape init || die "dape init"
 ../dape import input/kegg.tsv || die "dape import"
+sleep 5
 ../dphenome import-plates input/newplate.tsv || die "dphenome import-plates (good)"
 ../dphenome export || die "dphenome export"
 ../dphenome import-plates input/newplate_wrong.tsv && die "dphenome import-plates (wrong)"

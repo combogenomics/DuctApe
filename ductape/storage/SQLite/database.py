@@ -1534,7 +1534,21 @@ class Kegg(DBBase):
             cursor=conn.execute(query,
                                 (path_id,))
         return bool(cursor.fetchall()[0][0])
-        
+    
+    def getAllRPairCoPaths(self):
+        '''
+        Generator to compounds to pathways association
+        Only those compounds partecipating in a "main" RPair reaction are returned
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select distinct cp.co_id, cp.path_id
+                                    from rpair rp, comp_path cp
+                                    where kind like "%main%"
+                            and (rp.co1 = cp.co_id or rp.co2 = cp.co_id);''')
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+       
     def getAllRPairsReacts(self, org_id=None, path_id=None):
         '''
         Generator to single reactions with main rpairs
@@ -2046,6 +2060,26 @@ class Kegg(DBBase):
         
         return int(Row(cursor.fetchall()[0], cursor.description).num)
     
+    def getAllReactNum(self):
+        '''
+        Get the number of organisms sharing each re_id
+        '''
+        query = '''
+                select k.re_id, count(distinct org_id) num
+                from ortholog o, mapko m, protein p, ko_react k
+                where o.prot_id = p.prot_id
+                and p.prot_id = m.prot_id
+                and m.ko_id = k.ko_id
+                group by k.re_id
+                order by num
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query)
+        
+        for res in cursor:
+            yield Row(res, cursor.description)
+    
     def getMappedRPairsReact(self, path_id=None):
         '''
         Get all the RPairs Reacts in the pangenome
@@ -2084,9 +2118,13 @@ class Kegg(DBBase):
                 cursor=conn.execute(query,
                                     [path_id,])
             
+        rnums = {}
+        for r in self.getAllReactNum():
+            rnums[r.re_id] = r.num
+            
         for res in cursor:
             r = Row(res, cursor.description)
-            setattr(r, 'weight', self.getReactNum(r.re_id))
+            setattr(r, 'weight', rnums[r.re_id])
             yield r
     
     def getExclusiveRPairsReact(self, path_id=None):
@@ -2142,21 +2180,25 @@ class Kegg(DBBase):
         racc = set([r for r in filter(lambda x: x.group_id in oacc, rall)])
         runi = set([r for r in filter(lambda x: x.group_id in ouni, rall)])
         
+        rnums = {}
+        for r in self.getAllReactNum():
+            rnums[r.re_id] = r.num
+        
         core = {}
         for r in rcore:
-            setattr(r, 'weight', self.getReactNum(r.re_id))
+            setattr(r, 'weight', rnums[r.re_id])
             core[r.re_id+r.co1+r.co2] = r
         disp = {}
         for r in rdisp:
-            setattr(r, 'weight', self.getReactNum(r.re_id))
+            setattr(r, 'weight', rnums[r.re_id])
             disp[r.re_id+r.co1+r.co2] = r
         acc = {}
         for r in racc:
-            setattr(r, 'weight', self.getReactNum(r.re_id))
+            setattr(r, 'weight', rnums[r.re_id])
             acc[r.re_id+r.co1+r.co2] = r
         uni = {}
         for r in runi:
-            setattr(r, 'weight', self.getReactNum(r.re_id))
+            setattr(r, 'weight', rnums[r.re_id])
             uni[r.re_id+r.co1+r.co2] = r
         
         ecore = set(core.keys()).difference(set(disp.keys()))
@@ -3408,7 +3450,7 @@ class Biolog(DBBase):
                     for param in [w.activity,int(w.zero),w.min,w.max,
                                   w.height,w.plateau,w.slope,w.lag,
                                   w.area,w.v,w.y0]:
-                        if param is None:
+                        if param is None or str(param) == 'nan':
                             bstr += ' null,'
                         else:
                             bstr += ' %s,'%param
@@ -3711,6 +3753,16 @@ class Biolog(DBBase):
             act[a.activity] = a.howmany
             
         return act
+        
+    def getMaxActivity(self):
+        '''
+        Returns the maximum activity present
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select max(activity)
+                                    from biolog_exp;''')
+        
+        return cursor.fetchall()[0][0]
     
     def getAvgActivity(self, plate_id, well_id, org_id):
         '''
@@ -3753,7 +3805,7 @@ class Biolog(DBBase):
         
         for res in cursor:
             yield Row(res, cursor.description)
-    
+            
     def getActiveByPlate(self, plate_id, activity):
         '''
         Get those wells at least active activity

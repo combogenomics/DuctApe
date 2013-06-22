@@ -23,6 +23,7 @@ Requirements
 * scikits.learn
 * multiprocessing
 * networkx
+* PyYaml
 
 Installation
 ------------

@@ -80,7 +80,8 @@ def dstart(options, wdir, project):
     else:
         # Clusterize the biolog experiment
         if not doClusterPhenome(project, save_fig_clusters=options.f,
-                                force_params=options.r):
+                                force_params=options.r,
+                                n_clusters=options.clusters):
             logger.error('Phenome experiment could not be clustered!')
             return False
 
@@ -271,7 +272,7 @@ def dclear(options, wdir, project):
     return dPhenomeClear(project)
 
 def doClusterPhenome(project, save_fig_clusters=False,
-                     force_params=False):
+                     force_params=False, n_clusters=10):
     biolog = Biolog(project)
     # Get Plate Objects
     # TODO: here check the zero subtraction state? (it may be mixed up)
@@ -288,7 +289,7 @@ def doClusterPhenome(project, save_fig_clusters=False,
     exp = Experiment(plates=plates, zero=isZero, zeroPlates=zeroPlates)
     
     bclust = BiologCluster(exp, save_fig_clusters=save_fig_clusters,
-                           force_params=force_params)
+                           force_params=force_params, n_clusters=n_clusters)
         
     if not RunThread(bclust):
         return False
@@ -312,6 +313,12 @@ def doClusterPhenome(project, save_fig_clusters=False,
             logger.warning('Method: %s'%s)
         logger.warning('You may want to run %s start -r to force '%(__prog__)+
                        ' force a single method parameter calculation')
+        
+    # Parameters numerosity on the fly
+    logger.info('Activity index distribution')
+    dist = biolog.getActivityDistribution()
+    for act in sorted(dist.keys()):
+        logger.info('Activity: %d, Number of wells %d'%(act, dist[act]))
     
     return True
 
@@ -427,6 +434,11 @@ def getOptions():
     parser_start.add_argument('-r', action="store_true",
                             default=False,
                             help='Force parameters re-calculation')
+    parser_start.add_argument('-n', metavar='clusters', action="store",
+                            dest='clusters',
+                            type=int,
+                            default=10,
+                            help='Number of clusters to be used [Default: 10]')
     parser_start.set_defaults(func=dstart)
     
     parser_plot = subparsers.add_parser('plot', help='Plot the phenomic data')

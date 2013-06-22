@@ -609,6 +609,10 @@ def dPhenomePurge(project, policy, delta=1, filterplates=[]):
     
     exp = Experiment(plates=plates, zero=isZero, zeroPlates=zeroPlates)
     
+    if delta >= exp.getMaxActivity():
+        logger.warning('The delta activity threshold is higher than the maximum '+
+                       'activity found (%d vs. %d)'%(delta, exp.getMaxActivity()))
+    
     if not exp.purgeReplicas(delta=delta,policy=policy):
         logger.error('Could not purge the phenomic experiment')
         return False
@@ -934,13 +938,28 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     
     exp.plot(svg=svg)
     
+    # Max value for activity
+    maxAct = exp.getMaxActivity()
+    
+    # Check the activity threshold
+    if activity >= maxAct:
+        logger.warning('The activity threshold is higher than the maximum '+
+                       'activity found (%d vs. %d)'%(activity, maxAct))
+        return False
+        
+    # Check the activity delta value
+    if delta >= maxAct:
+        logger.warning('The delta activity threshold is higher than the maximum '+
+                       'activity found (%d vs. %d)'%(delta, maxAct))
+        return False
+    
     ############################################################################
     # Activity distribution
     
     logger.info('Activity distributions')
     
     # Fake plot top get the correct bin centers
-    y,binEdges=np.histogram(range(10),bins=10)
+    y,binEdges=np.histogram(range(10),bins=maxAct + 1)
     bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
     
     if kind == 'single':
@@ -957,7 +976,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
                 
         if len(x) != 0:                   
             ax = fig.add_subplot(1,2,1)
-            y,binEdges=np.histogram(x,bins=10)
+            y,binEdges=np.histogram(x,bins=maxAct + 1)
             ax.plot(bincenters,y,'-o', color='black', linewidth=2)
             
             ax.set_ylim(0,max([x for x in d.itervalues()]) + 20)
@@ -968,7 +987,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             ax.set_aspect((x1-x0)/(y1-y0))
             
             ax.set_xticks(bincenters)
-            ax.set_xticklabels([str(x) for x in range(10)])
+            ax.set_xticklabels([str(x) for x in range(maxAct + 1)])
             
             ax.xaxis.grid(color='gray', linestyle='dashed')
             ax.set_axisbelow(True)
@@ -997,7 +1016,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         if len(x) == 0:
             continue
                 
-        y,binEdges=np.histogram(x,bins=10)
+        y,binEdges=np.histogram(x,bins=maxAct + 1)
         ax.plot(bincenters,y,'-o', color=dcolors[org.org_id], linewidth=2,
                 alpha=0.66, label=org.org_id)
         
@@ -1011,7 +1030,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     ax.set_aspect((x1-x0)/(y1-y0))
     
     ax.set_xticks(bincenters)
-    ax.set_xticklabels([str(x) for x in range(10)])
+    ax.set_xticklabels([str(x) for x in range(maxAct + 1)])
     
     ax.xaxis.grid(color='gray', linestyle='dashed')
     ax.set_axisbelow(True)
@@ -1073,7 +1092,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             if len(x) == 0:
                 continue
             
-            y,binEdges=np.histogram(x,bins=10)
+            y,binEdges=np.histogram(x,bins=maxAct + 1)
             ax.plot(bincenters,y,'-o', color=dcolors[org.org_id], linewidth=2,
                     alpha=0.66, label=org.org_id)
             
@@ -1093,7 +1112,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         ax.set_axisbelow(True)
         
         ax.set_xticks(bincenters)
-        ax.set_xticklabels([str(x) for x in range(10)])
+        ax.set_xticklabels([str(x) for x in range(maxAct + 1)])
             
         ax.set_xlabel('Activity', size='small')
         ax.set_ylabel('# of wells', size='small')
@@ -1160,7 +1179,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             if len(x) == 0:
                 continue
             
-            y,binEdges=np.histogram(x,bins=10)
+            y,binEdges=np.histogram(x,bins=maxAct + 1)
             ax.plot(bincenters,y,'-o', color=dcolors[org.org_id], linewidth=2,
                     alpha=0.66, label=org.org_id)
             
@@ -1180,7 +1199,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         ax.set_axisbelow(True)
         
         ax.set_xticks(bincenters)
-        ax.set_xticklabels([str(x) for x in range(10)])
+        ax.set_xticklabels([str(x) for x in range(maxAct + 1)])
             
         ax.set_xlabel('Activity', size='small')
         ax.set_ylabel('# of wells', size='small')
@@ -1226,8 +1245,8 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             
             colorBoxPlot(ax, bplot, ['black'])
             
-            ax.set_xlim(-1,10)
-            ax.set_xticks(range(10))
+            ax.set_xlim(-1,maxAct + 1)
+            ax.set_xticks(range(maxAct + 1))
             
             ax.get_yaxis().set_ticks([])
             
@@ -1291,8 +1310,8 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     colorBoxPlot(ax, bplot, bcolors)
     
     if len(borgs) > 0:
-        ax.set_xlim(-1,10)
-        ax.set_xticks(range(10))
+        ax.set_xlim(-1,maxAct + 1)
+        ax.set_xticks(range(maxAct + 1))
         
         ax.set_yticklabels(borgs, size='x-small')
         
@@ -1378,8 +1397,8 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         colorBoxPlot(ax, bplot, bcolors)
         
         if len(borgs) > 0:
-            ax.set_xlim(-1,10)
-            ax.set_xticks(range(10))
+            ax.set_xlim(-1,maxAct + 1)
+            ax.set_xticks(range(maxAct + 1))
             
             ax.set_yticklabels(borgs, size='x-small')
             
@@ -1652,6 +1671,15 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
                      category=category, categorder=categorder,
                      zeroPlates=zeroPlates)
     
+    # Max value for activity
+    maxAct = exp.getMaxActivity()
+    
+    # Check the activity delta value
+    if delta >= maxAct:
+        logger.warning('The delta activity threshold is higher than the maximum '+
+                       'activity found (%d vs. %d)'%(delta, maxAct))
+        return False
+    
     ############################################################################
     # Activity rings (!!!)
     # Thanks to stackoverflow for that
@@ -1697,7 +1725,7 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
         R,T  = np.meshgrid(radius,theta)
     
         ax.pcolor(T, R, [[1 for y in range(10)] for x in range(628)], cmap=cm.Greys,
-                  vmin=0, vmax=9)
+                  vmin=0, vmax=maxAct)
         
         ax.text(0, i+0.03, org_id, size=17, weight='black', alpha=0.77, ha='center')
         
@@ -1760,12 +1788,12 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
         
         if (kind == 'mutants' or difforg) and org_id in muts:
             cmap = cm.PuOr
-            vmin = -9
-            vmax = 9
+            vmin = -maxAct
+            vmax = maxAct
         else:
             cmap = cm.RdYlGn
             vmin = 0
-            vmax = 9
+            vmax = maxAct
             
         cmap.set_under('#F8F8F8',1.)
         
@@ -1805,17 +1833,17 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
 
     # Colorbar
     import matplotlib.colors as colors
-    cNorm  = colors.Normalize(vmin=0, vmax=9)
+    cNorm  = colors.Normalize(vmin=0, vmax=maxAct)
     scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.RdYlGn)
-    scalarMap.set_array(np.array(range(10)))
+    scalarMap.set_array(np.array(range(maxAct + 1)))
     cax = fig.add_axes([0.93, 0.2, 0.03, 0.6])
     cax.text(0.50, 1.01, 'Activity', size=20, ha='center')
     plt.colorbar(scalarMap, cax=cax)
     
     if (kind == 'mutants' or difforg):
-        cNorm  = colors.Normalize(vmin=-9, vmax=9)
+        cNorm  = colors.Normalize(vmin=-maxAct, vmax=maxAct)
         scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.PuOr)
-        scalarMap.set_array(np.array(range(-9,9,20)))
+        scalarMap.set_array(np.array(range(-maxAct,maxAct,20)))
         cax = fig.add_axes([0.04, 0.2, 0.03, 0.6])
         cax.text(0.50, 1.01, 'Delta activity', size=20, ha='center')
         plt.colorbar(scalarMap, cax=cax)
@@ -2195,6 +2223,9 @@ def dPhenomeExport(project, json=False):
     
     sigs = [x for x in biolog.getAllSignals()]
     for plate in getSinglePlatesFromSignals(sigs):
+        logger.info('Exporting plate %s, strain %s, replica %d'%(plate.plate_id,
+                                                                 plate.strain,
+                                                                plate.replica))
         if not json:
             fout = open('%s_%s_%s.yml'%(plate.plate_id, plate.strain,
                                     plate.replica), 'w')
@@ -2633,11 +2664,177 @@ def writeNet(net, path, name):
     nx.write_gml(net.net, os.path.join(path,name))
     logger.debug('Saved network %s to %s'%(name, path))
 
+def writeCombinedPanGenome(dvalues):
+    '''
+    Write down the table with the combined pangenome data
+    '''
+    fname = 'combined_pangenome.tsv'
+    fout = open(fname,'w')
+    
+    fout.write('# Genomic variability Vs. Phenomic variability\n')
+    fout.write('# disp/core = number of distinct dispensable reaction IDs / '+
+               'number of distinct core reaction IDs \n')
+    fout.write('# diffAV = mean AV difference\n')
+    fout.write('# (inf, only dispensable reactions; -1, no activity available)\n')
+    fout.write('\t'.join( ['pathway', 'name', 'category', 'disp/core', 'diffAV'] )
+                    + '\n')
+    
+    # Order the pathway list for genomic variability
+    allv = []
+    cv = {}
+    for categ in filter(lambda x: x!= 'genome', dvalues.keys()):
+        cv[categ] = []
+        for p in dvalues[categ]:
+            allv.append([categ] + list(p))
+            cv[categ].append(list(p))
+    
+    for p in sorted(allv, key=lambda x: (x[5], x[1], x[0]), reverse=True):
+        fout.write( '\t'.join(p[1:3] + [p[0]] + [str(x) for x in p[5:]]) + '\n')
+    
+    fout.close()
+    logger.info('Saved combined pangenome informations (%s)'%fname)
+    
+    # Generating heatmap
+    logger.info('Saving combined data heatmap')
+    
+    fig = plt.figure(figsize=(10,20), dpi=300)
+    
+    for categ in cv:
+        pnames = []
+        pvalues = []
+        pvalues1 = []
+        for p in sorted(cv[categ], key=lambda x: (x[4], x[0]), reverse=True):
+            pnames.append(p[0])
+            if p[4] <= 1:
+                pvalues.append([p[4]])
+            else:
+                pvalues.append([2])
+            pvalues1.append([p[5]])
+            
+        ax = fig.add_subplot(121)
+        cmap = plt.cm.Greens
+        cmap.set_over('#003314')
+        cmap.set_under('gray')
+        cb = ax.imshow(pvalues, cmap=cmap, interpolation='none', aspect='auto',
+                  vmin=0, vmax=1)
+        ax.set_yticks(np.arange(len(pnames)))
+        ax.set_yticklabels(pnames, size=6)
+        ax.set_xticks([],[])
+        ax.set_title('Genomic Variability')
+        
+        plt.colorbar(cb, orientation='horizontal')
+        
+        ax2 = fig.add_subplot(122)
+        cmap = plt.cm.Purples
+        cmap.set_over('blue')
+        cmap.set_under('gray')
+        cb = ax2.imshow(pvalues1, cmap=cmap, interpolation='none', aspect='auto', vmin=0)
+        ax2.set_yticks([],[])
+        ax2.set_xticks([],[])
+        ax2.set_title('Metabolic variability')
+        
+        plt.colorbar(cb, orientation='horizontal')
+
+        plt.subplots_adjust(wspace=0, hspace=0)
+        
+        plt.savefig('combined_heatmap_pangenome_%s.png'%categ)
+        plt.clf()
+    
+def writeCombined(dvalues, orgs):
+    '''
+    Write down the table with the combined data
+    '''
+    fname = 'combined.tsv'
+    fout = open(fname,'w')
+    
+    fout.write('# Metabolic reconstruction Vs. Phenomic activity\n')
+    fout.write('# reactions = number of distinct reaction IDs\n')
+    fout.write('# meanAV = mean AV\n')
+    fout.write('# (-1, no activity available)\n')
+    fout.write('\t'.join( ['', '', ''] + ['%s\t'%x for x in orgs] )
+                    + '\n')
+    fout.write('\t'.join( ['pathway', 'name', 'category'] +
+                          ['reactions\tmeanAV' for x in orgs])
+                    + '\n')
+    
+    # Order the pathway list for genomic content
+    dallv = {}
+    pnames = {}
+    for categ in filter(lambda x: x!= 'genome', dvalues[orgs[0]].keys()):
+        dallv[categ] = {}
+        for org_id in orgs:
+            for p in dvalues[org_id][categ]:
+                dallv[categ][p[0]] = dallv[categ].get(p[0], [])
+                dallv[categ][p[0]].append( (p[2],p[3]) )
+                pnames[p[0]] = p[1]
+    
+    allv = []
+    cv = {}
+    for categ in filter(lambda x: x!= 'genome', dvalues[orgs[0]].keys()):
+        cv[categ] = []
+        for p in dallv[categ]:
+            allv.append([categ, p, pnames[p]] + dallv[categ][p])
+            cv[categ].append([p, pnames[p]] + dallv[categ][p])
+    
+    for p in sorted(allv, key=lambda x: [x[i][0] for i in range(3,len(orgs)+3)] + [x[1], x[0]], reverse=True):
+        fout.write( '\t'.join(p[1:3] + [p[0]] +
+                              ['%s\t%s'%(str(x[0]),str(x[1])) for x in p[3:]])
+                    + '\n')
+    
+    fout.close()
+    logger.info('Saved combined informations (%s)'%fname)
+    
+    # Generating heatmap
+    logger.info('Saving combined data heatmap')
+    
+    fig = plt.figure(figsize=(8*len(orgs),20), dpi=300)
+    
+    for categ in cv:
+        pnames = []
+        pvalues = []
+        pvalues1 = []
+        for p in sorted(cv[categ], key=lambda x: [x[i][0] for i in range(2,len(orgs)+2)] + [x[0]], reverse=True):
+            pnames.append(p[0])
+            pvalues.append([p[i][0] for i in range(2,len(orgs)+2)])
+            pvalues1.append([p[i][1] for i in range(2,len(orgs)+2)])
+            
+        for i in range(0,len(orgs)):
+            ax = fig.add_subplot(1,len(orgs)*2,(i*2)+1)
+            cmap = plt.cm.Greens
+            cmap.set_over('#003314')
+            cmap.set_under('gray')
+            cb = ax.imshow([[x[i]] for x in pvalues], cmap=cmap, interpolation='none', aspect='auto',
+                      vmin=0, vmax=max([z for x in pvalues for z in x]))
+            if i==0:
+                ax.set_yticks(np.arange(len(pnames)))
+                ax.set_yticklabels(pnames, size=6)
+            ax.set_xticks([],[])
+            ax.set_title('Reactions %s'%(orgs[i]))
+        
+            plt.colorbar(cb, orientation='horizontal')
+            
+            ax2 = fig.add_subplot(1,len(orgs)*2,(i*2)+2)
+            cmap = plt.cm.Purples
+            cmap.set_over('blue')
+            cmap.set_under('gray')
+            cb = ax2.imshow([[x[i]] for x in pvalues1], cmap=cmap, interpolation='none', aspect='auto', vmin=0)
+            ax2.set_yticks([],[])
+            ax2.set_xticks([],[])
+            ax2.set_title('meanAV %s'%(orgs[i]))
+            
+            plt.colorbar(cb, orientation='horizontal')
+        
+        plt.subplots_adjust(wspace=0, hspace=0)
+            
+        plt.savefig('combined_heatmap_%s.png'%categ)
+        plt.clf()
+
 def dNet(project, allorgs=False, allpaths=False):
     '''
     Metabolic network reconstruction and analysis
     '''
     from ductape.common.utils import makeRoom
+    from ductape.kegg.kegg import avoidedPaths
     
     kind = dSetKind(project)
     
@@ -2665,6 +2862,7 @@ def dNet(project, allorgs=False, allpaths=False):
     aNet = getTotalNet(project)
     dapNet = {}
     for path in kegg.getAllPathways(True):
+        if path.path_id in avoidedPaths:continue
         dapNet[path.path_id] = getTotalNet(project, path.path_id)
         
     # Write
@@ -2682,7 +2880,7 @@ def dNet(project, allorgs=False, allpaths=False):
         slen = 'metNet_pangenome_length.tsv'
         flen = open(slen,'w')
         flen.write('# Metabolic network length (number of exclusive reaction IDs)\n')
-        flen.write('\t'.join( ['network', 'name', 'overall'] + orgs + ['\n'] ))
+        flen.write('\t'.join( ['network', 'name', 'overall'] + orgs) + '\n')
         
         sconn = 'metNet_pangenome_connected.tsv'
         fconn = open(sconn,'w')
@@ -2692,11 +2890,10 @@ def dNet(project, allorgs=False, allpaths=False):
                                               ['Subnetworks mean length'] +
                                               ['' for x in range(len(orgs))] +
                                               ['Subnetworks length std-dev'] +
-                                              ['' for x in range(len(orgs))] +
-                                              ['\n'] ))
+                                              ['' for x in range(len(orgs))]) + '\n')
         fconn.write('\t'.join( ['network', 'name', 'overall'] + orgs +
                                                   ['overall'] + orgs + 
-                                                  ['overall'] + orgs + ['\n'] ))
+                                                  ['overall'] + orgs) + '\n')
         
         if phenome:
             sact = 'metNet_pangenome_activity.tsv'
@@ -2704,8 +2901,7 @@ def dNet(project, allorgs=False, allpaths=False):
             fact.write('# Metabolic network activity\n')
             fact.write('\t'.join( ['network', 'name', 'category'] +
                                                  ['Avg Activity Difference'] +
-                                                 ['Std Activity Difference'] +
-                                                 ['\n'] ))
+                                                 ['Std Activity Difference']) + '\n')
 
         # Total network
         logger.info('Overall network stats')
@@ -2722,8 +2918,8 @@ def dNet(project, allorgs=False, allpaths=False):
         
             
         flen.write('\t'.join( ['All', ''] +
-                              [str(len(aNet))] +
-                              [str(len(oNet[x])) for x in orgs] + ['\n']))
+                              [str(len(aNet.getDistinctReactions()))] +
+                              [str(len(oNet[x].getDistinctReactions())) for x in orgs]) + '\n')
         
         fconn.write('\t'.join( ['All', ''] +
                               [str(aNet.getComponents())] +
@@ -2731,8 +2927,7 @@ def dNet(project, allorgs=False, allpaths=False):
                               [str(aNet.getComponentsMean())] +
                               [str(oNet[x].getComponentsMean()) for x in orgs] +
                               [str(aNet.getComponentsStd())] +
-                              [str(oNet[x].getComponentsStd()) for x in orgs] +
-                              ['\n']))
+                              [str(oNet[x].getComponentsStd()) for x in orgs]) + '\n')
                               
         if phenome:
             for categ in biolog.getCategs(True):
@@ -2746,13 +2941,15 @@ def dNet(project, allorgs=False, allpaths=False):
                 writeNet(oNet, npath, '%s_%s.gml'%('all', scateg))
                 
                 fact.write('\t'.join( ['All', '', scateg] +
-                              [str(oNet.mean())] + [str(oNet.std())] +
-                              ['\n']))
+                              [str(oNet.mean())] + [str(oNet.std())]) + '\n')
                               
         # Single paths
         logger.info('Single pathways stats')
         
+        dPaths = {}
+        
         for path in kegg.getAllPathways(True):
+            if path.path_id in avoidedPaths:continue
             logger.info('Pathway: %s // %s'%(path.path_id, path.name))
             
             if ':' in path.path_id:
@@ -2775,11 +2972,15 @@ def dNet(project, allorgs=False, allpaths=False):
                 if allpaths and not skip:
                     npath = makeRoom('', 'metNet', org_id)
                     writeNet(oNet[org_id], npath, '%s_%s.gml'%(org_id, spath))
-                
+            
+            iAll = len(dapNet[path.path_id])
+            iDisp = len(oNet['dispensable'].getDistinctReactions())
+            iCore = len(oNet['core'].getDistinctReactions())
+            
             if not skip:
                 flen.write('\t'.join( [path.path_id, path.name] +
-                                      [str(len(dapNet[path.path_id]))] +
-                                      [str(len(oNet[x])) for x in orgs] + ['\n']))
+                                      [str(len(dapNet[path.path_id].getDistinctReactions()))] +
+                                      [str(len(oNet[x].getDistinctReactions())) for x in orgs]) + '\n')
                 
                 fconn.write('\t'.join( [path.path_id, path.name] +
                                       [str(dapNet[path.path_id].getComponents())] +
@@ -2787,25 +2988,33 @@ def dNet(project, allorgs=False, allpaths=False):
                                       [str(dapNet[path.path_id].getComponentsMean())] +
                                       [str(oNet[x].getComponentsMean()) for x in orgs] +
                                       [str(dapNet[path.path_id].getComponentsStd())] +
-                                      [str(oNet[x].getComponentsStd()) for x in orgs] +
-                                      ['\n']))
+                                      [str(oNet[x].getComponentsStd()) for x in orgs]) + '\n')
             
+            dAV = {}
             if phenome:
                 path_co = [x.co_id for x in kegg.getPathComps(path.path_id)]
                 for categ in biolog.getCategs(True):
                     wells = [w for w in biolog.getAllCoByCateg(categ.category)
                         if 'cpd:'+w.co_id in path_co]
+                    scateg = categ.category.replace(' ','_').replace('&','and')
+                    
                     if len(wells) == 0:
                         logger.debug('Skipping activity data on pathway: %s'
                                      %(path.path_id))
+                        dAV[scateg] = -1
                         continue
                     
-                    scateg = categ.category.replace(' ','_').replace('&','and')
-                    
-                    oNet = getOrgNet(project,
+                    oNet = getPanGenomeNet(project,
+                                     dpangenome,
                                      'all',
                                      path.path_id,
                                      categ.category)
+                    
+                    fAV = oNet.mean()
+                    if math.isnan(fAV):
+                        dAV[scateg] = -1
+                    else:
+                        dAV[scateg] = fAV
                     
                     if not oNet.hasNodesWeight():
                         logger.debug('Skipping activity data on pathway: %s (%s)'
@@ -2818,8 +3027,27 @@ def dNet(project, allorgs=False, allpaths=False):
                                  '%s_%s_%s.gml'%('all', scateg, spath))
                     
                     fact.write('\t'.join( [path.path_id, path.name, scateg] +
-                                  [str(oNet.mean())] + [str(oNet.std())] +
-                                  ['\n']))
+                                  [str(oNet.mean())] + [str(oNet.std())]) + '\n')
+                
+            try:
+                dtot = float(iDisp) / float(iAll)
+            except ZeroDivisionError:
+                dtot = float('inf')
+            try:
+                ctot = float(iCore) / float(iAll)
+            except ZeroDivisionError:
+                ctot = float('inf')
+            try:
+                dc = float(iDisp) / float(iCore)
+            except ZeroDivisionError:
+                dc = float('inf')
+            
+            dPaths['genome'] = dPaths.get('genome', [])
+            dPaths['genome'].append((path.path_id, path.name, dtot, ctot, dc))
+            for scateg in dAV:
+                dPaths[scateg] = dPaths.get(scateg, [])
+                dPaths[scateg].append((path.path_id, path.name, dtot, ctot,
+                                       dc, dAV[scateg]))
 
     elif kind == 'single' or allorgs and not kind == 'mutants':
         logger.info('Single organisms networks')
@@ -2831,7 +3059,7 @@ def dNet(project, allorgs=False, allpaths=False):
         slen = 'metNet_length.tsv'
         flen = open(slen,'w')
         flen.write('# Metabolic network length (number of distinct reactions)\n')
-        flen.write('\t'.join( ['network', 'name', 'overall'] + orgs + ['\n'] ))
+        flen.write('\t'.join( ['network', 'name', 'overall'] + orgs) + '\n')
         
         sconn = 'metNet_connected.tsv'
         fconn = open(sconn,'w')
@@ -2841,11 +3069,10 @@ def dNet(project, allorgs=False, allpaths=False):
                                               ['Subnetworks mean length'] +
                                               ['' for x in range(len(orgs))] +
                                               ['Subnetworks length std-dev'] +
-                                              ['' for x in range(len(orgs))] +
-                                              ['\n'] ))
+                                              ['' for x in range(len(orgs))]) + '\n')
         fconn.write('\t'.join( ['network', 'name', 'overall'] + orgs +
                                                   ['overall'] + orgs + 
-                                                  ['overall'] + orgs + ['\n'] ))
+                                                  ['overall'] + orgs) + '\n')
         
         if phenome:
             sact = 'metNet_activity.tsv'
@@ -2854,11 +3081,11 @@ def dNet(project, allorgs=False, allpaths=False):
             fact.write('\t'.join( ['', '', ''] + ['Mean Activity'] +
                                               ['' for x in range(len(orgs)-1)] +
                                               ['Activity std-dev'] +
-                                              ['' for x in range(len(orgs)-1)] +
-                                              ['\n'] ))
+                                              ['' for x in range(len(orgs)-1)])
+                                            + '\n')
             fact.write('\t'.join( ['network', 'name', 'category'] +
                                                      orgs +
-                                                     orgs + ['\n'] ))
+                                                     orgs) + '\n')
         
         # Total network
         logger.info('Overall network stats')
@@ -2870,8 +3097,9 @@ def dNet(project, allorgs=False, allpaths=False):
             writeNet(oNet[org_id], npath, '%s.gml'%org_id)
             
         flen.write('\t'.join( ['All', ''] +
-                              [str(len(aNet))] +
-                              [str(len(oNet[x])) for x in orgs] + ['\n']))
+                              [str(len(aNet.getDistinctReactions()))] +
+                              [str(len(oNet[x].getDistinctReactions())) for x in orgs])
+                               + '\n')
         
         fconn.write('\t'.join( ['All', ''] +
                               [str(aNet.getComponents())] +
@@ -2879,15 +3107,13 @@ def dNet(project, allorgs=False, allpaths=False):
                               [str(aNet.getComponentsMean())] +
                               [str(oNet[x].getComponentsMean()) for x in orgs] +
                               [str(aNet.getComponentsStd())] +
-                              [str(oNet[x].getComponentsStd()) for x in orgs] +
-                              ['\n']))
+                              [str(oNet[x].getComponentsStd()) for x in orgs])
+                              + '\n')
         
         if phenome:
-            path_co = [x.co_id for x in kegg.getPathComps(path.path_id)]
             for categ in biolog.getCategs(True):
                 scateg = categ.category.replace(' ','_').replace('&','and')
-                wells = [w for w in biolog.getAllCoByCateg(categ.category)
-                        if 'cpd:'+w.co_id in path_co]
+                wells = [w for w in biolog.getAllCoByCateg(categ.category)]
                 if len(wells) == 0:
                     logger.debug('Skipping activity data on pathway: %s'
                                  %(path.path_id))
@@ -2903,13 +3129,18 @@ def dNet(project, allorgs=False, allpaths=False):
                 
                 fact.write('\t'.join( ['All', '', scateg] +
                               [str(oNet[x].mean()) for x in orgs] +
-                              [str(oNet[x].std()) for x in orgs] +
-                              ['\n']))
+                              [str(oNet[x].std()) for x in orgs]) + '\n')
         
         # Single paths
         logger.info('Single pathways stats')
         
+        dPaths = {}
+        for org_id in orgs:
+            dPaths[org_id] = {}
+        genome = {}
+        
         for path in kegg.getAllPathways(True):
+            if path.path_id in avoidedPaths:continue
             logger.info('Pathway: %s // %s'%(path.path_id, path.name))
             
             if ':' in path.path_id:
@@ -2918,6 +3149,11 @@ def dNet(project, allorgs=False, allpaths=False):
             oNet = {}
             for org_id in orgs:
                 oNet[org_id] = getOrgNet(project, org_id, path.path_id)
+                
+                dPaths[org_id]['genome'] = dPaths[org_id].get('genome', [])
+                dPaths[org_id]['genome'].append([path.path_id, path.name,
+                                                 len(oNet[org_id])])
+                genome[org_id] = [path.path_id, path.name, len(oNet[org_id])]
                 
                 if len(oNet[org_id]) == 0:
                     logger.debug('Skipping reactions data on pathway: %s (%s)'
@@ -2936,8 +3172,9 @@ def dNet(project, allorgs=False, allpaths=False):
             
             if not skip:
                 flen.write('\t'.join( [path.path_id, path.name] +
-                                  [str(len(dapNet[path.path_id]))] +
-                                  [str(len(oNet[x])) for x in orgs] + ['\n']))
+                                  [str(len(dapNet[path.path_id].getDistinctReactions()))] +
+                                  [str(len(oNet[x].getDistinctReactions())) for x in orgs])
+                                  + '\n')
                 
                 fconn.write('\t'.join( [path.path_id, path.name] +
                                   [str(dapNet[path.path_id].getComponents())] +
@@ -2945,9 +3182,12 @@ def dNet(project, allorgs=False, allpaths=False):
                                   [str(dapNet[path.path_id].getComponentsMean())] +
                                   [str(oNet[x].getComponentsMean()) for x in orgs] +
                                   [str(dapNet[path.path_id].getComponentsStd())] +
-                                  [str(oNet[x].getComponentsStd()) for x in orgs] +
-                                  ['\n']))
+                                  [str(oNet[x].getComponentsStd()) for x in orgs]) + '\n')
             
+            dAV = {}
+            for org_id in orgs:
+                dAV[org_id] = {}
+                
             if phenome:
                 path_co = [x.co_id for x in kegg.getPathComps(path.path_id)]
                 for categ in biolog.getCategs(True):
@@ -2958,6 +3198,8 @@ def dNet(project, allorgs=False, allpaths=False):
                     if len(wells) == 0:
                         logger.debug('Skipping activity data on pathway: %s (%s)'
                                      %(path.path_id, scateg))
+                        for org_id in orgs:
+                            dAV[org_id][scateg] = -1
                         continue
                     
                     oNet = {}
@@ -2966,6 +3208,12 @@ def dNet(project, allorgs=False, allpaths=False):
                                                  org_id,
                                                  path.path_id,
                                                  categ.category)
+                        
+                        fAV = oNet[org_id].mean()
+                        if math.isnan(fAV):
+                            dAV[org_id][scateg] = -1
+                        else:
+                            dAV[org_id][scateg] = fAV
                         
                         if allpaths:
                             if not oNet[org_id].hasNodesWeight():
@@ -2984,8 +3232,12 @@ def dNet(project, allorgs=False, allpaths=False):
                     
                     fact.write('\t'.join( [path.path_id, path.name, scateg] +
                                   [str(oNet[x].mean()) for x in orgs] +
-                                  [str(oNet[x].std()) for x in orgs] +
-                                  ['\n']))
+                                  [str(oNet[x].std()) for x in orgs]) + '\n')
+                    
+            for org_id in dPaths:
+                for scateg in dAV[org_id]:
+                    dPaths[org_id][scateg] = dPaths[org_id].get(scateg, [])
+                    dPaths[org_id][scateg].append(genome[org_id] + [dAV[org_id][scateg]])
                     
     elif kind == 'mutants' or allorgs:
         logger.info('Mutants networks')
@@ -3010,7 +3262,7 @@ def dNet(project, allorgs=False, allpaths=False):
         slen = 'metNet_length.tsv'
         flen = open(slen,'w')
         flen.write('# Metabolic network length (number of exclusive reactions w/ respect to the wild-type)\n')
-        flen.write('\t'.join( ['network', 'name', 'overall'] + orgs + ['\n'] ))
+        flen.write('\t'.join( ['network', 'name', 'overall'] + orgs) + '\n')
         
         sconn = 'metNet_connected.tsv'
         fconn = open(sconn,'w')
@@ -3020,11 +3272,10 @@ def dNet(project, allorgs=False, allpaths=False):
                                               ['Subnetworks mean length'] +
                                               ['' for x in range(len(orgs))] +
                                               ['Subnetworks length std-dev'] +
-                                              ['' for x in range(len(orgs))] +
-                                              ['\n'] ))
+                                              ['' for x in range(len(orgs))]) + '\n')
         fconn.write('\t'.join( ['network', 'name', 'overall'] + orgs +
                                                   ['overall'] + orgs + 
-                                                  ['overall'] + orgs + ['\n'] ))
+                                                  ['overall'] + orgs) + '\n')
         
         if phenome:
             sact = 'metNet_activity.tsv'
@@ -3033,11 +3284,11 @@ def dNet(project, allorgs=False, allpaths=False):
             fact.write('\t'.join( ['', '', ''] + ['Mean Activity'] +
                                               ['' for x in range(len(orgs)-1)] +
                                               ['Activity std-dev'] +
-                                              ['' for x in range(len(orgs)-1)] +
-                                              ['\n'] ))
+                                              ['' for x in range(len(orgs)-1)])
+                                            + '\n')
             fact.write('\t'.join( ['network', 'name', 'category'] +
                                                      orgs +
-                                                     orgs + ['\n'] ))
+                                                     orgs) + '\n')
         
         # Total network
         logger.info('Overall network stats')
@@ -3058,8 +3309,9 @@ def dNet(project, allorgs=False, allpaths=False):
                 writeNet(oNet[mut_id], npath, '%s.gml'%mut_id)
             
         flen.write('\t'.join( ['All', ''] +
-                              [str(len(aNet))] +
-                              [str(len(oNet[x])) for x in orgs] + ['\n']))
+                              [str(len(aNet.getDistinctReactions()))] +
+                              [str(len(oNet[x].getDistinctReactions())) for x in orgs])
+                              + '\n')
         
         fconn.write('\t'.join( ['All', ''] +
                               [str(aNet.getComponents())] +
@@ -3067,15 +3319,13 @@ def dNet(project, allorgs=False, allpaths=False):
                               [str(aNet.getComponentsMean())] +
                               [str(oNet[x].getComponentsMean()) for x in orgs] +
                               [str(aNet.getComponentsStd())] +
-                              [str(oNet[x].getComponentsStd()) for x in orgs] +
-                              ['\n']))
+                              [str(oNet[x].getComponentsStd()) for x in orgs])
+                              + '\n')
         
         if phenome:
-            path_co = [x.co_id for x in kegg.getPathComps(path.path_id)]
             for categ in biolog.getCategs(True):
                 scateg = categ.category.replace(' ','_').replace('&','and')
-                wells = [w for w in biolog.getAllCoByCateg(categ.category)
-                        if 'cpd:'+w.co_id in path_co]
+                wells = [w for w in biolog.getAllCoByCateg(categ.category)]
                 if len(wells) == 0:
                     logger.debug('Skipping activity data on pathway: %s'
                                  %(path.path_id))
@@ -3100,13 +3350,18 @@ def dNet(project, allorgs=False, allpaths=False):
                 
                 fact.write('\t'.join( ['All', '', scateg] +
                               [str(oNet[x].mean()) for x in orgs] +
-                              [str(oNet[x].std()) for x in orgs] +
-                              ['\n']))
+                              [str(oNet[x].std()) for x in orgs]) + '\n')
         
         # Single paths
         logger.info('Single pathways stats')
         
+        dPaths = {}
+        for org_id in orgs:
+            dPaths[org_id] = {}
+        genome = {}
+        
         for path in kegg.getAllPathways(True):
+            if path.path_id in avoidedPaths:continue
             logger.info('Pathway: %s // %s'%(path.path_id, path.name))
             
             if ':' in path.path_id:
@@ -3121,12 +3376,18 @@ def dNet(project, allorgs=False, allpaths=False):
             
                 oNet[ref_id] = getOrgNet(project, ref_id, path.path_id)
                 
+                dPaths[ref_id]['genome'] = dPaths[ref_id].get('genome', [])
+                dPaths[ref_id]['genome'].append([path.path_id, path.name,
+                                                 len(oNet[ref_id])])
+                genome[ref_id] = [path.path_id, path.name, len(oNet[ref_id])]
+                
+                skip = False
                 if len(oNet[ref_id]) == 0:
                     logger.debug('Skipping reactions data on pathway: %s (%s)'
                                      %(path.path_id, ref_id))
-                    continue
+                    skip = True
                 
-                if allpaths:
+                if allpaths and not skip:
                     npath = makeRoom('', 'metNet', ref_id)
                     writeNet(oNet[ref_id], npath, '%s_%s.gml'%(ref_id, spath))
             
@@ -3136,12 +3397,17 @@ def dNet(project, allorgs=False, allpaths=False):
                                              ref_rpairs[mut_id].values(),
                                              path.path_id)
                 
+                    dPaths[mut_id]['genome'] = dPaths[mut_id].get('genome', [])
+                    dPaths[mut_id]['genome'].append([path.path_id, path.name,
+                                                     len(oNet[mut_id])])
+                    genome[mut_id] = [path.path_id, path.name, len(oNet[mut_id])]
+                
                     if len(oNet[mut_id]) == 0:
                         logger.debug('Skipping reactions data on pathway: %s (%s)'
                                          %(path.path_id, mut_id))
                         continue
                     
-                    if allpaths:
+                    if allpaths and not skip:
                         npath = makeRoom('', 'metNet', mut_id)
                         writeNet(oNet[mut_id], npath, '%s_%s.gml'%(mut_id, spath))
             
@@ -3153,8 +3419,9 @@ def dNet(project, allorgs=False, allpaths=False):
             
             if not skip:
                 flen.write('\t'.join( [path.path_id, path.name] +
-                                  [str(len(dapNet[path.path_id]))] +
-                                  [str(len(oNet[x])) for x in orgs] + ['\n']))
+                                  [str(len(dapNet[path.path_id].getDistinctReactions()))] +
+                                  [str(len(oNet[x].getDistinctReactions())) for x in orgs])
+                                  + '\n')
                 
                 fconn.write('\t'.join( [path.path_id, path.name] +
                                   [str(dapNet[path.path_id].getComponents())] +
@@ -3162,8 +3429,12 @@ def dNet(project, allorgs=False, allpaths=False):
                                   [str(dapNet[path.path_id].getComponentsMean())] +
                                   [str(oNet[x].getComponentsMean()) for x in orgs] +
                                   [str(dapNet[path.path_id].getComponentsStd())] +
-                                  [str(oNet[x].getComponentsStd()) for x in orgs] +
-                                  ['\n']))
+                                  [str(oNet[x].getComponentsStd()) for x in orgs])
+                                  + '\n')
+            
+            dAV = {}
+            for org_id in orgs:
+                dAV[org_id] = {}
             
             if phenome:
                 path_co = [x.co_id for x in kegg.getPathComps(path.path_id)]
@@ -3175,6 +3446,8 @@ def dNet(project, allorgs=False, allpaths=False):
                     if len(wells) == 0:
                         logger.debug('Skipping activity data on pathway: %s (%s)'
                                      %(path.path_id, scateg))
+                        for org_id in orgs:
+                            dAV[org_id][scateg] = -1
                         continue
                     
                     oNet = {}
@@ -3189,14 +3462,23 @@ def dNet(project, allorgs=False, allpaths=False):
                                                  path.path_id,
                                                  categ.category)
                         
+                        fAV = oNet[ref_id].mean()
+                        if math.isnan(fAV):
+                            dAV[ref_id][scateg] = -1
+                        else:
+                            dAV[ref_id][scateg] = fAV
+                        
                         if allpaths:
+                            skip = False
                             if not oNet[ref_id].hasNodesWeight():
                                 logger.debug('Skipping activity data on pathway: %s (%s %s)'
                                      %(path.path_id, ref_id, scateg))
-                                continue
-                            npath = makeRoom('', 'metNet', ref_id, scateg)
-                            writeNet(oNet[ref_id], npath,
-                                     '%s_%s_%s.gml'%(ref_id, scateg, spath))
+                                skip = True
+                            
+                            if not skip:
+                                npath = makeRoom('', 'metNet', ref_id, scateg)
+                                writeNet(oNet[ref_id], npath,
+                                         '%s_%s_%s.gml'%(ref_id, scateg, spath))
                         
                         for mut_id in muts:
                             oNet[mut_id] = getMutNet(project,
@@ -3204,6 +3486,12 @@ def dNet(project, allorgs=False, allpaths=False):
                                                  ref_rpairs[mut_id].values(),
                                                  path.path_id,
                                                  categ.category)
+                            
+                            fAV = oNet[mut_id].mean()
+                            if math.isnan(fAV):
+                                dAV[mut_id][scateg] = -1
+                            else:
+                                dAV[mut_id][scateg] = fAV
                         
                             if allpaths:
                                 if not oNet[mut_id].hasNodesWeight():
@@ -3220,10 +3508,15 @@ def dNet(project, allorgs=False, allpaths=False):
                                      %(path.path_id, scateg))
                         continue
                     
-                    fact.write('\t'.join( [path.path_id, path.name, scateg] +
-                                  [str(oNet[x].mean()) for x in orgs] +
-                                  [str(oNet[x].std()) for x in orgs] +
-                                  ['\n']))
+                    if not skip:
+                        fact.write('\t'.join( [path.path_id, path.name, scateg] +
+                                      [str(oNet[x].mean()) for x in orgs] +
+                                      [str(oNet[x].std()) for x in orgs]) + '\n')
+            
+            for org_id in dPaths:
+                for scateg in dAV[org_id]:
+                    dPaths[org_id][scateg] = dPaths[org_id].get(scateg, [])
+                    dPaths[org_id][scateg].append(genome[org_id] + [dAV[org_id][scateg]])
     
     try:
         flen.close()
@@ -3237,6 +3530,11 @@ def dNet(project, allorgs=False, allpaths=False):
     if phenome:
         logger.info('Metabolic network activity stats saved to %s'%sact)
     
+    logger.info('Saving combined metrics and stats')
+    if proj.isPanGenome() and kind == 'pangenome' and not allorgs:
+        writeCombinedPanGenome(dPaths)
+    elif kind == 'single' or allorgs or kind == 'mutants':
+        writeCombined(dPaths, orgs)
     return True
 
 def getPlatesOrder(project):
@@ -3389,11 +3687,12 @@ def mergeKegg(project):
     return merged, mergedg, multiple
 
 def getPathsReacts(project):
+    from ductape.kegg.kegg import avoidedPaths
     kegg = Kegg(project)
     # Get the pathway - reaction links
     paths = {}
     for pR in kegg.getPathReacts():
-        if pR.path_id in ['path:rn01100','path:rn01110','path:rn01120']:
+        if pR.path_id in avoidedPaths:
             continue
         if pR.path_id not in paths:
             paths[pR.path_id] = []
@@ -3402,11 +3701,12 @@ def getPathsReacts(project):
     return paths
 
 def getPathsComps(project):
+    from ductape.kegg.kegg import avoidedPaths
     kegg = Kegg(project)
     # Get the pathway - compounds links
     paths = {}
     for pR in kegg.getPathComps():
-        if pR.path_id in ['path:rn01100','path:rn01110','path:rn01120']:
+        if pR.path_id in avoidedPaths:
             continue
         if pR.path_id not in paths:
             paths[pR.path_id] = []
@@ -3516,20 +3816,24 @@ def prepareColors(maximum, colorrange):
     
     return hexs
 
-def createLegend(kind):
+def createLegend(kind, project):
     '''
     Create a color scheme legend
     '''
     # TODO: a more centralized color scheme
     fig = plt.figure()
     fname = 'legend.png'
+    
+    # Get the maximum activity now present
+    maxAct = Biolog(project).getMaxActivity()
+    
     rmatrix = np.outer(np.arange(0.33,1,0.01),np.ones(7))
     if kind == 'mutants' or 'singlediff':
-        cmatrix = np.outer(np.arange(-9,9,0.1),np.ones(7))
+        cmatrix = np.outer(np.arange(-maxAct,maxAct,0.1),np.ones(7))
     elif kind == 'pangenome':
         cmatrix = np.outer(np.arange(0.33,1,0.01),np.ones(7))
     else:
-        cmatrix = np.outer(np.arange(0,9,0.1),np.ones(7))
+        cmatrix = np.outer(np.arange(0,maxAct,0.1),np.ones(7))
          
     if kind == 'pangenome':
         ax = fig.add_subplot(141, axisbg='b')
@@ -3555,7 +3859,7 @@ def createLegend(kind):
         ax.set_title('Dispensable')
         
         ax = fig.add_subplot(144)
-        ax.imshow(cmatrix, cmap=cm.Purples, vmin=0, vmax=1)
+        ax.imshow(cmatrix, cmap=cm.Purples, vmin=0, vmax=maxAct)
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
@@ -3573,7 +3877,7 @@ def createLegend(kind):
         ax.set_title('Reactions')
         
         ax = fig.add_subplot(122)
-        ax.imshow(cmatrix, cmap=cm.RdYlGn, vmin=0, vmax=9)
+        ax.imshow(cmatrix, cmap=cm.RdYlGn, vmin=0, vmax=maxAct)
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
@@ -3591,7 +3895,7 @@ def createLegend(kind):
         ax.set_title('Reactions')
         
         ax = fig.add_subplot(122)
-        ax.imshow(cmatrix, cmap=cm.PuOr, vmin=-9, vmax=9)
+        ax.imshow(cmatrix, cmap=cm.PuOr, vmin=-maxAct, vmax=maxAct)
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
@@ -3623,7 +3927,7 @@ def createLegend(kind):
         ax.set_title('Mutated')
         
         ax = fig.add_subplot(144)
-        ax.imshow(cmatrix, cmap=cm.PuOr, vmin=-9, vmax=9)
+        ax.imshow(cmatrix, cmap=cm.PuOr, vmin=-maxAct, vmax=maxAct)
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])

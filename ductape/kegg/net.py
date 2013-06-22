@@ -149,6 +149,16 @@ class MetabolicNet(object):
                 
         return i
     
+    def getDistinctReactions(self):
+        '''
+        Returns the distinct reaction IDs of this network
+        '''
+        re_id = set()
+        for e in self.net.edges():
+            re_id.add(self.net.edge[e[0]][e[1]]['re_id'])
+        
+        return re_id
+    
     def mean(self):
         '''
         Get the mean compounds activity (nodes weight)  

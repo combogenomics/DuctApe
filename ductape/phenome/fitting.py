@@ -120,7 +120,7 @@ def fitData(xdata, ydata):
 
     Please note that the plateau may be reached outside the final time point
     '''
-    retries = 3
+    retries = 2
     while retries > 0:
         params = [None, None, None, None, None]
         model = ''
@@ -149,10 +149,14 @@ def fitData(xdata, ydata):
                     retries -= 1
                     #logger.debug('%d retries left'%retries)
                     # Compress again the data
-                    ydata = np.array(compress(ydata, span=4))
-                    ydata = np.array(smooth(ydata, window_len = len(ydata)/2, 
+                    ydata = np.array(compress(ydata, span=2))
+                    if len(ydata) <= 11:
+                        window_len = len(ydata)
+                    else:
+                        window_len = 11
+                    ydata = np.array(smooth(ydata, window_len = window_len, 
                               window = 'blackman'))
-                    xdata = np.array(compress(xdata, span=4))
+                    xdata = np.array(compress(xdata, span=2))
                     #
                     params = [None, None, None, None, None]
     

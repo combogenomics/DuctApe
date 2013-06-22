@@ -184,7 +184,7 @@ class Well(object):
         if not self.compressed and not noCompress:
             self.compress()
         if not self.smoothed and not noSmooth:
-            self.smooth(window_len=len(self.signals)/3, window_type='blackman')
+            self.smooth(window_len=11, window_type='blackman')
             
         # Let's start with the easy ones!
         self.max = self.getMax()
@@ -403,6 +403,9 @@ class Plate(object):
         return max([plate.getMax() 
                     for strain, plates in self.strains.iteritems()
                     for plate in plates])
+                    
+    def getMaxActivity(self):
+        return max([w.activity for w in self.getWells()])
         
     def calculateParams(self):
         '''
@@ -591,7 +594,7 @@ class Plate(object):
         
         return acts
     
-    def plotActivity(self, strains=[]):
+    def plotActivity(self, strains=[], maxAct=9):
         '''
         Generator:
         Plots the activity for each strain as heatmaps
@@ -626,8 +629,7 @@ class Plate(object):
                          for strain in strains])
             acts = self.arrayReshape(acts, strains)
                     
-            # TODO: here the vmax value is hard-coded
-            ax.matshow(acts, cmap=cm.RdYlGn, vmin=0, vmax=9)
+            ax.matshow(acts, cmap=cm.RdYlGn, vmin=0, vmax=maxAct)
             
             if self._figidx%12 == 1:
                 ax.set_ylabel(well_id[0], rotation='horizontal')
@@ -767,7 +769,9 @@ class Experiment(object):
             if not self._addPlate(plate):
                 self.plates = {}
                 break
-            
+        
+        self.maxParams = {}
+        
         self.experiment = {}
         self.sumexp = {}
         self._organize()
@@ -901,7 +905,7 @@ class Experiment(object):
             Plate = self.plates[plate_id]
             for strain, plates in Plate.strains.iteritems():
                 for plate in plates:
-                    for well in plate.data:
+                    for wid, well in plate.data.iteritems():
                         well.activity = 0
     
     def getPurgedWells(self):
@@ -1053,7 +1057,52 @@ class Experiment(object):
         self.purged = True
         return True
     
-    def clusterize(self, save_fig=False):
+    def getMaxActivity(self):
+        '''
+        Get the maximum activity
+        Which is also the number of clusters used...
+        '''
+        return max([w.activity for w in self.getWells(False)])
+    
+    def setMaxParams(self):
+        '''
+        Find the maximum value of each parameter
+        '''
+        w = Well('dummy', 'dummy')
+        self.maxParams['zero'] = {}
+        self.maxParams['nonzero'] = {}
+        for param in w.params:
+            self.maxParams['zero'][param] = self.maxParams.get(param, 0)
+            self.maxParams['nonzero'][param] = self.maxParams.get(param, 0)
+            
+        for w in self.getWells(False):
+            if self.zero and w.plate_id in self.zeroPlates:
+                z = 'zero'
+            else:
+                z = 'nonzero'
+                
+            for param in w.params:
+                if getattr(w, param) > self.maxParams[z][param]:
+                    self.maxParams[z][param] = getattr(w, param)
+    
+    def normalizeParam(self, param, value, zero=False):
+        '''
+        Take a parameter and return its normalization
+        '''
+        if self.maxParams == {}:
+            self.setMaxParams()
+        
+        if zero:
+            z = 'zero'
+        else:
+            z = 'nonzero'
+        
+        try:  
+            return float(value)/float(self.maxParams[z][param])
+        except ZeroDivisionError:
+            return None
+    
+    def clusterize(self, save_fig=False, n_clusters=10):
         '''
         Perform the biolog data clusterizzation
         The data is divided in two chunks if Zero subtraction has been done
@@ -1073,14 +1122,18 @@ class Experiment(object):
         for param in self.getWells():
             if self.zero and param.plate_id in self.zeroPlates:
                 dWells['zero'].append(param)
-                dParams['zero'].append([purgeNAN(param.max), purgeNAN(param.area), 
-                                        purgeNAN(param.height), purgeNAN(param.lag),
-                                        purgeNAN(param.slope)])
+                dParams['zero'].append([self.normalizeParam('max', purgeNAN(param.max), True),
+                                        self.normalizeParam('area', purgeNAN(param.area), True), 
+                                        self.normalizeParam('height', purgeNAN(param.height), True),
+                                        self.normalizeParam('lag', purgeNAN(param.lag), True),
+                                        self.normalizeParam('slope', purgeNAN(param.slope), True)])
             else:
                 dWells['nonzero'].append(param)
-                dParams['nonzero'].append([purgeNAN(param.max), purgeNAN(param.area),
-                                           purgeNAN(param.height), purgeNAN(param.lag),
-                                           purgeNAN(param.slope)])
+                dParams['nonzero'].append([self.normalizeParam('max', purgeNAN(param.max)),
+                                           self.normalizeParam('area', purgeNAN(param.area)),
+                                           self.normalizeParam('height', purgeNAN(param.height)),
+                                           self.normalizeParam('lag', purgeNAN(param.lag)),
+                                           self.normalizeParam('slope', purgeNAN(param.slope))])
         
         # Add some fake wells with no signal to make sure we will got a 
         # "zero cluster"
@@ -1114,7 +1167,7 @@ class Experiment(object):
         if self.zero and len(dParams['zero']) >= 1:
             xZero = [x for x in dParams['zero']]
             m_z_labels = mean(xZero)
-            k_z_labels = kmeans(xZero)
+            k_z_labels = kmeans(xZero, n_clusters)
         
         if self.zero  and len(dParams['zero']) >= 1:
             m_z_nclusters = len(np.unique(m_z_labels))
@@ -1160,7 +1213,7 @@ class Experiment(object):
         if len(dParams['nonzero']) >= 1:
             xNonZero = [x for x in dParams['nonzero']]
             m_nz_labels = mean(xNonZero)
-            k_nz_labels = kmeans(xNonZero)
+            k_nz_labels = kmeans(xNonZero, n_clusters)
         
         if len(dParams['nonzero']) >= 1:
             m_nz_nclusters = len(np.unique(m_nz_labels))
@@ -1203,7 +1256,7 @@ class Experiment(object):
         '''
         fig.suptitle(title, size='large')
         
-        cNorm  = colors.Normalize(vmin=0, vmax=9)
+        cNorm  = colors.Normalize(vmin=0, vmax=self.getMaxActivity())
         scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.RdYlGn)
         scalarMap.set_array(np.array(range(10)))
         cax = fig.add_axes([0.925, 0.2, 0.03, 0.6])
@@ -1273,7 +1326,8 @@ class Experiment(object):
         ax.set_xlabel('Hour', size='small')
         ax.set_ylabel('Signal', size='small')
         
-        colors = rangeColors(0, 9, cm.RdYlGn(np.arange(0,256)))
+        colors = rangeColors(0, self.getMaxActivity(),
+                             cm.RdYlGn(np.arange(0,256)))
         
         counter = 0
         maxsig = 0.0
@@ -1351,45 +1405,17 @@ class BiologParser(object):
             'PM15-B':'PM15B', 'PM16-A':'PM16A',
             'PM17-A':'PM17A', 'PM18-C':'PM18C',
             'PM19-':'PM19', 'PM20-B':'PM20B',
-            'PM01-':'PM01', 'PM02-A':'PM02',
-            'PM03-B':'PM03B','PM04-A':'PM04A',
-            'PM05-':'PM05', 'PM06-':'PM06',
-            'PM07-':'PM07','PM08-':'PM08',
-            'PM09-':'PM09',
+            # opm-bugfix
+            'PM02':'PM02A', 'PM03':'PM03B', 'PM04':'PM04A',
+            'PM11':'PM11C', 'PM12':'PM12B',
+            'PM13':'PM13B', 'PM14':'PM14A',
+            'PM15':'PM15B', 'PM16':'PM16A',
+            'PM17':'PM17A', 'PM18':'PM18C',
+            'PM20':'PM20B',
             # TODO: These are just guesses for now
             'PM21-D':'PM21D', 'PM22-C':'PM22C',
             'PM23-A':'PM23A', 'PM24-B':'PM24B',
-            #TODO: Guesses for old plates versions
-            'PM 2-':'PM02', 'PM 3-B':'PM03B', 'PM3-B':'PM03B',
-            'PM 3-A':'PM03A', 'PM3-A':'PM03A',
-            'PM 3-':'PM03', 'PM3-':'PM03',
-            'PM 4-A':'PM04A', 'PM4-A':'PM04A',
-            'PM 4-':'PM04', 'PM4-':'PM04',
-            'PM02-':'PM02', 'PM03-B':'PM03B', 'PM3-B':'PM03B',
-            'PM03-A':'PM03A', 'PM3-A':'PM03A',
-            'PM03-':'PM03', 'PM3-':'PM03',
-            'PM04-A':'PM04A', 'PM4-A':'PM04A',
-            'PM04-':'PM04', 'PM4-':'PM04',
-            'PM11-C':'PM11C', 'PM11-B':'PM11B', 
-            'PM11-A':'PM11A', 'PM11-':'PM11', 
-            'PM12-B':'PM12B', 'PM12-A':'PM12A', 
-            'PM12-':'PM12', 'PM13-B':'PM13B', 
-            'PM13-A':'PM13A', 'PM13-':'PM13', 
-            'PM14-A':'PM14A', 'PM14-':'PM14', 
-            'PM15-B':'PM15B', 'PM15-A':'PM15A', 
-            'PM15-':'PM15', 'PM16-A':'PM16A', 
-            'PM16-':'PM16', 'PM17-A':'PM17A', 
-            'PM17-':'PM17', 'PM18-C':'PM18C', 
-            'PM18-B':'PM18B', 'PM18-A':'PM18A', 
-            'PM18-':'PM18', 'PM20-B':'PM20B', 
-            'PM20-A':'PM20A', 'PM20-':'PM20', 
-            'PM21-D':'PM21D', 'PM21-C':'PM21C', 
-            'PM21-B':'PM21B', 'PM21-A':'PM21A', 
-            'PM21-':'PM21', 'PM22-C':'PM22C', 
-            'PM22-B':'PM22B', 'PM22-A':'PM22A', 
-            'PM22-':'PM22', 'PM23-A':'PM23A', 
-            'PM23-':'PM23', 'PM24-B':'PM24B', 
-            'PM24-A':'PM24A', 'PM24-':'PM24'}
+            }
 
     _acceptedPlates = set(_dPlates.values())
     
@@ -1997,10 +2023,11 @@ class BiologPlot(CommonThread):
         if self.plotActivity:
             self._maxsubstatus = len(self.results)*96
             self.updateStatus()
+            maxAct = max([p.getMaxActivity() for pid, p in self.avgresults.iteritems()])
             for plate_id in sorted(self.avgresults.keys()):
                 logger.debug('Plotting heatmap %s'%plate_id)
                 
-                for i in self.avgresults[plate_id].plotActivity(strains=self.order):
+                for i in self.avgresults[plate_id].plotActivity(strains=self.order, maxAct=maxAct):
                     self._substatus += 1
                     self.updateStatus(True)
                     
@@ -2056,11 +2083,14 @@ class BiologCluster(CommonThread):
     _substatuses = [1]
     
     def __init__(self,experiment,
-                 save_fig_clusters=False, force_params=False,
+                 save_fig_clusters=False, force_params=False, n_clusters=10,
                  queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         # Experiment
         self.exp = experiment
+        
+        # Number of clusters?
+        self.n_clusters = int(n_clusters)
         
         # Save clusters figure?
         self.save_fig = bool(save_fig_clusters)
@@ -2100,7 +2130,7 @@ class BiologCluster(CommonThread):
             return
         
         self.updateStatus()
-        self.exp.clusterize(self.save_fig)
+        self.exp.clusterize(self.save_fig, self.n_clusters)
 
 def getSinglePlates(binput, nonmean=False):
     '''
@@ -2373,3 +2403,4 @@ def purgeNAN(value):
         return 0
     
     return value
+

@@ -33,7 +33,7 @@ class Compound(object):
         self.co_id = co_id
         self.name = name
         
-        if weight:
+        if weight is not None:
             self.weight = weight
             
     def getColor(self):

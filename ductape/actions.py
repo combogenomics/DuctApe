@@ -2808,6 +2808,8 @@ def writeCombined(dvalues, orgs):
             if i==0:
                 ax.set_yticks(np.arange(len(pnames)))
                 ax.set_yticklabels(pnames, size=6)
+            else:
+                ax.set_yticks([],[])
             ax.set_xticks([],[])
             ax.set_title('Reactions %s'%(orgs[i]))
         

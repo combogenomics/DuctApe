@@ -9,4 +9,8 @@ before_install:
  - sudo rm -rf /dev/shm
  - sudo ln -s /run/shm /dev/shm
 install: pip install -r .travis.require --use-mirrors
-script: bash test/.travis.sh
+script:
+ - bash test/.travis_single.sh
+ - bash test/.travis_mutant.sh
+ - bash test/.travis_pangenome.sh
+ - bash test/.travis_misc.sh

@@ -942,7 +942,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     maxAct = exp.getMaxActivity()
     
     # Check the activity threshold
-    if activity >= maxAct:
+    if activity > maxAct:
         logger.warning('The activity threshold is higher than the maximum '+
                        'activity found (%d vs. %d)'%(activity, maxAct))
         return False

@@ -117,7 +117,11 @@ def rangeColors(minimum, maximum, colorrange):
         if len(color) == 0:
             hexs[i] = prev
         else:
-            hexs[i] = rgb_to_hex(tuple([int(round(x*255))
+            if i == minimum:
+                hexs[i] = rgb_to_hex(tuple([int(round(x*255))
+                              for x in color[0][:3]])).upper()
+            else:
+                hexs[i] = rgb_to_hex(tuple([int(round(x*255))
                               for x in color[-1][:3]])).upper()
         prev = hexs[i]
         i += 1

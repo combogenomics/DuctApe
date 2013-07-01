@@ -2598,11 +2598,7 @@ def getPanGenomeNet(project, dpangenome, pangenome='all', path_id=None, category
     
     kegg = Kegg(project)
     
-    if pangenome == 'all':
-        net = MetabolicNet(kegg.getAllCompounds(path_id),
-                       kegg.getMappedRPairsReact(path_id))
-    else:
-        net = MetabolicNet(kegg.getAllCompounds(path_id),
+    net = MetabolicNet(kegg.getAllCompounds(path_id),
                        dpangenome[pangenome])
     
     if category:
@@ -2672,10 +2668,10 @@ def writeCombinedPanGenome(dvalues):
     fout = open(fname,'w')
     
     fout.write('# Genomic variability Vs. Phenomic variability\n')
-    fout.write('# disp/core = number of distinct dispensable reaction IDs / '+
-               'number of distinct core reaction IDs \n')
+    fout.write('# disp/total = number of distinct dispensable reaction IDs / '+
+               'number of total reaction IDs \n')
     fout.write('# diffAV = mean AV difference\n')
-    fout.write('# (inf, only dispensable reactions; -1, no activity available)\n')
+    fout.write('# (-1, no activity available)\n')
     fout.write('\t'.join( ['pathway', 'name', 'category', 'disp/core', 'diffAV'] )
                     + '\n')
     
@@ -2688,8 +2684,8 @@ def writeCombinedPanGenome(dvalues):
             allv.append([categ] + list(p))
             cv[categ].append(list(p))
     
-    for p in sorted(allv, key=lambda x: (x[5], x[1], x[0]), reverse=True):
-        fout.write( '\t'.join(p[1:3] + [p[0]] + [str(x) for x in p[5:]]) + '\n')
+    for p in sorted(allv, key=lambda x: (x[3], x[1], x[0]), reverse=True):
+        fout.write( '\t'.join(p[1:3] + [p[0]] + [str(p[3])] + [str(p[6])]) + '\n')
     
     fout.close()
     logger.info('Saved combined pangenome informations (%s)'%fname)
@@ -2831,7 +2827,7 @@ def writeCombined(dvalues, orgs):
         plt.savefig('combined_heatmap_%s.png'%categ)
         plt.clf()
 
-def dNet(project, allorgs=False, allpaths=False):
+def dNet(project, allorgs=False, allpaths=False, pangPaths=None):
     '''
     Metabolic network reconstruction and analysis
     '''
@@ -2863,7 +2859,7 @@ def dNet(project, allorgs=False, allpaths=False):
     logger.info('Saving overall metabolic network')
     aNet = getTotalNet(project)
     dapNet = {}
-    for path in kegg.getAllPathways(True):
+    for path in kegg.getMappedPathways():
         if path.path_id in avoidedPaths:continue
         dapNet[path.path_id] = getTotalNet(project, path.path_id)
         
@@ -2908,8 +2904,9 @@ def dNet(project, allorgs=False, allpaths=False):
         # Total network
         logger.info('Overall network stats')
         
+        allr = [r for r in kegg.getMappedRPairsReact()]
         ecore, edisp, eacc, euni = kegg.getExclusiveRPairsReact()
-        dpangenome = {'core':ecore, 'dispensable':edisp,
+        dpangenome = {'all': allr,'core':ecore, 'dispensable':edisp,
                       'accessory':eacc, 'unique':euni}
     
         oNet = {}
@@ -2950,22 +2947,22 @@ def dNet(project, allorgs=False, allpaths=False):
         
         dPaths = {}
         
-        for path in kegg.getAllPathways(True):
+        for path in kegg.getMappedPathways():
             if path.path_id in avoidedPaths:continue
             logger.info('Pathway: %s // %s'%(path.path_id, path.name))
             
             if ':' in path.path_id:
                 spath = path.path_id.split(':')[1]
             
-            ecore, edisp, eacc, euni = kegg.getExclusiveRPairsReact(path.path_id)
+            dpangenome = pangPaths[path.path_id]
+            
+            paNet = getPanGenomeNet(project, dpangenome,
+                                    'all', path_id=path.path_id)
             
             skip = False
-            if len(ecore.union(edisp, eacc, euni)) == 0:
+            if len(paNet.getDistinctReactions()) == 0:
                 logger.debug('Skipping reaction data on pathway: %s'%(path.path_id))
                 skip = True
-            
-            dpangenome = {'core':ecore, 'dispensable':edisp,
-                      'accessory':eacc, 'unique':euni}
                
             oNet = {}
             for org_id in orgs:
@@ -2978,6 +2975,7 @@ def dNet(project, allorgs=False, allpaths=False):
             iAll = len(dapNet[path.path_id])
             iDisp = len(oNet['dispensable'].getDistinctReactions())
             iCore = len(oNet['core'].getDistinctReactions())
+            iTotal = len(paNet.getDistinctReactions())
             
             if not skip:
                 flen.write('\t'.join( [path.path_id, path.name] +
@@ -3032,11 +3030,11 @@ def dNet(project, allorgs=False, allpaths=False):
                                   [str(oNet.mean())] + [str(oNet.std())]) + '\n')
                 
             try:
-                dtot = float(iDisp) / float(iAll)
+                dtot = float(iDisp) / float(iTotal)
             except ZeroDivisionError:
                 dtot = float('inf')
             try:
-                ctot = float(iCore) / float(iAll)
+                ctot = float(iCore) / float(iTotal)
             except ZeroDivisionError:
                 ctot = float('inf')
             try:
@@ -3141,7 +3139,7 @@ def dNet(project, allorgs=False, allpaths=False):
             dPaths[org_id] = {}
         genome = {}
         
-        for path in kegg.getAllPathways(True):
+        for path in kegg.getMappedPathways():
             if path.path_id in avoidedPaths:continue
             logger.info('Pathway: %s // %s'%(path.path_id, path.name))
             
@@ -3362,7 +3360,7 @@ def dNet(project, allorgs=False, allpaths=False):
             dPaths[org_id] = {}
         genome = {}
         
-        for path in kegg.getAllPathways(True):
+        for path in kegg.getMappedPathways():
             if path.path_id in avoidedPaths:continue
             logger.info('Pathway: %s // %s'%(path.path_id, path.name))
             
@@ -3537,6 +3535,602 @@ def dNet(project, allorgs=False, allpaths=False):
         writeCombinedPanGenome(dPaths)
     elif kind == 'single' or allorgs or kind == 'mutants':
         writeCombined(dPaths, orgs)
+    return True
+
+def getCombinedMatrix(phenome, genome, matrix, pthresh, gthresh):
+    '''
+    Given a phenomic data and genomic data vectors and a data dictionary
+    return a plottable matrix w/ compounds on y-axis and w/ pathways on x-axis
+    
+    Labels are returned as well
+    
+    thresholds are inclusive
+    '''
+    import numpy as np
+
+    phenome = sorted(filter(lambda x: x[3] >= pthresh, phenome),
+                     key=lambda x: x[3], reverse=True)
+    pnames = [(x[1]+' '+x[0], x[2]) for x in phenome]
+    
+    genome = sorted(filter(lambda x: x[2] >= 0 , genome),
+                    key=lambda x: x[2])
+    
+    # Remove those pathways with no compound mapped
+    toRemove = []
+    for j in genome:
+        p = j[0]
+        
+        bOne = False
+        for i in phenome:
+            cid = i[0]
+            scateg = i[1]
+
+            if p in matrix[cid][scateg]:
+                bOne = True
+                break
+        
+        if not bOne:
+            toRemove.append(j)
+    for i in toRemove:
+        genome.remove(i)
+    
+    gnames = [(x[0], x[1]) for x in genome]
+
+    matr=[]
+    for i in phenome:
+        vec = []
+        
+        cid = i[0]
+        scateg = i[1]
+        
+        for j in genome:
+            p = j[0]
+            if p in matrix[cid][scateg]:
+                vec.append(matrix[cid][scateg][p])
+            else:
+                vec.append(np.nan)
+        
+        matr.append(vec)
+    
+    return matr, pnames, gnames
+
+def writeCombinedMatrix(fhandle, matr, pnames, gnames):
+    '''
+    Given a file handle, a matrix and relative labels print out a combined matrix
+    '''
+    fhandle.write('\t'.join([' '] + [x[0] + ' ' + x[1] for x in gnames]))
+    fhandle.write('\n')
+    
+    for i in range(len(matr)):
+        v = matr[i]
+        fhandle.write('\t'.join([pnames[i][0] + ' ' + pnames[i][1]]
+                                + [str(x) for x in v]))
+        fhandle.write('\n')
+        
+def plotCombinedMatrix(fname, matr, pnames, gnames, cmap=None,
+                       vmin=0, vmax=None,
+                       ylabel='Phenotypic activity',
+                       xlabel='Pathways',
+                       title='Combined genome/phenome'):
+    '''
+    Given a file name, a matrix and relative labels plot out a combined heatmap
+    
+    also the colormap and min and max values have to be provided
+    '''
+    if len(gnames) < 50:
+        w = 15
+    else:
+        w = len(gnames)/3
+    
+    if len(pnames) < 50:
+        h = 15
+    else:
+        h = len(pnames)/3
+        
+    fig = plt.figure(figsize=(w,h))
+    ax = fig.add_subplot(111)
+    
+    if not cmap:
+        cmap=cm.RdYlGn
+    cmap.set_bad('gray',.4)
+    
+    cb = ax.imshow(matr, aspect='auto', interpolation='none',
+              cmap=cmap, vmin=vmin, vmax=vmax)
+    ax.set_yticks(np.arange(len(pnames)))
+    ax.set_yticklabels([x[0] for x in pnames], size=9)
+    ax.set_xticks(np.arange(len(gnames)))
+    ax.set_xticklabels([x[0] for x in gnames], size=9,
+                  rotation=90)
+    
+    if w > 15 or h > 15:
+        plt.colorbar(cb, shrink=0.5, aspect=30)
+    else:
+        plt.colorbar(cb)
+    
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    
+    ax.set_title(title)
+    
+    plt.tight_layout()
+    
+    plt.savefig(fname)
+    
+def getCombinations(matrix, phenome, genome, pthresh, gthresh):
+    '''
+    Generator to combination of compounds and pathways data
+    '''
+    phenome = sorted(filter(lambda x: x[3] >= pthresh, phenome),
+                     key=lambda x: x[3], reverse=True)
+    
+    genome = sorted(filter(lambda x: x[2] >= 0 , genome),
+                    key=lambda x: x[2])
+    
+    # Remove those pathways with no compound mapped
+    toRemove = []
+    for j in genome:
+        p = j[0]
+        
+        bOne = False
+        for i in phenome:
+            cid = i[0]
+            scateg = i[1]
+
+            if p in matrix[cid][scateg]:
+                bOne = True
+                break
+        
+        if not bOne:
+            toRemove.append(j)
+    for i in toRemove:
+        genome.remove(i)
+    
+    out = []
+    for i in phenome:
+        cid = i[0]
+        scateg = i[1]
+        cname = i[2]
+        pval = i[3]
+        
+        for j in genome:
+            p = j[0]
+            pname = j[1]
+            gval = j[2]
+            
+            if p in matrix[cid][scateg]:
+                out.append((scateg, cid, cname, p, pname, pval, gval))
+    
+    for o in sorted(out, key=lambda x: (x[5], x[6]), reverse=True):
+        yield o
+
+def dCombine(project, allorgs=False, pangPaths=None, pthresh=5, doPrint=True):
+    '''
+    Prepare a table/heatmap focused on compound activity/genetic content
+    '''
+    from ductape.kegg.kegg import avoidedPaths
+    from itertools import combinations
+    
+    kind = dSetKind(project)
+    
+    kegg = Kegg(project)
+    
+    # Check genomic and phenomic state
+    proj = Project(project)
+    proj.getProject()
+    
+    if proj.genome != 'map2kegg':
+        logger.warning('Genome must be mapped to Kegg! (run dgenome start)')
+        return True
+    
+    if proj.phenome != 'map2kegg':
+        logger.warning('Phenome must be mapped to Kegg!')
+        return True
+        
+    biolog = Biolog(project)
+    if biolog.atLeastOneNoParameter():
+        logger.warning('Phenome parametrization has not yet been performed!')
+        return True
+    
+    if proj.isPanGenome() and kind == 'pangenome' and not allorgs:
+        logger.info('Analyzing combined data from a pangenome')
+           
+        matr = {}
+        cos = []
+        gens = []
+        
+        # Start from the pathways with at least one reaction mapped
+        paths = set([x.path_id for x in kegg.getMappedPathways()])
+        for p in avoidedPaths:
+            try:
+                paths.remove(p)
+            except:pass
+           
+        # Cycle through category/compound to build the matrix
+        for categ in biolog.getCategs(True):
+            category = categ.category
+            scateg = categ.category.replace(' ','_').replace('&','and')
+
+            corg = {}
+            
+            wells = [w for w in biolog.getAllCoByCateg(category)]
+            
+            for well in wells:
+                co_id = 'cpd:' + well.co_id
+                
+                acts = [x.avgact 
+                        for x in
+                        biolog.getAvgActivityEachOrg(well.plate_id,
+                                                     well.well_id)]
+                if len(acts) <= 1:
+                    continue
+                
+                diffs = []
+                for a, a1 in combinations(acts, 2):
+                    diffs.append( abs(a - a1) )
+                    
+                avgdiff = np.array(diffs).mean()
+                
+                # Some co_ids are present more than once
+                if co_id not in corg:
+                    corg[co_id] = []
+                corg[co_id].append(avgdiff)
+            
+            toremove = set()
+            for k, v in corg.iteritems():
+                mean = np.array(v).mean()
+                if not math.isnan(float(mean)):
+                    corg[k] = mean
+                else:
+                    toremove.add(k)
+            for k in toremove:
+                del corg[k]
+                
+            # Insert the compounds inside the matrix
+            for co_id in corg:
+                # Pathways mapped to this co_id
+                # only those with reactions will be used
+                for p in kegg.getCompPaths(co_id):
+                    if p.path_id not in paths:continue
+                    
+                    matr[co_id] = matr.get(co_id, {})
+                    matr[co_id][scateg] = matr[co_id].get(scateg, {})
+                    matr[co_id][scateg][p.path_id] = matr[co_id][scateg].get(
+                                                         p.path_id, corg[co_id])
+                
+                # Add the phenotypic variability
+                if co_id in matr and scateg in matr[co_id]:
+                    cname = kegg.getCompound(co_id).name
+                    cos.append((co_id, scateg, cname, corg[co_id]))
+        
+        # Get the genetic variability
+        for p in paths:
+            dpangenome = pangPaths[p]
+                
+            totNet = len(getPanGenomeNet(project,
+                                     dpangenome, 'all',
+                                     path_id=p).getDistinctReactions())
+            dispNet = len(getPanGenomeNet(project,
+                                      dpangenome, 'dispensable',
+                                      path_id=p).getDistinctReactions())
+            
+            pname = kegg.getPathway(p).name
+            try:
+                gens.append((p, pname, float(dispNet)/float(totNet)))
+            except:pass
+        
+        matr_all, phen_all, gen_all = getCombinedMatrix(cos, gens, matr,
+                                                        0, 0)
+            
+        # Write the whole matrix
+        fname = 'combined_matrix_full.tsv'
+        fout = open(fname, 'w')
+        fout.write('# Combined matrix for the pangenome\n')
+        fout.write('# Each cell contains the average difference on the AV '+
+                   ' between each organism of the pangenome\n')
+        fout.write('#  Compounds are sorted by mean diffAV, '+
+                   ' pathways by genomic variability '+
+                   '(number of exclusive dispensable reaction IDs / '+
+                   'numer of distinct reaction IDs)\n')
+        writeCombinedMatrix(fout, matr_all, phen_all, gen_all)
+        
+        logger.info('Saved overall combined pangenome matrix (%s)'%fname)
+        
+        # Reduced matrix
+        matr_red, phen, gen = getCombinedMatrix(cos, gens, matr,
+                                            pthresh, 0.0000001)
+        
+        # Write the matrix
+        fname = 'combined_matrix.tsv'
+        fout = open(fname, 'w')
+        fout.write('# Combined matrix for the pangenome\n')
+        fout.write('# Each cell contains the average difference on the AV '+
+                   ' between each organism of the pangenome\n')
+        fout.write('#  Compounds are sorted by mean diffAV, '+
+                   ' pathways by genomic variability '+
+                   '(number of exclusive dispensable reaction IDs / '+
+                   'numer of distinct reaction IDs)\n')
+        fout.write('#  mean diffAV threshold: %f\n'%pthresh)
+        fout.write('#  genomic variability threshold: > 0\n')
+        writeCombinedMatrix(fout, matr_red, phen, gen)
+        
+        logger.info('Saved reduced combined pangenome matrix (%s)'%fname)
+        
+        # Plot!
+        fname = 'combined_variability.png'
+        plotCombinedMatrix(fname, matr_red, phen, gen, cmap=cm.Purples,
+                       vmax=biolog.getMaxActivity(),
+                       ylabel='Phenotypic activity (mean diffAV)',
+                       title='Combined genome/phenome variability')
+        
+        logger.info('Saved combined pangenome plot (%s)'%fname)
+        
+        # Print relevant combinations
+        logger.info('Relevant combined data')
+        
+        header = '\t'.join( ['category', 'co_id', 'name', 
+                             'path_id', 'name',
+                             'mean diffAV', 'genomic variability'] )
+        if doPrint:
+            print header
+        else:
+            logger.info(header)
+        
+        for scateg, cid, cname, p, pname, pval, gval in getCombinations(matr,
+                                                                    cos,
+                                                                    gens,
+                                                                    pthresh,
+                                                                    0.0000001):
+            line = '\t'.join( [str(x)
+                               for x in [scateg, cid, cname,
+                                         p, pname, pval, gval]] )
+            
+            if doPrint:
+                print line
+            else:
+                logger.info(line)
+        
+    elif kind == 'single' or allorgs and not kind == 'mutants':
+        logger.info('Analyzing combined data for each organisms')
+        
+        organism = Organism(project)
+        
+        orgs = [org.org_id for org in organism.getAll()]
+        
+        for org_id in orgs:
+            # Start from the pathways with at least one reaction mapped
+            paths = set([x.path_id for x in kegg.getMappedPathways(org_id)])
+            for p in avoidedPaths:
+                try:
+                    paths.remove(p)
+                except:pass
+            
+            matr = {}
+            cos = []
+            gens = []
+            # Cycle through category/compound to build the matrix
+            for categ in biolog.getCategs(True):
+                category = categ.category
+                scateg = categ.category.replace(' ','_').replace('&','and')
+    
+                corg = {}
+        
+                # Filter by path?
+                wells = [w for w in biolog.getAllCoByCateg(category)]
+                for well in wells:
+                    co_id = 'cpd:' + well.co_id
+                    
+                    act = biolog.getAvgActivity(well.plate_id, well.well_id,
+                                                org_id)
+                    if act is not None:
+                        # Some co_ids are present more than once
+                        if co_id not in corg:
+                            corg[co_id] = []
+                        corg[co_id].append(act)
+            
+                toremove = set()
+                for k, v in corg.iteritems():
+                    mean = np.array(v).mean()
+                    if not math.isnan(float(mean)):
+                        corg[k] = mean
+                    else:
+                        toremove.add(k)
+                for k in toremove:
+                    del corg[k]
+                
+                # Insert the compounds inside the matrix
+                for co_id in corg:
+                    # Pathways mapped to this co_id
+                    # only those with reactions will be used
+                    for p in kegg.getCompPaths(co_id):
+                        if p.path_id not in paths:continue
+                        
+                        matr[co_id] = matr.get(co_id, {})
+                        matr[co_id][scateg] = matr[co_id].get(scateg, {})
+                        matr[co_id][scateg][p.path_id] = matr[co_id][scateg].get(
+                                                             p.path_id, corg[co_id])
+                    
+                    # Add the phenotypic variability
+                    if co_id in matr and scateg in matr[co_id]:
+                        cname = kegg.getCompound(co_id).name
+                        cos.append((co_id, scateg, cname, corg[co_id]))
+            
+            # Get the genetic content
+            for p in paths:
+                pname = kegg.getPathway(p).name
+                gens.append((p, pname,
+                     len(getOrgNet(project, org_id, path_id=p).getDistinctReactions())))
+                
+            matr_all, phen_all, gen_all = getCombinedMatrix(cos, gens, matr,
+                                                        0, 0)
+            
+            # Write the whole matrix
+            fname = 'combined_matrix_%s.tsv'%org_id
+            fout = open(fname, 'w')
+            fout.write('# Combined matrix for %s\n'%org_id)
+            fout.write('# Each cell contains the AV '+
+                       ' for each compound\n')
+            fout.write('#  Compounds are sorted by AV, '+
+                       ' pathways by genomic content '+
+                       '(numer of distinct reaction IDs)\n')
+            writeCombinedMatrix(fout, matr_all, phen_all, gen_all)
+            
+            logger.info('Saved overall combined matrix (%s)'%fname)
+            
+            # Plot!
+            fname = 'combined_%s.png'%org_id
+            plotCombinedMatrix(fname, matr_all, phen_all, gen_all,
+                           vmax=biolog.getMaxActivity())
+            
+            logger.info('Saved combined genome/phenome plot (%s)'%fname)
+        
+    elif kind == 'mutants' or allorgs:
+        logger.info('Analyzing combined data for each mutant w/r/t the wild-type')
+    
+        organism = Organism(project)
+        
+        refs = [org.org_id
+                    for org in organism.getAll()
+                    if not organism.isMutant(org.org_id)]
+        
+        for ref_id in refs:
+            muts = [x for x in organism.getOrgMutants(ref_id)]
+            
+            for mut_id in muts:
+                # Start from the pathways with at least one reaction mapped
+                paths = set([x.path_id for x in kegg.getMappedPathways(mut_id)])
+                for p in avoidedPaths:
+                    try:
+                        paths.remove(p)
+                    except:pass
+                
+                matr = {}
+                cos = []
+                gens = []
+                # Cycle through category/compound to build the matrix
+                for categ in biolog.getCategs(True):
+                    category = categ.category
+                    scateg = categ.category.replace(' ','_').replace('&','and')
+
+                    corg = {}
+        
+                    # Filter by path?
+                    wells = [w for w in biolog.getAllCoByCateg(category)]
+                    for well in wells:
+                        co_id = 'cpd:' + well.co_id
+                        refact = biolog.getAvgActivity(well.plate_id, well.well_id,
+                                                       ref_id)
+                        act = biolog.getAvgActivity(well.plate_id, well.well_id,
+                                                    mut_id)
+                        if act is not None and refact is not None:
+                            # Some co_ids are present more than once
+                            if co_id not in corg:
+                                corg[co_id] = []
+                            corg[co_id].append(refact-act)
+                
+                    toremove = set()
+                    for k, v in corg.iteritems():
+                        mean = np.array(v).mean()
+                        if not math.isnan(float(mean)):
+                            corg[k] = mean
+                        else:
+                            toremove.add(k)
+                    for k in toremove:
+                        del corg[k]
+                    
+                    # Insert the compounds inside the matrix
+                    for co_id in corg:
+                        # Pathways mapped to this co_id
+                        # only those with reactions will be used
+                        for p in kegg.getCompPaths(co_id):
+                            if p.path_id not in paths:continue
+                            
+                            matr[co_id] = matr.get(co_id, {})
+                            matr[co_id][scateg] = matr[co_id].get(scateg, {})
+                            matr[co_id][scateg][p.path_id] = matr[co_id][scateg].get(
+                                                                 p.path_id, corg[co_id])
+                        
+                        # Add the phenotypic variability
+                        if co_id in matr and scateg in matr[co_id]:
+                            cname = kegg.getCompound(co_id).name
+                            cos.append((co_id, scateg, cname, corg[co_id]))
+                
+                # Get the genetic content
+                for p in paths:
+                    pname = kegg.getPathway(p).name
+                    gens.append((p, pname,
+                         len(getOrgNet(project, mut_id,
+                                       path_id=p).getDistinctReactions())))
+                    
+                matr_all, phen_all, gen_all = getCombinedMatrix(cos, gens, matr,
+                                                        0, 0)
+            
+                # Write the whole matrix
+                fname = 'combined_matrix_full_%s.tsv'%mut_id
+                fout = open(fname, 'w')
+                fout.write('# Combined matrix for the %s mutant (WT %s)\n'%(mut_id,
+                                                                            ref_id))
+                fout.write('# Each cell contains the difference on the AV '+
+                           ' between the mutant and the wild-type\n')
+                fout.write('#  Compounds are sorted by diffAV, '+
+                           ' pathways by genomic content '+
+                           '(numer of distinct mutated reaction IDs)\n')
+                writeCombinedMatrix(fout, matr_all, phen_all, gen_all)
+                
+                logger.info('Saved overall combined genome/phenome matrix (%s)'%fname)
+                
+                # Reduced matrix
+                matr, phen, gen = getCombinedMatrix(cos, gens, matr,
+                                                    pthresh, 0.0000001)
+                
+                # Write the matrix
+                fname = 'combined_matrix_%s.tsv'%mut_id
+                fout = open(fname, 'w')
+                fout.write('# Combined matrix for the %s mutant (WT %s)\n'%(mut_id,
+                                                                            ref_id))
+                fout.write('# Each cell contains the difference on the AV '+
+                           ' between the mutant and the wild-type\n')
+                fout.write('#  Compounds are sorted by diffAV, '+
+                           ' pathways by genomic content '+
+                           '(numer of distinct mutated reaction IDs)\n')
+                fout.write('#  diffAV threshold: %f\n'%pthresh)
+                writeCombinedMatrix(fout, matr, phen, gen)
+                
+                logger.info('Saved reduced combined pangenome matrix (%s)'%fname)
+                
+                # Plot!
+                fname = 'combined_%s.png'%mut_id
+                plotCombinedMatrix(fname, matr, phen, gen, cmap=cm.Purples,
+                               vmin=-biolog.getMaxActivity(),
+                               vmax=biolog.getMaxActivity(),
+                               xlabel='Pathways containing the mutated reactions',
+                               ylabel='Phenotypic variability w/r/t wild-type (diffAV)')
+                
+                logger.info('Saved combined genome/phenome plot (%s)'%fname)
+                
+                # Print relevant combinations
+                logger.info('Relevant combined data')
+                
+                header = '\t'.join( ['category', 'co_id', 'name', 
+                                        'path_id', 'name',
+                                        'diffAV',
+                                        'distinct mutated reaction IDs'] )
+                if doPrint:
+                    print header
+                else:
+                    logger.info(header)
+                
+                for scateg, cid, cname, p, pname, pval, gval in getCombinations(matr,
+                                                                                phen,
+                                                                                gen):
+                    line = '\t'.join( [str(x)
+                                       for x in [scateg, cid, cname,
+                                                 p, pname, pval, gval]] )
+                    
+                    if doPrint:
+                        print line
+                    else:
+                        logger.info(line)
+    
     return True
 
 def getPlatesOrder(project):

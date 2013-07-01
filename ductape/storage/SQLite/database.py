@@ -2100,10 +2100,9 @@ class Kegg(DBBase):
         if not path_id:
             query = '''
                     select distinct k.re_id, co1, co2, re.name
-                    from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
+                    from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re
                     where k.ko_id = m.ko_id
                     and p.prot_id = m.prot_id
-                    and p.prot_id = o.prot_id
                     and k.re_id = rr.re_id
                     and rr.rp_id = rp.rp_id
                     and rr.re_id=re.re_id
@@ -2112,10 +2111,9 @@ class Kegg(DBBase):
         else:
             query = '''
                     select distinct k.re_id, co1, co2, re.name
-                    from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
+                    from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, react_path p1
                     where k.ko_id = m.ko_id
                     and p.prot_id = m.prot_id
-                    and p.prot_id = o.prot_id
                     and k.re_id = rr.re_id
                     and rr.rp_id = rp.rp_id
                     and rr.re_id=re.re_id
@@ -2151,10 +2149,9 @@ class Kegg(DBBase):
         if not path_id:
             query = '''
                     select distinct k.re_id, co1, co2, re.name, o.group_id
-                        from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o
+                        from ko_react k, mapko m, rpair_react rr, rpair rp, reaction re, ortholog o
                         where k.ko_id = m.ko_id
-                        and p.prot_id = m.prot_id
-                        and p.prot_id = o.prot_id
+                        and m.prot_id = o.prot_id
                         and k.re_id = rr.re_id
                         and rr.rp_id = rp.rp_id
                         and rr.re_id=re.re_id
@@ -2163,10 +2160,9 @@ class Kegg(DBBase):
         else:
             query = '''
                     select distinct k.re_id, co1, co2, re.name, o.group_id
-                    from ko_react k, mapko m, protein p, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
+                    from ko_react k, mapko m, rpair_react rr, rpair rp, reaction re, ortholog o, react_path p1
                     where k.ko_id = m.ko_id
-                    and p.prot_id = m.prot_id
-                    and p.prot_id = o.prot_id
+                    and m.prot_id = o.prot_id
                     and k.re_id = rr.re_id
                     and rr.rp_id = rp.rp_id
                     and rr.re_id=re.re_id

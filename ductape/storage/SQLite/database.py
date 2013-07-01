@@ -1933,6 +1933,19 @@ class Kegg(DBBase):
             
         for res in cursor:
             yield Row(res, cursor.description)
+            
+    def getCompPaths(self, co_id):
+        '''
+        Get the pathways related to the provided co_id
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select path_id, co_id
+                                   from comp_path
+                                   where co_id = ?
+                                   order by path_id;''',[co_id,])
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
                     
     def addPathComps(self, pathcomp):
         '''
@@ -3058,6 +3071,73 @@ class Kegg(DBBase):
             else:
                 cursor=conn.execute(query)
         return int(cursor.fetchall()[0][0])
+    
+    def getMappedPathways(self, org_id=None, pangenome=''):
+        '''
+        Generator to the mapped pathways
+        If no org_id is provided, the whole number of pathways from all organism
+        is returned
+        '''
+        if org_id:
+            query = '''
+                select distinct p.path_id, p.name
+                from mapko m, protein p, ko_react k, react_path r, pathway p
+                where m.prot_id = p.prot_id
+                and org_id = ?
+                and m.ko_id = k.ko_id
+                and k.re_id = r.re_id
+                and r.path_id = p.path_id
+                '''
+        
+        elif pangenome in ['core', 'dispensable', 'accessory', 'unique']:
+            genome = Genome(self.dbname)
+            
+            query = '''
+                    select distinct p.path_id, p.name
+                    from mapko m, ortholog o, ko_react k, react_path r, pathway p
+                    where m.prot_id = o.prot_id
+                    and m.ko_id = k.ko_id
+                    and k.re_id = r.re_id
+                    and r.path_id = p.path_id;
+                    '''
+            
+            with self.connection as conn:
+                cursor=conn.execute(query)
+            
+            rall = [Row(res, cursor.description) for res in cursor]
+            if pangenome == 'core':
+                groups = set([x.group_id for x in genome.getCore()])
+                
+            elif pangenome == 'dispensable':
+                groups = set([x.group_id for x in genome.getDisp()])
+                
+            elif pangenome == 'accessory':
+                groups = set([x.group_id for x in genome.getAcc()])    
+
+            elif pangenome == 'unique':
+                groups = set([x.group_id for x in genome.getUni()])
+                
+            paths = set([r.path_id for r in filter(lambda x: x.group_id in groups, rall)])
+            for p in paths:
+                yield Row([p], ['path_id'])
+        
+        else:
+            query = '''
+                    select distinct p.path_id, p.name
+                    from mapko m, ko_react k, react_path r, pathway p
+                    where m.ko_id = k.ko_id
+                    and k.re_id = r.re_id
+                    and r.path_id = p.path_id
+                    '''
+            
+        with self.connection as conn:
+            if org_id:
+                cursor=conn.execute(query,[org_id,])
+            else:
+                cursor=conn.execute(query)
+        
+        for res in cursor:
+            yield Row(res, cursor.description)
     
 class Biolog(DBBase):
     '''

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>I/O &lt;&lt; DuctApe, genomics and phenomics made easy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DuctApe, Analyze and link genomics and phenomics experiments, using KEGG metabolic pathways and Biolog Phenotype Microarrays.">
+    <meta name="author" content="Marco Galardini" >
+    
+    <!-- Le meta tag to refresh the cache -->
+    <meta http-equiv="last-modified" content="Tue, 02 Jul 2013 15:30:00 CET" />
+
+    <!-- Le styles -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/custom.css" rel="stylesheet">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le fav and touch icons -->
+    <link rel="shortcut icon" href="favicon.ico">
+  </head>
+
+  <body>
+      <div class="navbar navbar-static-top">
+      <div class="navbar-inner">
+        <div class="container">
+
+        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </a>
+ 
+      <a class="brand" href="index.html">DuctApe</a>
+ 
+      <div class="nav-collapse collapse brandmini">
+          <div class="nav"><a href="https://github.com/combogenomics/DuctApe/archive/latest.tar.gz"><i class="icon-download"></i> Download &raquo;</a></div>
+          <div class="nav"><a href="info.html"><i class="icon-info-sign"></i> More info</a></div>
+          <div class="nav"><a href="howto.html"><i class="icon-info-sign"></i> Howto</a></div>
+      </div>
+ 
+      </div>
+        </div>  
+      </div>
+
+    <div class="container">
+      <div id="home">
+              <div class="row">
+                <noscript>
+                  <div class="alert alert-error">
+                    <strong>Whoops! You have javascript disabled</strong>
+                      <br/>                
+                    You may be unable to enjoy this site, sorry :(
+                  </div>
+                 </noscript>
+               </div>      
+      
+              <div class="row">
+                <div class="span3 hidden-phone">
+            <ul class="nav nav-list da-docs-sidenav">
+            <li><a href="#start"><i class="icon-chevron-right"></i> I/O</a></li>
+              <li><a href="#dape"><i class="icon-chevron-right"></i> dape</a></li>
+              <li><a href="#dgenome"><i class="icon-chevron-right"></i> dgenome</a></li>
+              <li><a href="#dphenome"><i class="icon-chevron-right"></i> dphenome</a></li>
+            </ul>
+              </div>
+              <div class="span9">
+                  <div class="dwell">
+                          <div id="start">
+                      <div class="page-header">
+                        <h1><div class="title">DuctApe I/O</div></h1>
+                        <h1><div class="title"><small>Inputs/outputs explained</small></div></h1>
+                      </div>
+                      <p>In this page the various <b class="text-success">inputs</b>/<b class="text-error">outputs</b> of the three modules are detailed, with examples. Only those commands that require a file as input or that output some files are examined; the other commands may just read/write the project file.</p>
+                      <p>For further questions and updates, please contact <a href="mailto:ductape-users@googlegroups.com">ductape-users@googlegroups.com</a> or subscribe to the <a href="https://groups.google.com/forum/?fromgroups#!forum/ductape-users">user group</a></p>
+                    </div>                    
+                    
+                    <div id="dape">
+                        <div class="page-header">
+                          <h1><div class="minititle">dape
+                          <small>The main module</small></div></h1>
+                        </div>
+                        <p>
+                          dape is the main module of the DuctApe suite, and the first one that should be used when doing an analysis from scratch; it is used to <b>setup the project</b> and to <b>conduct the final metabolic reconstruction</b>.
+                        </p>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse1"><i class="icon-chevron-right"></i> <b class="text-success">start</b> metabolic network reconstruction</a>
+                            </div>
+                            <div id="collapse1" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse2"><i class="icon-chevron-right"></i> <b class="text-success">map</b> output KEGG metabolic maps with genomic/phenomic data</a>
+                            </div>
+                            <div id="collapse2" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse3"><i class="icon-chevron-left"></i> <b class="text-success">import</b> import a KEGG data dump</a>
+                            </div>
+                            <div id="collapse3" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                          
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse4"><i class="icon-chevron-right"></i> <b class="text-success">export</b> export a KEGG data dump</a>
+                            </div>
+                            <div id="collapse4" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                                
+                    </div>
+                    
+                    <div id="dgenome">
+                        <div class="page-header">
+                          <h1><div class="minititle">dgenome
+                          <small>Genome and pangenome analysis</small></div></h1>
+                        </div>
+                        <p>
+                          dgenome is the module used to analyze the genomic data, in particular it is used to <b>map the proteins to the KEGG database</b> (through a Blast analysis or parsing a <a href="http://www.genome.jp/tools/kaas/">KAAS output</a>) and to <b>calculate the pangenome</b>.
+                        </p>
+
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse5"><i class="icon-chevron-left"></i> <b class="text-success">add</b> add a single proteome</a>
+                            </div>
+                            <div id="collapse5" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <p><b class="text-success">file</b> protein fasta file</p>
+                                <p>A file in <a href="http://en.wikipedia.org/wiki/FASTA_format">FASTA format</a> containing all the protein sequences belonging to a specific organism (which should be already present inside the project file).</p>
+                                <pre>&gt;Protein1
+MRFLIPLVILGLPLAEIAGFVAVGREIGVAMTLLLVFASAVAGIMLLRIQGFGVLRRVQE
+AARTGNDPGLDVLGGVLIFIAAILLIVPGFISDLVGLLIFLPPVRRAIAAFLRRRMTILS
+SATGFYRSSRRQSPGPQSSGPQSSGPQSAGPQSAGTPREQRRGPLTIDLDEDEFSRKTKD
+EDDPPPDRPPH
+&gt;Protein2
+MNFQSSAFIFGDADLVKQLYVNLLTNATRHTPCGTAVELTLSSDAEWVKLIVSANGLGIP
+AAERTKVFGRFYRLDKTLGSPGTELGLSLVRAVADLHGGQIFLSDNRTGLVCTVSFPVAV
+GSSAFGA
+</pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                                
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse6"><i class="icon-chevron-left"></i> <b class="text-success">add-dir</b> add all the FASTA files inside a directory</a>
+                            </div>
+                            <div id="collapse6" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <p><b class="text-success">file(s)</b> protein fasta file</p>
+                                <p>A directory containing file(s) in <a href="http://en.wikipedia.org/wiki/FASTA_format">FASTA format</a> containing all the protein sequences belonging to a specific organism (which should be already present inside the project file).</p>
+                                <pre>&gt;Protein1
+MRFLIPLVILGLPLAEIAGFVAVGREIGVAMTLLLVFASAVAGIMLLRIQGFGVLRRVQE
+AARTGNDPGLDVLGGVLIFIAAILLIVPGFISDLVGLLIFLPPVRRAIAAFLRRRMTILS
+SATGFYRSSRRQSPGPQSSGPQSSGPQSAGPQSAGTPREQRRGPLTIDLDEDEFSRKTKD
+EDDPPPDRPPH
+&gt;Protein2
+MNFQSSAFIFGDADLVKQLYVNLLTNATRHTPCGTAVELTLSSDAEWVKLIVSANGLGIP
+AAERTKVFGRFYRLDKTLGSPGTELGLSLVRAVADLHGGQIFLSDNRTGLVCTVSFPVAV
+GSSAFGA
+</pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse7"><i class="icon-chevron-left"></i> <b class="text-success">add-ko</b> import a KAAS output</a>
+                            </div>
+                            <div id="collapse7" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <p><b class="text-success">kofile</b> KAAS output file</p>
+                                <p>A file in tab-delimited format containing the output of the <a href="http://www.genome.jp/tools/kaas/">KAAS annotator</a>. The protein IDs should be already present inside the project file. Protein IDs with no KO id are discarded, as they haven't been mapped inside the KEGG database.</p>
+                                <pre># Comment (ignored)
+#prot_id	ko_id
+2511498595	K09773
+2511498596	K06287
+2511498597	K00014
+2511498598
+2511498599	K02342
+</pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                                                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse8"><i class="icon-chevron-left"></i> <b class="text-success">add-orth</b> add an user defined pangenome</a>
+                            </div>
+                            <div id="collapse8" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <p><b class="text-success">orthfile</b> pangenome file</p>
+                                <p>A file in tab-delimited format containing the information on the orthologous groups inside the pangenome. All the provided protein IDs should be already present inside the project file. Proteins having the same orth_id are orthologs.</p>
+                                <pre># Comment (ignored)
+#orth_id	prot_id
+24	SinmeB_5617
+25	SinmeB_1216
+26	gi|15963768|ref|NP_384121.1|
+27	gi|16264270|ref|NP_437062.1|
+20	SinmeB_3109
+20	gi|15963755|ref|NP_384108.1|
+20	2511498596
+20	gi|334318035|ref|YP_004550654.1|
+21	SinmeB_3110
+21	gi|15963756|ref|NP_384109.1|
+21	2511498597
+21	gi|334318036|ref|YP_004550655.1|
+</pre>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse9"><i class="icon-chevron-right"></i> <b class="text-success">start</b> start the KEGG mapping and the pangenome construction</a>
+                            </div>
+                            <div id="collapse9" class="accordion-body collapse">
+                              <div class="accordion-inner">
+
+                              </div>
+                            </div>
+                          </div>
+                        </div>                        
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse10"><i class="icon-chevron-right"></i> <b class="text-success">export</b> export the genomic data</a>
+                            </div>
+                            <div id="collapse10" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse11"><i class="icon-chevron-right"></i> <b class="text-success">stats</b> print out some genome statistics</a>
+                            </div>
+                            <div id="collapse11" class="accordion-body collapse">
+                              <div class="accordion-inner">
+
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                    </div>
+                    
+                    <div id="dphenome">
+                        <div class="page-header">
+                          <h1><div class="minititle">dphenome
+                          <small>Phenome analysis</small></div></h1>
+                        </div>
+                        <p>
+                          dphenome is the module used to analyze the phenomic data, in particular it is used to <b>analyze the growth curves</b> and to <b>map the phenomic compounds to KEGG</b>.
+                        </p>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse12"><i class="icon-chevron-left"></i> <b class="text-success">add</b> add a phenome file from a single organism</a>
+                            </div>
+                            <div id="collapse12" class="accordion-body collapse">
+                              <div class="accordion-inner">
+
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                                
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse13"><i class="icon-chevron-left"></i> <b class="text-success">add-multi</b> add a phenomic file with more than one organism</a>
+                            </div>
+                            <div id="collapse13" class="accordion-body collapse">
+                              <div class="accordion-inner">
+
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                                  
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse14"><i class="icon-chevron-left"></i> <b class="text-success">add-dir</b> add all the Phenotype microarray files inside a directory</a>
+                            </div>
+                            <div id="collapse14" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                              
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                                
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse15"><i class="icon-chevron-left"></i> <b class="text-success">import-plates</b> add new plates to DuctApe</a>
+                            </div>
+                            <div id="collapse15" class="accordion-body collapse">
+                              <div class="accordion-inner">
+
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                                
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse16"><i class="icon-chevron-right"></i> <b class="text-success">start</b> analyze the growth curves and map the phenomic compounds to KEGG</a>
+                            </div>
+                            <div id="collapse16" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                          
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse17"><i class="icon-chevron-right"></i> <b class="text-success">plot</b> plot the growth curves and the AV heatmaps</a>
+                            </div>
+                            <div id="collapse17" class="accordion-body collapse">
+                              <div class="accordion-inner">
+
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse18"><i class="icon-chevron-right"></i> <b class="text-success">rings</b> plot the overall phenome in ring format</a>
+                            </div>
+                            <div id="collapse18" class="accordion-body collapse">
+                              <div class="accordion-inner">
+
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                                
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse19"><i class="icon-chevron-right"></i> <b class="text-success">export</b> export the phenomic data</a>
+                            </div>
+                            <div id="collapse19" class="accordion-body collapse">
+                              <div class="accordion-inner">
+
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse20"><i class="icon-chevron-right"></i> <b class="text-success">stats</b> print out some phenome statistics</a>
+                            </div>
+                            <div id="collapse20" class="accordion-body collapse">
+                              <div class="accordion-inner">
+
+                              </div>
+                            </div>
+                          </div>
+                        </div>            
+                    </div>
+                
+              </div>
+             </div>
+              </div>
+              
+            </div>
+          </div>    
+      
+       <footer class="footer">
+       <div class="container">
+       <div class="row">
+          <div class="span4">
+            <h6>Brought to you by</h6>
+            <div class="muted">
+              <p>
+                <a href="http://www.unifi.it/dbefcb/" target="_blank">
+                  <img alt="Combo" src="img/combo.png"  width="100" class="bg-container"/>
+                </a>
+              </p>
+              <p>
+                <a href="http://www.unifi.it/dbefcb/" target="_blank">Florence computational biology group</a>
+              </p>
+              <p>
+                <a href="http://www.unifi.it/dblage/" target="_blank">Department of evolutionary biology</a> - <a href="http://www.unifi.it/">University of Florence</a>
+              </p>
+              <p>
+                Designed by <a href="http://marcogalardini.altervista.org" target="_blank">Marco Galardini</a>
+              </p>
+            </div>
+          </div>
+          <div class="span4">
+            <h6>Contacts</h6>
+            <div class="muted">
+              <p>
+                For feedbacks, bug reports and other informations:
+                <ul>
+                  <li><b>ductape-users@googlegroups.com</b></li>
+                  <li><a href="https://groups.google.com/forum/?fromgroups#!forum/ductape-users"><b>Users group</b></a></li>
+                  <li>mgalardini@unifi.it</li>
+                  <li>alessio.mengoni@unifi.it</li>
+                  <li>stefano.mocali@entecra.it</li>
+                  <li>combo.unifi@gmail.com</li>
+                </ul>
+              </p>
+              <h6>Hosting</h6>
+              <p>
+                <a href="http://github.com/combogenomics/DuctApe" target="_blank">
+                  <img src="img/github.png" width="50" height="15" alt="Browse the source code at github" />
+                </a>
+              </p>
+            </div>
+          </div>
+          <div class="span4">
+            <h6>Cite us</h6>
+            <p class="muted">
+              <strong>
+                Coming soon... (hopefully)
+              </strong>
+            </p>
+            <h6>Project status</h6>
+              <p><a href="https://travis-ci.org/combogenomics/DuctApe/builds"><img src="https://travis-ci.org/combogenomics/DuctApe.png"></a></p>
+          </div>
+        </div>
+     </div>
+        </footer>
+    
+    </div>
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script src="js/misc.js"></script>
+    
+    <!-- Le Google analytics -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34201518-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+  </body>
+</html>

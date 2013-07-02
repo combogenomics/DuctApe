@@ -4083,7 +4083,7 @@ def dCombine(project, allorgs=False, pangPaths=None, pthresh=5, doPrint=True):
                 logger.info('Saved overall combined genome/phenome matrix (%s)'%fname)
                 
                 # Reduced matrix
-                matr, phen, gen = getCombinedMatrix(cos, gens, matr,
+                matr_comb, phen, gen = getCombinedMatrix(cos, gens, matr,
                                                     pthresh, 0.0000001)
                 
                 # Write the matrix
@@ -4097,13 +4097,13 @@ def dCombine(project, allorgs=False, pangPaths=None, pthresh=5, doPrint=True):
                            ' pathways by genomic content '+
                            '(numer of distinct mutated reaction IDs)\n')
                 fout.write('#  diffAV threshold: %f\n'%pthresh)
-                writeCombinedMatrix(fout, matr, phen, gen)
+                writeCombinedMatrix(fout, matr_comb, phen, gen)
                 
                 logger.info('Saved reduced combined pangenome matrix (%s)'%fname)
                 
                 # Plot!
                 fname = 'combined_%s.png'%mut_id
-                plotCombinedMatrix(fname, matr, phen, gen, cmap=cm.PuOr,
+                plotCombinedMatrix(fname, matr_comb, phen, gen, cmap=cm.PuOr,
                                vmin=-biolog.getMaxActivity(),
                                vmax=biolog.getMaxActivity(),
                                xlabel='Pathways containing the mutated reactions',
@@ -4124,8 +4124,8 @@ def dCombine(project, allorgs=False, pangPaths=None, pthresh=5, doPrint=True):
                     logger.info(header)
                 
                 for scateg, cid, cname, p, pname, pval, gval in getCombinations(matr,
-                                                                        phen,
-                                                                        gen,
+                                                                        cos,
+                                                                        gens,
                                                                         pthresh,
                                                                         0.0000001):
                     line = '\t'.join( [str(x)

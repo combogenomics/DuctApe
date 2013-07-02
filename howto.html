@@ -12,7 +12,7 @@
 
     <!-- Le styles -->
     <link href="css/bootstrap.css" rel="stylesheet">
-       <link href="css/custom.css" rel="stylesheet">
+    <link href="css/custom.css" rel="stylesheet">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -100,6 +100,7 @@
                         <li><a href="http://scikit-learn.org/">scikits.learn</a></li>
                         <li><a href="http://docs.python.org/2/library/multiprocessing.html">multiprocessing</a> (included in python 2.6)</li>
                         <li><a href="http://networkx.lanl.gov/">networkx</a></li>
+                        <li><a href="http://pyyaml.org/">PyYaml</a></li>
                         <li><a href="http://www.ncbi.nlm.nih.gov/BLAST/">Blast+</a></li>
                       </ul>
                       <p>
@@ -121,15 +122,15 @@
                         <p><strong>Method 1 (dependencies won't be checked)</strong></p>
                         <ol>
                           <li>Extract the archive</li>
-                          <code>tar -xvf DuctApe-X.X.X.tar.gz</code>
+                          <code>tar -xvf DuctApe-latest.tar.gz</code>
                           <li>Enter the directory</li>
-                          <code>cd DuctApe-X.X.X</code>
+                          <code>cd DuctApe-latest</code>
                           <li>Install</li>
                           <code>sudo python setup.py install</code>
                         </ol>
                         <br>
                         <p><strong>Method 2 (missing dependencies will be downloaded)</strong></p>
-                        <p><code>sudo pip install DuctApe-X.X.X.tar.gz</code></p>
+                        <p><code>sudo pip install DuctApe-latest.tar.gz</code></p>
                         <p>To check that the install process succeeded, try to open a terminal and type the following line:</p>
                         <p>
                           <code>dape --version</code>
@@ -169,107 +170,217 @@
                         </p>
                         <h4>Project setup</h4>
                         <p>The first step is the project initialization, through the <i>init</i> command.</p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">init</b> project initialization</p>
-                        <dl class="dl-horizontal">
-                          <dt>-n</dt>
-                          <dd>Project name</dd>
-                          <dt>-d</dt>
-                          <dd>Project description</dd>
-                        </dl>
-                        <p><code>dape init</code></p>
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse1"><i class="icon-chevron-right"></i> <b class="text-success">init</b> project initialization</a>
+                            </div>
+                            <div id="collapse1" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>-n</dt>
+                                  <dd>Project name</dd>
+                                  <dt>-d</dt>
+                                  <dd>Project description</dd>
+                                </dl>
+                                <p><code>dape init</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
                         <p>There are three projects kind that can be setup with DuctApe: <a href="index.html#projects">single, mutants and pangenome</a>: for single and pangenome projects, only the <i>add</i> command has to be used, while for the mutants kind, also the <i>add-mut</i> can be used.</p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">add</b> add a single organism</p>
-                        <dl class="dl-horizontal">
-                          <dt>OrgID</dt>
-                          <dd>Organism ID [compulsory parameter]</dd>                          
-                          <dt>-n</dt>
-                          <dd>Organism name</dd>
-                          <dt>-d</dt>
-                          <dd>Organism description</dd>
-                          <dt>-c</dt>
-                          <dd>Organism color</dd>
-                        </dl>
-                        <p class="muted"><small><i class="icon-flag"></i> Keep the organism ID length to a maximum of 10 charachters to help graphs readibility.</small></p>
-                        <p><code>dape add -n "Sinorhizobium meliloti" -c red Rm1021</code></p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">add-multi</b> add many single organisms</p>
-                        <dl class="dl-horizontal">
-                          <dt>OrgID</dt>
-                          <dd>Organism ID [compulsory parameter]</dd>                          
-                        </dl>
-                        <p class="muted"><small><i class="icon-flag"></i> Keep the organism ID length to a maximum of 10 charachters to help graphs readibility.</small></p>
-                        <p class="muted"><small><i class="icon-flag"></i> If you want to set more informations to each organism, use "dape add".</small></p>
-                        <p><code>dape add-multi Rm1021 AK83</code></p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">add-mut</b> add a mutant of an existing organism</p>
-                        <dl class="dl-horizontal">
-                          <dt>MutID</dt>
-                          <dd>Mutant ID [compulsory parameter]</dd>
-                          <dt>-m</dt>
-                          <dd>This mutant wild-type OrgID [compulsory parameter]</dd>                          
-                          <dt>-k</dt>
-                          <dd>Mutant kind [insertion|deletion, default: deletion]</dd>                          
-                          <dt>-n</dt>
-                          <dd>Organism name</dd>
-                          <dt>-d</dt>
-                          <dd>Organism description</dd>
-                          <dt>-c</dt>
-                          <dd>Organism color</dd>
-                        </dl>              
-                        <p><code>dape add-mut -n "Sinorhizobium meliloti mutant" -c blue -m Rm1021 Rm1021-mut</code></p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">rm</b> remove a single organism</p>
-                        <dl class="dl-horizontal">
-                          <dt>OrgID</dt>
-                          <dd>Organism ID [compulsory parameter]</dd>
-                        </dl>
-                        <p class="muted"><small><i class="icon-flag"></i> Some analysis may be redone after the removal of an organism.</small></p>
-                        <p><code>dape rm Rm1021</code></p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">clear</b> clear all the data</p>
-                        <dl class="dl-horizontal">
-                          <dt>-o</dt>
-                          <dd>Keep organisms data</dd>                          
-                          <dt>-k</dt>
-                          <dd>Keep KEGG data</dd>
-                        </dl>
-                        <p><code>dape clear</code></p>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse2"><i class="icon-chevron-right"></i> <b class="text-success">add</b> add a single organism</a>
+                            </div>
+                            <div id="collapse2" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>OrgID</dt>
+                                  <dd>Organism ID [compulsory parameter]</dd>                          
+                                  <dt>-n</dt>
+                                  <dd>Organism name</dd>
+                                  <dt>-d</dt>
+                                  <dd>Organism description</dd>
+                                  <dt>-c</dt>
+                                  <dd>Organism color</dd>
+                                </dl>
+                                <p class="muted"><small><i class="icon-flag"></i> Keep the organism ID length to a maximum of 10 charachters to help graphs readibility.</small></p>
+                                <p><code>dape add -n "Sinorhizobium meliloti" -c red Rm1021</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse3"><i class="icon-chevron-right"></i> <b class="text-success">add-multi</b> add many single organisms</a>
+                            </div>
+                            <div id="collapse3" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>OrgID</dt>
+                                  <dd>Organism ID [compulsory parameter]</dd>                          
+                                </dl>
+                                <p class="muted"><small><i class="icon-flag"></i> Keep the organism ID length to a maximum of 10 charachters to help graphs readibility.</small></p>
+                                <p class="muted"><small><i class="icon-flag"></i> If you want to set more informations to each organism, use "dape add".</small></p>
+                                <p><code>dape add-multi Rm1021 AK83</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse4"><i class="icon-chevron-right"></i> <b class="text-success">add-mut</b> add a mutant of an existing organism</a>
+                            </div>
+                            <div id="collapse4" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>MutID</dt>
+                                  <dd>Mutant ID [compulsory parameter]</dd>
+                                  <dt>-m</dt>
+                                  <dd>This mutant wild-type OrgID [compulsory parameter]</dd>                          
+                                  <dt>-k</dt>
+                                  <dd>Mutant kind [insertion|deletion, default: deletion]</dd>                          
+                                  <dt>-n</dt>
+                                  <dd>Organism name</dd>
+                                  <dt>-d</dt>
+                                  <dd>Organism description</dd>
+                                  <dt>-c</dt>
+                                  <dd>Organism color</dd>
+                                </dl>              
+                                <p><code>dape add-mut -n "Sinorhizobium meliloti mutant" -c blue -m Rm1021 Rm1021-mut</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse5"><i class="icon-chevron-right"></i> <b class="text-success">rm</b> remove a single organism</a>
+                            </div>
+                            <div id="collapse5" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>OrgID</dt>
+                                  <dd>Organism ID [compulsory parameter]</dd>
+                                </dl>
+                                <p class="muted"><small><i class="icon-flag"></i> Some analysis may be redone after the removal of an organism.</small></p>
+                                <p><code>dape rm Rm1021</code></p>
+                                </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse6"><i class="icon-chevron-right"></i> <b class="text-success">clear</b> clear all the data</a>
+                            </div>
+                            <div id="collapse6" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>-o</dt>
+                                  <dd>Keep organisms data</dd>                          
+                                  <dt>-k</dt>
+                                  <dd>Keep KEGG data</dd>
+                                </dl>
+                                <p><code>dape clear</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                         
                         <h4>Metabolic network reconstruction</h4>
                         <p>This step should be carried on when the other two modules (or just one of them) have already been used; the needed KEGG data is downloaded and the genomic/phenomic maps and graphs can be produced.</p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">start</b> metabolic network reconstruction</p>
-                        <dl class="dl-horizontal">
-                          <dt>-g</dt>
-                          <dd>Skip Kegg mapping</dd>
-                          <dt>-p</dt>
-                          <dd>Save each pathway graph [default: no]</dd>
-                          <dt>-a</dt>
-                          <dd>Create single organisms metabolic graphs instead of the whole pangenome</dd>
-                        </dl>
-                        <p><code>dape start</code></p>            
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">map</b> output KEGG metabolic maps with genomic/phenomic data</p>
-                        <dl class="dl-horizontal">
-                          <dt>OrgID</dt>
-                          <dd>Organism ID [optional]</dd>                          
-                          <dt>-a</dt>
-                          <dd>Plot the single organisms maps</dd>
-                          <dt>-o</dt>
-                          <dd>Diff mode: reference organism OrgID</dd>
-                          <dt>-d</dt>
-                          <dd>Phenomic activity difference threshold</dd>
-                          <dt>-s</dt>
-                          <dd>Skip the phenomic data</dd>
-                        </dl>
-                        <p class="muted"><small><i class="icon-flag"></i> The -a option is used only in pangenomic projects.</small></p>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse7"><i class="icon-chevron-right"></i> <b class="text-success">start</b> metabolic network reconstruction</a>
+                            </div>
+                            <div id="collapse7" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>-g</dt>
+                                  <dd>Skip Kegg mapping</dd>
+                                  <dt>-p</dt>
+                                  <dd>Save each pathway graph [default: no]</dd>
+                                  <dt>-a</dt>
+                                  <dd>Create single organisms metabolic graphs instead of the whole pangenome</dd>
+                                </dl>
+                                <p><code>dape start</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse8"><i class="icon-chevron-right"></i> <b class="text-success">map</b> output KEGG metabolic maps with genomic/phenomic data</a>
+                            </div>
+                            <div id="collapse8" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>OrgID</dt>
+                                  <dd>Organism ID [optional]</dd>                          
+                                  <dt>-a</dt>
+                                  <dd>Plot the single organisms maps</dd>
+                                  <dt>-o</dt>
+                                  <dd>Diff mode: reference organism OrgID</dd>
+                                  <dt>-d</dt>
+                                  <dd>Phenomic activity difference threshold</dd>
+                                  <dt>-s</dt>
+                                  <dd>Skip the phenomic data</dd>
+                                </dl>
+                                <p class="muted"><small><i class="icon-flag"></i> The -a option is used only in pangenomic projects.</small></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                         
                         <h4>KEGG data import/export</h4>
                         <p><code>dape map</code></p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">import</b> import a KEGG data dump</p>
-                        <dl class="dl-horizontal">
-                          <dt>file</dt>
-                          <dd>KEGG data dump file [compulsory parameter]</dd>
-                        </dl>
-                        <p class="muted"><small><i class="icon-flag"></i> The KEGG data dump file example can be seen by launching <i>dape export</i> on a cmplete project.</small></p>
-                        <p><code>dape import kegg.tsv</code></p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">export</b> export a KEGG data dump</p>
-                        <p class="muted"><small><i class="icon-flag"></i> A KEGG data dump file named "kegg.tsv" will be created.</small></p>
-                        <p><code>dape export</code></p>
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse9"><i class="icon-chevron-right"></i> <b class="text-success">import</b> import a KEGG data dump</a>
+                            </div>
+                            <div id="collapse9" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>file</dt>
+                                  <dd>KEGG data dump file [compulsory parameter]</dd>
+                                </dl>
+                                <p class="muted"><small><i class="icon-flag"></i> The KEGG data dump file example can be seen by launching <i>dape export</i> on a complete project.</small></p>
+                                <p><code>dape import kegg.tsv</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                          
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse10"><i class="icon-chevron-right"></i> <b class="text-success">export</b> export a KEGG data dump</a>
+                            </div>
+                            <div id="collapse10" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <p class="muted"><small><i class="icon-flag"></i> A KEGG data dump file named "kegg.tsv" will be created.</small></p>
+                                <p><code>dape export</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                                
                     </div>
                     
                     <div id="dgenome">
@@ -282,88 +393,205 @@
                         </p>
 
                         <h4>Genome input</h4>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">add</b> add a single proteome</p>
-                        <dl class="dl-horizontal">
-                          <dt>file</dt>
-                          <dd>Protein FASTA file [compulsory parameter]</dd>
-                          <dt>OrgID</dt>
-                          <dd>Organism ID [compulsory parameter]</dd>
-                        </dl>
-                        <p><code>dgenome add Rm1021.faa Rm1021</code></p>
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse11"><i class="icon-chevron-right"></i> <b class="text-success">add</b> add a single proteome</a>
+                            </div>
+                            <div id="collapse11" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>file</dt>
+                                  <dd>Protein FASTA file [compulsory parameter]</dd>
+                                  <dt>OrgID</dt>
+                                  <dd>Organism ID [compulsory parameter]</dd>
+                                </dl>
+                                <p><code>dgenome add Rm1021.faa Rm1021</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                                
                         <p>If many genomes have to be added to the project, all the FASTA files inside a directory can be imported at once.</p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">add-dir</b> add all the FASTA files inside a directory</p>
-                        <dl class="dl-horizontal">
-                        <dt>folder</dt>
-                        <dd>Fasta files directory [compulsory parameter]</dd>                          
-                          <dt>-e</dt>
-                          <dd>FASTA files extension [default: faa]</dd>
-                        </dl>
-                        <p><code>dgenome add-dir genomes</code></p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">rm</b> remove a single genome</p>
-                        <dl class="dl-horizontal">
-                          <dt>OrgID</dt>
-                          <dd>Organism ID [compulsory parameter]</dd>
-                        </dl>
-                        <p><code>dgenome rm Rm1021</code></p>
-                        <p class="muted"><small><i class="icon-flag"></i> Some analysis may be redone after the removal of an genome.</small></p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">clear</b> clear all the genomic data</p>
-                        <p><code>dgenome clear</code></p>
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse12"><i class="icon-chevron-right"></i> <b class="text-success">add-dir</b> add all the FASTA files inside a directory</a>
+                            </div>
+                            <div id="collapse12" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                <dt>folder</dt>
+                                <dd>Fasta files directory [compulsory parameter]</dd>                          
+                                  <dt>-e</dt>
+                                  <dd>FASTA files extension [default: faa]</dd>
+                                </dl>
+                                <p><code>dgenome add-dir genomes</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse13"><i class="icon-chevron-right"></i> <b class="text-success">rm</b> remove a single genome</a>
+                            </div>
+                            <div id="collapse13" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>OrgID</dt>
+                                  <dd>Organism ID [compulsory parameter]</dd>
+                                </dl>
+                                <p class="muted"><small><i class="icon-flag"></i> Some analysis may be redone after the removal of a genome.</small></p>
+                                <p><code>dgenome rm Rm1021</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse14"><i class="icon-chevron-right"></i> <b class="text-success">clear</b> clear all the genomic data</a>
+                            </div>
+                            <div id="collapse14" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <p><code>dgenome clear</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                         
                         <h4>Genome mapping to KEGG and pangenome construction</h4>
                         <p>The genomes can be mapped to the KEGG database in two ways: locally, through a Blast-BBH analysis against a KEGG database, or by parsing the output of the <a href="http://www.genome.jp/tools/kaas/">KAAS annotator</a>. The second option is probably the best, since to obtain a KEGG database dump you need <a href="http://www.kegg.jp/kegg/docs/plea.html">a subscription</a>.</p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">add-ko</b> import a KAAS output</p>
-                        <dl class="dl-horizontal">
-                          <dt>kofile</dt>
-                          <dd>KAAS output file [compulsory parameter]</dd>
-                        </dl>
-                        <p><code>dgenome add-ko Rm1021.tab AK83.tab</code></p>
-                        <p class="muted"><small><i class="icon-flag"></i> In the KAAS webpage, select the BBH option and use the appropriate organisms list. When the analysis is finished save the KO list file.</small></p>
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse15"><i class="icon-chevron-right"></i> <b class="text-success">add-ko</b> import a KAAS output</a>
+                            </div>
+                            <div id="collapse15" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>kofile</dt>
+                                  <dd>KAAS output file [compulsory parameter]</dd>
+                                </dl>
+                                <p class="muted"><small><i class="icon-flag"></i> In the KAAS webpage, select the BBH option and use the appropriate organisms list. When the analysis is finished save the KO list file.</small></p>
+                                <p><code>dgenome add-ko Rm1021.tab AK83.tab</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                                
                         <p>The pangenome is calculated through a Blast-BBH, but a custom pangenome can be imported: an example of the pangenome input file can be found <a href="https://raw.github.com/gist/4249736/813bf95de3cdf5694099da34c9083936806c278c/pangenome.tsv">here</a>.</p>                        
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">add-orth</b> add an user defined pangenome</p>
-                        <dl class="dl-horizontal">
-                        <dt>orthfile</dt>
-                        <dd>Pangenome file [compulsory parameter]</dd>                                              
-                        </dl>
-                        <p><code>dgenome add-orth pangenome.tsv</code></p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">start</b> start the KEGG mapping and the pangenome construction</p>
-                        <dl class="dl-horizontal">
-                        <dt>-n</dt>
-                        <dd>Number of CPUs to be used</dd>                        
-                        <dt>-l</dt>
-                        <dd>Perform the KEGG mapping locally [default: use KAAS]</dd>                          
-                          <dt>-k</dt>
-                          <dd>KEGG Blast database location [only with -l]</dd>
-                          <dt>-p</dt>
-                        <dd>Orthologous groups prefix</dd>
-                        <dt>-s</dt>
-                        <dd>Skip pangenome creation</dd>
-                        <dt>-g</dt>
-                        <dd>Skip Kegg mapping</dd>                          
-                        </dl>
-                        <p class="muted"><small><i class="icon-flag"></i> With many genomes, the pangenome analysis may need several hours.</small></p>
-                        <p><code>dgenome start -n 5</code></p>                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse16"><i class="icon-chevron-right"></i> <b class="text-success">add-orth</b> add an user defined pangenome</a>
+                            </div>
+                            <div id="collapse16" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                <dt>orthfile</dt>
+                                <dd>Pangenome file [compulsory parameter]</dd>                                              
+                                </dl>
+                                <p><code>dgenome add-orth pangenome.tsv</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse17"><i class="icon-chevron-right"></i> <b class="text-success">start</b> start the KEGG mapping and the pangenome construction</a>
+                            </div>
+                            <div id="collapse17" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                <dt>-n</dt>
+                                <dd>Number of CPUs to be used</dd>                        
+                                <dt>-l</dt>
+                                <dd>Perform the KEGG mapping locally [default: use KAAS]</dd>                          
+                                  <dt>-k</dt>
+                                  <dd>KEGG Blast database location [only with -l]</dd>
+                                  <dt>-p</dt>
+                                <dd>Orthologous groups prefix</dd>
+                                <dt>-s</dt>
+                                <dd>Skip pangenome creation</dd>
+                                <dt>-g</dt>
+                                <dd>Skip Kegg mapping</dd>                          
+                                </dl>
+                                <p class="muted"><small><i class="icon-flag"></i> With many genomes, the pangenome analysis may need several hours.</small></p>
+                                <p><code>dgenome start -n 5</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>                        
                         
                         <p>It is possible to transfer the KEGG annotations between orthologs: these annotations will be flagged and saved when using <i>dgenome export</i>.</p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">annotate</b> transfer KEGG annotations inside orthologous groups</p>
-                        <dl class="dl-horizontal">
-                        <dt>-s</dt>
-                        <dd>Skip annotation merging (just check)</dd>                                                  
-                        </dl>
-                        <p><code>dgenome annotate</code></p>
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse18"><i class="icon-chevron-right"></i> <b class="text-success">annotate</b> transfer KEGG annotations inside orthologous groups</a>
+                            </div>
+                            <div id="collapse18" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                <dt>-s</dt>
+                                <dd>Skip annotation merging (just check)</dd>                                                  
+                                </dl>
+                                <p><code>dgenome annotate</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                         
                         <p>It is possible to revert the annotation transfer at any time.</p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">deannotate</b> revert the KEGG annotations merge</p>
-                        <p><code>dgenome deannotate</code></p>
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse19"><i class="icon-chevron-right"></i> <b class="text-success">deannotate</b> revert the KEGG annotations merge</a>
+                            </div>
+                            <div id="collapse19" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <p><code>dgenome deannotate</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                         
                         <h4>Data export and statistics</h4>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">export</b> export the genomic data</p>
-                        <p><code>dgenome export</code></p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">stats</b> print out some genome statistics</p>
-                        <dl class="dl-horizontal">
-                          <dt>-s</dt>
-                          <dd>Save pictures in svg format, instead of png</dd>
-                        </dl>
-                        <p><code>dgenome stats</code></p>
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse20"><i class="icon-chevron-right"></i> <b class="text-success">export</b> export the genomic data</a>
+                            </div>
+                            <div id="collapse20" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <p><code>dgenome export</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse21"><i class="icon-chevron-right"></i> <b class="text-success">stats</b> print out some genome statistics</a>
+                            </div>
+                            <div id="collapse21" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>-s</dt>
+                                  <dd>Save pictures in svg format, instead of png</dd>
+                                </dl>
+                                <p><code>dgenome stats</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
                     </div>
                     
                     <div id="dphenome">
@@ -378,71 +606,157 @@
                         <h4>Phenome input</h4>
                         <p>The Phenotype microarray output files that are read by DuctApe are csv files (like <a href="https://raw.github.com/gist/4249736/822016bd6383f8b2d980d2305b5770ef27d3d88e/Rm1021.csv">this one</a>).</p>
                         <p>From version 0.8.0, DuctApe is able to import the PM data in YAML/JSON format. These files may be generated by other softwares like <a href="http://opm.dsmz.de">opm</a>. The curve parameters calculated by other softwares will be mantained: they may be overridden using dphenome start -r</p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">add</b> add a phenome file from a single organism</p>
-                        <dl class="dl-horizontal">
-                          <dt>file</dt>
-                          <dd>Phenotype microarray csv file [compulsory parameter]</dd>
-                          <dt>OrgID</dt>
-                          <dd>Organism ID [compulsory parameter]</dd>
-                        </dl>
-                        <p><code>dphenome add Rm1021.csv Rm1021</code></p>
-                        <p class="muted"><small><i class="icon-flag"></i> The organism ID should be present in one of the following fields of the csv file: "Strain Name", "Strain Number", "Sample Number".</small></p>
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse22"><i class="icon-chevron-right"></i> <b class="text-success">add</b> add a phenome file from a single organism</a>
+                            </div>
+                            <div id="collapse22" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>file</dt>
+                                  <dd>Phenotype microarray csv file [compulsory parameter]</dd>
+                                  <dt>OrgID</dt>
+                                  <dd>Organism ID [compulsory parameter]</dd>
+                                </dl>
+                                <p class="muted"><small><i class="icon-flag"></i> The organism ID should be present in one of the following fields of the csv file: "Strain Name", "Strain Number", "Sample Number".</small></p>
+                                <p><code>dphenome add Rm1021.csv Rm1021</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                                
                         <p>Some phenotype microarray files may contain more than one strain: the <i>add-multi</i> subcommand should then be used.</p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">add-multi</b> add a phenomic file with more than one organism</p>
-                        <dl class="dl-horizontal">
-                        <dt>file</dt>
-                        <dd>Phenotype microarray csv file [compulsory parameter]</dd>                          
-                          <p><code>dphenome add-multi Rm1021</code></p>
-                          <p class="muted"><small><i class="icon-flag"></i> The organism IDs should be present in the "Strain Name" field of the csv file.</small></p>
-                          <p>If many Phenotype microarray files have to be added to the project, all the csv files inside a directory can be imported at once.</p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">add-dir</b> add all the Phenotype microarray files inside a directory</p>
-                        <dl class="dl-horizontal">
-                        <dt>folder</dt>
-                        <dd>Phenotype microarray files directory [compulsory parameter]</dd>                          
-                        </dl>
-                        <p><code>dphenome add-dir phenomes</code></p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">rm</b> remove a single phenome</p>
-                        <dl class="dl-horizontal">
-                          <dt>OrgID</dt>
-                          <dd>Organism ID [compulsory parameter]</dd>
-                        </dl>
-                        <p class="muted"><small><i class="icon-flag"></i> Some analysis may be redone after the removal of a phenome.</small></p>
-                        <p><code>dphenome rm Rm1021</code></p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">clear</b> clear all the phenomic data</p>
-                        <p><code>dphenome clear</code></p>
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse23"><i class="icon-chevron-right"></i> <b class="text-success">add-multi</b> add a phenomic file with more than one organism</a>
+                            </div>
+                            <div id="collapse23" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                <dt>file</dt>
+                                <dd>Phenotype microarray csv file [compulsory parameter]</dd>                          
+                                <p class="muted"><small><i class="icon-flag"></i> The organism IDs should be present in the "Strain Name" field of the csv file.</small></p>
+                                <p><code>dphenome add-multi Rm1021</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                                  
+                        <p>If many Phenotype microarray files have to be added to the project, all the csv files inside a directory can be imported at once.</p>
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse24"><i class="icon-chevron-right"></i> <b class="text-success">add-dir</b> add all the Phenotype microarray files inside a directory</a>
+                            </div>
+                            <div id="collapse24" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                <dt>folder</dt>
+                                <dd>Phenotype microarray files directory [compulsory parameter]</dd>                          
+                                </dl>
+                                <p><code>dphenome add-dir phenomes</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse25"><i class="icon-chevron-right"></i> <b class="text-success">rm</b> remove a single phenome</a>
+                            </div>
+                            <div id="collapse25" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>OrgID</dt>
+                                  <dd>Organism ID [compulsory parameter]</dd>
+                                </dl>
+                                <p class="muted"><small><i class="icon-flag"></i> Some analysis may be redone after the removal of a phenome.</small></p>
+                                <p><code>dphenome rm Rm1021</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                               
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse26"><i class="icon-chevron-right"></i> <b class="text-success">clear</b> clear all the phenomic data</a>
+                            </div>
+                            <div id="collapse26" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <p><code>dphenome clear</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                                
                         <p>Not all the PM plates are present inside DuctApe, including putative custom plates; they can be analyzed by importing <a href="https://raw.github.com/combogenomics/DuctApe/master/test/input/newplate.tsv">a tab-delimited file like this one</a>.</p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">import-plates</b> add new plates to DuctApe</p>
-                        <dl class="dl-horizontal">
-                          <dt>file</dt>
-                          <dd>Tab delimited file with custom plate data [compulsory parameter]</dd>
-                        </dl>
-                        <p><code>dphenome import-plates newtables.tsv</code></p>
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse27"><i class="icon-chevron-right"></i> <b class="text-success">import-plates</b> add new plates to DuctApe</a>
+                            </div>
+                            <div id="collapse27" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>file</dt>
+                                  <dd>Tab delimited file with custom plate data [compulsory parameter]</dd>
+                                </dl>
+                                <p><code>dphenome import-plates newtables.tsv</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                         
                         <h4>Growth curves analysis and KEGG mapping</h4>
                         <p>Some Phenotype microarray plates (PM1 to PM8) have a control well, which can be used to subtract the background signal. If a "blank" plate file is available, each well can be subtracted to its blank well.</p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">zero</b> subtract the control signals from some plates</p>
-                        <dl class="dl-horizontal">
-                          <dt>-b</dt>
-                          <dd>Phenotype microarray blank file</dd>
-                        </dl>
-                        <p><code>dphenome zero</code></p>
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse28"><i class="icon-chevron-right"></i> <b class="text-success">zero</b> subtract the control signals from some plates</a>
+                            </div>
+                            <div id="collapse28" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>-b</dt>
+                                  <dd>Phenotype microarray blank file</dd>
+                                </dl>
+                                <p><code>dphenome zero</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                                
                         <p>The growth curves parameters (min, max, height, plateau, slope, lag, area, v, y0) are extracted through a fit to one of the following sigmoid functions: logistic, gompertz and richards; some of the extracted parameters (max, area, height, lag, slope) are used to perform a k-means clustering on all the growth curves, thus obtaining the so-called <b>Activity Index (AV)</b>, which with the dafault settings goes from 0 (no activity) to 9 (max activity). Using the -n option the user can decide the number of clusters and therefore the highest value for the AV.</p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">start</b> analyze the growth curves and map the phenomic compounds to KEGG</p>
-                        <dl class="dl-horizontal">
-                        <dt>-f</dt>
-                        <dd>Save some intermediate pictures of the clustering process</dd>
-                        <dt>-p</dt>
-                        <dd>Skip parameters calculation</dd>
-                        <dt>-g</dt>
-                        <dd>Skip Kegg mapping</dd>
-                        <dt>-r</dt>
-                        <dd>Force parameters recalculation</dd>
-                        <dt>-n</dt>
-                        <dd>Number of clusters to be used for AV calculation [Default: 10]</dd>
-                        </dl>                                                  
-                          <p><code>dphenome start</code></p>
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse29"><i class="icon-chevron-right"></i> <b class="text-success">start</b> analyze the growth curves and map the phenomic compounds to KEGG</a>
+                            </div>
+                            <div id="collapse29" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                <dt>-f</dt>
+                                <dd>Save some intermediate pictures of the clustering process</dd>
+                                <dt>-p</dt>
+                                <dd>Skip parameters calculation</dd>
+                                <dt>-g</dt>
+                                <dd>Skip Kegg mapping</dd>
+                                <dt>-r</dt>
+                                <dd>Force parameters recalculation</dd>
+                                <dt>-n</dt>
+                                <dd>Number of clusters to be used for AV calculation [Default: 10]</dd>
+                                </dl>                                                  
+                                <p><code>dphenome start</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                           
-                          <h4>Replica management</h4>
+                        <h4>Replica management</h4>
                         <p>DuctApe is able to remove the inconsistent replica from the phenomic experiment, following four distinct policies:</p>
                         <dl class="dl-horizontal">
                           <dt>keep-max</dt>
@@ -455,58 +769,122 @@
                           <dd>Keep only the lowest AV value</dd>
                           </dl>
                           An Activity Index delta is used to decide when to apply the policy.
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">purge</b> remove the inconsistent replicas</p>
-                        <dl class="dl-horizontal">
-                          <dt>policy</dt>
-                          <dd>Policy to be applied [compulsory parameter]</dd>
-                          <dt>plateID</dt>
-                          <dd>Plate(s) to be purged [default: all plates]</dd>
-                          <dt>-d</dt>
-                          <dd>Maximum AV delta before applying the purging policy [default: 3]</dd>
-                        </dl>
-                        <p><code>dphenome purge -d 4 keep-max</code></p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">restore</b> restore the purged growth curves</p>
-                        <dl class="dl-horizontal">
-                        <dt>plateID</dt>
-                        <dd>Plate(s) to be restored [default: all plates]</dd>                          
-                          <p><code>dphenome restore</code></p>
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse30"><i class="icon-chevron-right"></i> <b class="text-success">purge</b> remove the inconsistent replicas</a>
+                            </div>
+                            <div id="collapse30" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>policy</dt>
+                                  <dd>Policy to be applied [compulsory parameter]</dd>
+                                  <dt>plateID</dt>
+                                  <dd>Plate(s) to be purged [default: all plates]</dd>
+                                  <dt>-d</dt>
+                                  <dd>Maximum AV delta before applying the purging policy [default: 3]</dd>
+                                </dl>
+                                <p><code>dphenome purge -d 4 keep-max</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                             
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse31"><i class="icon-chevron-right"></i> <b class="text-success">restore</b> restore the purged growth curves</a>
+                            </div>
+                            <div id="collapse31" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                <dt>plateID</dt>
+                                <dd>Plate(s) to be restored [default: all plates]</dd>                          
+                                <p><code>dphenome restore</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                           
-                          <h4>Plotting, data export and statistics</h4>
-                          <p><i class="icon-chevron-right"></i> <b class="text-success">plot</b> plot the growth curves and the AV heatmaps</p>
-                        <dl class="dl-horizontal">
-                          <dt>-n</dt>
-                          <dd>Experiment name</dd>
-                          <dt>-s</dt>
-                          <dd>Save pictures in svg format, instead of png</dd>
-                        </dl>
-                        <p><code>dphenome plot</code></p>
-                          <p><i class="icon-chevron-right"></i> <b class="text-success">rings</b> plot the overall phenome in <a href="img/ring.png">ring format</a></p>
-                        <dl class="dl-horizontal">
-                          <dt>-d</dt>
-                          <dd>Activity Index delta threshold [default: 3]</dd>
-                          <dt>-o</dt>
-                          <dd>Diff mode: reference OrgID to which compare the other organisms</dd>                        
-                          <dt>-s</dt>
-                          <dd>Save pictures in svg format, instead of png</dd>
-                        </dl>
-                        <p><code>dphenome rings -d 4</code></p>
+                        <h4>Plotting, data export and statistics</h4>
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse32"><i class="icon-chevron-right"></i> <b class="text-success">plot</b> plot the growth curves and the AV heatmaps</a>
+                            </div>
+                            <div id="collapse32" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>-n</dt>
+                                  <dd>Experiment name</dd>
+                                  <dt>-s</dt>
+                                  <dd>Save pictures in svg format, instead of png</dd>
+                                </dl>
+                                <p><code>dphenome plot</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse33"><i class="icon-chevron-right"></i> <b class="text-success">rings</b> plot the overall phenome in ring format</a>
+                            </div>
+                            <div id="collapse33" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>-d</dt>
+                                  <dd>Activity Index delta threshold [default: 3]</dd>
+                                  <dt>-o</dt>
+                                  <dd>Diff mode: reference OrgID to which compare the other organisms</dd>                        
+                                  <dt>-s</dt>
+                                  <dd>Save pictures in svg format, instead of png</dd>
+                                </dl>
+                                <p><code>dphenome rings -d 4</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                                
                         <p>From version 0.8.0, DuctApe is able to export the PM data in YAML/JSON format. These files can be loaded by other softwares like <a href="http://opm.dsmz.de">opm</a></p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">export</b> export the phenomic data</p>
-                        <dl class="dl-horizontal">
-                          <dt>-j</dt>
-                          <dd>Export PM data in JSON format instead of YAML</dd>
-                        </dl>
-                        <p><code>dphenome export</code></p>
-                        <p><i class="icon-chevron-right"></i> <b class="text-success">stats</b> print out some phenome statistics</p>
-                        <dl class="dl-horizontal">
-                          <dt>-a</dt>
-                          <dd>Activity Index threshold [default: 5]</dd>
-                          <dt>-d</dt>
-                          <dd>Activity Index delta [default: 3]</dd>                        
-                          <dt>-s</dt>
-                          <dd>Save pictures in svg format, instead of png</dd>
-                        </dl>
-                        <p><code>dphenome stats</code></p>            
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse34"><i class="icon-chevron-right"></i> <b class="text-success">export</b> export the phenomic data</a>
+                            </div>
+                            <div id="collapse34" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>-j</dt>
+                                  <dd>Export PM data in JSON format instead of YAML</dd>
+                                </dl>
+                                <p><code>dphenome export</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse35"><i class="icon-chevron-right"></i> <b class="text-success">stats</b> print out some phenome statistics</a>
+                            </div>
+                            <div id="collapse35" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <dl class="dl-horizontal">
+                                  <dt>-a</dt>
+                                  <dd>Activity Index threshold [default: 5]</dd>
+                                  <dt>-d</dt>
+                                  <dd>Activity Index delta [default: 3]</dd>                        
+                                  <dt>-s</dt>
+                                  <dd>Save pictures in svg format, instead of png</dd>
+                                </dl>
+                                <p><code>dphenome stats</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>            
                     </div>
                     
                     <div id="examples">
@@ -609,9 +987,7 @@ dape start</pre>
                                     class="btn" target="_blank">
                                     <i class="icon-download"></i> Download &raquo;</a>
                                   </p>
-                                  <pre>#!/usr/bin/sh
- 
-dape init
+                                  <pre>dape init
 dape add MyOrg
 dape add MyOrg2
 dape add MyOrg3

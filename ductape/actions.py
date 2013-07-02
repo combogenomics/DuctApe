@@ -3617,6 +3617,10 @@ def plotCombinedMatrix(fname, matr, pnames, gnames, cmap=None,
     
     also the colormap and min and max values have to be provided
     '''
+    if len(matr) == 0:
+        logger.warning('No data available for a combined plot')
+        return
+    
     if len(gnames) < 50:
         w = 15
     else:
@@ -4099,7 +4103,7 @@ def dCombine(project, allorgs=False, pangPaths=None, pthresh=5, doPrint=True):
                 
                 # Plot!
                 fname = 'combined_%s.png'%mut_id
-                plotCombinedMatrix(fname, matr, phen, gen, cmap=cm.Purples,
+                plotCombinedMatrix(fname, matr, phen, gen, cmap=cm.PuOr,
                                vmin=-biolog.getMaxActivity(),
                                vmax=biolog.getMaxActivity(),
                                xlabel='Pathways containing the mutated reactions',
@@ -4120,8 +4124,10 @@ def dCombine(project, allorgs=False, pangPaths=None, pthresh=5, doPrint=True):
                     logger.info(header)
                 
                 for scateg, cid, cname, p, pname, pval, gval in getCombinations(matr,
-                                                                                phen,
-                                                                                gen):
+                                                                        phen,
+                                                                        gen,
+                                                                        pthresh,
+                                                                        0.0000001):
                     line = '\t'.join( [str(x)
                                        for x in [scateg, cid, cname,
                                                  p, pname, pval, gval]] )

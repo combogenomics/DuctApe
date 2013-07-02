@@ -1,3 +1,20 @@
+Version 0.9.0
+=============
+
+UPGRADE URGENCY: HIGH, some compounds were discarded in network reconstructions
+
+FEATURES:
+* dape start: new outputs to higlight relevant genome/phenome combinations
+    * pangenome: high genomic/phenomic variability are highlighted
+    * mutants: high phenomic variability in pathways w/ mutated genes are highlighted
+    * single organisms: all the genomic/phenomic data is showed
+
+BUGFIXES:
+* dape start: some compounds (w/ AV=0) were excluded from the network construction
+* dape start: discard the analysis on the general pathways
+* database: some queries have been optimized for pangenome analysis
+* Other small bugfixes
+
 Version 0.8.2
 =============
 

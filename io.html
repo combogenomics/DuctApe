@@ -94,6 +94,497 @@
                             </div>
                             <div id="collapse1" class="accordion-body collapse">
                               <div class="accordion-inner">
+                                <p><b class="text-error">metNet_length.tsv</b> pathway data</p>
+                                <p>A tab-delimited file containing the number of distinct reaction IDs for each pathway in each organism.</p>
+                                <pre># Comment (ignored)
+# Metabolic network length (number of distinct reactions)
+network name overall AK58 AK83 BL225C Rm1021
+All  7310 1187 1181 1193 1188
+path:map00270 Cysteine and methionine metabolism 69 31 32 30 31
+path:map00230 Purine metabolism 126 81 84 84 81
+path:map00521 Streptomycin biosynthesis 23 9 9 9 9
+path:map00562 Inositol phosphate metabolism 47 14 14 13 13
+path:map00250 Alanine, aspartate and glutamate metabolism 31 21 18 19 19
+path:map00350 Tyrosine metabolism 83 16 16 17 16
+path:map00650 Butanoate metabolism 48 20 19 18 18
+path:map00730 Thiamine metabolism 15 8 8 8 8
+path:map00480 Glutathione metabolism 40 14 14 14 14
+path:map00980 Metabolism of xenobiotics by cytochrome P450 121 20 20 20 20
+path:map00982 Drug metabolism - cytochrome P450 83 8 8 8 8
+path:map00630 Glyoxylate and dicarboxylate metabolism 69 31 31 31 30
+path:map00380 Tryptophan metabolism 87 23 24 24 23
+path:map00052 Galactose metabolism 45 21 21 21 21
+path:map00600 Sphingolipid metabolism 34 3 3 3 3
+path:map00330 Arginine and proline metabolism 104 38 38 41 42
+[...]
+</pre>
+                                <p>The various fields are defined in the table below.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>network</td>
+                                      <td>Pathway ID; "ALL" refers to the whole metabolism</td>
+                                      <td>path:map00521</td>
+                                    </tr>
+                                    <tr>
+                                      <td>name</td>
+                                      <td>Pathway name</td>
+                                      <td>Streptomycin biosynthesis</td>
+                                    </tr>
+                                    <tr>
+                                      <td>overall</td>
+                                      <td>Number of distinct reaction IDs found in the whole KEGG pathway</td>
+                                      <td>230</td>
+                                    </tr>
+                                    <tr>
+                                      <td>ORG_ID</td>
+                                      <td>Number of distinct reaction IDs found in this pathway. One column for each organism.</td>
+                                      <td>56</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                                
+                                <p><b class="text-error">metNet_pangenome_length.tsv</b> pathway data</p>
+                                <p>A tab-delimited file containing the number of reaction IDs that are exclusive of each pangenome partition.</p>
+                                <pre># Comment (ignored)
+# Metabolic network length (number of exclusive reaction IDs)
+network name overall core dispensable accessory unique
+All  7310 922 42 22 20
+path:map00270 Cysteine and methionine metabolism 69 22 4 2 1
+path:map00230 Purine metabolism 126 75 2 2 0
+path:map00521 Streptomycin biosynthesis 23 3 0 0 0
+path:map00562 Inositol phosphate metabolism 47 10 0 0 0
+path:map00250 Alanine, aspartate and glutamate metabolism 31 13 1 0 1
+path:map00350 Tyrosine metabolism 83 12 0 0 0
+path:map00650 Butanoate metabolism 48 13 1 0 1
+path:map00730 Thiamine metabolism 15 7 0 0 0
+path:map00480 Glutathione metabolism 40 9 0 0 0
+path:map00980 Metabolism of xenobiotics by cytochrome P450 121 0 0 0 0
+path:map00982 Drug metabolism - cytochrome P450 83 4 0 0 0
+path:map00630 Glyoxylate and dicarboxylate metabolism 69 25 0 0 0
+path:map00380 Tryptophan metabolism 87 20 1 1 0
+path:map00052 Galactose metabolism 45 19 0 0 0
+path:map00600 Sphingolipid metabolism 34 2 0 0 0
+[...]
+</pre>
+                                <p>The various fields are defined in the table below.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>network</td>
+                                      <td>Pathway ID; "ALL" refers to the whole metabolism</td>
+                                      <td>path:map00521</td>
+                                    </tr>
+                                    <tr>
+                                      <td>name</td>
+                                      <td>Pathway name</td>
+                                      <td>Streptomycin biosynthesis</td>
+                                    </tr>
+                                    <tr>
+                                      <td>overall</td>
+                                      <td>Number of distinct reaction IDs found in the whole KEGG pathway</td>
+                                      <td>230</td>
+                                    </tr>
+                                    <tr>
+                                      <td>PANGENOME</td>
+                                      <td>Number of exclusive reaction IDs found in this pathway. One column for each pangenome partition.</td>
+                                      <td>56</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                                
+                                <div class="accordion-inner">
+                                <p><b class="text-error">metNet_connected.tsv</b> pathway data</p>
+                                <p><b class="text-error">metNet_pangenome_connected.tsv</b> pathway data</p>
+                                <p>A tab-delimited file containing the number of sub-pathways for each pathway in each organism. A sub-pathway is a set of uninterrupted reactions.</p>
+                                <p class="muted"><small><i class="icon-flag"></i> In the metNet_pangenome_connected.tsv file, all the pangenome partitions are used instead of each organism.</small></p>
+                                <pre># Comment (ignored)
+# Subnetworks (Connected components)
+  Subnetworks     Subnetworks mean length     Subnetworks length std-dev    
+network name overall AK58 AK83 BL225C Rm1021 overall AK58 AK83 BL225C Rm1021 overall AK58 AK83 BL225C Rm1021
+All  1532 6664 6674 6666 6668 5.13838120104 1.181272509 1.1795025472 1.18091809181 1.18056388722 144.322403134 11.6656542215 11.5101872505 11.5660861726 11.5642917463
+path:map00270 Cysteine and methionine metabolism 18 34 33 36 34 5.33333333333 2.32352941176 2.33333333333 2.19444444444 2.32352941176 13.511312133 5.20588235294 5.28386145912 4.74235902646 5.20588235294
+path:map00230 Purine metabolism 8 31 32 31 30 14.25 3.41935483871 3.3125 3.41935483871 3.53333333333 31.6573451193 10.0507556883 9.88824270283 10.0507556883 10.2232849689
+path:map00521 Streptomycin biosynthesis 7 18 18 18 18 5.42857142857 1.66666666667 1.66666666667 1.66666666667 1.66666666667 8.39825054669 2.05480466766 2.05480466766 2.05480466766 2.05480466766
+path:map00562 Inositol phosphate metabolism 5 32 32 32 32 10.6 1.53125 1.53125 1.53125 1.53125 17.2 1.93623950933 1.93623950933 1.93623950933 1.93623950933
+path:map00250 Alanine, aspartate and glutamate metabolism 9 11 12 12 12 5.33333333333 3.81818181818 3.5 3.5 3.5 9.42809041582 6.71251452435 5.60505724027 5.60505724027 5.60505724027
+path:map00350 Tyrosine metabolism 10 63 63 63 63 9.9 1.4126984127 1.4126984127 1.4126984127 1.4126984127 24.3698584321 1.13578056 1.13578056 1.13578056 1.13578056
+[...]
+</pre>
+                                <p>The various fields are defined in the table below.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>network</td>
+                                      <td>Pathway ID; "ALL" refers to the whole metabolism</td>
+                                      <td>path:map00521</td>
+                                    </tr>
+                                    <tr>
+                                      <td>name</td>
+                                      <td>Pathway name</td>
+                                      <td>Streptomycin biosynthesis</td>
+                                    </tr>
+                                    <tr>
+                                      <td>overall</td>
+                                      <td>Number of subpathways found in the whole KEGG pathway</td>
+                                      <td>18</td>
+                                    </tr>
+                                    <tr>
+                                      <td>ORG_ID</td>
+                                      <td>Number of subpathways found in this pathway. One column for each organism.</td>
+                                      <td>34</td>
+                                    </tr>
+                                    <tr>
+                                      <td>overall</td>
+                                      <td>Average number of reactions in each subpathway found in the whole KEGG pathway</td>
+                                      <td>16.3</td>
+                                    </tr>
+                                    <tr>
+                                      <td>ORG_ID</td>
+                                      <td>Average number of reactions in each subpathway found in this pathway. One column for each organism.</td>
+                                      <td>5.3</td>
+                                    </tr>
+                                    <tr>
+                                      <td>overall</td>
+                                      <td>Std. dev. of the number of reactions in each subpathway found in the whole KEGG pathway</td>
+                                      <td>1.2</td>
+                                    </tr>
+                                    <tr>
+                                      <td>ORG_ID</td>
+                                      <td>Std. dev. of the number of reactions in each subpathway found in this pathway. One column for each organism.</td>
+                                      <td>3.4</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              
+                                <p><b class="text-error">metNet_activity.tsv</b> pathway-PM data</p>
+                                <p>A tab-delimited file containing the average AV for each pathway and category in each organism.</p>
+                                <pre># Comment (ignored)
+# Metabolic network activity
+   Mean Activity    Activity std-dev   
+network name category AK58 AK83 BL225C Rm1021 AK58 AK83 BL225C Rm1021
+All  carbon 1.14465408805 1.16981132075 1.4465408805 1.27044025157 1.50298017573 1.60661974606 1.70237643275 1.41281437573
+All  nitrogen 2.22784810127 1.37974683544 2.0 1.49367088608 1.54222728208 1.35295080667 1.58313900651 1.4040936328
+All  phosphate_and_sulfur 2.0652173913 2.90579710145 2.92028985507 2.0652173913 1.20359679403 1.17113645512 1.20272392656 1.19756105856
+All  nutrient_stimulation 0.806818181818 0.193181818182 0.511363636364 0.0568181818182 0.654667760038 0.654667760038 0.674104088635 0.231494872585
+All  nitrogen_peptides 2.81713306535 2.35955730777 3.08009688724 1.92597402597 0.850544630894 1.00035211917 0.930422900534 0.651403105523
+All  osmolytes_and_ph 1.21666666667 1.08629943503 0.897598870056 1.0540960452 0.817959889245 0.608006766908 0.731742706831 0.636335755844
+All  chemicals 2.4296875 2.30681818182 2.4765625 1.875 1.14801708446 1.14787493425 1.09601277705 1.06308473215
+path:map00270 Cysteine and methionine metabolism carbon 1.14285714286 0.714285714286 1.71428571429 1.0 1.55182578446 1.03015750728 1.48461497792 1.30930734142
+path:map00270 Cysteine and methionine metabolism nitrogen 2.83333333333 2.0 2.83333333333 1.66666666667 1.34370962472 1.29099444874 1.67497927019 1.37436854187
+path:map00270 Cysteine and methionine metabolism phosphate_and_sulfur 3.0 3.7 2.7 2.3 0.774596669241 0.458257569496 1.00498756211 1.1
+path:map00270 Cysteine and methionine metabolism nutrient_stimulation 0.714285714286 0.0 0.714285714286 0.0 0.451753951453 0.0 0.451753951453 0.0
+path:map00270 Cysteine and methionine metabolism osmolytes_and_ph 1.42857142857 1.0 0.357142857143 1.07142857143 0.728431359085 0.0 0.440315285926 0.416496563918
+path:map00230 Purine metabolism carbon 0.5 0.333333333333 2.0 1.66666666667 1.11803398875 0.7453559925 2.0 1.6996731712
+path:map00230 Purine metabolism nitrogen 3.16666666667 2.66666666667 3.08333333333 2.58333333333 1.06718737291 1.43372087784 0.953793595188 1.44096803882
+path:map00230 Purine metabolism phosphate_and_sulfur 2.375 2.625 3.375 1.75 1.4086784587 1.11102430216 0.85695682505 1.29903810568
+path:map00230 Purine metabolism nutrient_stimulation 0.857142857143 0.142857142857 0.214285714286 0.0 0.349927106112 0.349927106112 0.410325903324 0.0
+path:map00230 Purine metabolism nitrogen_peptides 4.0 4.0 4.0 2.33333333333 0.0 0.0 0.0 0.0
+path:map00230 Purine metabolism osmolytes_and_ph 1.16666666667 1.04166666667 1.04166666667 1.45833333333 0.623609564462 0.0589255650989 0.460223375716 0.412478955692
+path:map00230 Purine metabolism chemicals 2.25 1.75 2.0 1.5 0.0 0.0 0.0 0.0
+path:map00521 Streptomycin biosynthesis carbon 2.0 2.0 2.0 1.75 2.0 2.0 2.0 1.29903810568
+path:map00521 Streptomycin biosynthesis phosphate_and_sulfur 1.0 3.0 3.0 3.0 0.0 0.0 0.0 0.0
+path:map00521 Streptomycin biosynthesis nutrient_stimulation 0.5 0.0 0.5 0.0 0.5 0.0 0.5 0.0
+path:map00521 Streptomycin biosynthesis chemicals 1.0 1.5 1.5 0.25 0.0 0.0 0.0 0.0
+[...]
+</pre>
+                                <p>The various fields are defined in the table below.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>network</td>
+                                      <td>Pathway ID; "ALL" refers to the whole metabolism</td>
+                                      <td>path:map00521</td>
+                                    </tr>
+                                    <tr>
+                                      <td>name</td>
+                                      <td>Pathway name</td>
+                                      <td>Streptomycin biosynthesis</td>
+                                    </tr>
+                                    <tr>
+                                      <td>category</td>
+                                      <td>PM category</td>
+                                      <td>carbon</td>
+                                    </tr>
+                                    <tr>
+                                      <td>ORG_ID</td>
+                                      <td>The average AV value found for the compounds mapped to this pathway. One column for each organism.</td>
+                                      <td>3.5</td>
+                                    </tr>
+                                    <tr>
+
+                                      <td>ORG_ID</td>
+
+                                      <td>The std. dev. for the AV value found for the compounds mapped to this pathway. One column for each organism.</td>
+
+                                      <td>0.5</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                                
+                                <p><b class="text-error">metNet_pangenome_activity.tsv</b> pathway-PM data</p>
+                                <p>A tab-delimited file containing the average AV difference between each organism for each pathway and category.</p>
+                                <pre># Comment (ignored)
+# Metabolic network activity
+network name category Avg Activity Difference Std Activity Difference
+All  carbon 1.07966457023 0.822006135833
+All  nitrogen 0.732067510549 0.591440184572
+All  phosphate_and_sulfur 1.0652173913 0.615956237404
+All  nutrient_stimulation 0.496212121212 0.321746803418
+All  nitrogen_peptides 0.968730674088 0.1967237735
+All  osmolytes_and_ph 0.4493173258 0.367040036754
+All  chemicals 0.652698863636 0.337987185649
+path:map00270 Cysteine and methionine metabolism carbon 1.33333333333 0.617213399848
+path:map00270 Cysteine and methionine metabolism nitrogen 1.0 0.57735026919
+path:map00270 Cysteine and methionine metabolism phosphate_and_sulfur 0.916666666667 0.573730482602
+path:map00270 Cysteine and methionine metabolism nutrient_stimulation 0.47619047619 0.301169300968
+path:map00270 Cysteine and methionine metabolism osmolytes_and_ph 0.619047619048 0.458294679879
+path:map00230 Purine metabolism carbon 1.02777777778 1.1197580206
+path:map00230 Purine metabolism nitrogen 0.527777777778 0.429434023159
+path:map00230 Purine metabolism phosphate_and_sulfur 1.14583333333 0.523327361962
+path:map00230 Purine metabolism nutrient_stimulation 0.488095238095 0.213291343657
+path:map00230 Purine metabolism nitrogen_peptides 0.833333333333 0.0
+path:map00230 Purine metabolism osmolytes_and_ph 0.618055555556 0.276559829885
+path:map00230 Purine metabolism chemicals 0.583333333333 0.0
+path:map00521 Streptomycin biosynthesis carbon 1.20833333333 0.974501296961
+path:map00521 Streptomycin biosynthesis phosphate_and_sulfur 1.0 0.0
+path:map00521 Streptomycin biosynthesis nutrient_stimulation 0.333333333333 0.333333333333
+path:map00521 Streptomycin biosynthesis chemicals 0.708333333333 0.0
+path:map00562 Inositol phosphate metabolism carbon 1.55555555556 0.74948542018
+path:map00562 Inositol phosphate metabolism phosphate_and_sulfur 1.25 0.25
+path:map00562 Inositol phosphate metabolism nutrient_stimulation 0.0 0.0
+[...]
+</pre>
+                                <p>The various fields are defined in the table below.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>network</td>
+                                      <td>Pathway ID; "ALL" refers to the whole metabolism</td>
+                                      <td>path:map00521</td>
+                                    </tr>
+                                    <tr>
+                                      <td>name</td>
+                                      <td>Pathway name</td>
+                                      <td>Streptomycin biosynthesis</td>
+                                    </tr>
+                                    <tr>
+                                      <td>category</td>
+                                      <td>PM category</td>
+                                      <td>carbon</td>
+                                    </tr>
+                                    <tr>
+                                      <td>Avg Activity Difference</td>
+                                      <td>The average AV difference found for the compounds mapped to this pathway</td>
+                                      <td>3.5</td>
+                                    </tr>
+                                    <tr>
+                                      <td>Std Dev Activity Difference</td>
+                                      <td>The std. dev. for the AV differences found for the compounds mapped to this pathway</td>
+                                      <td>0.5</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              
+                                <p><b class="text-error">combined.tsv</b> pathway-PM data</p>
+                                <p>A tab-delimited file containing both reaction content and the average AV for each pathway and category.</p>
+                                <pre># Comment (ignored)
+   AK58  AK83  BL225C  Rm1021 
+pathway name category reactions meanAV reactions meanAV reactions meanAV reactions meanAV
+path:map01230 Biosynthesis of amino acids phosphate_and_sulfur 134 2.85714285714 135 3.42857142857 135 3.71428571429 135 3.14285714286
+path:map01230 Biosynthesis of amino acids osmolytes_and_ph 134 1.11594202899 135 1.05797101449 135 0.673913043478 135 1.07971014493
+path:map01230 Biosynthesis of amino acids nutrient_stimulation 134 0.740740740741 135 0.0 135 0.62962962963 135 0.037037037037
+path:map01230 Biosynthesis of amino acids nitrogen_peptides 134 4.0 135 4.0 135 4.0 135 2.33333333333
+path:map01230 Biosynthesis of amino acids nitrogen 134 2.96 135 1.64 135 2.56 135 2.0
+path:map01230 Biosynthesis of amino acids chemicals 134 2.25 135 1.75 135 2.0 135 1.5
+path:map01230 Biosynthesis of amino acids carbon 134 0.583333333333 135 0.583333333333 135 1.20833333333 135 1.25
+path:map00230 Purine metabolism phosphate_and_sulfur 101 2.375 100 2.625 102 3.375 103 1.75
+path:map00230 Purine metabolism osmolytes_and_ph 101 1.16666666667 100 1.04166666667 102 1.04166666667 103 1.45833333333
+path:map00230 Purine metabolism nutrient_stimulation 101 0.857142857143 100 0.142857142857 102 0.214285714286 103 0.0
+[...]
+</pre>
+                                <p>The various fields are defined in the table below.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>pathway</td>
+                                      <td>Pathway ID</td>
+                                      <td>path:map00521</td>
+                                    </tr>
+                                    <tr>
+                                      <td>name</td>
+                                      <td>Pathway name</td>
+                                      <td>Streptomycin biosynthesis</td>
+                                    </tr>
+                                    <tr>
+                                      <td>category</td>
+                                      <td>PM category</td>
+                                      <td>carbon</td>
+                                    </tr>
+                                    <tr>
+                                      <td>reactions</td>
+                                      <td>The number of distinct reaction IDs mapped to this pathway. One column for each organism</td>
+                                      <td>15</td>
+                                    </tr>
+                                    <tr>
+                                      <td>meanAV</td>
+                                      <td>The average AV found for the compounds mapped to this pathway. -1 indicates pathways with no PM compound available.</td>
+                                      <td>0.5</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                                
+                                <p><b class="text-error">combined_pangenome.tsv</b> pathway-PM data</p>
+                                <p>A tab-delimited file containing both the genomic and the phenomic variability for each pathway and category. The genetic variability is expressed as the number of distinct dispensable reaction IDs divided by the total number of distinct reaction IDs mapped to the pathway; the phenomic variability is expressed as the average AV difference between each organism. The table is ordered from the most variable pathway (in terms of genetic variability) to the lesser variable.</p>
+                                <pre># Comment (ignored)
+pathway name category disp/total diffAV
+ppath:map00910 Nitrogen metabolism nitrogen_peptides 0.357142857143 0.833333333333
+path:map00910 Nitrogen metabolism nitrogen 0.357142857143 0.883333333333
+path:map00910 Nitrogen metabolism chemicals 0.357142857143 0.75
+path:map00910 Nitrogen metabolism carbon 0.357142857143 1.42857142857
+path:map00430 Taurine and hypotaurine metabolism nitrogen 0.3 0.944444444444
+path:map00430 Taurine and hypotaurine metabolism chemicals 0.3 -1
+path:map00430 Taurine and hypotaurine metabolism carbon 0.3 1.3
+path:map00030 Pentose phosphate pathway phosphate_and_sulfur 0.142857142857 0.5
+path:map00030 Pentose phosphate pathway nitrogen_peptides 0.142857142857 -1
+path:map00030 Pentose phosphate pathway nitrogen 0.142857142857 -1
+path:map00030 Pentose phosphate pathway chemicals 0.142857142857 -1
+path:map00030 Pentose phosphate pathway carbon 0.142857142857 1.66666666667
+path:map00051 Fructose and mannose metabolism phosphate_and_sulfur 0.133333333333 1.58333333333
+path:map00051 Fructose and mannose metabolism osmolytes_and_ph 0.133333333333 -1
+path:map00051 Fructose and mannose metabolism nutrient_stimulation 0.133333333333 -1
+[...]
+</pre>
+                                <p>The various fields are defined in the table below.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>pathway</td>
+                                      <td>Pathway ID</td>
+                                      <td>path:map00521</td>
+                                    </tr>
+                                    <tr>
+                                      <td>name</td>
+                                      <td>Pathway name</td>
+                                      <td>Streptomycin biosynthesis</td>
+                                    </tr>
+                                    <tr>
+                                      <td>category</td>
+                                      <td>PM category</td>
+                                      <td>carbon</td>
+                                    </tr>
+                                    <tr>
+                                      <td>disp/total</td>
+                                      <td>The number of distinct dispensable reaction IDs divided by the total number of distinct reaction IDs mapped to the pathway; should go from 0 to 1. "inf" values indicate pathways with only dispensable reactions.</td>
+                                      <td>0.35</td>
+                                    </tr>
+                                    <tr>
+                                      <td>diffAV</td>
+                                      <td>The average AV difference between each organism. -1 indicates pathways with no PM compound available.</td>
+                                      <td>0.5</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              
+                                <p><b class="text-error">combined_matrix_ORG_ID.tsv</b> pathway-PM data</p>
+                                <p><b class="text-error">combined_matrix_full_ORG_ID.tsv</b> pathway-PM data</p>
+                                <p>A tab-delimited file containing a MxN matrix, with a pathway in each column, and a compound-PM category in each row. Each cell contains the average AV for that specific compound-category. The rows are ordered by the average AV, while the pathways by the number of distinct reaction IDs mapped to each pathway. "nan" values indicate that the compound is not present in the row pathway.</p>
+                                <p>If the organism is a mutant, each cell contains the AV difference w/r/t the wild-type, and only those cells above the AV threshold are displayed, while all the cells are present in the "full" file.</p>
+                                <pre># Comment (ignored)
+  path:map00480 Glutathione metabolism path:map00401 Novobiocin biosynthesis path:map00010 Glycolysis / Gluconeogenesis 
+carbon cpd:C00152 L-Asparagine; 2-Aminosuccinamic acid 2.5 nan 2.5
+carbon cpd:C00064 L-Glutamine; L-2-Aminoglutaramic acid nan 6.1 6.1
+[...]
+</pre>
+
+                                <p><b class="text-error">combined_ORG_ID.png</b> pathway-PM matrix</p>
+                                <p><a href="img/io/combined_Rm1021.png">Graphical representation</a> of the matrix defined inside the "combined_ORG_ID.tsv" matrix.</p>
+                                
+                                <p><b class="text-error">combined_matrix.tsv</b> pathway-PM data</p>
+                                <p><b class="text-error">combined_matrix_full.tsv</b> pathway-PM data</p>
+                                <p>A tab-delimited file containing a MxN matrix, with a pathway in each column, and a compound-PM category in each row. Each cell contains the average AV difference for that specific compound-category. The rows are ordered by phenomic variability, while the pathways by genetic variability. "nan" values indicate that the compound is not present in the row pathway. Only those cells passing the phenomic variability threshold are reported, while in the "full" file all the entries of the matrix are reported.</p>
+                                <pre># Comment (ignored)
+  path:map00480 Glutathione metabolism path:map00401 Novobiocin biosynthesis path:map00010 Glycolysis / Gluconeogenesis 
+carbon cpd:C00152 L-Asparagine; 2-Aminosuccinamic acid 2.5 nan 2.5
+carbon cpd:C00064 L-Glutamine; L-2-Aminoglutaramic acid nan 6.1 6.1
+[...]
+</pre>
+
+                                <p><b class="text-error">combined_variability.png</b> pathway-PM matrix</p>
+                                <p>Graphical representation of the matrix defined inside the "combined_matrix.tsv" matrix.</p>
+                                <img src="img/io/combined_variability.png"/>
+                              
+                                <p>Most of outputs of this command are stored inside the tmp/metNet directory. Inside that directory there will be many folders for each organism, one named ORG_ID, each one optionally containing one folder for each PM category. If the project contains many organisms, also the pangenome folders "all", "core", "dispensable", "accessory" and "unique" will be found. ANother folder named KEGG will also be found.</p>
+                                <b>KEGG folder</b>
+                                <p><b class="text-error">ALL.gml</b> overall network</p>
+                                <p><b class="text-error">PATH_ID.gml</b> pathway network</p>
+                                <p>Network in <a href="http://en.wikipedia.org/wiki/Graph_Modelling_Language">GML format</a> with all the reactions and compounds inside the KEGG database. Each node represents a compound, while each edge represents a reaction. These files may be opened with programs like <a href="https://gephi.org/">Gephi</a>.</p>                          
+                                <p><b><a href="https://gist.github.com/mgalardini/4249736/raw/d4ff499932750b5ad3712227b3d37dafa786232a/kegg.gml">Example gml file</a></b></p>
+                                
+                                <b>All, core, dispensable, accessory and unique folders</b>
+                                <p><b class="text-error">ALL_CATEGORY.gml</b> overall network</p>
+                                <p><b class="text-error">PATH_ID_CATEGORY.gml</b> pathway network</p>
+                                <p>Network in <a href="http://en.wikipedia.org/wiki/Graph_Modelling_Language">GML format</a> with all the reactions mapped to the specific pangenome partition and compounds inside the KEGG database. Each node represents a compound, which weight is the average AV difference between each organism, while each edge represents a reaction, which weight represents the number of organisms having that reaction mapped. These files may be opened with programs like <a href="https://gephi.org/">Gephi</a>.</p>                          
+                                <p><b><a href="https://gist.github.com/mgalardini/4249736/raw/eebf01f81c763d3be9fa016e09ceaaefb68434e0/all_carbon.gml">Example gml file</a></b></p>
+                                
+                                <b>ORG_ID folders</b>
+                                <p><b class="text-error">ORG_ID.gml</b> overall network</p>
+                                <p><b class="text-error">ORG_ID_PATH_ID.gml</b> pathway network</p>
+                                <p><b class="text-error">ORG_ID_CATEGORY.gml</b> overall network</p>
+                                <p><b class="text-error">ORG_ID_CATEGORY_PATH_ID.gml</b> pathway network</p>
+                                <p>Network in <a href="http://en.wikipedia.org/wiki/Graph_Modelling_Language">GML format</a> with all the reactions mapped to the specific organism and compounds inside the KEGG database. Each node represents a compound, which weight is the average AV, while each edge represents a reaction. These files may be opened with programs like <a href="https://gephi.org/">Gephi</a>.</p>                          
+                                <p><b><a href="https://gist.github.com/mgalardini/4249736/raw/ff18376c20f6e52793b14d8fa839b2280aff9ea8/Rm1021_carbon.gml">Example gml file</a></b></p>
+                                <p><b>Example gml representation inside Gephi</b></p>
+                                <img src="img/io/gephi.png"/>
                                 
                               </div>
                             </div>
@@ -107,7 +598,67 @@
                             </div>
                             <div id="collapse2" class="accordion-body collapse">
                               <div class="accordion-inner">
+                                <p>The outputs of this command are stored inside the tmp/keggmaps directory. Inside that directory there will be many folders for each organism, one named ORG_ID and optionally one folder for each PM category, in the form ORG_ID_CATEGORY. If the project contains many organisms, also a pangenome directory plus optional pangenome_CATEGORY folders will be found.</p>
+                                <p>The content of each folder is similar</p>
+                                <p><b class="text-error">PATH_ID.png</b> pathway colored map</p>
+                                <p>A colored KEGG pathway, in which the reactions/compounds are colored according to their presence/activity inside that specific pathway. The color codes depend on the project type.</p>
                                 
+                                <b>Pangenome</b>
+                                <img src="img/io/map00910_pangenome.png"/>
+                                <ul>
+                                  <li>Reactions:</li>
+                                  <ul>
+                                    <li>White: reaction not present</li>
+                                    <li>Blue: core reactions</li>
+                                    <li>Green: core/dispensable reactions</li>
+                                    <li>Shades of orange: dispensable reactions (color intensity proportional to the number of organisms in which the reaction is found)</li>
+                                  </ul>
+                                  <li>Compounds:</li>
+                                  <ul>
+                                    <li>White: compound not present in the PM experiment</li>
+                                    <li>Gray: the mean AV difference between each organism is below the threshold provided</li>
+                                    <li>Shades of purple: mean AV difference between each organism</li>
+                                    <li>Red border: in one (or more) organisms the AV difference is above the threshold provided</li>
+                                  </ul>
+                                </ul>
+                                
+                                <b>Single organism</b>
+                                <img src="img/io/map00910_Rm1021.png"/>
+                                <ul>
+                                  <li>Reactions:</li>
+                                  <ul>
+                                    <li>White: reaction not present</li>
+                                    <li>Blue: reaction present in the organism</li>
+                                  </ul>
+                                  <li>Compounds:</li>
+                                  <ul>
+                                    <li>White: compound not present in the PM experiment</li>
+                                    <li>Color: the average AV for that compound in that specific organism</li>
+                                  </ul>
+                                </ul>
+                                
+                                <b>Mutant</b>
+                                <img src="img/io/map00910_mut.png"/>
+                                <ul>
+                                  <li>Reactions:</li>
+                                  <ul>
+                                    <li>White: reaction not present</li>
+                                    <li>Blue: reaction present in the wild-type AND the mutant</li>
+                                    <li>Yellow: reaction present only in the wild-type (if deletion mutant) or only in the mutant (if insertion mutant)</li>
+                                  </ul>
+                                  <li>Compounds:</li>
+                                  <ul>
+                                    <li>White: compound not present in the PM experiment</li>
+                                    <li>Gray: the AV difference w/r/t the wild-type is below the threshold provided</li>
+                                    <li>Shades of purple: the AV difference w/r/t the wild-type is below zero</li>
+                                    <li>Shades of purple: the AV difference w/r/t the wild-type is above zero</li>
+                                  </ul>
+                                </ul>
+                                
+                                <p><b class="text-error">PATH_ID.html</b> pathway colored map</p>
+                                <p>A browsable colored KEGG pathway, in which the reactions/compounds are colored according to their presence/activity inside that specific pathway. The user can navigate from one map to another and can access to the KEGG page with relevant informations about reactions and compounds.</p>
+                                
+                                <p class="muted"><small><i class="icon-flag"></i> The pathway maps belong to the <a href="http://www.kanehisa.jp/">Kanehisa Laboratories</a>; remember to cite them if you use this maps for further analysis.</small></p>
                               </div>
                             </div>
                           </div>
@@ -120,7 +671,23 @@
                             </div>
                             <div id="collapse3" class="accordion-body collapse">
                               <div class="accordion-inner">
-                                
+                                <p><b class="text-success">file</b> KEGG dump file</p>
+                                <p>A file in tab delimited format containing a complete data dump from another DuctApe project file, obtained with the <code>dape export</code> command.</p>
+                                <pre>release 66.0
+ko ko:K00014 aroE shikimate dehydrogenase [EC:1.1.1.25] 1
+ko ko:K02342 DPO3E, dnaQ DNA polymerase III subunit epsilon [EC:2.7.7.7] 1
+ko ko:K09773 K09773 hypothetical protein 1
+[...]
+compound cpd:C15549 Anthocyanin None
+compound cpd:C15548 2-alpha-D-Glucosyl-D-glucose None
+compound cpd:C15547 1,4-Dihydroxy-2-naphthoyl-CoA None
+[...]
+reaction rn:R01696 L-Sorbose:acceptor 5-oxidoreductase L-Sorbose + Acceptor <=> 5-Dehydro-D-fructose + Reduced acceptor None
+reaction rn:R01695 L-Sorbose:oxygen 5-oxidoreductase L-Sorbose + Oxygen <=> 5-Dehydro-D-fructose + Hydrogen peroxide None
+reaction rn:R01694 L-Sorbose:NADP+ 5-oxidoreductase L-Sorbose + NADP+ <=> 5-Dehydro-D-fructose + NADPH + H+ 1.1.1.123
+reaction rn:R01690 5'-butyrylphosphoinosine butyrylhydrolase 5'-Butyrylphosphoinosine + H2O <=> IMP + Butanoic acid 3.6.1.20
+[...]
+</pre>
                               </div>
                             </div>
                           </div>
@@ -133,7 +700,23 @@
                             </div>
                             <div id="collapse4" class="accordion-body collapse">
                               <div class="accordion-inner">
-                                
+                                <p><b class="text-error">kegg.tsv</b> KEGG dump file</p>
+                                <p>A file in tab delimited format containing a complete KEGG data dump from the project file; it can be imported into another DuctApe project with the <code>dape import</code>.</p>
+                                <pre>release 66.0
+ko ko:K00014 aroE shikimate dehydrogenase [EC:1.1.1.25] 1
+ko ko:K02342 DPO3E, dnaQ DNA polymerase III subunit epsilon [EC:2.7.7.7] 1
+ko ko:K09773 K09773 hypothetical protein 1
+[...]
+compound cpd:C15549 Anthocyanin None
+compound cpd:C15548 2-alpha-D-Glucosyl-D-glucose None
+compound cpd:C15547 1,4-Dihydroxy-2-naphthoyl-CoA None
+[...]
+reaction rn:R01696 L-Sorbose:acceptor 5-oxidoreductase L-Sorbose + Acceptor <=> 5-Dehydro-D-fructose + Reduced acceptor None
+reaction rn:R01695 L-Sorbose:oxygen 5-oxidoreductase L-Sorbose + Oxygen <=> 5-Dehydro-D-fructose + Hydrogen peroxide None
+reaction rn:R01694 L-Sorbose:NADP+ 5-oxidoreductase L-Sorbose + NADP+ <=> 5-Dehydro-D-fructose + NADPH + H+ 1.1.1.123
+reaction rn:R01690 5'-butyrylphosphoinosine butyrylhydrolase 5'-Butyrylphosphoinosine + H2O <=> IMP + Butanoic acid 3.6.1.20
+[...]
+</pre> 
                               </div>
                             </div>
                           </div>
@@ -208,12 +791,12 @@ GSSAFGA
                                 <p><b class="text-success">kofile</b> KAAS output file</p>
                                 <p>A file in tab-delimited format containing the output of the <a href="http://www.genome.jp/tools/kaas/">KAAS annotator</a>. The protein IDs should be already present inside the project file. Protein IDs with no KO id are discarded, as they haven't been mapped inside the KEGG database.</p>
                                 <pre># Comment (ignored)
-#prot_id	ko_id
-2511498595	K09773
-2511498596	K06287
-2511498597	K00014
+#prot_id ko_id
+2511498595 K09773
+2511498596 K06287
+2511498597 K00014
 2511498598
-2511498599	K02342
+2511498599 K02342
 </pre>
                               </div>
                             </div>
@@ -230,37 +813,25 @@ GSSAFGA
                                 <p><b class="text-success">orthfile</b> pangenome file</p>
                                 <p>A file in tab-delimited format containing the information on the orthologous groups inside the pangenome. All the provided protein IDs should be already present inside the project file. Proteins having the same orth_id are orthologs.</p>
                                 <pre># Comment (ignored)
-#orth_id	prot_id
-24	SinmeB_5617
-25	SinmeB_1216
-26	gi|15963768|ref|NP_384121.1|
-27	gi|16264270|ref|NP_437062.1|
-20	SinmeB_3109
-20	gi|15963755|ref|NP_384108.1|
-20	2511498596
-20	gi|334318035|ref|YP_004550654.1|
-21	SinmeB_3110
-21	gi|15963756|ref|NP_384109.1|
-21	2511498597
-21	gi|334318036|ref|YP_004550655.1|
+#orth_id prot_id
+pangenome_24 SinmeB_5617
+pangenome_25 SinmeB_1216
+pangenome_26 gi|15963768|ref|NP_384121.1|
+pangenome_27 gi|16264270|ref|NP_437062.1|
+pangenome_20 SinmeB_3109
+pangenome_20 gi|15963755|ref|NP_384108.1|
+pangenome_20 2511498596
+pangenome_20 gi|334318035|ref|YP_004550654.1|
+pangenome_21 SinmeB_3110
+pangenome_21 gi|15963756|ref|NP_384109.1|
+pangenome_21 2511498597
+pangenome_21 gi|334318036|ref|YP_004550655.1|
+[...]
 </pre>
                               </div>
                             </div>
                           </div>
-                        </div>
-                        
-                        <div class="accordion">
-                          <div class="accordion-group">
-                            <div class="accordion-heading">
-                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse9"><i class="icon-chevron-right"></i> <b class="text-error">start</b> start the KEGG mapping and the pangenome construction</a>
-                            </div>
-                            <div id="collapse9" class="accordion-body collapse">
-                              <div class="accordion-inner">
-
-                              </div>
-                            </div>
-                          </div>
-                        </div>                        
+                        </div>                       
                         
                         <div class="accordion">
                           <div class="accordion-group">
@@ -269,6 +840,152 @@ GSSAFGA
                             </div>
                             <div id="collapse10" class="accordion-body collapse">
                               <div class="accordion-inner">
+                                <p><b class="text-error">ORG_ID.faa</b> protein fasta file</p>
+                                <p>A file in <a href="http://en.wikipedia.org/wiki/FASTA_format">FASTA format</a> containing all the protein sequences belonging to a specific organism (ORG_ID); one file for each organism is exported.</p>
+                                <pre>&gt;Protein1
+MRFLIPLVILGLPLAEIAGFVAVGREIGVAMTLLLVFASAVAGIMLLRIQGFGVLRRVQE
+AARTGNDPGLDVLGGVLIFIAAILLIVPGFISDLVGLLIFLPPVRRAIAAFLRRRMTILS
+SATGFYRSSRRQSPGPQSSGPQSSGPQSAGPQSAGTPREQRRGPLTIDLDEDEFSRKTKD
+EDDPPPDRPPH
+&gt;Protein2
+MNFQSSAFIFGDADLVKQLYVNLLTNATRHTPCGTAVELTLSSDAEWVKLIVSANGLGIP
+AAERTKVFGRFYRLDKTLGSPGTELGLSLVRAVADLHGGQIFLSDNRTGLVCTVSFPVAV
+GSSAFGA
+</pre>
+                                <p><b class="text-error">ko_ORG_ID.tsv</b> KAAS output file</p>
+                                <p>A file in tab-delimited format containing an output equivalent to the <a href="http://www.genome.jp/tools/kaas/">KAAS annotator</a>; one file for each organism is exported.</p>
+                                <pre># Comment (ignored)
+#prot_id ko_id
+2511498595 K09773
+2511498596 K06287
+2511498597 K00014
+2511498598
+2511498599 K02342
+</pre>
+                                <p><b class="text-error">ko_merged_ORG_ID.tsv</b> KAAS output file</p>
+                                <p>A file in tab-delimited format containing an output equivalent to the <a href="http://www.genome.jp/tools/kaas/">KAAS annotator</a>; this file contains those proteins that have been annotated by DuctApe, because they were orthologs to another protein annotated by KEGG; one file for each organism is exported.</p>
+                                <pre># Comment (ignored)
+#prot_id ko_id
+2511498595 K09773
+2511498596 K06287
+2511498597 K00014
+2511498598
+2511498599 K02342
+</pre>
+                                <p><b class="text-error">ko_multiple_ORG_ID.tsv</b> KAAS output file</p>
+                                <p>A file in tab-delimited format containing an output equivalent to the <a href="http://www.genome.jp/tools/kaas/">KAAS annotator</a>; this file contains those proteins that are mapped to more than one ko_id, thus having a multiple KEGG annotation; one file for each organism is exported.</p>
+                                <pre># Comment (ignored)
+#prot_id ko_id
+2511498595 K09773
+2511498596 K06287
+2511498597 K00014
+2511498598
+2511498599 K02342
+</pre>                          
+                                <p><b class="text-error">ko_multiple.tsv</b> multiple annotation file</p>
+                                <p>A file containing the orthologous groups ID in which more than one KEGG annotation has been found.</p>
+                                <pre># Comment (ignored)
+#group_id
+pangenome_24
+pangenome_331
+pangenome_1256
+</pre>
+                                <p><b class="text-error">reactions_ORG_ID.tsv</b> reactions file</p>
+                                <p>A file in tab-delimited format containing all the KEGG reactions mapped to each protein inside the project; one file for each organism is exported.</p>
+                                <pre># Comment (ignored)
+#prot_id re_id
+gi|15963756|ref|NP_384109.1| R02413
+gi|15963757|ref|NP_384110.1| R00130
+gi|15963758|ref|NP_384111.1| R00375
+gi|15963758|ref|NP_384111.1| R00376
+gi|15963758|ref|NP_384111.1| R00377
+gi|15963758|ref|NP_384111.1| R00378
+gi|15963767|ref|NP_384120.1| R00713
+</pre>
+                                <p><b class="text-error">reactions_exclusive_ORG_ID.tsv</b> reactions file</p>
+                                <p>A file in tab-delimited format containing those KEGG reaction IDs that are exclusive to one organism when compared to the others; one file for each organism is exported (if they have at least one exclusive reaction). If the project contains multiple organisms and the pangenome has been estimated, one file for the core, dispensable, accessory and unique pangenome partitions is exported, containing the exclusive reactions for each partition.</p>
+                                <pre># Comment (ignored)
+#re_id
+R02413
+R00130
+R00375
+R00376
+</pre>
+                                <p><b class="text-error">ecnumbers_ORG_ID.tsv</b> E.C. numbers file</p>
+                                <p>A file in tab-delimited format containing all the <a href="http://en.wikipedia.org/wiki/Enzyme_Commission_number">E.C. numbers</a> mapped to each protein inside the project; one file for each organism is exported.</p>
+                                <pre># Comment (ignored)
+#prot_id EC_number
+gi|16263739|ref|NP_436532.1| 1.11.1.6
+gi|16263739|ref|NP_436532.1| 1.11.1.7
+gi|16263739|ref|NP_436532.1| 1.11.1.21
+gi|16263739|ref|NP_436532.1| 1.11.1.7
+gi|16263739|ref|NP_436532.1| 1.11.1.21
+gi|16263739|ref|NP_436532.1| 1.11.1.6
+gi|16263739|ref|NP_436532.1| 1.11.1.21
+</pre>
+                                <p><b class="text-error">pangenome.tsv</b> pangenome file</p>
+                                <p>A file in tab-delimited format containing the information on the orthologous groups inside the pangenome. Proteins having the same orth_id are orthologs.</p>
+                                <pre># Comment (ignored)
+#orth_id prot_id
+pangenome_24 SinmeB_5617
+pangenome_25 SinmeB_1216
+pangenome_26 gi|15963768|ref|NP_384121.1|
+pangenome_27 gi|16264270|ref|NP_437062.1|
+pangenome_20 SinmeB_3109
+pangenome_20 gi|15963755|ref|NP_384108.1|
+pangenome_20 2511498596
+pangenome_20 gi|334318035|ref|YP_004550654.1|
+pangenome_21 SinmeB_3110
+pangenome_21 gi|15963756|ref|NP_384109.1|
+pangenome_21 2511498597
+pangenome_21 gi|334318036|ref|YP_004550655.1|
+[...]
+</pre>
+                                <p><b class="text-error">pangenome_category.tsv</b> pangenome file</p>
+                                <p>A file in tab-delimited format containing the information on the orthologous groups inside the pangenome. This file indicated the pangenome partition to which each orthologous group belongs to and to which organism the proteins of each group belong to.</p>
+                                <pre># Comment (ignored)
+#orth_id category organism(s)
+pangenome_10 core AK58-AK83-BL225C-Rm1021
+pangenome_12 core AK58-AK83-BL225C-Rm1021
+pangenome_13 core AK58-AK83-BL225C-Rm1021
+pangenome_1 accessory AK58-BL225C
+pangenome_11 accessory AK83-BL225C
+pangenome_2 accessory AK58-BL225C-Rm1021
+pangenome_23 accessory AK58-BL225C-Rm1021
+pangenome_24 unique BL225C
+pangenome_25 unique BL225C
+pangenome_26 unique Rm1021
+pangenome_27 unique Rm1021
+[...]
+</pre>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>group_id</td>
+                                      <td>Orthologous group ID</td>
+                                      <td>pangenome_1</td>
+                                    </tr>
+                                    <tr>
+                                      <td>category</td>
+                                      <td>Pangenome partition to which the group_id belongs to; core (present in all the organisms), accessory (present in 2 to n-1 organisms), unique (present in only one organism).</td>
+                                      <td>core</td>
+                                    </tr>
+                                    <tr>
+                                      <td>organism(s)</td>
+                                      <td>List of the organisms having at least one protein inside the group, separated by "-".</td>
+                                      <td>Rm1021-BL225C</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                                
+                                <p class="muted"><small><i class="icon-flag"></i> Please remind that the dispensable genome contains both the accessory and the unique genome.</small></p>
                               </div>
                             </div>
                           </div>
@@ -281,7 +998,14 @@ GSSAFGA
                             </div>
                             <div id="collapse11" class="accordion-body collapse">
                               <div class="accordion-inner">
-
+                                <p><b class="text-error">single.png</b> kegg annotation histogram</p>
+                                <p>A histogram showing KEGG annotation statistics for each organism inside the project.</p>
+                                <img src="img/io/single.png"/>
+                                <p><b class="text-error">pangenome_stats.png</b> kegg annotation histogram</p>
+                                <p>A histogram showing KEGG annotation statistics for each pangenome partition (if available).</p>
+                                <img src="img/io/pangenome_stats.png"/>
+                                <p><b class="text-error">pangenome_shape.png</b> pangenome partition pie chart</p>
+                                <img src="img/io/pangenome_shape.png"/>
                               </div>
                             </div>
                           </div>
@@ -674,7 +1398,12 @@ PM33C B04 0 A01 L-Fucose CAS 2438-80-4 C01019 C-Source, carbohydrate carbon
                             </div>
                             <div id="collapse16" class="accordion-body collapse">
                               <div class="accordion-inner">
-                                
+                                <p><b class="text-error">zero_kmeans.png</b> PM data clusterization details</p>
+                                <p>A scatter plot showing the relationships between each curve parameter and the clusterization of each curve. Each dot represent a distinct curve, while the color is relative to the AV (red, lower cluster; green highest cluster). The clusters are ordered by the area parameter. This plot shows the parameters of those curves in which the control signal has been subtracted.</p>
+                                <img src="img/io/zero_kmeans.png"/>
+                                <p><b class="text-error">nonzero_kmeans.png</b> PM data clusterization details</p>
+                                <p>A scatter plot showing the relationships between each curve parameter and the clusterization of each curve. Each dot represent a distinct curve, while the color is relative to the AV (red, lower cluster; green highest cluster). The clusters are ordered by the area parameter. This plot shows the parameters of those curves in which the control signal has NOT been subtracted.</p>
+                                <img src="img/io/nonzero_kmeans.png"/>
                               </div>
                             </div>
                           </div>
@@ -687,7 +1416,20 @@ PM33C B04 0 A01 L-Fucose CAS 2438-80-4 C01019 C-Source, carbohydrate carbon
                             </div>
                             <div id="collapse17" class="accordion-body collapse">
                               <div class="accordion-inner">
-
+                                <p>The outputs of this command are stored inside the tmp/plots/phenome directory. Inside that directory there will be one directory for each category of the PM plates (carbon, nitrogen, ...). Inside each category directory a series of plots can be found.</p>
+                                <p class="muted"><small><i class="icon-flag"></i> If the option -n has been used "phenome" may have been replaced by another name.</small></p>
+                                <p><b class="text-error">PLATE_ID.png</b> overall plate plot</p>
+                                <p>A schematic representation of the 96-wells plate, showing for each well one curve for each organism (if replicas are available, the maximum/minimum extent is displayed). The color of each curve can be associated to the corresponding organism by looking at the PLATE_ID_legend.png file.</p>
+                                <img src="img/io/PM01.png"/>
+                                <p><b class="text-error">PLATE_ID_WELL_ID.png</b> single well plot</p>
+                                <p>A single well plot, showing one curve for each organism (if replicas are available, the maximum/minimum extent is displayed). The time (expressed in hours) is showed in the x-axis, while the color intensity is showed in the y-axis. The color of each curve can be associated to the corresponding organism by looking at the PLATE_ID_legend.png file.</p>
+                                <img src="img/io/PM01_A02.png"/>
+                                <p><b class="text-error">PLATE_IDheat.png</b> overall plate AV heatmap</p>
+                                <p>A schematic representation of the 96-wells plate, showing for each well the AV value for each organism (if replicas are available, the average value id displayed). The position of each organism can be obtained by looking at the PLATE_ID_legend.png file.</p>
+                                <img src="img/io/PM01heat.png"/>
+                                <p><b class="text-error">PLATE_ID_legend.png</b> color/position reference</p>
+                                <p>For each organism, the color used in the curves and its position inside the heatmap is displayed.</p>
+                                <img src="img/io/PM01_legend.png"/>
                               </div>
                             </div>
                           </div>
@@ -700,7 +1442,10 @@ PM33C B04 0 A01 L-Fucose CAS 2438-80-4 C01019 C-Source, carbohydrate carbon
                             </div>
                             <div id="collapse18" class="accordion-body collapse">
                               <div class="accordion-inner">
-
+                                <p><b class="text-error">ActivityRing.png</b> overall PM data in ring format</p>
+                                <p>A schematic representation of the whole PM experiment; each organism is represented as a circle, in which each segment represent a single compound, colored according to its AV. The inner circles indicate the order of the organisms. If the project contains mutants (or the -o option ahs been used), for some organisms the AV difference against the reference genome is displayed: if the difference is below the provided threshold no color is showed.</p>
+                                <img src="img/io/ActivityRing_all.png"/>
+                                <img src="img/io/ActivityRing_diff.png"/>
                               </div>
                             </div>
                           </div>
@@ -713,7 +1458,540 @@ PM33C B04 0 A01 L-Fucose CAS 2438-80-4 C01019 C-Source, carbohydrate carbon
                             </div>
                             <div id="collapse19" class="accordion-body collapse">
                               <div class="accordion-inner">
-
+                                <p><b class="text-error">biolog.tsv</b> PM plates definition table</p>
+                                <p>A tab-delimited file containing the definition of the PM plates present inside the project.</p>
+                                <pre># Comment (ignored)
+#plate_id well_id concentration zero_well_id chemical cas_id co_id moa category
+PM01 A01 0 None Negative Control None None C-Source, negative control carbon
+PM01 A02 0 A01 L-Arabinose CAS 87-72-9 C00259 C-Source, carbohydrate carbon
+PM01 A03 0 A01 N-Acetyl-D-Glucosamine CAS 7512-17-6 C00140 C-Source, carbohydrate carbon
+PM01 A04 0 A01 D-Saccharic acid CAS 576-42-1 C00818 C-Source, carboxylic acid carbon
+PM01 A05 0 A01 Succinic acid CAS 6106-21-4 C00042 C-Source, carboxylic acid carbon
+PM01 A06 0 A01 D-Galactose CAS 59-23-4 C00124 C-Source, carbohydrate carbon
+PM01 A07 0 A01 L-Aspartic acid CAS 3792-50-5 C00049 C-Source, amino acid carbon
+PM01 A08 0 A01 L-Proline CAS 147-85-3  C00148 C-Source, amino acid carbon
+PM01 A09 0 A01 D-Alanine CAS 338-69-2 C00133 C-Source, amino acid carbon
+PM01 A10 0 A01 D-Trehalose CAS 6138-23-4 C01083 C-Source, carbohydrate carbon
+PM01 A11 0 A01 D-Mannose CAS 3458-28-4 C00159 C-Source, carbohydrate carbon
+PM01 A12 0 A01 Dulcitol CAS 608-66-2 C01697 C-Source, carbohydrate carbon
+PM01 B01 0 A01 D-Serine CAS 312-84-5 C00740 C-Source, amino acid carbon
+PM01 B02 0 A01 D-Sorbitol CAS 50-70-4 C00794 C-Source, carbohydrate carbon
+PM01 B03 0 A01 Glycerol CAS 56-81-5  C00116 C-Source, carbohydrate carbon
+PM01 B04 0 A01 L-Fucose CAS 2438-80-4 C01019 C-Source, carbohydrate carbon
+[...]
+</pre>
+                                <p>The various fields are defined in the table below.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>plate_id</td>
+                                      <td>PM plate ID</td>
+                                      <td>PM01</td>
+                                    </tr>
+                                    <tr>
+                                      <td>well_id</td>
+                                      <td>PM well ID; should follow the following format: first charachter a upper-case letter from A to H, second and third charachters a number from 01 to 12.</td>
+                                      <td>A02</td>
+                                    </tr>
+                                    <tr>
+                                      <td>concentration</td>
+                                      <td>Used for those wells having the same compound but at different concentrations (like PM11-20, where each compound is present in four wells with different concentrations); value can be either 0 (single well), or an integer from 1 to the number of wells with the same compound.</td>
+                                      <td>0</td>
+                                    </tr>
+                                    <tr>
+                                      <td>zero_well_id</td>
+                                      <td>Used for plates in which the contral signal can be subtracted; indicates the well_id from which subtract the control signal. If no value is provided that particular well is either a negative control signal or its signal can't be subtracted.</td>
+                                      <td>A01</td>
+                                    </tr>
+                                    <tr>
+                                      <td>chemical</td>
+                                      <td>Name of the compound contained in the well.</td>
+                                      <td>L-Arabinose</td>
+                                    </tr>
+                                    <tr>
+                                      <td>cas_id</td>
+                                      <td>The <a href="https://www.cas.org/">CAS</a> ID for the compound contained in the well.</td>
+                                      <td>CAS 87-72-9</td>
+                                    </tr>
+                                    <tr>
+                                      <td>co_id</td>
+                                      <td>The <a href="https://www.kegg.jp/">KEGG</a> compound ID for the compound contained in the well.</td>
+                                      <td>C00259</td>
+                                    </tr>
+                                    <tr>
+                                      <td>moa</td>
+                                      <td>The "mode of action" of the compound contained in the well. It's a comma separated list of nested classifications of the compound, from the most general to the most specific.</td>
+                                      <td>C-Source, carbohydrate</td>
+                                    </tr>
+                                    <tr>
+                                      <td>category</td>
+                                      <td>Used to classify each well with other wells present in the project; should describe the class of compounds contained in the plate.</td>
+                                      <td>carbon</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                                
+                                <p><b class="text-error">PLATE_ID_ORG_ID_REPLICA.yml</b> Phenotype Microarray file</p>
+                                <p>A file containing one plates data on one organism and one replica. The file can be either in <a href="http://en.wikipedia.org/wiki/YAML">YAML</a> or <a href="http://en.wikipedia.org/wiki/JSON">JSON</a> format, depending on the option provided. YAML or JSON files may be used by other software, like <a href="http://opm.dsmz.de">opm</a>, or be stored.</p>
+                                
+                                <p><b class="text-error">phenome_ORG_ID.tsv</b> phenome parameters table</p>
+                                <p>A tab-delimited file containing the curve parameters for each compound in the provided organism.</p>
+                                <pre># Comment (ignored)
+#plate_id well_id chemical category moa co_id replica activity min max height plateau slope lag area source
+PM01 A01 Negative Control carbon C-Source, negative control  1 0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 DuctApe
+PM01 A02 L-Arabinose carbon C-Source, carbohydrate C00259 1 4 0.1 212.876351661 88.4481873788 217.820042396 8.17836437167 26.5905182274 6222.53364031 DuctApe
+PM01 A03 N-Acetyl-D-Glucosamine carbon C-Source, carbohydrate C00140 1 3 0.1 175.750723251 72.2820872802 180.106135342 6.19972356011 25.4451576156 5084.32121119 DuctApe
+PM01 A04 D-Saccharic acid carbon C-Source, carboxylic acid C00818 1 0 0.1 0.1 0.1 0.0 0.0 0.0 7.05 DuctApe
+PM01 A05 Succinic acid carbon C-Source, carboxylic acid C00042 1 4 0.1 215.615477063 89.6254004782 225.986240731 7.30545393964 24.904552184 6305.05627692 DuctApe
+PM01 A06 D-Galactose carbon C-Source, carbohydrate C00124 1 3 0.1 192.507967471 70.0603851535 196.340666445 7.67622266928 30.6220829804 4919.67860561 DuctApe
+PM01 A07 L-Aspartic acid carbon C-Source, amino acid C00049 1 3 0.1 138.538227924 52.3515997237 152.92481527 4.05461063968 25.5909464203 3678.06214484 DuctApe
+PM01 A08 L-Proline carbon C-Source, amino acid C00148 1 3 0.1 159.426424525 55.242482911 174.544222968 4.97915743191 28.8880663867 3876.20449821 DuctApe
+PM01 A09 D-Alanine carbon C-Source, amino acid C00133 1 0 0.1 0.1 0.1 0.0 0.0 0.0 7.05 DuctApe
+PM01 A10 D-Trehalose carbon C-Source, carbohydrate C01083 1 3 0.1 172.360816522 67.9253535538 180.98680765 5.74067225952 26.089886528 4775.07888792 DuctApe
+PM01 A11 D-Mannose carbon C-Source, carbohydrate C00159 1 3 0.1 180.324918868 72.034665281 187.654279607 5.84619375648 25.388251942 5064.8736555 DuctApe
+PM01 A12 Dulcitol carbon C-Source, carbohydrate C01697 1 3 3.20889170278 169.115730471 70.3661407768 180.043552333 4.72459819003 24.9793274449 4948.97009753 DuctApe
+PM01 B01 D-Serine carbon C-Source, amino acid C00740 1 0 0.1 1.43523714004 0.19528979129 0.0 0.0 0.0 13.7977201409 DuctApe
+PM01 B02 D-Sorbitol carbon C-Source, carbohydrate C00794 1 3 0.1 157.074255439 59.6792654806 162.450723993 5.91004239304 28.9002668047 4193.74610059 DuctApe
+[...]
+</pre>
+                                <p>The various fields are defined in the table below.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>plate_id</td>
+                                      <td>PM plate ID</td>
+                                      <td>PM01</td>
+                                    </tr>
+                                    <tr>
+                                      <td>well_id</td>
+                                      <td>PM well ID; should follow the following format: first charachter a upper-case letter from A to H, second and third charachters a number from 01 to 12.</td>
+                                      <td>A02</td>
+                                    </tr>
+                                    <tr>
+                                      <td>chemical</td>
+                                      <td>Name of the compound contained in the well.</td>
+                                      <td>L-Arabinose</td>
+                                    </tr>
+                                    <tr>
+                                      <td>category</td>
+                                      <td>Used to classify each well with other wells present in the project; should describe the class of compounds contained in the plate.</td>
+                                      <td>carbon</td>
+                                    </tr>
+                                    <tr>
+                                      <td>moa</td>
+                                      <td>The "mode of action" of the compound contained in the well. It's a comma separated list of nested classifications of the compound, from the most general to the most specific.</td>
+                                      <td>C-Source, carbohydrate</td>
+                                    </tr>
+                                    <tr>
+                                      <td>co_id</td>
+                                      <td>The <a href="https://www.kegg.jp/">KEGG</a> compound ID for the compound contained in the well.</td>
+                                      <td>C00259</td>
+                                    </tr>
+                                    <tr>
+                                      <td>replica</td>
+                                      <td>The replica ID for this curve.</td>
+                                      <td>1</td>
+                                    </tr>
+                                    <tr>
+                                      <td>Activity</td>
+                                      <td>The AV value for this curve. The higher the value, the higher the activity of the organism on the compound: the maximum AV value depends on the number of clusters defined when using the <code>dphenome start</code>.</td>
+                                      <td>3</td>
+                                    </tr>
+                                    <tr>
+                                      <td>min</td>
+                                      <td>Lowest point in the curve.</td>
+                                      <td>0.0</td>
+                                    </tr>
+                                    <tr>
+                                      <td>max</td>
+                                      <td>Highest point in the curve.</td>
+                                      <td>150.2</td>
+                                    </tr>
+                                    <tr>
+                                      <td>height</td>
+                                      <td>Average height of the curve.</td>
+                                      <td>75.3</td>
+                                    </tr>
+                                    <tr>
+                                      <td>plateau</td>
+                                      <td>Time point in which the curve reaches the stationary phase.</td>
+                                      <td>55.3</td>
+                                    </tr>
+                                    <tr>
+                                      <td>slope</td>
+                                      <td>The curve slope in the exponential phase.</td>
+                                      <td>4.3</td>
+                                    </tr>
+                                    <tr>
+                                      <td>lag</td>
+                                      <td>Time point in which the curve enters the exponential phase.</td>
+                                      <td>20.5</td>
+                                    </tr>
+                                    <tr>
+                                      <td>area</td>
+                                      <td>The area below the curve.</td>
+                                      <td>20156.5</td>
+                                    </tr>
+                                    <tr>
+                                      <td>source</td>
+                                      <td>The software responsible for the parameters extimation.</td>
+                                      <td>DuctApe</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                                
+                                <p><b class="text-error">phenome_ORG_ID.tsv</b> phenome parameters table</p>
+                                <p>A tab-delimited file containing the curve parameters for each compound in the provided organism.</p>
+                                <pre># Comment (ignored)
+#plate_id well_id chemical category moa co_id replica activity min max height plateau slope lag area source
+PM01 A01 Negative Control carbon C-Source, negative control  1 0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 DuctApe
+PM01 A02 L-Arabinose carbon C-Source, carbohydrate C00259 1 4 0.1 212.876351661 88.4481873788 217.820042396 8.17836437167 26.5905182274 6222.53364031 DuctApe
+PM01 A03 N-Acetyl-D-Glucosamine carbon C-Source, carbohydrate C00140 1 3 0.1 175.750723251 72.2820872802 180.106135342 6.19972356011 25.4451576156 5084.32121119 DuctApe
+PM01 A04 D-Saccharic acid carbon C-Source, carboxylic acid C00818 1 0 0.1 0.1 0.1 0.0 0.0 0.0 7.05 DuctApe
+PM01 A05 Succinic acid carbon C-Source, carboxylic acid C00042 1 4 0.1 215.615477063 89.6254004782 225.986240731 7.30545393964 24.904552184 6305.05627692 DuctApe
+PM01 A06 D-Galactose carbon C-Source, carbohydrate C00124 1 3 0.1 192.507967471 70.0603851535 196.340666445 7.67622266928 30.6220829804 4919.67860561 DuctApe
+PM01 A07 L-Aspartic acid carbon C-Source, amino acid C00049 1 3 0.1 138.538227924 52.3515997237 152.92481527 4.05461063968 25.5909464203 3678.06214484 DuctApe
+PM01 A08 L-Proline carbon C-Source, amino acid C00148 1 3 0.1 159.426424525 55.242482911 174.544222968 4.97915743191 28.8880663867 3876.20449821 DuctApe
+PM01 A09 D-Alanine carbon C-Source, amino acid C00133 1 0 0.1 0.1 0.1 0.0 0.0 0.0 7.05 DuctApe
+PM01 A10 D-Trehalose carbon C-Source, carbohydrate C01083 1 3 0.1 172.360816522 67.9253535538 180.98680765 5.74067225952 26.089886528 4775.07888792 DuctApe
+PM01 A11 D-Mannose carbon C-Source, carbohydrate C00159 1 3 0.1 180.324918868 72.034665281 187.654279607 5.84619375648 25.388251942 5064.8736555 DuctApe
+PM01 A12 Dulcitol carbon C-Source, carbohydrate C01697 1 3 3.20889170278 169.115730471 70.3661407768 180.043552333 4.72459819003 24.9793274449 4948.97009753 DuctApe
+PM01 B01 D-Serine carbon C-Source, amino acid C00740 1 0 0.1 1.43523714004 0.19528979129 0.0 0.0 0.0 13.7977201409 DuctApe
+PM01 B02 D-Sorbitol carbon C-Source, carbohydrate C00794 1 3 0.1 157.074255439 59.6792654806 162.450723993 5.91004239304 28.9002668047 4193.74610059 DuctApe
+[...]
+</pre>
+                                <p>The various fields are defined in the table below.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>plate_id</td>
+                                      <td>PM plate ID</td>
+                                      <td>PM01</td>
+                                    </tr>
+                                    <tr>
+                                      <td>well_id</td>
+                                      <td>PM well ID; should follow the following format: first charachter a upper-case letter from A to H, second and third charachters a number from 01 to 12.</td>
+                                      <td>A02</td>
+                                    </tr>
+                                    <tr>
+                                      <td>chemical</td>
+                                      <td>Name of the compound contained in the well.</td>
+                                      <td>L-Arabinose</td>
+                                    </tr>
+                                    <tr>
+                                      <td>category</td>
+                                      <td>Used to classify each well with other wells present in the project; should describe the class of compounds contained in the plate.</td>
+                                      <td>carbon</td>
+                                    </tr>
+                                    <tr>
+                                      <td>moa</td>
+                                      <td>The "mode of action" of the compound contained in the well. It's a comma separated list of nested classifications of the compound, from the most general to the most specific.</td>
+                                      <td>C-Source, carbohydrate</td>
+                                    </tr>
+                                    <tr>
+                                      <td>co_id</td>
+                                      <td>The <a href="https://www.kegg.jp/">KEGG</a> compound ID for the compound contained in the well.</td>
+                                      <td>C00259</td>
+                                    </tr>
+                                    <tr>
+                                      <td>replica</td>
+                                      <td>The replica ID for this curve.</td>
+                                      <td>1</td>
+                                    </tr>
+                                    <tr>
+                                      <td>Activity</td>
+                                      <td>The AV value for this curve. The higher the value, the higher the activity of the organism on the compound: the maximum AV value depends on the number of clusters defined when using the <code>dphenome start</code>.</td>
+                                      <td>3</td>
+                                    </tr>
+                                    <tr>
+                                      <td>min</td>
+                                      <td>Lowest point in the curve.</td>
+                                      <td>0.0</td>
+                                    </tr>
+                                    <tr>
+                                      <td>max</td>
+                                      <td>Highest point in the curve.</td>
+                                      <td>150.2</td>
+                                    </tr>
+                                    <tr>
+                                      <td>height</td>
+                                      <td>Average height of the curve.</td>
+                                      <td>75.3</td>
+                                    </tr>
+                                    <tr>
+                                      <td>plateau</td>
+                                      <td>Time point in which the curve reaches the stationary phase.</td>
+                                      <td>55.3</td>
+                                    </tr>
+                                    <tr>
+                                      <td>slope</td>
+                                      <td>The curve slope in the exponential phase.</td>
+                                      <td>4.3</td>
+                                    </tr>
+                                    <tr>
+                                      <td>lag</td>
+                                      <td>Time point in which the curve enters the exponential phase.</td>
+                                      <td>20.5</td>
+                                    </tr>
+                                    <tr>
+                                      <td>area</td>
+                                      <td>The area below the curve.</td>
+                                      <td>20156.5</td>
+                                    </tr>
+                                    <tr>
+                                      <td>source</td>
+                                      <td>The software responsible for the parameters extimation.</td>
+                                      <td>DuctApe</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                                
+                                <p><b class="text-error">phenome_avg_ORG_ID.tsv</b> phenome parameters table</p>
+                                <p>A tab-delimited file containing the average AV value for each compound for a particular organism: produced only if more than one replica is present.</p>
+                                <pre># Comment (ignored)
+#plate_id well_id chemical category moa co_id avg activity
+PM01 A01 Negative Control carbon C-Source, negative control  0.0
+PM01 A02 L-Arabinose carbon C-Source, carbohydrate C00259 7.5
+PM01 A03 N-Acetyl-D-Glucosamine carbon C-Source, carbohydrate C00140 8.0
+PM01 A04 D-Saccharic acid carbon C-Source, carboxylic acid C00818 0.5
+PM01 A05 Succinic acid carbon C-Source, carboxylic acid C00042 9.0
+PM01 A06 D-Galactose carbon C-Source, carbohydrate C00124 7.0
+PM01 A07 L-Aspartic acid carbon C-Source, amino acid C00049 7.5
+PM01 A08 L-Proline carbon C-Source, amino acid C00148 7.5
+PM01 A09 D-Alanine carbon C-Source, amino acid C00133 0.0
+PM01 A10 D-Trehalose carbon C-Source, carbohydrate C01083 8.0
+PM01 A11 D-Mannose carbon C-Source, carbohydrate C00159 8.5
+PM01 A12 Dulcitol carbon C-Source, carbohydrate C01697 6.5
+PM01 B01 D-Serine carbon C-Source, amino acid C00740 0.0
+PM01 B02 D-Sorbitol carbon C-Source, carbohydrate C00794 7.5
+PM01 B03 Glycerol carbon C-Source, carbohydrate C00116 6.5
+[...]
+</pre>
+                                <p>The various fields are defined in the table below.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>plate_id</td>
+                                      <td>PM plate ID</td>
+                                      <td>PM01</td>
+                                    </tr>
+                                    <tr>
+                                      <td>well_id</td>
+                                      <td>PM well ID; should follow the following format: first charachter a upper-case letter from A to H, second and third charachters a number from 01 to 12.</td>
+                                      <td>A02</td>
+                                    </tr>
+                                    <tr>
+                                      <td>chemical</td>
+                                      <td>Name of the compound contained in the well.</td>
+                                      <td>L-Arabinose</td>
+                                    </tr>
+                                    <tr>
+                                      <td>category</td>
+                                      <td>Used to classify each well with other wells present in the project; should describe the class of compounds contained in the plate.</td>
+                                      <td>carbon</td>
+                                    </tr>
+                                    <tr>
+                                      <td>moa</td>
+                                      <td>The "mode of action" of the compound contained in the well. It's a comma separated list of nested classifications of the compound, from the most general to the most specific.</td>
+                                      <td>C-Source, carbohydrate</td>
+                                    </tr>
+                                    <tr>
+                                      <td>co_id</td>
+                                      <td>The <a href="https://www.kegg.jp/">KEGG</a> compound ID for the compound contained in the well.</td>
+                                      <td>C00259</td>
+                                    </tr>
+                                    <tr>
+                                      <td>avg. activity</td>
+                                      <td>The average AV value for this curve, based on all the available replica.</td>
+                                      <td>3.2</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                                
+                                <p><b class="text-error">phenome_combined.tsv</b> phenome parameters table</p>
+                                <p>A tab-delimited file containing the AV value for each compound for all the organisms present in the project, considering each replica separately.</p>
+                                <pre># Comment (ignored)
+#       activity
+#plate_id well_id chemical category moa co_id replica Rm1021 del add
+PM01 A01 Negative Control carbon C-Source, negative control  1 0 0 0
+PM01 A01 Negative Control carbon C-Source, negative control  2 0 0 0
+PM01 A02 L-Arabinose carbon C-Source, carbohydrate C00259 1 9 4 4
+PM01 A02 L-Arabinose carbon C-Source, carbohydrate C00259 2 6 3 3
+PM01 A03 N-Acetyl-D-Glucosamine carbon C-Source, carbohydrate C00140 1 9 9 9
+PM01 A03 N-Acetyl-D-Glucosamine carbon C-Source, carbohydrate C00140 2 7 7 7
+PM01 A04 D-Saccharic acid carbon C-Source, carboxylic acid C00818 1 0 0 0
+PM01 A04 D-Saccharic acid carbon C-Source, carboxylic acid C00818 2 1 1 1
+PM01 A05 Succinic acid carbon C-Source, carboxylic acid C00042 1 9 9 9
+PM01 A05 Succinic acid carbon C-Source, carboxylic acid C00042 2 9 9 9
+PM01 A06 D-Galactose carbon C-Source, carbohydrate C00124 1 8 8 8
+PM01 A06 D-Galactose carbon C-Source, carbohydrate C00124 2 6 6 6
+PM01 A07 L-Aspartic acid carbon C-Source, amino acid C00049 1 8 8 8
+PM01 A07 L-Aspartic acid carbon C-Source, amino acid C00049 2 7 7 7
+PM01 A08 L-Proline carbon C-Source, amino acid C00148 1 8 8 8
+PM01 A08 L-Proline carbon C-Source, amino acid C00148 2 7 7 7
+PM01 A09 D-Alanine carbon C-Source, amino acid C00133 1 0 0 0
+PM01 A09 D-Alanine carbon C-Source, amino acid C00133 2 0 0 0
+PM01 A10 D-Trehalose carbon C-Source, carbohydrate C01083 1 9 9 9
+PM01 A10 D-Trehalose carbon C-Source, carbohydrate C01083 2 7 7 7
+PM01 A11 D-Mannose carbon C-Source, carbohydrate C00159 1 9 9 9
+PM01 A11 D-Mannose carbon C-Source, carbohydrate C00159 2 8 8 8
+PM01 A12 Dulcitol carbon C-Source, carbohydrate C01697 1 8 8 8
+PM01 A12 Dulcitol carbon C-Source, carbohydrate C01697 2 5 5 5
+PM01 B01 D-Serine carbon C-Source, amino acid C00740 1 0 0 0
+PM01 B01 D-Serine carbon C-Source, amino acid C00740 2 0 0 0
+PM01 B02 D-Sorbitol carbon C-Source, carbohydrate C00794 1 8 8 8
+[...]
+</pre>
+                                <p>The various fields are defined in the table below.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>plate_id</td>
+                                      <td>PM plate ID</td>
+                                      <td>PM01</td>
+                                    </tr>
+                                    <tr>
+                                      <td>well_id</td>
+                                      <td>PM well ID; should follow the following format: first charachter a upper-case letter from A to H, second and third charachters a number from 01 to 12.</td>
+                                      <td>A02</td>
+                                    </tr>
+                                    <tr>
+                                      <td>chemical</td>
+                                      <td>Name of the compound contained in the well.</td>
+                                      <td>L-Arabinose</td>
+                                    </tr>
+                                    <tr>
+                                      <td>category</td>
+                                      <td>Used to classify each well with other wells present in the project; should describe the class of compounds contained in the plate.</td>
+                                      <td>carbon</td>
+                                    </tr>
+                                    <tr>
+                                      <td>moa</td>
+                                      <td>The "mode of action" of the compound contained in the well. It's a comma separated list of nested classifications of the compound, from the most general to the most specific.</td>
+                                      <td>C-Source, carbohydrate</td>
+                                    </tr>
+                                    <tr>
+                                      <td>co_id</td>
+                                      <td>The <a href="https://www.kegg.jp/">KEGG</a> compound ID for the compound contained in the well.</td>
+                                      <td>C00259</td>
+                                    </tr>
+                                    <tr>
+                                      <td>replica</td>
+                                      <td>The replica ID for this curve.</td>
+                                      <td>1</td>
+                                    </tr>
+                                    <tr>
+                                      <td>ORG_ID</td>
+                                      <td>The AV value for this curve. One column for each organism is displayed.</td>
+                                      <td>3.2</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                                
+                                <p><b class="text-error">phenome_avg_combined.tsv</b> phenome parameters table</p>
+                                <p>A tab-delimited file containing the average AV value for each compound for all the organisms present in the project: produced only if more than one replica is present. For the organisms that are mutants, the difference w/r/t the wild-type is displayed.</p>
+                                <pre># Comment (ignored)
+#       avg activity and deltas
+#plate_id well_id chemical category moa co_id Rm1021 del add
+PM01 A01 Negative Control carbon C-Source, negative control  0.0 0.0 0.0
+PM01 A02 L-Arabinose carbon C-Source, carbohydrate C00259 7.5 4.0 4.0
+PM01 A03 N-Acetyl-D-Glucosamine carbon C-Source, carbohydrate C00140 8.0 0.0 0.0
+PM01 A04 D-Saccharic acid carbon C-Source, carboxylic acid C00818 0.5 0.0 0.0
+PM01 A05 Succinic acid carbon C-Source, carboxylic acid C00042 9.0 0.0 0.0
+PM01 A06 D-Galactose carbon C-Source, carbohydrate C00124 7.0 0.0 0.0
+PM01 A07 L-Aspartic acid carbon C-Source, amino acid C00049 7.5 0.0 0.0
+PM01 A08 L-Proline carbon C-Source, amino acid C00148 7.5 0.0 0.0
+PM01 A09 D-Alanine carbon C-Source, amino acid C00133 0.0 0.0 0.0
+PM01 A10 D-Trehalose carbon C-Source, carbohydrate C01083 8.0 0.0 0.0
+PM01 A11 D-Mannose carbon C-Source, carbohydrate C00159 8.5 0.0 0.0
+PM01 A12 Dulcitol carbon C-Source, carbohydrate C01697 6.5 0.0 0.0
+PM01 B01 D-Serine carbon C-Source, amino acid C00740 0.0 0.0 0.0
+PM01 B02 D-Sorbitol carbon C-Source, carbohydrate C00794 7.5 0.0 0.0
+PM01 B03 Glycerol carbon C-Source, carbohydrate C00116 6.5 0.0 0.0
+[...]
+</pre>
+                                <p>The various fields are defined in the table below.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>plate_id</td>
+                                      <td>PM plate ID</td>
+                                      <td>PM01</td>
+                                    </tr>
+                                    <tr>
+                                      <td>well_id</td>
+                                      <td>PM well ID; should follow the following format: first charachter a upper-case letter from A to H, second and third charachters a number from 01 to 12.</td>
+                                      <td>A02</td>
+                                    </tr>
+                                    <tr>
+                                      <td>chemical</td>
+                                      <td>Name of the compound contained in the well.</td>
+                                      <td>L-Arabinose</td>
+                                    </tr>
+                                    <tr>
+                                      <td>category</td>
+                                      <td>Used to classify each well with other wells present in the project; should describe the class of compounds contained in the plate.</td>
+                                      <td>carbon</td>
+                                    </tr>
+                                    <tr>
+                                      <td>moa</td>
+                                      <td>The "mode of action" of the compound contained in the well. It's a comma separated list of nested classifications of the compound, from the most general to the most specific.</td>
+                                      <td>C-Source, carbohydrate</td>
+                                    </tr>
+                                    <tr>
+                                      <td>co_id</td>
+                                      <td>The <a href="https://www.kegg.jp/">KEGG</a> compound ID for the compound contained in the well.</td>
+                                      <td>C00259</td>
+                                    </tr>
+                                    <tr>
+                                      <td>ORG_ID</td>
+                                      <td>The average AV value for this curve (or the difference w/r/t the wild-type). One column for each organism is displayed.</td>
+                                      <td>3.2</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
                               </div>
                             </div>
                           </div>
@@ -726,7 +2004,33 @@ PM33C B04 0 A01 L-Fucose CAS 2438-80-4 C01019 C-Source, carbohydrate carbon
                             </div>
                             <div id="collapse20" class="accordion-body collapse">
                               <div class="accordion-inner">
-
+                                <p><b class="text-error">Overall.png</b> overall curves plot</p>
+                                <p>The whole PM experiment in a single plot; time (expressed in hours) in the x-axis, signal in the y-axis. The color of each curve corresponds to the AV associated to each curve. Curves in which the control signal has been subtracted is separated from the ones in which such subtraction has not been performed.</p>
+                                <img src="img/io/Overall.png"/>
+                                
+                                <p><b class="text-error">OverallCateg.png</b> overall curves plot</p>
+                                <p>The whole PM experiment in one plot for each category, as indicated inside the project; time (expressed in hours) in the x-axis, signal in the y-axis. The color of each curve corresponds to the AV associated to each curve.</p>
+                                <img src="img/io/OverallCateg.png"/>
+                                
+                                <p><b class="text-error">Activity.png</b> AV values distribution</p>
+                                <p>Distribution plots of each AV value in the whole PM experiment and divided by organism.</p>
+                                <img src="img/io/Activity.png"/>
+                                
+                                <p><b class="text-error">ActivityZero.png</b> AV values distribution</p>
+                                <p>Distribution plots of each AV value divided by organism. The curves are separated in those in which the control signal has been subtracted and those not.</p>
+                                <img src="img/io/ActivityZero.png"/>
+                                
+                                <p><b class="text-error">ActivityCateg.png</b> AV values distribution</p>
+                                <p>Distribution plots of each AV value divided by organism and category.</p>
+                                <img src="img/io/ActivityCateg.png"/>
+                                
+                                <p><b class="text-error">ActivityBoxplot.png</b> AV values distribution</p>
+                                <p>Distribution boxplots of each AV value in the whole PM experiment and divided by organism.</p>
+                                <img src="img/io/ActivityBoxplot.png"/>
+                                
+                                <p><b class="text-error">ActivityCategBoxplot.png</b> AV values distribution</p>
+                                <p>Distribution boxplots of each AV value divided by organism and category.</p>
+                                <img src="img/io/ActivityCategBoxplot.png"/>
                               </div>
                             </div>
                           </div>

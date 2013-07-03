@@ -2690,52 +2690,6 @@ def writeCombinedPanGenome(dvalues):
     fout.close()
     logger.info('Saved combined pangenome informations (%s)'%fname)
     
-    # Generating heatmap
-    logger.info('Saving combined data heatmap')
-    
-    fig = plt.figure(figsize=(10,20), dpi=300)
-    
-    for categ in cv:
-        pnames = []
-        pvalues = []
-        pvalues1 = []
-        for p in sorted(cv[categ], key=lambda x: (x[4], x[0]), reverse=True):
-            pnames.append(p[0])
-            if p[4] <= 1:
-                pvalues.append([p[4]])
-            else:
-                pvalues.append([2])
-            pvalues1.append([p[5]])
-            
-        ax = fig.add_subplot(121)
-        cmap = plt.cm.Greens
-        cmap.set_over('#003314')
-        cmap.set_under('gray')
-        cb = ax.imshow(pvalues, cmap=cmap, interpolation='none', aspect='auto',
-                  vmin=0, vmax=1)
-        ax.set_yticks(np.arange(len(pnames)))
-        ax.set_yticklabels(pnames, size=6)
-        ax.set_xticks([],[])
-        ax.set_title('Genomic Variability')
-        
-        plt.colorbar(cb, orientation='horizontal')
-        
-        ax2 = fig.add_subplot(122)
-        cmap = plt.cm.Purples
-        cmap.set_over('blue')
-        cmap.set_under('gray')
-        cb = ax2.imshow(pvalues1, cmap=cmap, interpolation='none', aspect='auto', vmin=0)
-        ax2.set_yticks([],[])
-        ax2.set_xticks([],[])
-        ax2.set_title('Metabolic variability')
-        
-        plt.colorbar(cb, orientation='horizontal')
-
-        plt.subplots_adjust(wspace=0, hspace=0)
-        
-        plt.savefig('combined_heatmap_pangenome_%s.png'%categ)
-        plt.clf()
-    
 def writeCombined(dvalues, orgs):
     '''
     Write down the table with the combined data
@@ -2779,53 +2733,6 @@ def writeCombined(dvalues, orgs):
     
     fout.close()
     logger.info('Saved combined informations (%s)'%fname)
-    
-    # Generating heatmap
-    logger.info('Saving combined data heatmap')
-    
-    fig = plt.figure(figsize=(8*len(orgs),20), dpi=300)
-    
-    for categ in cv:
-        pnames = []
-        pvalues = []
-        pvalues1 = []
-        for p in sorted(cv[categ], key=lambda x: [x[i][0] for i in range(2,len(orgs)+2)] + [x[0]], reverse=True):
-            pnames.append(p[0])
-            pvalues.append([p[i][0] for i in range(2,len(orgs)+2)])
-            pvalues1.append([p[i][1] for i in range(2,len(orgs)+2)])
-            
-        for i in range(0,len(orgs)):
-            ax = fig.add_subplot(1,len(orgs)*2,(i*2)+1)
-            cmap = plt.cm.Greens
-            cmap.set_over('#003314')
-            cmap.set_under('gray')
-            cb = ax.imshow([[x[i]] for x in pvalues], cmap=cmap, interpolation='none', aspect='auto',
-                      vmin=0, vmax=max([z for x in pvalues for z in x]))
-            if i==0:
-                ax.set_yticks(np.arange(len(pnames)))
-                ax.set_yticklabels(pnames, size=6)
-            else:
-                ax.set_yticks([],[])
-            ax.set_xticks([],[])
-            ax.set_title('Reactions %s'%(orgs[i]))
-        
-            plt.colorbar(cb, orientation='horizontal')
-            
-            ax2 = fig.add_subplot(1,len(orgs)*2,(i*2)+2)
-            cmap = plt.cm.Purples
-            cmap.set_over('blue')
-            cmap.set_under('gray')
-            cb = ax2.imshow([[x[i]] for x in pvalues1], cmap=cmap, interpolation='none', aspect='auto', vmin=0)
-            ax2.set_yticks([],[])
-            ax2.set_xticks([],[])
-            ax2.set_title('meanAV %s'%(orgs[i]))
-            
-            plt.colorbar(cb, orientation='horizontal')
-        
-        plt.subplots_adjust(wspace=0, hspace=0)
-            
-        plt.savefig('combined_heatmap_%s.png'%categ)
-        plt.clf()
 
 def dNet(project, allorgs=False, allpaths=False, pangPaths=None):
     '''

@@ -90,7 +90,7 @@
                         <div class="accordion">
                           <div class="accordion-group">
                             <div class="accordion-heading">
-                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse1"><i class="icon-chevron-right"></i> <b class="text-success">start</b> metabolic network reconstruction</a>
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse1"><i class="icon-chevron-right"></i> <b class="text-error">start</b> metabolic network reconstruction</a>
                             </div>
                             <div id="collapse1" class="accordion-body collapse">
                               <div class="accordion-inner">
@@ -103,7 +103,7 @@
                         <div class="accordion">
                           <div class="accordion-group">
                             <div class="accordion-heading">
-                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse2"><i class="icon-chevron-right"></i> <b class="text-success">map</b> output KEGG metabolic maps with genomic/phenomic data</a>
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse2"><i class="icon-chevron-right"></i> <b class="text-error">map</b> output KEGG metabolic maps with genomic/phenomic data</a>
                             </div>
                             <div id="collapse2" class="accordion-body collapse">
                               <div class="accordion-inner">
@@ -129,7 +129,7 @@
                         <div class="accordion">
                           <div class="accordion-group">
                             <div class="accordion-heading">
-                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse4"><i class="icon-chevron-right"></i> <b class="text-success">export</b> export a KEGG data dump</a>
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse4"><i class="icon-chevron-right"></i> <b class="text-error">export</b> export a KEGG data dump</a>
                             </div>
                             <div id="collapse4" class="accordion-body collapse">
                               <div class="accordion-inner">
@@ -252,7 +252,7 @@ GSSAFGA
                         <div class="accordion">
                           <div class="accordion-group">
                             <div class="accordion-heading">
-                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse9"><i class="icon-chevron-right"></i> <b class="text-success">start</b> start the KEGG mapping and the pangenome construction</a>
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse9"><i class="icon-chevron-right"></i> <b class="text-error">start</b> start the KEGG mapping and the pangenome construction</a>
                             </div>
                             <div id="collapse9" class="accordion-body collapse">
                               <div class="accordion-inner">
@@ -265,7 +265,7 @@ GSSAFGA
                         <div class="accordion">
                           <div class="accordion-group">
                             <div class="accordion-heading">
-                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse10"><i class="icon-chevron-right"></i> <b class="text-success">export</b> export the genomic data</a>
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse10"><i class="icon-chevron-right"></i> <b class="text-error">export</b> export the genomic data</a>
                             </div>
                             <div id="collapse10" class="accordion-body collapse">
                               <div class="accordion-inner">
@@ -277,7 +277,7 @@ GSSAFGA
                         <div class="accordion">
                           <div class="accordion-group">
                             <div class="accordion-heading">
-                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse11"><i class="icon-chevron-right"></i> <b class="text-success">stats</b> print out some genome statistics</a>
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse11"><i class="icon-chevron-right"></i> <b class="text-error">stats</b> print out some genome statistics</a>
                             </div>
                             <div id="collapse11" class="accordion-body collapse">
                               <div class="accordion-inner">
@@ -305,7 +305,87 @@ GSSAFGA
                             </div>
                             <div id="collapse12" class="accordion-body collapse">
                               <div class="accordion-inner">
-
+                                <p><b class="text-success">file</b> Phenotype Microarray file</p>
+                                <p>A file containing one or more plates data on a single organism. The file can be either in <a href="http://en.wikipedia.org/wiki/Comma-separated_values">csv</a>, <a href="http://en.wikipedia.org/wiki/YAML">YAML</a> or <a href="http://en.wikipedia.org/wiki/JSON">JSON</a> format: csv files are usually obtained directly from the PM analysis, while YAML or JSON files may be obtained from other software, like <a href="http://opm.dsmz.de">opm</a>. YAML/JSON files may contain additional information than a normal csv file; DuctApe is able to import also aggregated data (i.e. the curve parameters for each well), as well as the name of the software that has produced the aggregated data.</p>
+                                <p>The organism ID should be present in one of the following fields of the csv file: "Strain Name", "Strain Number", "Sample Number".</p>
+                                <p><b><a href="https://raw.github.com/gist/4249736/822016bd6383f8b2d980d2305b5770ef27d3d88e/Rm1021.csv">Example csv file</a></b></p>
+                                <p><b><a href="https://gist.github.com/mgalardini/4249736/raw/1dd3517d8a68775417986a16bf4d22f4d29b06b0/Rm1021.yml">Example YAML file</a></b></p>
+                                <p>The aggregated data should be provided as in the example below:</p>
+                                <pre>[...]
+aggr_settings:
+  method: opm-fast
+  options:
+    boot: 0.0
+  software: opm
+  version: 0.9.1
+aggregated:
+  A01:
+    mu: .na.real
+    lambda: .na.real
+    A: 95.0
+    AUC: 4815.75
+    mu CI95 low: .na.real
+    lambda CI95 low: .na.real
+    A CI95 low: 95.0
+    AUC CI95 low: .na.real
+    mu CI95 high: .na.real
+    lambda CI95 high: .na.real
+    A CI95 high: 95.0
+    AUC CI95 high: .na.real
+[...]</pre>
+                                <p><b><a href="https://gist.github.com/mgalardini/4249736/raw/75a415187e180b092ee199b75b882867464589b7/Rm1021.json">Example JSON file</a></b></p>
+                                <p>The aggregated data should be provided as in the example below:</p>
+                                <pre>[...]
+"aggr_settings":
+    {"options": {"Dummy": "Dummy"},
+    "method": "DuctApe",
+    "software": "DuctApe"},
+"aggregated":
+  {"A01": {"A": 3.00260390984,
+          "lambda CI95 low": ".na.real",
+          "AUC": 57.3016561932,
+          "lambda CI95 high": ".na.real",
+          "A CI95 high": ".na.real",
+          "AUC CI95 high": ".na.real",
+          "A CI95 low": ".na.real",
+          "mu": 0.0,
+          "mu CI95 high": ".na.real",
+          "AUC CI95 low": ".na.real",
+          "mu CI95 low": ".na.real",
+          "lambda": 0.0},
+[...]</pre>
+                                <p>The curve parameters names correspondence to the ones produced by DuctApe are outlined in the table below: when a field has a value of NA or .na.real it is treated as missing. The fields with CI95 denote the 95% confidence, but they are ignored by DuctApe.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>DuctApe parameter</th>
+                                      <th>YAML/JSON name</th>
+                                      <th>Description</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>max</td>
+                                      <td>A</td>
+                                      <td>Highest point in the curve</td>
+                                    </tr>
+                                    <tr>
+                                      <td>area</td>
+                                      <td>AUC</td>
+                                      <td>Area under the curve</td>
+                                    </tr>
+                                    <tr>
+                                      <td>lag</td>
+                                      <td>lambda</td>
+                                      <td>Lag-time; the time point in which the curve starts to grow exponentially</td>
+                                    </tr>
+                                    <tr>
+                                      <td>slope</td>
+                                      <td>mu</td>
+                                      <td>Curve slope in the exponential phase</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
                               </div>
                             </div>
                           </div>
@@ -318,7 +398,87 @@ GSSAFGA
                             </div>
                             <div id="collapse13" class="accordion-body collapse">
                               <div class="accordion-inner">
-
+                                <p><b class="text-success">file</b> Phenotype Microarray file</p>
+                                <p>A file containing one or more plates data on one or more organism. The file can be either in <a href="http://en.wikipedia.org/wiki/Comma-separated_values">csv</a>, <a href="http://en.wikipedia.org/wiki/YAML">YAML</a> or <a href="http://en.wikipedia.org/wiki/JSON">JSON</a> format: csv files are usually obtained directly from the PM analysis, while YAML or JSON files may be obtained from other software, like <a href="http://opm.dsmz.de">opm</a>. YAML/JSON files may contain additional information than a normal csv file; DuctApe is able to import also aggregated data (i.e. the curve parameters for each well), as well as the name of the software that has produced the aggregated data.</p>
+                                <p>The organism ID should be present in the "Strain name" field of the csv file.</p>
+                                <p><b><a href="https://raw.github.com/gist/4249736/822016bd6383f8b2d980d2305b5770ef27d3d88e/Rm1021.csv">Example csv file</a></b></p>
+                                <p><b><a href="https://gist.github.com/mgalardini/4249736/raw/1dd3517d8a68775417986a16bf4d22f4d29b06b0/Rm1021.yml">Example YAML file</a></b></p>
+                                <p>The aggregated data should be provided as in the example below:</p>
+                                <pre>[...]
+aggr_settings:
+  method: opm-fast
+  options:
+    boot: 0.0
+  software: opm
+  version: 0.9.1
+aggregated:
+  A01:
+    mu: .na.real
+    lambda: .na.real
+    A: 95.0
+    AUC: 4815.75
+    mu CI95 low: .na.real
+    lambda CI95 low: .na.real
+    A CI95 low: 95.0
+    AUC CI95 low: .na.real
+    mu CI95 high: .na.real
+    lambda CI95 high: .na.real
+    A CI95 high: 95.0
+    AUC CI95 high: .na.real
+[...]</pre>
+                                <p><b><a href="https://gist.github.com/mgalardini/4249736/raw/75a415187e180b092ee199b75b882867464589b7/Rm1021.json">Example JSON file</a></b></p>
+                                <p>The aggregated data should be provided as in the example below:</p>
+                                <pre>[...]
+"aggr_settings":
+    {"options": {"Dummy": "Dummy"},
+    "method": "DuctApe",
+    "software": "DuctApe"},
+"aggregated":
+  {"A01": {"A": 3.00260390984,
+          "lambda CI95 low": ".na.real",
+          "AUC": 57.3016561932,
+          "lambda CI95 high": ".na.real",
+          "A CI95 high": ".na.real",
+          "AUC CI95 high": ".na.real",
+          "A CI95 low": ".na.real",
+          "mu": 0.0,
+          "mu CI95 high": ".na.real",
+          "AUC CI95 low": ".na.real",
+          "mu CI95 low": ".na.real",
+          "lambda": 0.0},
+[...]</pre>
+                                <p>The curve parameters names correspondence to the ones produced by DuctApe are outlined in the table below: when a field has a value of NA or .na.real it is treated as missing. The fields with CI95 denote the 95% confidence, but they are ignored by DuctApe.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>DuctApe parameter</th>
+                                      <th>YAML/JSON name</th>
+                                      <th>Description</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>max</td>
+                                      <td>A</td>
+                                      <td>Highest point in the curve</td>
+                                    </tr>
+                                    <tr>
+                                      <td>area</td>
+                                      <td>AUC</td>
+                                      <td>Area under the curve</td>
+                                    </tr>
+                                    <tr>
+                                      <td>lag</td>
+                                      <td>lambda</td>
+                                      <td>Lag-time; the time point in which the curve starts to grow exponentially</td>
+                                    </tr>
+                                    <tr>
+                                      <td>slope</td>
+                                      <td>mu</td>
+                                      <td>Curve slope in the exponential phase</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
                               </div>
                             </div>
                           </div>
@@ -331,7 +491,87 @@ GSSAFGA
                             </div>
                             <div id="collapse14" class="accordion-body collapse">
                               <div class="accordion-inner">
-                              
+                                <p><b class="text-success">file(s)</b> Phenotype Microarray file</p>
+                                <p>A directory containing one or more files with plates data. The file can be either in <a href="http://en.wikipedia.org/wiki/Comma-separated_values">csv</a>, <a href="http://en.wikipedia.org/wiki/YAML">YAML</a> or <a href="http://en.wikipedia.org/wiki/JSON">JSON</a> format: csv files are usually obtained directly from the PM analysis, while YAML or JSON files may be obtained from other software, like <a href="http://opm.dsmz.de">opm</a>. YAML/JSON files may contain additional information than a normal csv file; DuctApe is able to import also aggregated data (i.e. the curve parameters for each well), as well as the name of the software that has produced the aggregated data.</p>
+                                <p>The organism ID should be present in one of the following fields of the csv file: "Strain Name", "Strain Number", "Sample Number".</p>
+                                <p><b><a href="https://raw.github.com/gist/4249736/822016bd6383f8b2d980d2305b5770ef27d3d88e/Rm1021.csv">Example csv file</a></b></p>
+                                <p><b><a href="https://gist.github.com/mgalardini/4249736/raw/1dd3517d8a68775417986a16bf4d22f4d29b06b0/Rm1021.yml">Example YAML file</a></b></p>
+                                <p>The aggregated data should be provided as in the example below:</p>
+                                <pre>[...]
+aggr_settings:
+  method: opm-fast
+  options:
+    boot: 0.0
+  software: opm
+  version: 0.9.1
+aggregated:
+  A01:
+    mu: .na.real
+    lambda: .na.real
+    A: 95.0
+    AUC: 4815.75
+    mu CI95 low: .na.real
+    lambda CI95 low: .na.real
+    A CI95 low: 95.0
+    AUC CI95 low: .na.real
+    mu CI95 high: .na.real
+    lambda CI95 high: .na.real
+    A CI95 high: 95.0
+    AUC CI95 high: .na.real
+[...]</pre>
+                                <p><b><a href="https://gist.github.com/mgalardini/4249736/raw/75a415187e180b092ee199b75b882867464589b7/Rm1021.json">Example JSON file</a></b></p>
+                                <p>The aggregated data should be provided as in the example below:</p>
+                                <pre>[...]
+"aggr_settings":
+    {"options": {"Dummy": "Dummy"},
+    "method": "DuctApe",
+    "software": "DuctApe"},
+"aggregated":
+  {"A01": {"A": 3.00260390984,
+          "lambda CI95 low": ".na.real",
+          "AUC": 57.3016561932,
+          "lambda CI95 high": ".na.real",
+          "A CI95 high": ".na.real",
+          "AUC CI95 high": ".na.real",
+          "A CI95 low": ".na.real",
+          "mu": 0.0,
+          "mu CI95 high": ".na.real",
+          "AUC CI95 low": ".na.real",
+          "mu CI95 low": ".na.real",
+          "lambda": 0.0},
+[...]</pre>
+                                <p>The curve parameters names correspondence to the ones produced by DuctApe are outlined in the table below: when a field has a value of NA or .na.real it is treated as missing. The fields with CI95 denote the 95% confidence, but they are ignored by DuctApe.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>DuctApe parameter</th>
+                                      <th>YAML/JSON name</th>
+                                      <th>Description</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>max</td>
+                                      <td>A</td>
+                                      <td>Highest point in the curve</td>
+                                    </tr>
+                                    <tr>
+                                      <td>area</td>
+                                      <td>AUC</td>
+                                      <td>Area under the curve</td>
+                                    </tr>
+                                    <tr>
+                                      <td>lag</td>
+                                      <td>lambda</td>
+                                      <td>Lag-time; the time point in which the curve starts to grow exponentially</td>
+                                    </tr>
+                                    <tr>
+                                      <td>slope</td>
+                                      <td>mu</td>
+                                      <td>Curve slope in the exponential phase</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
                               </div>
                             </div>
                           </div>
@@ -344,7 +584,84 @@ GSSAFGA
                             </div>
                             <div id="collapse15" class="accordion-body collapse">
                               <div class="accordion-inner">
-
+                                <p><b class="text-success">file</b> custom plate definition file</p>
+                                <p>A tab-delimited file containing the definition of a custom PM plate to be added to the project. More than one plate can be defined in each file; each plate should contain 96 wells.</p>
+                                <pre># Comment (ignored)
+PM33C A01 0  Negative Control   C-Source, negative control scarbon
+PM33C A02 0 A01 L-Arabinose CAS 87-72-9 C00259 C-Source, carbohydrate carbon
+PM33C A03 0 A01 N-Acetyl-D-Glucosamine CAS 7512-17-6 C00140 C-Source, carbohydrate carbon
+PM33C A04 0 A01 D-Saccharic acid CAS 576-42-1 C00818 C-Source, carboxylic acid carbon
+PM33C A05 0 A01 Succinic acid CAS 6106-21-4 C00042 C-Source, carboxylic acid carbon
+PM33C A06 0 A01 D-Galactose CAS 59-23-4 C00124 C-Source, carbohydrate carbon
+PM33C A07 0 A01 L-Aspartic acid CAS 3792-50-5 C00049 C-Source, amino acid carbon
+PM33C A08 0 A01 L-Proline CAS 147-85-3  C00148 C-Source, amino acid carbon
+PM33C A09 0 A01 D-Alanine CAS 338-69-2 C00133 C-Source, amino acid carbon
+PM33C A10 0 A01 D-Trehalose CAS 6138-23-4 C01083 C-Source, carbohydrate carbon
+PM33C A11 0 A01 D-Mannose CAS 3458-28-4 C00159 C-Source, carbohydrate carbon
+PM33C A12 0 A01 Dulcitol CAS 608-66-2 C01697 C-Source, carbohydrate carbon
+PM33C B01 0 A01 D-Serine CAS 312-84-5 C00740 C-Source, amino acid carbon
+PM33C B02 0 A01 D-Sorbitol CAS 50-70-4 C00794 C-Source, carbohydrate carbon
+PM33C B03 0 A01 Glycerol CAS 56-81-5  C00116 C-Source, carbohydrate carbon
+PM33C B04 0 A01 L-Fucose CAS 2438-80-4 C01019 C-Source, carbohydrate carbon
+[...]
+</pre>
+                                <p>The various fields are defined in the table below.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>plate_id</td>
+                                      <td>PM plate ID</td>
+                                      <td>PM35</td>
+                                    </tr>
+                                    <tr>
+                                      <td>well_id</td>
+                                      <td>PM well ID; should follow the following format: first charachter a upper-case letter from A to H, second and third charachters a number from 01 to 12.</td>
+                                      <td>A02</td>
+                                    </tr>
+                                    <tr>
+                                      <td>concentration</td>
+                                      <td>Used for those wells having the same compound but at different concentrations (like PM11-20, where each compound is present in four wells with different concentrations); value can be either 0 (single well), or an integer from 1 to the number of wells with the same compound.</td>
+                                      <td>0</td>
+                                    </tr>
+                                    <tr>
+                                      <td>zero_well_id</td>
+                                      <td>Used for plates in which the contral signal can be subtracted; indicates the well_id from which subtract the control signal. If no value is provided that particular well is either a negative control signal or its signal can't be subtracted.</td>
+                                      <td>A01</td>
+                                    </tr>
+                                    <tr>
+                                      <td>chemical</td>
+                                      <td>Name of the compound contained in the well.</td>
+                                      <td>L-Arabinose</td>
+                                    </tr>
+                                    <tr>
+                                      <td>cas_id</td>
+                                      <td>The <a href="https://www.cas.org/">CAS</a> ID for the compound contained in the well.</td>
+                                      <td>CAS 87-72-9</td>
+                                    </tr>
+                                    <tr>
+                                      <td>co_id</td>
+                                      <td>The <a href="https://www.kegg.jp/">KEGG</a> compound ID for the compound contained in the well.</td>
+                                      <td>C00259</td>
+                                    </tr>
+                                    <tr>
+                                      <td>moa</td>
+                                      <td>The "mode of action" of the compound contained in the well. It's a comma separated list of nested classifications of the compound, from the most general to the most specific.</td>
+                                      <td>C-Source, carbohydrate</td>
+                                    </tr>
+                                    <tr>
+                                      <td>category</td>
+                                      <td>Used to classify each well with other wells present in the project; should describe the class of compounds contained in the plate.</td>
+                                      <td>carbon</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
                               </div>
                             </div>
                           </div>
@@ -353,7 +670,7 @@ GSSAFGA
                         <div class="accordion">
                           <div class="accordion-group">
                             <div class="accordion-heading">
-                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse16"><i class="icon-chevron-right"></i> <b class="text-success">start</b> analyze the growth curves and map the phenomic compounds to KEGG</a>
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse16"><i class="icon-chevron-right"></i> <b class="text-error">start</b> analyze the growth curves and map the phenomic compounds to KEGG</a>
                             </div>
                             <div id="collapse16" class="accordion-body collapse">
                               <div class="accordion-inner">
@@ -366,7 +683,7 @@ GSSAFGA
                         <div class="accordion">
                           <div class="accordion-group">
                             <div class="accordion-heading">
-                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse17"><i class="icon-chevron-right"></i> <b class="text-success">plot</b> plot the growth curves and the AV heatmaps</a>
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse17"><i class="icon-chevron-right"></i> <b class="text-error">plot</b> plot the growth curves and the AV heatmaps</a>
                             </div>
                             <div id="collapse17" class="accordion-body collapse">
                               <div class="accordion-inner">
@@ -379,7 +696,7 @@ GSSAFGA
                         <div class="accordion">
                           <div class="accordion-group">
                             <div class="accordion-heading">
-                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse18"><i class="icon-chevron-right"></i> <b class="text-success">rings</b> plot the overall phenome in ring format</a>
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse18"><i class="icon-chevron-right"></i> <b class="text-error">rings</b> plot the overall phenome in ring format</a>
                             </div>
                             <div id="collapse18" class="accordion-body collapse">
                               <div class="accordion-inner">
@@ -392,7 +709,7 @@ GSSAFGA
                         <div class="accordion">
                           <div class="accordion-group">
                             <div class="accordion-heading">
-                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse19"><i class="icon-chevron-right"></i> <b class="text-success">export</b> export the phenomic data</a>
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse19"><i class="icon-chevron-right"></i> <b class="text-error">export</b> export the phenomic data</a>
                             </div>
                             <div id="collapse19" class="accordion-body collapse">
                               <div class="accordion-inner">
@@ -405,7 +722,7 @@ GSSAFGA
                         <div class="accordion">
                           <div class="accordion-group">
                             <div class="accordion-heading">
-                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse20"><i class="icon-chevron-right"></i> <b class="text-success">stats</b> print out some phenome statistics</a>
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse20"><i class="icon-chevron-right"></i> <b class="text-error">stats</b> print out some phenome statistics</a>
                             </div>
                             <div id="collapse20" class="accordion-body collapse">
                               <div class="accordion-inner">

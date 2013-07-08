@@ -1100,7 +1100,7 @@ class Experiment(object):
         try:  
             return float(value)/float(self.maxParams[z][param])
         except ZeroDivisionError:
-            return None
+            return 0
     
     def clusterize(self, save_fig=False, n_clusters=10):
         '''

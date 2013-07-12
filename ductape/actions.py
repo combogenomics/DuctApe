@@ -1821,7 +1821,7 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
         theta = np.linspace(start_arch, stop_arch, 100)
         
         ax.plot(theta, [i for t in theta], color=categcolor[categ],
-                linewidth=20, label=categ)
+                linewidth=35, label=categ)
         
         start_arch += 2*np.pi*categprop
 

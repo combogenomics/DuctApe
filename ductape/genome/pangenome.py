@@ -188,7 +188,7 @@ class PanGenomer(CommonMultiProcess):
                     if self.isTerminated():
                         break
                     
-                    self.sleeper.sleep(0.1)
+                    self.sleeper.sleep(0.01)
                     
                 while not self._parallelresults.empty():
                     if self.killed:
@@ -270,7 +270,7 @@ class PanGenomer(CommonMultiProcess):
                             if self.isTerminated():
                                 break
                             
-                            self.sleeper.sleep(0.1)
+                            self.sleeper.sleep(0.01)
                         
                         while not self._parallelresults.empty():
                             if self.killed:

@@ -38,7 +38,7 @@ def RunThread(obj):
     sub = False
     while True:
         try:
-            time.sleep(0.5)
+            time.sleep(0.01)
             while not obj.msg.empty():
                 msg = obj.msg.get()
                 if msg:

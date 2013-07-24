@@ -106,7 +106,7 @@ def dstart(options, wdir, project):
             if options.s:
                 logger.warning('Skipping pangenome calculation')
                 continue
-            if not doPanGenome(project, infiles, options.cpu, options.prefix):
+            if not doPanGenome(project,infiles,options.cpu,options.prefix,options.matrix,options.evalue):
                 logger.error('PanGenome could not be calculated!')
                 return False
         elif step == 'map2ko':
@@ -228,10 +228,12 @@ def dclear(options, wdir, project):
         return False
     return dGenomeClear(project)
 
-def doPanGenome(project, infiles, cpu=1, prefix=''):
+def doPanGenome(project, infiles, cpu=1, prefix='',
+                matrix='BLOSUM80', evalue=1e-10):
     from ductape.genome.pangenome import PanGenomer
     
-    pang = PanGenomer(infiles.values(), ncpus=cpu, prefix=prefix)
+    pang = PanGenomer(infiles.values(), ncpus=cpu, prefix=prefix,
+                       matrix=matrix, evalue=evalue)
     
     if not RunThread(pang):
         return False
@@ -392,6 +394,14 @@ def getOptions():
     parser_start.add_argument('-p', action="store", dest='prefix',
                             default='',
                             help='Orthologous groups prefix')
+    parser_start.add_argument('-m', action="store", dest='matrix',
+                            default='BLOSUM80',
+                            help='BLAST matrix for pangenome [Default: BLOSUM80]')
+    parser_start.add_argument('-e', action="store",
+                            dest='evalue',
+                            type=float,
+                            default=1e-10,
+                            help='BLAST E-value threshold for pangenome [Default: 1e-10]')
     parser_start.add_argument('-l', action="store_true",
                             default=False,
                             help='Local map2ko')

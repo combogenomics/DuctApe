@@ -1,3 +1,14 @@
+Version 0.9.6
+=============
+
+UPGRADE URGENCY: LOW, only a few improvements for BBH searches
+
+FEATURES:
+* dgenome start: two new options to modulate the BBH search
+    * -m to change the Blast scoring matrix (i.e. BLOSUM62)
+    * -e to change the Blast E-value threshold 
+* Slightly faster threads
+
 Version 0.9.4
 =============
 

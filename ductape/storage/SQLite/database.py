@@ -2738,14 +2738,14 @@ class Kegg(DBBase):
             else:
                 # prot_id --> [re_id, ...]
                 ref_react = {}
-                for prot_id, re_id in self.getAllReactions(ref_id):
-                    ref_react[prot_id] = ref_react.get(prot_id, set())
-                    ref_react[prot_id].add(re_id)
+                for re in self.getAllReactions(ref_id):
+                    ref_react[re.prot_id] = ref_react.get(re.prot_id, set())
+                    ref_react[re.prot_id].add(re.re_id)
                 
                 mut_react = {}
-                for prot_id, re_id in self.getAllReactions(mut_id):
-                    mut_react[prot_id] = mut_react.get(prot_id, set())
-                    mut_react[prot_id].add(re_id)
+                for re in self.getAllReactions(mut_id):
+                    mut_react[re.prot_id] = mut_react.get(re.prot_id, set())
+                    mut_react[re.prot_id].add(re.re_id)
                     
                 for prot_id in mut_react:
                     del ref_react[prot_id]

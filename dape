@@ -239,8 +239,6 @@ def dmap(options, wdir, project):
                                         dreact[re_id] = colors.cnames['blue']
                                     elif re_id in ereacts[org_id]:
                                         dreact[re_id] = colors.cnames['yellow']
-                                    else:
-                                        dreact[re_id] = '#FFFFFF'
                             KC.setReactions(dreact)
                             KC.setMap(kegg.getPathway(path).html)
                             colorPaths.append(KC)
@@ -299,8 +297,6 @@ def dmap(options, wdir, project):
                                                 dreact[re_id] = colors.cnames['blue']
                                             elif re_id in ereacts[org_id]:
                                                 dreact[re_id] = colors.cnames['yellow']
-                                            else:
-                                                dreact[re_id] = '#FFFFFF'
                                     
                                     dcomp = {}            
                                     if path in cpaths:
@@ -313,8 +309,6 @@ def dmap(options, wdir, project):
                                                 dcomp[co_id] = rgb_to_hex(color).upper()
                                             elif co_id.lstrip('cpd:') in grey:
                                                 dcomp[co_id] = '#C0C0C0'
-                                            else:
-                                                dcomp[co_id] = '#FFFFFF'
                                     
                                     KC.setReactions(dreact)
                                     KC.setCompounds(dcomp)
@@ -428,8 +422,6 @@ def dmap(options, wdir, project):
                         dreact[re_id] = colors.cnames['blue']
                     elif re_id in disp:
                         dreact[re_id] = hexdisp[ndisp[re_id]]
-                    else:
-                        dreact[re_id] = '#FFFFFF'
                 KC.setReactions(dreact)
                 KC.setMap(kegg.getPathway(path).html)
                 colorPaths.append(KC)
@@ -509,8 +501,6 @@ def dmap(options, wdir, project):
                                     dreact[re_id] = colors.cnames['blue']
                                 elif re_id in disp:
                                     dreact[re_id] = hexdisp[ndisp[re_id]]
-                                else:
-                                    dreact[re_id] = '#FFFFFF'
                         
                         dcomp = {}            
                         if path in cpaths:
@@ -523,8 +513,6 @@ def dmap(options, wdir, project):
                                     dcomp[co_id] = rgb_to_hex(color).upper()
                                 elif co_id.lstrip('cpd:') in grey:
                                     dcomp[co_id] = '#C0C0C0'
-                                else:
-                                    dcomp[co_id] = '#FFFFFF'
                         
                         KC.setReactions(dreact)
                         KC.setCompounds(dcomp)
@@ -619,8 +607,6 @@ def dmap(options, wdir, project):
                                 dreact[re_id] = colors.cnames['blue']
                             elif re_id in ereacts[mut_id]:
                                 dreact[re_id] = colors.cnames['yellow']
-                            else:
-                                dreact[re_id] = '#FFFFFF'
                         KC.setReactions(dreact)
                         KC.setMap(kegg.getPathway(path).html)
                         colorPaths.append(KC)
@@ -681,8 +667,6 @@ def dmap(options, wdir, project):
                                             dreact[re_id] = colors.cnames['blue']
                                         elif re_id in ereacts[mut_id]:
                                             dreact[re_id] = colors.cnames['yellow']
-                                        else:
-                                            dreact[re_id] = '#FFFFFF'
                                 
                                 dcomp = {}            
                                 if path in cpaths:
@@ -695,8 +679,6 @@ def dmap(options, wdir, project):
                                             dcomp[co_id] = rgb_to_hex(color).upper()
                                         elif co_id.lstrip('cpd:') in grey:
                                             dcomp[co_id] = '#C0C0C0'
-                                        else:
-                                            dcomp[co_id] = '#FFFFFF'
                                 
                                 KC.setReactions(dreact)
                                 KC.setCompounds(dcomp)
@@ -868,8 +850,6 @@ def doFetchMaps(project, org_id, rpaths, cpaths, legend=None, category=None,
                     dreact[re_id] = colors.cnames['blue']
                 elif re_id in eorg:
                     dreact[re_id] = colors.cnames['yellow']
-                else:
-                    dreact[re_id] = '#FFFFFF'
                     
         # Compounds
         dcomp = {}
@@ -881,8 +861,6 @@ def doFetchMaps(project, org_id, rpaths, cpaths, legend=None, category=None,
                     color = cm.RdYlGn( numcolor )[:3]
                     color = tuple([int(round(x*255)) for x in color])
                     dcomp[co_id] = rgb_to_hex(color).upper()
-                else:
-                    dcomp[co_id] = '#FFFFFF'
         
         KC.setReactions(dreact)
         KC.setCompounds(dcomp)

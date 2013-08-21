@@ -893,24 +893,96 @@ pangenome_1256
                                 <p><b class="text-error">reactions_ORG_ID.tsv</b> reactions file</p>
                                 <p>A file in tab-delimited format containing all the KEGG reactions mapped to each protein inside the project; one file for each organism is exported.</p>
                                 <pre># Comment (ignored)
-#prot_id re_id
-gi|15963756|ref|NP_384109.1| R02413
-gi|15963757|ref|NP_384110.1| R00130
-gi|15963758|ref|NP_384111.1| R00375
-gi|15963758|ref|NP_384111.1| R00376
-gi|15963758|ref|NP_384111.1| R00377
-gi|15963758|ref|NP_384111.1| R00378
-gi|15963767|ref|NP_384120.1| R00713
+#prot_id re_id  name  description  pathway(s)
+gi|15963756|ref|NP_384109.1|  R02413  Shikimate:NADP+ 3-oxidoreductase  Shikimate + NADP+ <=> 3-Dehydroshikimate + NADPH + H+   map00400,map01100,map01110,map01230
+gi|15963757|ref|NP_384110.1|  R00130  ATP:dephospho-CoA 3'-phosphotransferase ATP + Dephospho-CoA <=> ADP + CoA   map00770,map01100
+gi|15963758|ref|NP_384111.1|  R00375  Deoxyadenosine 5'-triphosphate:DNA deoxynucleotidyltransferase (DNA-directed)   dATP + DNA <=> Diphosphate + DNA  map00230,map01100
+gi|15963758|ref|NP_384111.1|  R00376  Deoxyguanosine 5'-triphosphate:DNA deoxynucleotidyltransferase (DNA-directed)   dGTP + DNA <=> Diphosphate + DNA  map00230,map01100
+gi|15963758|ref|NP_384111.1|  R00377  Deoxycytidine triphosphate:DNA deoxynucleotidyltransferase (DNA-directed)   dCTP + DNA <=> Diphosphate + DNA  map00240,map01100
+gi|15963758|ref|NP_384111.1|  R00378  deoxythymidine triphosphate:DNA deoxynucleotidyltransferase (DNA-directed)  dTTP + DNA <=> Diphosphate + DNA  map00240,map01100
+gi|15963767|ref|NP_384120.1|  R00713  Succinate-semialdehyde:NAD+ oxidoreductase  Succinate semialdehyde + NAD+ + H2O <=> Succinate + NADH + H+map00250,map00350,map00650,map01100,map01120
 </pre>
+                                <p>The various fields are defined in the table below.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>prot_id</td>
+                                      <td>Protein ID</td>
+                                      <td>gi|15963756|ref|NP_384109.1|</td>
+                                    </tr>
+                                    <tr>
+                                      <td>re_id</td>
+                                      <td>Reaction ID</td>
+                                      <td>R04942</td>
+                                    </tr>
+                                    <tr>
+                                      <td>name</td>
+                                      <td>Reaction name</td>
+                                      <td>L-Serine hydro-lyase (adding homocysteine)</td>
+                                    </tr>
+                                    <tr>
+                                      <td>description</td>
+                                      <td>Reaction details</td>
+                                      <td>L-Serine + Selenohomocysteine <=> L-Selenocystathionine + H2O</td>
+                                    </tr>
+                                    <tr>
+                                      <td>pathway(s)</td>
+                                      <td>Pathways in which the reaction is mapped (comma separated list)</td>
+                                      <td>map00240,map01100</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+
                                 <p><b class="text-error">reactions_exclusive_ORG_ID.tsv</b> reactions file</p>
                                 <p>A file in tab-delimited format containing those KEGG reaction IDs that are exclusive to one organism when compared to the others; one file for each organism is exported (if they have at least one exclusive reaction). If the project contains multiple organisms and the pangenome has been estimated, one file for the core, dispensable, accessory and unique pangenome partitions is exported, containing the exclusive reactions for each partition.</p>
                                 <pre># Comment (ignored)
-#re_id
-R02413
-R00130
-R00375
-R00376
+#re_id  name    description     pathway(s)
+R04942  L-Serine hydro-lyase (adding homocysteine)  L-Serine + Selenohomocysteine <=> L-Selenocystathionine + H2O
+R01663  dCMP aminohydrolase  dCMP + H2O <=> dUMP + Ammonia  map00240,map01100
+R06979  Ectoine hydro-lyase  N-gamma-Acetyldiaminobutyrate <=> H2O + Ectoine map00260,map01100,map01120,map01210
+R01290  L-serine hydro-lyase (adding homocysteine; L-cystathionine-forming)  L-Serine + L-Homocysteine <=> L-Cystathionine + H2O   map00260
+R00891  L-serine hydro-lyase (adding hydrogen sulfide, L-cysteine-forming)  L-Serine + Hydrogen sulfide <=> L-Cysteine + H2O  map00260
 </pre>
+                                <p>The various fields are defined in the table below.</p>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>re_id</td>
+                                      <td>Reaction ID</td>
+                                      <td>R04942</td>
+                                    </tr>
+                                    <tr>
+                                      <td>name</td>
+                                      <td>Reaction name</td>
+                                      <td>L-Serine hydro-lyase (adding homocysteine)</td>
+                                    </tr>
+                                    <tr>
+                                      <td>description</td>
+                                      <td>Reaction details</td>
+                                      <td>L-Serine + Selenohomocysteine <=> L-Selenocystathionine + H2O</td>
+                                    </tr>
+                                    <tr>
+                                      <td>pathway(s)</td>
+                                      <td>Pathways in which the reaction is mapped (comma separated list)</td>
+                                      <td>map00240,map01100</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+
                                 <p><b class="text-error">ecnumbers_ORG_ID.tsv</b> E.C. numbers file</p>
                                 <p>A file in tab-delimited format containing all the <a href="http://en.wikipedia.org/wiki/Enzyme_Commission_number">E.C. numbers</a> mapped to each protein inside the project; one file for each organism is exported.</p>
                                 <pre># Comment (ignored)

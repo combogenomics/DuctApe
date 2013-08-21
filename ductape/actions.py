@@ -2015,10 +2015,12 @@ def dGenomeExport(project):
     for org in organism.getAll():
         fname = 'reactions_%s.tsv'%org.org_id
         fout = open(fname,'w')
-        fout.write('#%s\t%s\n'%('prot_id', 're_id'))
+        fout.write('#%s\t%s\t%s\t%s\t%s\n'%('prot_id', 're_id', 'name', 'description', 'pathway(s)'))
         i = 0
-        for prot_id, re_id in kegg.getAllReactions(org.org_id):
-            fout.write('%s\t%s\n'%(prot_id, re_id.lstrip('rn:')))
+        for re in kegg.getAllReactions(org.org_id):
+            paths = ','.join([p.path_id.lstrip('path:') for p in kegg.getReactPath(re.re_id)])
+            fout.write('%s\t%s\t%s\t%s\t%s\n'%(re.prot_id, re.re_id.lstrip('rn:'), re.name,
+                                  re.description, paths))
             i += 1
         fout.close()
         
@@ -2038,10 +2040,13 @@ def dGenomeExport(project):
             
             fname = 'reactions_exclusive_%s.tsv'%org.org_id
             fout = open(fname,'w')
-            fout.write('#%s\n'%'re_id')
+            fout.write('#%s\t%s\t%s\t%s\n'%('re_id', 'name', 'description', 'pathway(s)'))
             i = 0
             for re_id in eReacts[org.org_id]:
-                fout.write('%s\n'%re_id.lstrip('rn:'))
+                re = kegg.getReaction(re_id)
+                paths = ','.join([p.path_id.lstrip('path:') for p in kegg.getReactPath(re.re_id)])
+                fout.write('%s\t%s\t%s\t%s\n'%(re_id.lstrip('rn:'), re.name,
+                                  re.description, paths))
                 i += 1
             fout.close()
             
@@ -2069,10 +2074,13 @@ def dGenomeExport(project):
                 
                 fname = 'reactions_exclusive_%s.tsv'%org_id
                 fout = open(fname,'w')
-                fout.write('#%s\n'%'re_id')
+                fout.write('#%s\t%s\t%s\t%s\n'%('re_id', 'name', 'description', 'pathway(s)'))
                 i = 0
                 for re_id in eReacts[org_id]:
-                    fout.write('%s\n'%re_id.lstrip('rn:'))
+                    re = kegg.getReaction(re_id)
+                    paths = ','.join([p.path_id.lstrip('path:') for p in kegg.getReactPath(re.re_id)])
+                    fout.write('%s\t%s\t%s\t%s\n'%(re_id.lstrip('rn:'), re.name,
+                                  re.description, paths))
                     i += 1
                 fout.close()
                 
@@ -2092,10 +2100,13 @@ def dGenomeExport(project):
             
             fname = 'reactions_exclusive_%s.tsv'%label
             fout = open(fname,'w')
-            fout.write('#%s\n'%'re_id')
+            fout.write('#%s\t%s\t%s\t%s\n'%('re_id', 'name', 'description', 'pathway(s)'))
             i = 0
             for re_id in er:
-                fout.write('%s\n'%re_id.lstrip('rn:'))
+                re = kegg.getReaction(re_id)
+                paths = ','.join([p.path_id.lstrip('path:') for p in kegg.getReactPath(re.re_id)])
+                fout.write('%s\t%s\t%s\t%s\n'%(re_id.lstrip('rn:'), re.name,
+                              re.description, paths))
                 i += 1
             fout.close()
             

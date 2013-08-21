@@ -1730,10 +1730,11 @@ class Kegg(DBBase):
         Get all the prot_id, re_id pair iterator from a specific org_id
         '''
         query = '''
-                select distinct m.prot_id, re_id
-                from mapko m, protein p, ko_react r
+                select distinct m.prot_id, r.re_id, name, r1.description
+                from mapko m, protein p, ko_react r, reaction r1
                 where m.prot_id = p.prot_id
                 and m.ko_id = r.ko_id
+		        and r.re_id=r1.re_id
                 and org_id = ?;
                 '''
         
@@ -1741,7 +1742,7 @@ class Kegg(DBBase):
             cursor=conn.execute(query,[org_id,])
             
         for res in cursor:
-            yield res[0], res[1]
+            yield Row(res, cursor.description)
             
     def getAllECNumbers(self, org_id):
         '''
@@ -1900,6 +1901,20 @@ class Kegg(DBBase):
                 for re_id in pathreact[path_id]:
                     conn.execute('insert or ignore into react_path values (?,?);',
                                  (re_id,path_id,))
+    
+    def getReactPath(self, re_id):
+        '''
+        Get all the pathways linked to a reaction ID
+        '''
+        query = '''select distinct path_id
+                   from react_path
+                   where re_id = ?'''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query, [re_id,])
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
     
     def getPathReacts(self):
         '''

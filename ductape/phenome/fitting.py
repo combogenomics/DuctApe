@@ -55,7 +55,8 @@ def getFlex(x, y):
     Given two axes (with the same length!) returns a guess of the flex point
     '''
     if len(x) != len(y):
-        raise ValueError('Axes have different sizes (x: %d, y: %d)'%(len(x),len(y)))
+        logger.debug('Axes have different sizes (x: %d, y: %d)'%(len(x),len(y)))
+        return 0
     
     diffs = []
     indexes = range(len(x))
@@ -81,7 +82,8 @@ def getPlateau(x, y):
     Given two axes (with the same length!) returns a guess of the plateau point
     '''
     if len(x) != len(y):
-        raise ValueError('Axes have different sizes (x: %d, y: %d)'%(len(x),len(y)))
+        logger.debug('Axes have different sizes (x: %d, y: %d)'%(len(x),len(y)))
+        return 0
     
     ymax = y.max()
     

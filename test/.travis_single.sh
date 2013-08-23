@@ -24,6 +24,7 @@ echo -e $green"Single organism"$reset
 
 ./dphenome -v add test/input/Rm1021.csv Rm1021 || die "./dphenome -v add"
 ./dphenome -v zero || die "./dphenome -v zero"
+./dphenome start -g -e || die "./dphenome start (elbow)"
 ./dphenome start -f > /dev/null || die "./dphenome start"
 ./dphenome -v purge keep-max || die "./dphenome -v purge"
 ./dphenome -v restore || die "./dphenome -v restore"

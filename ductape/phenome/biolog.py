@@ -1130,7 +1130,7 @@ class Experiment(object):
         
         return dParams, dWells
     
-    def elbowTest(self, nrange=range(1, 13)):
+    def elbowTest(self, nrange=range(2, 13)):
         '''
         Perform an elbow test on the k-means clustering
         nrange should be a list with each n going to be used in the clusterization

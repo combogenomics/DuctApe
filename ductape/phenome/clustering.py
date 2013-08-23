@@ -29,10 +29,10 @@ def plotElbow(d, param_labels):
     
     figsize = (len(d[d.keys()[0]][0])/2) + (len(d[d.keys()[0]][0])%2)  
     
-    fig = plt.figure(figsize=(8, 3.5*figsize))
+    fig = plt.figure(figsize=(3.5*figsize, 8))
     fig.clf()
     for j in range(len(d[d.keys()[0]][0])):
-        ax = fig.add_subplot(figsize, 2, figidx)
+        ax = fig.add_subplot(2, figsize, figidx)
         
         figidx += 1
         

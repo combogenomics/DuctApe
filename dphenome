@@ -306,26 +306,26 @@ def doClusterPhenome(project, save_fig_clusters=False,
     if elbow:
         logger.info('Elbow test')
         exp.elbowTest()
-    
-    # Put in the DB!
-    wells = [w for w in exp.getWells(params=False)]
-    for w in wells:
-        if biolog.isZeroSubtracted(w.plate_id, w.well_id, w.strain, w.replica):
-            w.zero = True
-    
-    biolog.addWells(wells, clustered=True, replace=True)
-    
-    logger.info('Analyzed and clustered %d phenomic experiments'%len(wells))
-    
-    # Check if we have mixed parameter sources
-    sources = set([x.source for x in biolog.getParamsSources()])
-    if len(sources) > 1:
-        logger.warning('The curve parameters have been calculated with '+
-                       '%d methods!'%len(sources))
-        for s in sources:
-            logger.warning('Method: %s'%s)
-        logger.warning('You may want to run %s start -r to force '%(__prog__)+
-                       ' force a single method parameter calculation')
+    else:
+	    # Put in the DB!
+	    wells = [w for w in exp.getWells(params=False)]
+	    for w in wells:
+	        if biolog.isZeroSubtracted(w.plate_id, w.well_id, w.strain, w.replica):
+	            w.zero = True
+	    
+	    biolog.addWells(wells, clustered=True, replace=True)
+	    
+	    logger.info('Analyzed and clustered %d phenomic experiments'%len(wells))
+	    
+	    # Check if we have mixed parameter sources
+	    sources = set([x.source for x in biolog.getParamsSources()])
+	    if len(sources) > 1:
+	        logger.warning('The curve parameters have been calculated with '+
+	                       '%d methods!'%len(sources))
+	        for s in sources:
+	            logger.warning('Method: %s'%s)
+	        logger.warning('You may want to run %s start -r to force '%(__prog__)+
+	                       ' force a single method parameter calculation')
         
     # Parameters numerosity on the fly
     if not elbow:

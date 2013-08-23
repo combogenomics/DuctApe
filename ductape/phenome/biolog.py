@@ -1102,13 +1102,7 @@ class Experiment(object):
         except ZeroDivisionError:
             return 0
     
-    def clusterize(self, save_fig=False, n_clusters=10):
-        '''
-        Perform the biolog data clusterizzation
-        The data is divided in two chunks if Zero subtraction has been done
-        '''
-        from ductape.phenome.clustering import mean, kmeans, plotClusters
-        
+    def _prepareClusters(self):
         if self.zero:
             dWells = {'zero':[],
                       'nonzero':[]}
@@ -1118,7 +1112,6 @@ class Experiment(object):
             dWells = {'nonzero':[]}
             dParams = {'nonzero':[]}
         
-        params_labels = ['max', 'area', 'height', 'lag', 'slope']
         for param in self.getWells():
             if self.zero and param.plate_id in self.zeroPlates:
                 dWells['zero'].append(param)
@@ -1134,6 +1127,46 @@ class Experiment(object):
                                            self.normalizeParam('height', purgeNAN(param.height)),
                                            self.normalizeParam('lag', purgeNAN(param.lag)),
                                            self.normalizeParam('slope', purgeNAN(param.slope))])
+        
+        return dParams, dWells
+    
+    def elbowTest(self, nrange=range(1, 13)):
+        '''
+        Perform an elbow test on the k-means clustering
+        nrange should be a list with each n going to be used in the clusterization
+        '''
+        from ductape.phenome.clustering import _kmeans
+        from ductape.phenome.clustering import getSseKmeans
+        from ductape.phenome.clustering import plotElbow
+        
+        params_labels = ['max', 'area', 'height', 'lag', 'slope']
+        
+        dParams, dWells = self._prepareClusters()
+        if self.zero:
+            params = dParams['zero'] + dParams['nonzero']
+        else:
+            params = dParams['nonzero']
+        
+        X = np.array( params )
+        
+        dSse = {}
+        for n_clust in nrange:
+            logger.info('K-means clusterization (k=%d)'%n_clust)
+            k_means = _kmeans(X, n_clust)
+            dSse[n_clust] = getSseKmeans(k_means, X)
+        
+        plotElbow(dSse, params_labels)
+    
+    def clusterize(self, save_fig=False, n_clusters=10):
+        '''
+        Perform the biolog data clusterizzation
+        The data is divided in two chunks if Zero subtraction has been done
+        '''
+        from ductape.phenome.clustering import mean, kmeans, plotClusters
+        
+        params_labels = ['max', 'area', 'height', 'lag', 'slope']
+        
+        dParams, dWells = self._prepareClusters()
         
         # Add some fake wells with no signal to make sure we will got a 
         # "zero cluster"
@@ -2084,6 +2117,7 @@ class BiologCluster(CommonThread):
     
     def __init__(self,experiment,
                  save_fig_clusters=False, force_params=False, n_clusters=10,
+                 elbow=False,
                  queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         # Experiment
@@ -2096,8 +2130,11 @@ class BiologCluster(CommonThread):
         self.save_fig = bool(save_fig_clusters)
         
         # Force parameters calculation (even if they are there already?)
-        self.force = force_params
-    
+        self.force = bool(force_params)
+        
+        # Elbow test instead of clusterization?
+        self.elbow = bool(elbow)
+        
     def calculateParams(self):
         wellcount = 0
         for w in self.exp.getWells(params=False):
@@ -2126,7 +2163,7 @@ class BiologCluster(CommonThread):
             return
         self.resetSubStatus()
         
-        if self.killed:
+        if self.killed or self.elbow:
             return
         
         self.updateStatus()

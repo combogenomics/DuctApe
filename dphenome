@@ -81,7 +81,8 @@ def dstart(options, wdir, project):
         # Clusterize the biolog experiment
         if not doClusterPhenome(project, save_fig_clusters=options.f,
                                 force_params=options.r,
-                                n_clusters=options.clusters):
+                                n_clusters=options.clusters,
+                                elbow=options.e):
             logger.error('Phenome experiment could not be clustered!')
             return False
 
@@ -271,14 +272,21 @@ def dclear(options, wdir, project):
         return False
     return dPhenomeClear(project)
 
-def doClusterPhenome(project, save_fig_clusters=False,
-                     force_params=False, n_clusters=10):
+def _prepareClust(project):
     biolog = Biolog(project)
     # Get Plate Objects
     # TODO: here check the zero subtraction state? (it may be mixed up)
     sigs = [s for s in biolog.getAllSignals()]
     plates = [p for p in getPlates(sigs)]
     isZero = biolog.atLeastOneZeroSubtracted()
+    
+    return plates, isZero
+
+def doClusterPhenome(project, save_fig_clusters=False,
+                     force_params=False, n_clusters=10, elbow=False):
+    plates, isZero = _prepareClust(project)
+
+    biolog = Biolog(project)
 
     if len(plates) == 0:
         logger.warning('No phenomic data available, skipping clustering')
@@ -289,10 +297,15 @@ def doClusterPhenome(project, save_fig_clusters=False,
     exp = Experiment(plates=plates, zero=isZero, zeroPlates=zeroPlates)
     
     bclust = BiologCluster(exp, save_fig_clusters=save_fig_clusters,
-                           force_params=force_params, n_clusters=n_clusters)
+                           force_params=force_params, n_clusters=n_clusters,
+                           elbow=elbow)
         
     if not RunThread(bclust):
         return False
+        
+    if elbow:
+        logger.info('Elbow test')
+        exp.elbowTest()
     
     # Put in the DB!
     wells = [w for w in exp.getWells(params=False)]
@@ -315,10 +328,13 @@ def doClusterPhenome(project, save_fig_clusters=False,
                        ' force a single method parameter calculation')
         
     # Parameters numerosity on the fly
-    logger.info('Activity index distribution')
-    dist = biolog.getActivityDistribution()
-    for act in sorted(dist.keys()):
-        logger.info('Activity: %d, Number of wells %d'%(act, dist[act]))
+    if not elbow:
+        logger.info('Activity index distribution')
+        dist = biolog.getActivityDistribution()
+        for act in sorted(dist.keys()):
+            logger.info('Activity: %d, Number of wells %d'%(act, dist[act]))
+    else:
+        logger.warning('Activity index has not been calculated yet!')
     
     return True
 
@@ -439,6 +455,9 @@ def getOptions():
                             type=int,
                             default=10,
                             help='Number of clusters to be used [Default: 10]')
+    parser_start.add_argument('-e', action="store_true",
+                            default=False,
+                help='Perform an elbow test to choose the best "n" parameter')
     parser_start.set_defaults(func=dstart)
     
     parser_plot = subparsers.add_parser('plot', help='Plot the phenomic data')

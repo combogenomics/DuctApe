@@ -17,6 +17,39 @@ __author__ = "Marco Galardini"
 
 logger = logging.getLogger('ductape.clustering')
 
+def plotElbow(d, param_labels):
+    from scipy.interpolate import interp1d
+    import matplotlib.pyplot as plt
+    
+    logger.info('Saving elbow test plots')
+    
+    x_new = np.linspace(-1, max(d.keys()), 100)
+    
+    figidx = 1
+    
+    figsize = (len(d[d.keys()[0]][0])/2) + (len(d[d.keys()[0]][0])%2)  
+    
+    fig = plt.figure(figsize=(8, 3.5*figsize))
+    fig.clf()
+    for j in range(len(d[d.keys()[0]][0])):
+        ax = fig.add_subplot(figsize, 2, figidx)
+        
+        figidx += 1
+        
+        diffs = {}
+        for i in d:
+            diffs[i] = np.array([p[j] for p in d[i]]).mean()
+        
+        inter = interp1d(d.keys(), [diffs[i] for i in d], bounds_error=False,
+                     kind='cubic')
+        ax.plot(d.keys(),[diffs[i] for i in d],'o', x_new, inter(x_new),'-')
+        ax.set_ylabel('Sum of squared errors')
+        ax.set_xlabel('Num. clusters')
+        ax.set_title(param_labels[j])
+        
+    fig.tight_layout()
+    fig.savefig('elbow.png',dpi=300)
+
 def plotClusters(X, labels, params=None, method='', prefix='clusters'):
     from ductape.common.utils import slice_it
     import matplotlib.pyplot as plt
@@ -91,6 +124,32 @@ def mean(X, save_fig=False, params_labels=None, prefix='clusters'):
     
     return labels
 
+def _kmeans(X, n_clusters):
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        
+        k_means = KMeans(init='random', k=n_clusters, n_init=100, max_iter=1000)
+        k_means.fit(X)
+        
+    return k_means
+
+def getSseKmeans(k_means, X):
+    '''
+    Returns a list of sums of squared errors
+    '''
+    import math
+    
+    sse=[]
+    for j in range(len(k_means.labels_)):
+        c = k_means.labels_[j]
+        ref = k_means.cluster_centers_[c]
+        dist = []
+        for k in range(len(ref)):
+            dist.append(math.pow(X[j][k] - ref[k], 2))
+        sse.append(dist)
+        
+    return sse
+
 def kmeans(X, n_clusters=10, save_fig=False, params_labels=None, prefix='clusters'):
     '''
     Compute clustering with KMeans
@@ -99,11 +158,7 @@ def kmeans(X, n_clusters=10, save_fig=False, params_labels=None, prefix='cluster
     
     X = np.array( X )
     
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        
-        k_means = KMeans(init='random', k=n_clusters, n_init=100, max_iter=1000)
-        k_means.fit(X)
+    k_means = _kmeans(X, n_clusters)
     
     labels = k_means.labels_
     

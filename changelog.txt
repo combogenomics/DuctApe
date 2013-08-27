@@ -1,3 +1,16 @@
+Version 0.10.0
+==============
+
+UPGRADE URGENCY: HIGH, in some cases there were crashes during curve parameters estimation
+
+FEATURES:
+* dphenome start: new option to plot an elbow test (-e)
+* dgenome export: more details in the reactions files
+
+BUGFIXES:
+* dphenome start: avoid crashes when estimating plateau and lag time for PM curves
+* dape map: reduced risks of crashes when downloading KEGG maps
+
 Version 0.9.6
 =============
 

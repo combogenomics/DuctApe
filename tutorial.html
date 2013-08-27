@@ -195,7 +195,7 @@ dape add AK58 -c orange -n "Sinorhizobium meliloti"</pre></p>
                         
                         The project file now contains the list of all the orthologous groups (OGs), also termed "pangenome". Those proteins found in all the 4 strains will be labelled as "core", the other "dispensable": the dispensable genome is further divided into "accessory", when a gene is present in at least two strains, and "unique", when a gene is present in exactly one strain. Since two orthologs have a common ancestor, they should retain a similar function; this may be especially true for the <i>S. meliloti</i> strains of this study, which belong to the same species. Therefore if a protein with no KEGG annotation has orthologs wich are annotated, we can transfer their annotation. Those genes whose KEGG annotation has been inferred with this method are flagged inside the project file, and can be de-annotated at will.
                         
-                        <img src="img/io/annotate.png"/>
+                        <p><img src="img/io/annotate.png"/></p>
 						<p class="muted"><small><i class="icon-picture"></i> The outer circle represents a OG, each smaller circle a protein from each strain; only the gene from strain AK58 has a KEGG annotation. The <code>annotate</code> command will transfer that annotation to the other proteins inside the OG.</small></p>
                         
                         <p><code>dgenome annotate</code></p>

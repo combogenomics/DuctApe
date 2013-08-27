@@ -750,7 +750,7 @@
                           </div>
                         </div>
                                 
-                        <p>The growth curves parameters (min, max, height, plateau, slope, lag, area, v, y0) are extracted through a fit to one of the following sigmoid functions: logistic, gompertz and richards; some of the extracted parameters (max, area, height, lag, slope) are used to perform a k-means clustering on all the growth curves, thus obtaining the so-called <b>Activity Index (AV)</b>, which with the dafault settings goes from 0 (no activity) to 9 (max activity). Using the -n option the user can decide the number of clusters and therefore the highest value for the AV.</p>
+                        <p>The growth curves parameters (min, max, height, plateau, slope, lag, area, v, y0) are extracted through a fit to one of the following sigmoid functions: logistic, gompertz and richards; some of the extracted parameters (max, area, height, lag, slope) are used to perform a k-means clustering on all the growth curves, thus obtaining the so-called <b>Activity Index (AV)</b>, which with the dafault settings goes from 0 (no activity) to 9 (max activity). Using the -n option the user can decide the number of clusters and therefore the highest value for the AV. The optimal number of clusters may be decided by using the -e option.</p>
                         <div class="accordion">
                           <div class="accordion-group">
                             <div class="accordion-heading">
@@ -769,6 +769,8 @@
                                 <dd>Force parameters recalculation</dd>
                                 <dt>-n</dt>
                                 <dd>Number of clusters to be used for AV calculation [Default: 10]</dd>
+								<dt>-e</dt>
+                                <dd>Perform an elbow test to choose the best "n" parameter</dd>
                                 </dl>                                                  
                                 <p><code>dphenome start</code></p>
                               </div>

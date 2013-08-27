@@ -629,6 +629,7 @@ carbon cpd:C00064 L-Glutamine; L-2-Aminoglutaramic acid nan 6.1 6.1
                                   <ul>
                                     <li>White: reaction not present</li>
                                     <li>Blue: reaction present in the organism</li>
+									<li>Yellow: reaction exclusively present in the organism (only in pangenomic projects)</li>
                                   </ul>
                                   <li>Compounds:</li>
                                   <ul>
@@ -1476,6 +1477,9 @@ PM33C B04 0 A01 L-Fucose CAS 2438-80-4 C01019 C-Source, carbohydrate carbon
                                 <p><b class="text-error">nonzero_kmeans.png</b> PM data clusterization details</p>
                                 <p>A scatter plot showing the relationships between each curve parameter and the clusterization of each curve. Each dot represent a distinct curve, while the color is relative to the AV (red, lower cluster; green highest cluster). The clusters are ordered by the area parameter. This plot shows the parameters of those curves in which the control signal has NOT been subtracted.</p>
                                 <img src="img/io/nonzero_kmeans.png"/>
+								<p><b class="text-error">elbow.png</b> PM data clusterization elbow test</p>
+                                <p>An <a href="http://en.wikipedia.org/wiki/Determining_the_number_of_clusters_in_a_data_set#The_Elbow_Method">elbow test</a> plot that may be used to decide the optimal number of clusters for the PM data; as a rule of thumb, the number of clusters that reduces the most the sum of sqaured errors should be used.</p>
+								<img src="img/io/elbow.png"/>
                               </div>
                             </div>
                           </div>

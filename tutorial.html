@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Tutorial &lt;&lt; DuctApe, genomics and phenomics made easy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DuctApe, Analyze and link genomics and phenomics experiments, using KEGG metabolic pathways and Biolog Phenotype Microarrays. Step-by-step tutorial.">
+    <meta name="author" content="Marco Galardini" >
+    
+    <!-- Le meta tag to refresh the cache -->
+    <meta http-equiv="last-modified" content="Tue, 27 Aug 2013 15:00:00 CET" />
+
+    <!-- Le styles -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/custom.css" rel="stylesheet">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le fav and touch icons -->
+    <link rel="shortcut icon" href="favicon.ico">
+  </head>
+
+  <body>
+      <div class="navbar navbar-static-top">
+      <div class="navbar-inner">
+        <div class="container">
+
+        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </a>
+ 
+      <a class="brand" href="index.html">DuctApe</a>
+ 
+      <div class="nav-collapse collapse brandmini">
+          <div class="nav"><a href="https://github.com/combogenomics/DuctApe/archive/latest.tar.gz"><i class="icon-download"></i> Download &raquo;</a></div>
+          <div class="nav"><a href="info.html"><i class="icon-info-sign"></i> More info</a></div>
+          <div class="nav"><a href="howto.html"><i class="icon-info-sign"></i> Howto</a></div>
+          <div class="nav"><a href="io.html"><i class="icon-info-sign"></i> Inputs/Outputs</a></div>
+      </div>
+ 
+      </div>
+        </div>  
+      </div>
+
+    <div class="container">
+      <div id="home">
+              <div class="row">
+                <noscript>
+                  <div class="alert alert-error">
+                    <strong>Whoops! You have javascript disabled</strong>
+                      <br/>                
+                    You may be unable to enjoy this site, sorry :(
+                  </div>
+                 </noscript>
+               </div>      
+      
+              <div class="row">
+                <div class="span3 hidden-phone">
+            <ul class="nav nav-list da-docs-sidenav">
+            <li><a href="#start"><i class="icon-chevron-right"></i> Tutorial</a></li>
+              <li><a href="#setup"><i class="icon-chevron-right"></i> Setup</a></li>
+              <li><a href="#genome"><i class="icon-chevron-right"></i> Genome</a></li>
+              <li><a href="#phenome"><i class="icon-chevron-right"></i> Phenome</a></li>
+              <li><a href="#combined"><i class="icon-chevron-right"></i> Combined</a></li>
+            </ul>
+              </div>
+              <div class="span9" id="howto">
+                  <div class="dwell">
+                          <div id="start">
+                      <div class="page-header">
+                        <h1><div class="title">Tutorial</div></h1>
+                        <h1><div class="title"><small>Step-by-step tutorial on a real world dataset</small></div></h1>
+                      </div>
+                      <p>This tutorial will cover the complete analysis on the pangenome/panphenome of four <i>Sinorhizobium meliloti</i> strains, with discussions on the results and their biological interpretation. The same results can be obtained by downloading the <a href="https://github.com/combogenomics/ductape_data">ductape_data package</a> (folder <a href="https://github.com/combogenomics/ductape_data/tree/master/smeliloti">smeliloti</a>); <a href="https://raw.github.com/combogenomics/ductape_data/master/smeliloti/runDuctApe">the whole set of commands used in this tutorial are provided as well</a>. This tutorial takes for granted that you may have at least some basic experience on the usage of the command line.</p>
+					  
+					  <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse3"><i class="icon-chevron-right"></i> <b class="text-success">Commands list</b> quick reference for this tutorial</a>
+                            </div>
+                            <div id="collapse3" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <p><pre>#!/bin/bash
+
+# Setup the project
+dape init
+dape add Rm1021 -c red
+dape add BL225C -c green
+dape add AK83 -c blue
+dape add AK58 -c orange
+
+# Add the genomic data and KAAS outputs
+dgenome add-dir genome/
+dgenome add-ko kegg/AK58.tab kegg/AK83.tab kegg/Rm1021.tab kegg/BL225C.tab
+
+# Pangenome estimation/KEGG mapping
+dgenome start -n 4 -p SinMel_
+
+# Annotate the orthologs w/o KEGG IDs
+dgenome annotate
+
+# Statistics and exports
+dgenome stats > genome_stats.tsv
+dgenome export
+
+# Add the phenomic data
+dphenome add-dir phenome
+
+# Control signal subtraction
+dphenome zero
+
+# Parameters calculation and Elbow test to decide the value of k
+dphenome start -e -g
+# AV/parameters calculation (k=5)
+dphenome start -f -n 5
+
+# Curve plots
+dphenome plot
+
+# Activity rings
+dphenome rings
+mv ActivityRing.png ActivityOverall.png
+dphenome rings -o Rm1021 -d 2
+
+# Statistics and exports (including YAML files) 
+dphenome stats -a 3 -d 2 > phenome_stats.tsv
+dphenome export
+
+# Pathway maps
+dape map -d 3
+dape map -a
+
+# Combined genomic/phenomic analysis
+dape start -n 4 -p -t 2
+dape start -a -p -t 2</pre></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+					  
+                      <p>For further questions and updates, please contact <a href="mailto:ductape-users@googlegroups.com">ductape-users@googlegroups.com</a> or subscribe to the <a href="https://groups.google.com/forum/?fromgroups#!forum/ductape-users">user group</a></p>
+                    </div>
+                    
+              
+                    <div id="setup">
+                      <div class="page-header">
+                        <h1><div class="minititle">Setup
+                        <small>Project setup</small>
+                        </div></h1>
+                      </div>
+                      <p>
+                        DuctApe relies on a single file (by default called ductape.db), in which all the information will be stored and from which all the outputs can be generated. The first step in the analysis is to create this file and to add the analyzed strains to it.
+                      </p>
+                        <p>
+                          <p><code>dape init</code></p>
+                          
+                          A file named "ductape.db" should be now present in the current directory.
+                          
+                          <p><pre>dape add Rm1021 -c red -n "Sinorhizobium meliloti" -d "Reference strain"
+dape add BL225C -c green -n "Sinorhizobium meliloti"
+dape add AK83 -c blue -n "Sinorhizobium meliloti"
+dape add AK58 -c orange -n "Sinorhizobium meliloti"</pre></p>
+
+                          The project file now contains the name of the strains whose genomes and phenomes will be added and analyzed; the strain name provided with the <code>add</code> command should be used also in the genomic and phenomic files. We have also assigned a specific color for each strain: the Rm1021 reference strain will have the red color.
+                        </p>
+                    
+                    </div>
+                    
+                    <div id="genome">
+                        <div class="page-header">
+                          <h1><div class="minititle">Genome
+                          <small>KEGG annotation and pangenome estimation</small></div></h1>
+                        </div>
+                        <p>
+                        The genome is added to the project file by providing a FASTA file with all the protein sequences belonging to each strain. The easiest way to add more than one genome is to prepare a directory with one file for each genome, named ORGID.faa and use the <code>add-dir</code> command; just substitute ORGID with the strain names provided when setting up the project.
+                        
+                        <p><code>dgenome add-dir genome</code></p>
+                        
+                        In order to obtain a metabolic reconstruction of each genome, the proteins need to be mapped to the <a href="http://www.genome.jp/kegg/ko.html">KEGG orthology database</a>: the KO IDs then obtained can be used to map each protein to reactions and pathways. Unless you have access to a KEGG database dump (which is <a href="http://www.bioinformatics.jp/en/keggftp.html">behind a paywall since 2010</a>), the best way to map a genome to KEGG is to use the <a href="http://www.genome.jp/tools/kaas/">KAAS web-server</a>; since it has no API access, the user is expected to manually analyze each genome and to collect the tabulated file containing the KO IDs. The KAAS output file will be then imported into the project file, using the <code>add-ko</code> command.
+                        
+                        <p><code>dgenome add-ko kegg/AK58.tab kegg/AK83.tab kegg/Rm1021.tab kegg/BL225C.tab</code></p>
+                        
+                        The project file now contains all the informations needed to perform the full annotation to KEGG and the pangenome calculation. Up to 4 CPUs will be used to speed up the Blast-BBH; the computer needs to be connected to the internet in order to access the KEGG API and map each KO ID to reactions and pathways.
+                        
+                        <p class="muted"><small><i class="icon-flag"></i> Keep in mind that other programs may be used to infer the pangenome, and their results may be imported with the <code>add-orth</code> command.</small></p>
+                        
+                        <p><code>dgenome start -n 4 -p SinMel_</code></p>
+                        
+                        The project file now contains the list of all the orthologous groups (OGs), also termed "pangenome". Those proteins found in all the 4 strains will be labelled as "core", the other "dispensable": the dispensable genome is further divided into "accessory", when a gene is present in at least two strains, and "unique", when a gene is present in exactly one strain. Since two orthologs have a common ancestor, they should retain a similar function; this may be especially true for the <i>S. meliloti</i> strains of this study, which belong to the same species. Therefore if a protein with no KEGG annotation has orthologs wich are annotated, we can transfer their annotation. Those genes whose KEGG annotation has been inferred with this method are flagged inside the project file, and can be de-annotated at will.
+                        
+                        <img src="img/io/annotate.png"/>
+						<p class="muted"><small><i class="icon-picture"></i> The outer circle represents a OG, each smaller circle a protein from each strain; only the gene from strain AK58 has a KEGG annotation. The <code>annotate</code> command will transfer that annotation to the other proteins inside the OG.</small></p>
+                        
+                        <p><code>dgenome annotate</code></p>
+                        
+                        Once that all the analysis on the genomic data have been conducted, a series of statistics can be drawn, in order to understand if there are differences between the four strains.
+                        
+                        <p><code>dgenome stats</code></p>
+                        
+                        <img src="img/io/pangenome_shape.png"/>
+                        <p class="muted"><small><i class="icon-file"></i> pangenome_shape.png</small></p>
+                        
+                        Since the four strains belong to the same species, most of their genes are conserved (nearly 60%); still, we observe that a significant fraction of the genes have a different presence/absence pattern in the four strains. This could mean that their metabolic reconstruction may exhibit some interesting differences.
+                        
+                        <img src="img/io/single.png"/>
+                        <p class="muted"><small><i class="icon-file"></i> single.png</small></p>
+                        
+                        <table class="table table-striped table-bordered">
+                            <thead>
+                              <tr>
+                                <th>ID</th>
+                                <th>name</th>
+                                <th>description</th>
+                                <th>proteome size</th>
+                                <th>mapped to kegg</th>
+                                <th>KEGG orthology IDs</th>
+                                <th>pathways</th>
+                                <th>reactions</th>
+                                <th>unique reactions</th>
+                                <th>exclusive reaction IDs</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td>AK58</td>
+                                <td>Sinorhizobium meliloti</td>
+                                <td></td>
+                                <td>6934</td>
+                                <td>3122</td>
+                                <td>1907</td>
+                                <td>122</td>
+                                <td>3051</td>
+                                <td>1326</td>
+                                <td>9</td>
+                              </tr>
+                              <tr>
+                                <td>AK83</td>
+                                <td>Sinorhizobium meliloti</td>
+                                <td></td>
+                                <td>6510</td>
+                                <td>3070</td>
+                                <td>1888</td>
+                                <td>122</td>
+                                <td>2934</td>
+                                <td>1316</td>
+                                <td>5</td>
+                              </tr>
+                              <tr>
+                                <td>BL225C</td>
+                                <td>Sinorhizobium meliloti</td>
+                                <td></td>
+                                <td>6359</td>
+                                <td>3122</td>
+                                <td>1916</td>
+                                <td>122</td>
+                                <td>3089</td>
+                                <td>1328</td>
+                                <td>7</td>
+                              </tr>
+                              <tr>
+                                <td>Rm1021</td>
+                                <td>Sinorhizobium meliloti</td>
+                                <td>Reference strain</td>
+                                <td>6218</td>
+                                <td>3188</td>
+                                <td>1919</td>
+                                <td>122</td>
+                                <td>2981</td>
+                                <td>1323</td>
+                                <td>0</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                          <p class="muted"><small><i class="icon-th-list"></i> First output table</small></p>
+                          
+                          The four strains have a similar number of genes (blue bar and "proteome size" column), as well as a similar number of proteins annotated with a KEGG orthology ID (yellow bar and "mapped to KEGG" column); since most of the KO IDs are mapped to a specific enzymatic reaction, also the number of KEGG reactions (and univoque reactions IDs) are similar between the four strains (red bars and "reactions/unique reactions" columns). This output suggests that the differences in the metabolic network of these four strains may indeed be limited to a few genes/reactions; in fact, the column "exclusive reaction IDs" reports those reaction IDs that are found exclusively in one strain. While the reference strain has no such reactions, the other three strains have a few exclusive metabolic features. The <code>export</code> command will output these reaction IDs.
+                          
+                          <p class="muted"><small><i class="icon-flag"></i> Even though only half of the genes of each genome has been mapped to KEGG, keep in mind that many genes are not directly related to the metabolism, and are therefore impossible to be annotated through KEGG.</small></p>
+                          
+                          <img src="img/io/pangenome_stats.png"/>
+                          <p class="muted"><small><i class="icon-file"></i> pangenome_stats.png</small></p>
+                          
+                          <table class="table table-striped table-bordered">
+                            <thead>
+                              <tr>
+                                <th>kind</th>
+                                <th>size</th>
+                                <th>mapped to kegg</th>
+                                <th>KEGG orthology IDs</th>
+                                <th>pathways</th>
+                                <th>reactions</th>
+                                <th>unique reactions</th>
+                                <th>exclusive reaction IDs</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td>core</td>
+                                <td>5077</td>
+                                <td>2802</td>
+                                <td>1846</td>
+                                <td>122</td>
+                                <td>2757</td>
+                                <td>1304</td>
+                                <td>1017</td>
+                              </tr>
+                              <tr>
+                                <td>dispensable</td>
+                                <td>3826</td>
+                                <td>815</td>
+                                <td>379</td>
+                                <td>98</td>
+                                <td>575</td>
+                                <td>331</td>
+                                <td> 44</td>
+                              </tr>
+                              <tr>
+                                <td>accessory</td>
+                                <td>1225</td>
+                                <td>304</td>
+                                <td>220</td>
+                                <td>78</td>
+                                <td>288</td>
+                                <td>180</td>
+                                <td> 22</td>
+                              </tr>
+                              <tr>
+                                <td>unique</td>
+                                <td>2601</td>
+                                <td>511</td>
+                                <td>240</td>
+                                <td>83</td>
+                                <td>287</td>
+                                <td>219</td>
+                                <td> 21</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                          <p class="muted"><small><i class="icon-th-list"></i> Second output table</small></p>
+                          
+                          When the same analysis is applied to the pangenome, similar conclusions can be drawn. Most of the genes that are annotated by KEGG belong to the conserved "core" fraction, while only 815 genes from the dispensable genome are mapped to the metabolic maps. This implies that the majority of the metabolic features of these four strains will be conserved. By looking at the "exclusive reaction IDs" column (light red bar in the graph), it may be noticed that some reaction IDs (that are distinct metabolic reactions) are found only inside the variable (dispensable) pangenome fraction, meaning that they are not shared by the four strains. <b>In conclusion, it appears that some metabolic variability should be expected and it may be related to this genetic variability.</b>
+                          
+                          <p><code>dgenome export</code></p>
+                          
+                          <p><pre>#re_id  name   description    pathway(s)
+R04942  L-Serine hydro-lyase (adding homocysteine)    L-Serine + Selenohomocysteine <=> L-Selenocystathionine + H2O  
+R01663  dCMP aminohydrolase    dCMP + H2O <=> dUMP + Ammonia  map00240,map01100
+R06979  Ectoine hydro-lyase    N-gamma-Acetyldiaminobutyrate <=> H2O + Ectoine map00260,map01100,map01120,map01210
+R01290  L-serine hydro-lyase (adding homocysteine; L-cystathionine-forming)    L-Serine + L-Homocysteine <=> L-Cystathionine + H2O    map00260,map00270,map01100,map01230
+R00891  L-serine hydro-lyase (adding hydrogen sulfide, L-cysteine-forming)    L-Serine + Hydrogen sulfide <=> L-Cysteine + H2O      map00260</pre></p>
+                          <p class="muted"><small><i class="icon-file"></i> reactions_exclusive_AK83.tsv</small></p>
+                          
+                          <p><pre>#re_id  name  description  pathway(s)
+R00489  L-aspartate 1-carboxy-lyase (beta-alanine-forming)  L-Aspartate <=> beta-Alanine + CO2  map00410,map00770,map01100,map01110
+R01682  3-Sulfo-L-alanine carboxy-lyase (taurine-forming)  L-Cysteate <=> Taurine + CO2  map00430,map01100
+R00374  glycine:acceptor oxidoreductase (cyanide-forming)  Glycine + 2 Acceptor <=> Cyanide + CO2 + 2 Reduced acceptor + H+  map00460,map01100
+R00261  L-glutamate 1-carboxy-lyase (4-aminobutanoate-forming)  L-Glutamate <=> 4-Aminobutanoate + CO2  map00250,map00650,map01100
+R01521  beta-D-Glucose:NADP+ 1-oxoreductase  beta-D-Glucose + NADP+ <=> D-Glucono-1,5-lactone + NADPH + H+  map00030,map01120
+R01520  beta-D-Glucose:NAD+ 1-oxoreductase  beta-D-Glucose + NAD+ <=> D-Glucono-1,5-lactone + NADH + H+  map00030,map01120
+R01154  acetyl-CoA:putrescine N-acetyltransferase  Acetyl-CoA + Putrescine <=> CoA + N-Acetylputrescine  map00330,map01100
+R02466  3-Sulfino-L-alanine carboxy-lyase  3-Sulfino-L-alanine <=> Hypotaurine + CO2  map00430,map01100
+R05704  glycine:acceptor oxidoreductase (hydrogen-cyanide-forming)  Glycine + 2 Acceptor <=> Hydrogen cyanide + CO2 + 2 Reduced acceptor</pre></p>
+                          <p class="muted"><small><i class="icon-file"></i> reactions_exclusive_AK58.tsv</small></p>
+                          
+                          <p><pre>#re_id  name  description  pathway(s)
+R06199  None  Starch(n+1) + H2O <=> alpha-D-Glucose + Starch(n)
+R07659  None  UDP-L-Ara4O + L-Glutamate <=> UDP-L-Ara4N + 2-Oxoglutarate  map00520,map01110
+R01790  1,4-alpha-D-Glucan glucohydrolase  Starch + H2O <=> alpha-D-Glucose + Starch  map00500,map01100
+R01791  Dextrin 6-alpha-D-glucanohydrolase  Dextrin + H2O <=> alpha-D-Glucose + Dextrin  map00500,map01100
+R01741  D-Gluconate:(acceptor) 2-oxidoreductase D-Gluconic acid + FAD <=> 2-Keto-D-gluconic acid + FADH2  map00030,map01100,map01120
+R01621  D-Xylulose 5-phosphate D-glyceraldehyde-3-phosphate-lyase (adding phosphate; acetyl-phosphate-forming)  D-Xylulose 5-phosphate + Orthophosphate <=> Acetyl phosphate + D-Glyceraldehyde 3-phosphate + H2O  map00030,map00680,map00710,map01100
+R00749  ethanolamine ammonia-lyase (acetaldehyde-forming)  Ethanolamine <=> Acetaldehyde + Ammonia map00564</pre></p>
+                          <p class="muted"><small><i class="icon-file"></i> reactions_exclusive_BL225C.tsv</small></p>
+                          
+                          Among the various files created by the <code>export</code> command, the ones above are particularly interesting, as they provide the KEGG reaction IDs that are exclusive of each strain as compared to the others. It is interesting to notice, for instance, that strain AK83 has three exclusive reactions mapped into the same pathway (map00260, glycine, serine and threonine metabolism). Further analysis may highlight some specific metabolic ability of each strain. Also the reactions exclusively mapped to the dispensable genome are interesting to be analyzed.
+                          <p><pre>#re_id  name    description     pathway(s)
+R00783  nitric-oxide:ferricytochrome-c oxidoreductase   Nitric oxide + H2O + Ferricytochrome c <=> Nitrite + Ferrocytochrome c + H+     map00910,map01120
+R06199  None    Starch(n+1) + H2O <=> alpha-D-Glucose + Starch(n)
+R04858  S-Adenosyl-L-methionine:DNA (cytosine-5-)-methyltransferase     S-Adenosyl-L-methionine + DNA cytosine <=> S-Adenosyl-L-homocysteine + DNA 5-methylcytosine   map00270,map01100
+R00785  nitric-oxide:oxidized azurin oxidoreductase     Nitric oxide + H2O + Oxidized azurin <=> Nitrite + Reduced azurin + H+  map00910,map01120
+R07659  None    UDP-L-Ara4O + L-Glutamate <=> UDP-L-Ara4N + 2-Oxoglutarate      map00520,map01110
+R01521  beta-D-Glucose:NADP+ 1-oxoreductase     beta-D-Glucose + NADP+ <=> D-Glucono-1,5-lactone + NADPH + H+   map00030,map01120
+R01520  beta-D-Glucose:NAD+ 1-oxoreductase      beta-D-Glucose + NAD+ <=> D-Glucono-1,5-lactone + NADH + H+     map00030,map01120
+R07127  ATP:3-dehydro-L-gulonate 6-phosphotransferase   3-Dehydro-L-gulonate + ATP <=> 3-Dehydro-L-gulonate 6-phosphate + ADP   map00040,map00053
+R04420  5-Methylthio-5-deoxy-D-ribose-1-phosphate ketol-isomerase       S-Methyl-5-thio-D-ribose 1-phosphate <=> S-Methyl-5-thio-D-ribulose 1-phosphate       map00270,map01100
+[...]</pre></p>
+                          <p class="muted"><small><i class="icon-file"></i> reactions_exclusive_dispensable.tsv</small></p>
+                              
+                          The reactions exclusive to the dispensable genome are too many (44), to draw a synthetic picture, but it is clear that there are some metabolic functions that are variable in these four strains. <b>A Phenotype Microarray experiment could then be used to understand if there are phenotypic differences and if they related to the genetic variability observed through the application of the dgenome module.</b>
+                        </p>
+                    </div>
+                    
+                    <div id="phenome">
+                        <div class="page-header">
+                          <h1><div class="minititle">Phenome
+                          <small>Phenotype Microarray analysis</small></div></h1>
+                        </div>
+                        <p>
+						  The Phenotype Microarray data from an experiment on the four strains can be added by providing a series of csv files provided directly from the Omnilog software. The easiest way to add more than one experiment is to prepare a directory with one file for each strain, named ORGID.csv and use the <code>add-dir</code> command; just substitute ORGID with the strain names provided when setting up the project. For these strains all the 20 bacterial PM plates have been used (PM1 to PM20).
+                        
+                          <p><code>dphenome add-dir phenome</code></p>
+						  <p class="muted"><small><i class="icon-flag"></i> dphenome also automatically imports Phenotype Microarray files in YAML/JSON format</small></p>
+						  <p class="muted"><small><i class="icon-flag"></i> dphenome automatically detect replicas</small></p>
+						  
+						  Some Phenotype Microarray plates have a "control well", which is a well that doesn't contain any metabolite, and can therefore be used as a "zero" signal that can be subtracted from the other wells. In this case plates PM1 to PM8 have at least one control signal (PM4 has two control wells).
+						  
+						  <p><code>dphenome zero</code></p>
+						  
+						  <p><img src="img/io/zero.png"/></p>
+						  
+						  In order to rank each curve according to their metabolic level, a series of curve parameters must be extracted, taking advantage to the fact that most curves have a sigmoid shape. The signal is refined through the application of a smoothing algorithm (<a href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.blackman.html">Blackman window</a>) and a sigmoid function is fitted on the refined curve, after which a series of parameters can be extracted from the curves, using the <code>start</code> command. The <code>start</code> command also maps the Phenotype Microarray compounds that have a <a href="http://www.genome.jp/kegg/compound/">KEGG compound</a> ID to their specific pathwyas.
+						  
+						  <p><img src="img/io/params.png"/></p>
+						  <p class="muted"><small><i class="icon-flag"></i> The experimental data for this well stops at 70 hours, but the plateau point is predicted to occur at 180.</small></p>
+						  
+						  A detailed explanation of each parameters can be found in the table below.
+						  <table class="table table-striped table-bordered">
+						  <thead>
+							<tr>
+							  <th>Field</th>
+							  <th>Description</th>
+							  <th>Example</th>
+							</tr>
+						  </thead>
+						  <tbody>
+							<tr>
+							  <td>min</td>
+							  <td>Lowest point in the curve.</td>
+							  <td>0.0</td>
+							</tr>
+							<tr>
+							  <td>max</td>
+							  <td>Highest point in the curve.</td>
+							  <td>150.2</td>
+							</tr>
+							<tr>
+							  <td>height</td>
+							  <td>Average height of the curve.</td>
+							  <td>75.3</td>
+							</tr>
+							<tr>
+							  <td>plateau</td>
+							  <td>Time point in which the curve reaches the stationary phase.</td>
+							  <td>55.3</td>
+							</tr>
+							<tr>
+							  <td>slope</td>
+							  <td>The curve slope in the exponential phase.</td>
+							  <td>4.3</td>
+							</tr>
+							<tr>
+							  <td>lag</td>
+							  <td>Time point in which the curve enters the exponential phase.</td>
+							  <td>20.5</td>
+							</tr>
+							<tr>
+							  <td>area</td>
+							  <td>The area below the curve.</td>
+							  <td>20156.5</td>
+							</tr>
+						  </tbody>
+						</table>
+						
+							<p>In order to facilitate the comparison between distinct curves and map the compound metabolic activity inside the KEGG metabolic reconstruction, a single summarized value, termed AV (ActiVity index) is computed. Five parameters (max, area, height, lag and slope) for each curve are used to perform a k-means clustering; similar curve shapes will belong to the same cluster. Since the clusters are ranked by average area, a lower AV value will indicate a lower metabolic activity, while an higher AV value indicatates the presence of metabolic activity.</p>
+							
+							<p>The default number of clusters used in the k-means clusterization is 10, but the optimal value can be determined performing an <a href="http://en.wikipedia.org/wiki/Determining_the_number_of_clusters_in_a_data_set#The_Elbow_Method">elbow test</a>.</p>
+							
+							<p><code>dphenome start -e -g</code></p>
+							<p class="muted"><small><i class="icon-flag"></i> The -g option allows us to skipp the KEGG mapping.</small></p>
+							
+							<img src="img/io/elbow.png"/>
+							<p class="muted"><small><i class="icon-file"></i> elbow.png</small></p>
+							
+							<p>For three parameters (max, area and height) the choice of 5 clusters gives the best improve in curves separation: we will therefore clusterize the PM data in five clusters. The minimum and maxmum AV value will therefore be 0 and 4, respectively.</p>
+							
+							<p><code>dphenome start -n 5 -f</code></p>
+							<p class="muted"><small><i class="icon-flag"></i> The -f option outputs a scatter plot of the five parameters used in the clusterization.</small></p>
+						  
+							<p>To get an overall picture of the whole Phenotype Microarray analysis, the <code>rings</code> command can be used; a more detailed comparison, with the single curves, can be obtained with the <code>plot</code> command.
+							
+							<p><pre>dphenome rings -o Rm1021 -d 2
+dphenome plot</pre></p>
+							
+							<img src="img/io/ActivityRing_diff.png"/>
+							<p class="muted"><small><i class="icon-file"></i> ActivityRing.png</small></p>
+							<p class="muted"><small><i class="icon-flag"></i> Each strip corresponds to a single PM curve, colored according to their AV value.</small></p>
+							
+							With the exception of the carbon sources, <b>the Rm1021 reference strain has a lower metabolic activity, when compared to the other three strains</b>.
+							
+							<img src="img/io/PM01_B12.png"/>
+							<p class="muted"><small><i class="icon-file"></i> PM01_B12.png</small></p>
+							<p class="muted"><small><i class="icon-flag"></i> Each strain is colored according to the <code>dape add</code> command.</small></p>
+						  
+							The curve plot of the L-Glutamate (as a carbon source), is a nice example of a compound for which there is a significant difference between the four strains. In this case strain AK58 shows a total absence of metabolical activity. Since this compound is mapped to the KEGG compound database (CO ID <a href="http://www.kegg.jp/dbget-bin/www_bget?cpd:C00025">C00025</a>) it may be possible to relate this difference to some genetic variability.
+						  
+							<p><pre>dphenome stats -a 3 -d 2
+dphenome export</pre></p>
+
+							<img src="img/io/ActivityCategBoxplot.png"/>
+							<p class="muted"><small><i class="icon-file"></i> ActivityCategBoxplot.png</small></p>
+							
+							From the above plot it appears how strains AK83 and BL225C may be more metabolically active on phosphate and sulfur sources, while for the other categories the difference may be less evident.
+							
+							<table class="table table-striped table-bordered">
+							  <thead>
+								<tr>
+								  <th>Category</th>
+								  <th>AK58</th>
+								  <th>AK83</th>
+								  <th>BL225C</th>
+								  <th>Rm1021</th>
+								</tr>
+							  </thead>
+							  <tbody>
+								<tr>
+								  <td>carbon</td>
+								  <td>32.2916666667</td>
+								  <td><b class="text-error">29.6875</b></td>
+								  <td><b class="text-success">38.5416666667</b></td>
+								  <td>34.8958333333</td>
+								</tr>
+								<tr>
+								  <td>nitrogen</td>
+								  <td><b class="text-success">59.375</b></td>
+								  <td><b class="text-error">21.875</b></td>
+								  <td>41.6666666667</td>
+								  <td>38.5416666667</td>
+								</tr>
+								<tr>
+								  <td>phosphate_and_sulfur</td>
+								  <td><b class="text-error">51.0416666667</b></td>
+								  <td>75.0</td>
+								  <td><b class="text-success">77.0833333333</b></td>
+								  <td>55.2083333333</td>
+								</tr>
+								<tr>
+								  <td>nutrient_stimulation</td>
+								  <td>6.25</td>
+								  <td><b class="text-success">7.29166666667</b></td>
+								  <td>5.20833333333</td>
+								  <td><b class="text-error">1.04166666667</b></td>
+								</tr>
+								<tr>
+								  <td>nitrogen_peptides</td>
+								  <td><b class="text-success">68.75</b></td>
+								  <td><b class="text-error">29.8611111111</b></td>
+								  <td>61.8055555556</td>
+								  <td>49.3055555556</td>
+								</tr>
+								<tr>
+								  <td>osmolytes_and_ph</td>
+								  <td><b class="text-success">29.6875</b></td>
+								  <td><b class="text-error">16.6666666667</b></td>
+								  <td>22.3958333333</td>
+								  <td>20.8333333333</td>
+								</tr>
+								<tr>
+								  <td>chemicals</td>
+								  <td>51.4583333333</td>
+								  <td>49.1666666667</td>
+								  <td><b class="text-success">56.1458333333</b></td>
+								  <td><b class="text-error">44.1666666667</b></td>
+								</tr>
+							  </tbody>
+							</table>
+							<p class="muted"><small><i class="icon-th-list"></i> First output table: Active wells (% of wells with activity >= 3)</small></p>
+							
+							AK58 and BL225C seem to be the more metabolically active strains, when compared to the other two strains, especially for the peptides as nitrogen sources.
+							
+							<table class="table table-striped table-bordered">
+							  <thead>
+								<tr>
+								  <th></th>
+								  <th>AK58</th>
+								  <th>AK83</th>
+								  <th>BL225C</th>
+								  <th>Rm1021</th>
+								</tr>
+							  </thead>
+							  <tbody>
+								<tr>
+								  <td>More active</td>
+								  <td><b class="text-success">67</b></td>
+								  <td><b class="text-error">11</b></td>
+								  <td>61</td>
+								  <td>16</td>
+								</tr>
+								<tr>
+								  <td>Less active</td>
+								  <td>60</td>
+								  <td>33</td>
+								  <td><b class="text-success">12</b></td>
+								  <td><b class="text-error">119</b></td>
+								</tr>
+								<tr>
+								  <td>Total</td>
+								  <td>127</td>
+								  <td>44</td>
+								  <td>73</td>
+								  <td>135</td>
+								</tr>
+								<tr>
+								  <td>%</td>
+								  <td>6.61458333333</td>
+								  <td>2.29166666667</td>
+								  <td>3.80208333333</td>
+								  <td>7.03125</td>
+								</tr>
+							  </tbody>
+							</table>
+							<p class="muted"><small><i class="icon-th-list"></i> Third output table: Unique metabolic functions (% of wells with AV delta >= 2 as compared to the other strains)</small></p>
+							
+							The analysis on the "unique metabolic functions", which are those compounds for whose only one strain is found to be metabolically active or inactive, confirms that strains AK58 and BL225C are the more versatile. Strain Rm1021, on the other hand, shows the highest number of compounds with absence of metabolic activity.
+
+							<p>The curve parameters for each strain/replica, generated by the <code>export</code> command, may be used for further analysis; the YAML/JSON files generated may be used by other PM analysis programs, such as <a href="opm.dsmz.de">opm</a>, which has additional analysis steps.</p>
+							
+							<p><pre>#plate_id well_id chemical category moa co_id replica activity min max height plateau slope lag area source
+PM01 A01 Negative Control carbon C-Source, negative control  1 0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 DuctApe
+PM01 A02 L-Arabinose carbon C-Source, carbohydrate C00259 1 4 0.1 212.876351661 88.4481873788 217.820042396 8.17836437167 26.5905182274 6222.53364031 DuctApe
+PM01 A03 N-Acetyl-D-Glucosamine carbon C-Source, carbohydrate C00140 1 3 0.1 175.750723251 72.2820872802 180.106135342 6.19972356011 25.4451576156 5084.32121119 DuctApe
+PM01 A04 D-Saccharic acid carbon C-Source, carboxylic acid C00818 1 0 0.1 0.1 0.1 0.0 0.0 0.0 7.05 DuctApe
+PM01 A05 Succinic acid carbon C-Source, carboxylic acid C00042 1 4 0.1 215.615477063 89.6254004782 225.986240731 7.30545393964 24.904552184 6305.05627692 DuctApe
+PM01 A06 D-Galactose carbon C-Source, carbohydrate C00124 1 3 0.1 192.507967471 70.0603851535 196.340666445 7.67622266928 30.6220829804 4919.67860561 DuctApe
+PM01 A07 L-Aspartic acid carbon C-Source, amino acid C00049 1 3 0.1 138.538227924 52.3515997237 152.92481527 4.05461063968 25.5909464203 3678.06214484 DuctApe
+[...]</pre></p>
+							<p class="muted"><small><i class="icon-file"></i> phenome_Rm1021.tsv</small></p>
+                        </p>
+                    </div>
+                    
+                    <div id="combined">
+                        <div class="page-header">
+                          <h1><div class="minititle">Combined
+                          <small>The missing link between genomics and phenomics</small></div></h1>
+                        </div>
+                        <p>
+						Once that both the genome and the phenome of our four strains have been analyzed, the <code>dape</code> module will be used to highlight the sources of genetic variability that may be related to the observed metabolic variability.
+						
+						<p><code>dape start -n 4 -p -t 2</code></p>
+						<p class="muted"><small><i class="icon-flag"></i> As suggested in the <a href="howto.html#dape">howto</a> page, we have set a AV threshold of 2, half of the maximum value (4).</small></p>
+						
+						<p><img src="img/io/combined_variability_exp.png"/></p>
+						<p class="muted"><small><i class="icon-file"></i> combined_variability.png (modified file)</small></p>
+						
+						The above matrix indicates those compounds whose phenotypic variability (an expression of the difference in the AV value between the various strains) is higher than 2 AV units, together with the pathways in which they participate. The genetic variability of each pathway is determined by the ration of reactions present in the dispensable genome over the total number of reactions in the pathway. As indicated in the matrix, the dots at the upper-right corner represent the best candidate to be explored for putative genotype-phenotype correlation.
+						
+						<p class="muted"><small><i class="icon-flag"></i> The matrix is also saved in text format in the combined_matrix.tsv file</small></p>
+						
+						<p><pre>dape map -d 3
+dape map -a</pre></p>
+						
+						In the phenotypic analysis we focused our attention on the L-Glutamic acid, which is the row highlighted in red in the above matrix. This compound participates in a number of pathways, two of which are interesting in a genomic perspective (red column): the <a href="http://www.kegg.jp/dbget-bin/www_bget?path:map00650">butanoate metabolism</a> and the <a href="http://www.kegg.jp/dbget-bin/www_bget?path:map00250">alanine, aspartate and glutamate metabolism</a>.
+						
+						<p>the <code>map</code> command will create a series of colored KEGG pathway maps to facilitate the search of putative genotype/phenotype links</p>
+						
+						<img src="img/io/pan00650.png"/>
+						<p class="muted"><small><i class="icon-file"></i> pangenome_carbon/map00650.png (detail)</small></p>
+						
+						<img src="img/io/pan00250.png"/>
+						<p class="muted"><small><i class="icon-file"></i> pangenome_carbon/map00250.png (detail)</small></p>
+						
+						<p class="muted"><small><i class="icon-flag"></i> As suggested in the <a href="io.html#dape">I/O</a> page, blue, green and orange boxes represent core, core/dispensable and dispensable reactions, respectively; circles filled with shades of purple are compounds with significant phenotypic variability.</small></p>
+						
+						In both pathways the <a href="http://www.genome.jp/dbget-bin/www_bget?R00261">reaction that converts L-Glutamate into 4-Aminobutanoate</a> is present (<a href="http://www.genome.jp/dbget-bin/www_bget?ec:4.1.1.15">EC number 4.1.1.15</a>); it is colored in yellow, indicating that this reaction belongs to the dispensable genome. Since one molecule of gasseous carbon dioxide is removed from L-Glutamate, this reaction is irreversible, thus reducing the L-Glutamate pool available for the other reactions/pathways. The reaction is present only in strain AK58 (gene id 2511503282), that is the only strain incapable of growing on this compound as a carbon source.
+
+						<img src="img/io/map00650.png"/>
+						<p class="muted"><small><i class="icon-file"></i> AK58_carbon/map00650.png and Rm1021_carbon/map00650.png(details)</small></p>
+						
+						<img src="img/io/map00250.png"/>
+						<p class="muted"><small><i class="icon-file"></i> AK58_carbon/map00250.png and Rm1021_carbon/map00250.png(details)</small></p>
+						
+						<p class="muted"><small><i class="icon-flag"></i> As suggested in the <a href="io.html#dape">I/O</a> page, colored boxes represent reactions, the yellow ones being those reactions present only in that particular strain; compounds are colored according to their AV value, from red (0 AV) to dark green (4 AV).</small></p>
+						
+						The analysis on the pathways of each strain confirms that the presence of the 4.1.1.15 reaction may be related with this particular phenotypic variability. Additional experiments may be designed to highlight the precise mechanism of this difference. Another interesting aspect is the different metabolic activity on compounds like Succinate and Fumarate, which may be related to the presence of the same gene in strain AK58, or caused by a different gene regulation or presence/absence of membrane transporters.
+						
+						<p>The <code>start</code> command outputs a series of other outputs, which may be useful for additional analysis steps; the metNet directory will contain a series of graph files that may be used with <a href="http://gephi.org">Gephi</a> or <a href="http://www.cytoscape.org/">Cytoscape</a> for visualization purposes or topological studies on the metabolic pathways. Additional information may be found in the <a href="io.html">I/O page</a></p>
+						</p>
+					</div>
+                
+              </div>
+             </div>
+              </div>
+              
+            </div>
+          </div>    
+      
+       <footer class="footer">
+       <div class="container">
+       <div class="row">
+          <div class="span4">
+            <h6>Brought to you by</h6>
+            <div class="muted">
+              <p>
+                <a href="http://www.unifi.it/dbefcb/" target="_blank">
+                  <img alt="Combo" src="img/combo.png"  width="100" class="bg-container"/>
+                </a>
+              </p>
+              <p>
+                <a href="http://www.unifi.it/dbefcb/" target="_blank">Florence computational biology group</a>
+              </p>
+              <p>
+                <a href="http://www.unifi.it/dblage/" target="_blank">Department of evolutionary biology</a> - <a href="http://www.unifi.it/">University of Florence</a>
+              </p>
+              <p>
+                Designed by <a href="http://marcogalardini.altervista.org" target="_blank">Marco Galardini</a>
+              </p>
+            </div>
+          </div>
+          <div class="span4">
+            <h6>Contacts</h6>
+            <div class="muted">
+              <p>
+                For feedbacks, bug reports and other informations:
+                <ul>
+                  <li><b>ductape-users@googlegroups.com</b></li>
+                  <li><a href="https://groups.google.com/forum/?fromgroups#!forum/ductape-users"><b>Users group</b></a></li>
+                  <li>mgalardini@unifi.it</li>
+                  <li>alessio.mengoni@unifi.it</li>
+                  <li>stefano.mocali@entecra.it</li>
+                  <li>combo.unifi@gmail.com</li>
+                </ul>
+              </p>
+              <h6>Hosting</h6>
+              <p>
+                <a href="http://github.com/combogenomics/DuctApe" target="_blank">
+                  <img src="img/github.png" width="50" height="15" alt="Browse the source code at github" />
+                </a>
+              </p>
+            </div>
+          </div>
+          <div class="span4">
+            <h6>Cite us</h6>
+            <p class="muted">
+              <strong>
+                Coming soon... (hopefully)
+              </strong>
+            </p>
+            <h6>Project status</h6>
+              <p><a href="https://travis-ci.org/combogenomics/DuctApe/builds"><img src="https://travis-ci.org/combogenomics/DuctApe.png"></a></p>
+          </div>
+        </div>
+     </div>
+        </footer>
+    
+    </div>
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script src="js/misc.js"></script>
+    
+    <!-- Le Google analytics -->
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34201518-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+  </body>
+</html>

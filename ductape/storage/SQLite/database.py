@@ -4094,6 +4094,34 @@ class Biolog(DBBase):
             cursor=conn.execute('select max(max) from biolog_exp;')
         return int(cursor.fetchall()[0][0])
     
+    def getRandomWells(self, activity=None, howmany=10, zero=False):
+        '''
+        Get a random number of wells
+        
+        May be filtered by activity and zero subtraction state.
+        '''
+        with self.connection as conn:
+            if zero:
+                izero = 1
+            else:
+                izero = 0
+            
+            if activity is None:
+                cursor=conn.execute('''select * from biolog_exp
+                                        where zero = ?
+                                        order by random()
+                                        limit 0,?''', [izero, howmany,])
+            else:
+                cursor=conn.execute('''select * from biolog_exp
+                                        where activity = ?
+                                        and zero = ?
+                                        order by random()
+                                        limit 0,?''',
+                                        [activity, izero, howmany,])
+        
+        for res in cursor:
+            yield Row(res, cursor.description)
+    
     def getAllSignals(self):
         '''
         Get all the signals from the storage

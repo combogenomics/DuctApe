@@ -848,6 +848,82 @@ class Experiment(object):
             for res in Plate.calculateParams():
                 yield True
     
+    def getRandomZeroWells(self, howmany=10, activity=None):
+        '''
+        Generator to random wells (zero subtracted)
+        If activity is set, only those wells w/ desired AV will be retrieved
+        '''
+        import random
+        
+        # Check if activity makes sense
+        if activity is not None:
+            if activity not in self.getDistinctActivity():
+                raise ValueError('Provided AV value not found in the wells pool')
+        
+        wells = []
+        
+        while howmany != 0:
+            while True:
+                while True:
+                    plate_id = random.choice( list(self.experiment.keys()) )
+                    if plate_id in self.zeroPlates:
+                        break
+                well_id = random.choice( list(self.experiment[plate_id].keys()) )
+                strain = random.choice( 
+                            list(self.experiment[plate_id][well_id].keys()) )
+                replica = random.choice( 
+                            list(self.experiment[plate_id][well_id][strain].keys()))
+                
+                w = self.experiment[plate_id][well_id][strain][replica]
+                if activity is not None:
+                    if w.activity == activity:
+                        wells.append(w)
+                    else:continue
+                else:
+                    wells.append(w)
+                howmany -= 1
+                break
+        
+        return wells
+    
+    def getRandomNoZeroWells(self, howmany=10, activity=None):
+        '''
+        Generator to random wells (no zero subtracted)
+        If activity is set, only those wells w/ desired AV will be retrieved
+        '''
+        import random
+        
+        # Check if activity makes sense
+        if activity is not None:
+            if activity not in self.getDistinctActivity():
+                raise ValueError('Provided AV value not found in the wells pool')
+        
+        wells = []
+        
+        while howmany != 0:
+            while True:
+                while True:
+                    plate_id = random.choice( list(self.experiment.keys()) )
+                    if plate_id not in self.zeroPlates:
+                        break
+                well_id = random.choice( list(self.experiment[plate_id].keys()) )
+                strain = random.choice( 
+                            list(self.experiment[plate_id][well_id].keys()) )
+                replica = random.choice( 
+                            list(self.experiment[plate_id][well_id][strain].keys()))
+                
+                w = self.experiment[plate_id][well_id][strain][replica]
+                if activity is not None:
+                    if w.activity == activity:
+                        wells.append(w)
+                    else:continue
+                else:
+                    wells.append(w)
+                howmany -= 1
+                break
+        
+        return wells
+
     def getZeroWells(self, params=True):
         '''
         Generator to get the zero-subtracted single wells

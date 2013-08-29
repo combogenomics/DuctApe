@@ -1133,6 +1133,15 @@ class Experiment(object):
         self.purged = True
         return True
     
+    def getDistinctActivity(self):
+        '''
+        Returns a set with all the distinct AV values
+        '''
+        av = set()
+        for w in self.getWells(False):
+            av.add(w.activity)
+        return av
+    
     def getMaxActivity(self):
         '''
         Get the maximum activity

@@ -128,7 +128,12 @@ def _kmeans(X, n_clusters):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         
-        k_means = KMeans(init='random', k=n_clusters, n_init=100, max_iter=1000)
+        try:
+            k_means = KMeans(init='random', k=n_clusters, n_init=100,
+                             max_iter=1000)
+        except:
+            k_means = KMeans(init='random', n_clusters=n_clusters, n_init=100,
+                             max_iter=1000)
         k_means.fit(X)
         
     return k_means

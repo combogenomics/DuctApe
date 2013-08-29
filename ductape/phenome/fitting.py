@@ -7,7 +7,66 @@ Phenome library
 biolog data fitting functions
 """
 from ductape.common.utils import compress, smooth
-from scipy.optimize.minpack import curve_fit
+try:
+    from scipy.optimize.minpack import curve_fit
+except ImportError:
+    # Old version of SciPy, manual addition of curve_fit
+    
+    # This three functions are borrowed from the scipy package, licensed under
+    # the 3-clauses BSD licence
+    def _general_function(params, xdata, ydata, function):
+        return function(xdata, *params) - ydata
+    
+    def _weighted_general_function(params, xdata, ydata, function, weights):
+        return weights * (function(xdata, *params) - ydata)
+    
+    def curve_fit(f, xdata, ydata, p0=None, sigma=None, **kw):
+        from numpy import isscalar, asarray, array, inf
+        from scipy.optimize import leastsq
+        
+        if p0 is None:
+            # determine number of parameters by inspecting the function
+            import inspect
+            args, varargs, varkw, defaults = inspect.getargspec(f)
+            if len(args) < 2:
+                msg = "Unable to determine number of fit parameters."
+                raise ValueError(msg)
+            if 'self' in args:
+                p0 = [1.0] * (len(args)-2)
+            else:
+                p0 = [1.0] * (len(args)-1)
+    
+        if isscalar(p0):
+            p0 = array([p0])
+    
+        args = (xdata, ydata, f)
+        if sigma is None:
+            func = _general_function
+        else:
+            func = _weighted_general_function
+            args += (1.0/asarray(sigma),)
+    
+        # Remove full_output from kw, otherwise we're passing it in twice.
+        return_full = kw.pop('full_output', False)
+        res = leastsq(func, p0, args=args, full_output=1, **kw)
+        (popt, pcov, infodict, errmsg, ier) = res
+    
+        if ier not in [1, 2, 3, 4]:
+            msg = "Optimal parameters not found: " + errmsg
+            raise RuntimeError(msg)
+    
+        if (len(ydata) > len(p0)) and pcov is not None:
+            s_sq = (func(popt, *args)**2).sum()/(len(ydata)-len(p0))
+            pcov = pcov * s_sq
+        else:
+            pcov = inf
+    
+        if return_full:
+            return popt, pcov, infodict, errmsg, ier
+        else:
+            return popt, pcov
+    # End of borrowed scipy fix
+        
 import numpy as np
 import logging
 # No country for warnings

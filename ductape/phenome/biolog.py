@@ -1436,7 +1436,7 @@ class Experiment(object):
         
         if not axis:
             # Figure creation
-            fig = plt.figure()
+            fig = plt.figure(figsize=(8,8))
             ax = fig.add_subplot(111)
         else:
             ax = axis
@@ -1444,7 +1444,7 @@ class Experiment(object):
         ax.set_xlabel('Hour', size='small')
         ax.set_ylabel('Signal', size='small')
         
-        colors = rangeColors(0, self.getMaxActivity(),
+        color = rangeColors(0, self.getMaxActivity(),
                              cm.RdYlGn(np.arange(0,256)))
         
         counter = 0
@@ -1463,7 +1463,7 @@ class Experiment(object):
                     w.smooth()
             
             times = sorted(w.signals.keys())
-            ax.plot(times, [w.signals[t] for t in times], color=colors[w.activity],
+            ax.plot(times, [w.signals[t] for t in times], color=color[w.activity],
                         rasterized=True)
             
             msig = max(w.signals.values())
@@ -1487,11 +1487,18 @@ class Experiment(object):
         ax.set_title('%s'%description, size='small')
         
         if not axis:
+            cNorm  = colors.Normalize(vmin=0, vmax=self.getMaxActivity())
+            scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.RdYlGn)
+            scalarMap.set_array(np.array(range(10)))
+            cax = fig.add_axes([0.925, 0.2, 0.03, 0.6])
+            cax.text(0.50, 1.05, 'Activity', size=10, ha='center')       
+            plt.colorbar(scalarMap, cax=cax)
+            
             if svg:
                 ftype = 'svg'
             else:
                 ftype = 'png'
-                
+            
             plt.savefig('%s.%s'%(name,ftype))
             plt.clf()
 

@@ -31,6 +31,7 @@ sleep 5
 
 ./dphenome -v add-dir test/input/pangenome || die "./dphenome -v add-dir"
 ./dphenome -v zero || die "./dphenome -v zero"
+./dphenome trim || die "./dphenome trim"
 ./dphenome start -f > /dev/null || die "./dphenome start"
 ./dphenome -v purge keep-max || die "./dphenome -v purge"
 ./dphenome -v restore PM03B || die "./dphenome -v restore"

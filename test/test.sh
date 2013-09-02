@@ -117,6 +117,7 @@ sleep 5
 
 ../dphenome add-dir input/pangenome || die "dphenome add-dir"
 ../dphenome zero || die "dphenome zero"
+../dphenome trim || die "dphenome trim"
 ../dphenome start -f || die "dphenome start"
 ../dphenome purge keep-max || die "dphenome purge"
 ../dphenome restore PM03B || die "dphenome restore"

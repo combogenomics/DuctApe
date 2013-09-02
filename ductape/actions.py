@@ -650,7 +650,7 @@ def dPhenomePurge(project, policy, delta=1, filterplates=[], replica=None):
         logger.warning('The delta activity threshold is higher than the maximum '+
                        'activity found (%d vs. %d)'%(delta, exp.getMaxActivity()))
     
-    if not exp.purgeReplicas(delta=delta,policy=policy):
+    if not exp.purgeReplicas(delta=delta,policy=policy,replica=replica):
         logger.error('Could not purge the phenomic experiment')
         return False
 
@@ -660,14 +660,14 @@ def dPhenomePurge(project, policy, delta=1, filterplates=[], replica=None):
     
     return True
 
-def dPhenomeRestore(project, plates=[]):
+def dPhenomeRestore(project, plates=[], replica=None):
     biolog = Biolog(project)
     
     if not biolog.atLeastOnePurged():
         logger.warning('No phenomic experiment to be restored')
         return True
     
-    howmany = biolog.restoreDiscardedWells(plates)
+    howmany = biolog.restoreDiscardedWells(plates, replica)
     
     logger.info('Restored %d phenomic experiments'%howmany)
     

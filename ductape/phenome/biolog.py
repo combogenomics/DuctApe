@@ -790,7 +790,8 @@ class Experiment(object):
         
         # Allowed policies for purging of replicas
         self.policies = ['keep-min', 'keep-max',
-                         'keep-min-one', 'keep-max-one']
+                         'keep-min-one', 'keep-max-one',
+                         'replica']
         
         self.purged = False
         
@@ -1069,6 +1070,8 @@ class Experiment(object):
         keep-min-one --> keep the smaller replica
         keep-max-one --> keep the bigger replica
         
+        replica --> remove a specific replica
+        
         The mean activity value is then stored as a Well object inside sumexp
         
         The discarded wells are stored as biolog_ids in a set (discarded)
@@ -1077,6 +1080,30 @@ class Experiment(object):
         if policy not in self.policies:
             logger.error('Policy not recognized %s'%policy)
             return False
+        
+        if policy == 'replica':
+            if replica not in self.getDistinctReplica():
+                logger.error('Replica %d not present'%replica)
+                return False
+            
+            for plate in self.experiment:
+                for well in self.experiment[plate]:
+                    for strain in self.experiment[plate][well]:
+                        if replica in self.experiment[plate][well][strain]:
+                            self.discarded.add((plate, well,
+                                                strain, replica))
+                            
+                            del self.experiment[plate][well][strain][replica]
+                            
+                            # TODO: simplify here
+                            rem_p = filter(lambda x: x.replica == replica,
+                                        self.plates[plate].strains[strain])[0]
+                            del rem_p.data[well]
+                            
+                            logger.debug('Purged %s %s %s %d'%(plate, well,
+                                                           strain, replica))
+            
+            return True
         
         for plate in self.experiment:
             for well in self.experiment[plate]:
@@ -1162,6 +1189,15 @@ class Experiment(object):
             
         self.purged = True
         return True
+    
+    def getDistinctReplica(self):
+        '''
+        Returns a set with all the distinct replica values
+        '''
+        rep = set()
+        for w in self.getWells(False):
+            rep.add(w.activity)
+        return rep
     
     def getDistinctActivity(self):
         '''

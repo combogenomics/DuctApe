@@ -185,7 +185,8 @@ def dpurge(options, wdir, project):
                        __prog__)
         return False
     
-    return dPhenomePurge(project, options.policy, options.delta, options.plates)
+    return dPhenomePurge(project, options.policy, options.delta,
+                         options.plates, options.replica)
     
 def drestore(options, wdir, project):
     from ductape.actions import dPhenomeRestore
@@ -194,7 +195,7 @@ def drestore(options, wdir, project):
                        __prog__)
         return False
     
-    return dPhenomeRestore(project, options.plates)
+    return dPhenomeRestore(project, options.plates, options.replica)
   
 def dstats(options, wdir, project):
     from ductape.actions import dPhenomeStats
@@ -483,7 +484,7 @@ def getOptions():
     parser_purge = subparsers.add_parser('purge', help='Remove inconsistent replicas')
     parser_purge.add_argument('policy', action="store",
         choices = ['keep-max', 'keep-min', 'keep-min-one',
-                   'keep-max-one'],
+                   'keep-max-one', 'replica'],
         help='Policy to be applied')
     parser_purge.add_argument('plates', metavar='plateID', nargs='*',
                             action="store",
@@ -493,13 +494,23 @@ def getOptions():
         type=int,
         default=1,
         help='Maximum activity delta')
+    parser_purge.add_argument('-r', metavar='replica', action="store",
+                              dest='replica',
+                              type=int,
+                              default=None,
+                      help='Replica to be purged (only with choice==replica)')
     parser_purge.set_defaults(func=dpurge)
     
     parser_restore = subparsers.add_parser('restore', help='Restore the purged data')
     parser_restore.add_argument('plates', metavar='plateID', nargs='*',
                             action="store",
                             default=[],
-                            help='Plate(s) to be purged')
+                            help='Plate(s) to be restored')
+    parser_restore.add_argument('-r', metavar='replica', action="store",
+                              dest='replica',
+                              type=int,
+                              default=None,
+                      help='Replica to be restored')
     parser_restore.set_defaults(func=drestore)
     
     parser_stats = subparsers.add_parser('stats', help='Print phenomic statistics')

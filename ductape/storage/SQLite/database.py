@@ -4375,7 +4375,7 @@ class Biolog(DBBase):
                                 and org_id = ?
                                 and replica = ?;''',[p,w,o,r,])
         
-    def restoreDiscardedWells(self, plates=[]):
+    def restoreDiscardedWells(self, plates=[], replica=None):
         '''
         Restore all the discarded wells
         '''
@@ -4386,8 +4386,12 @@ class Biolog(DBBase):
         restored = 0
         
         with self.connection as conn:
-            cursor = conn.execute('''select * from biolog_purged_exp_det;''')
-            
+            if replica is None:
+                cursor = conn.execute('''select * from biolog_purged_exp_det;''')
+            else:
+                cursor = conn.execute('''select * from biolog_purged_exp_det
+                                        where replica=?;''',[replica,])
+                
             exp_det = copy.deepcopy(cursor.description)
             
             for res in cursor:

@@ -128,6 +128,18 @@ class Well(object):
         '''
         return min(self.signals.values())
     
+    def getMaxTime(self):
+        '''
+        Maximum signal
+        '''
+        return max(self.signals.keys())
+    
+    def getMinTime(self):
+        '''
+        Minimum signal
+        '''
+        return min(self.signals.keys())
+    
     def smooth(self, window_len = 11, window_type = 'hanning',
                forceZero = True):
         '''
@@ -1027,7 +1039,25 @@ class Experiment(object):
             for strain in d:
                 yield d[strain]
     
-    def purgeReplicas(self, policy='keep-min', delta=1):
+    def trim(self):
+        '''
+        Set the maximum time for each well by using the lowest value in the
+        experiment.
+        Returns the trim time.
+        '''
+        mtime = self.getMinTime()
+        
+        for w in self.getWells(False):
+            to_del = set()
+            for time in w.signals.keys():
+                if time > mtime:
+                    to_del.add(time)
+            for time in to_del:
+                del w.signals[time]
+                
+        return mtime
+    
+    def purgeReplicas(self, policy='keep-min', delta=1, replica=None):
         '''
         Analyze the replicas and remove the outliers using one of the policies
         
@@ -1148,6 +1178,12 @@ class Experiment(object):
         Which is also the number of clusters used...
         '''
         return max([w.activity for w in self.getWells(False)])
+    
+    def getMinTime(self):
+        '''
+        Get the minimum time
+        '''
+        return min([w.getMaxTime() for w in self.getWells(False)])
     
     def setMaxParams(self):
         '''

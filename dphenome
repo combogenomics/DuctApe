@@ -67,6 +67,14 @@ def dzero(options, wdir, project):
         return False
     return dPhenomeZero(project, options.b)
 
+def dtrim(options, wdir, project):
+    from ductape.actions import dPhenomeTrim
+    if not touchProject(project):
+        logger.warning('You can setup a new project by running %s init'%
+                       __prog__)
+        return False
+    return dPhenomeTrim(project)
+
 def dstart(options, wdir, project):
     from ductape.actionsterm import fetchKegg
     
@@ -436,6 +444,9 @@ def getOptions():
                             default = None,
                             help='Blank plate(s) phenomic file')
     parser_zero.set_defaults(func=dzero)
+    
+    parser_trim = subparsers.add_parser('trim', help='Biolog signals trimming')
+    parser_trim.set_defaults(func=dtrim)
 
     parser_start = subparsers.add_parser('start', help='Start the analysis')
     parser_start.add_argument('-p', action="store_true",

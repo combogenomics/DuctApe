@@ -584,7 +584,44 @@ def dPhenomeZero(project, blankfile=None):
     
     return True
 
-def dPhenomePurge(project, policy, delta=1, filterplates=[]):
+def dPhenomeTrim(project):
+    '''
+    Takes all the biolog data available and performs the signals trimming
+    The minimum time available will be used as global time maximum for all signals
+    To be used when there are very different ending times inside an experiment
+    '''
+    from ductape.phenome.biolog import getPlates, Experiment
+    
+    biolog = Biolog(project)
+    
+    sigs = [s for s in biolog.getAllSignals()]
+    plates = [p for p in getPlates(sigs, nonmean=True)]
+    isZero = biolog.atLeastOneZeroSubtracted()
+
+    if len(plates) == 0:
+        logger.warning('No phenomic data available, skipping trimming')
+        return True
+    else:
+        logger.info('Trimming %d phenomic plates'%len(plates))
+
+    zeroPlates = [x.plate_id for x in biolog.getZeroSubtractablePlates()]
+    
+    exp = Experiment(plates=plates, zero=isZero, zeroPlates=zeroPlates)
+    mtime = exp.trim()
+    
+    logger.info('Trimmed %d plates at %f'%(len(plates), mtime))
+    
+    logger.info('Updating the plates')
+    # Add to the project
+    biolog = Biolog(project)
+    biolog.updateSignals(exp.getWells(False))
+    
+    logger.warning('The parameters and the activity must be recalculated')
+    biolog.delWellsParams(exp.getWells(False))
+        
+    return True
+
+def dPhenomePurge(project, policy, delta=1, filterplates=[], replica=None):
     from ductape.phenome.biolog import getPlates, Experiment
     
     biolog = Biolog(project)

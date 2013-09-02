@@ -3583,6 +3583,27 @@ class Biolog(DBBase):
                             set model = null where model = '';''')
             conn.execute('''update biolog_exp
                             set source = null where source = '';''')
+            conn.commit()
+            
+    def updateSignals(self, explist):
+        '''
+        Replaces the signals in the db with the ones provided
+        '''
+        query = '''update biolog_exp_det
+                   set times = ?, signals = ?
+                   where plate_id = ?
+                   and well_id = ?
+                   and org_id = ?
+                   and replica = ?'''
+        
+        self.boost()
+        
+        with self.connection as conn:
+            for w in explist:
+                conn.execute(query, 
+                             ['_'.join([str(x) for x in sorted(w.signals.keys())]),
+                              '_'.join([str(w.signals[h]) for h in sorted(w.signals.keys())]),
+                              w.plate_id, w.well_id, w.strain, w.replica])
     
     def delWellsParams(self, wells):
         '''
@@ -3637,12 +3658,13 @@ class Biolog(DBBase):
                 conn.execute('''delete from biolog_exp 
                             where plate_id=? and well_id=? and org_id=?
                             and replica=?;''',
-                            [w.plate_id,w.well_id,w.org_id,w.replica,])
+                            [w.plate_id,w.well_id,w.strain,w.replica,])
                 
                 conn.execute('''delete from biolog_exp_det 
                             where plate_id=? and well_id=? and org_id=?
                             and replica=?;''',
-                            [w.plate_id,w.well_id,w.org_id,w.replica,])
+                            [w.plate_id,w.well_id,w.strain,w.replica,])
+            conn.commit()
                 
     def delOrg(self, org_id):
         '''

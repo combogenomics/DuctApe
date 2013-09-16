@@ -19,7 +19,7 @@ logger = logging.getLogger('ductape.actionsterm')
 ################################################################################
 # Methods
 
-def fetchKegg(project):
+def fetchKegg(project, keeptrying=False):
     from ductape.kegg.kegg import KeggNet, KeggAPI, BaseKegg
     from ductape.terminal import RunThread
     
@@ -56,7 +56,7 @@ def fetchKegg(project):
             logger.info('KEGG DB release %s'%str(release))
         kegg = Kegg(project)
         
-        knet = KeggNet()
+        knet = KeggNet(keeptrying=keeptrying)
         if not RunThread(knet):
             return False
         

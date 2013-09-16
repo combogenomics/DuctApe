@@ -74,7 +74,7 @@ class KeggAPI(object):
     http://www.kegg.jp/kegg/docs/keggapi.html
     http://www.kegg.jp/kegg/rest/weblink.html
     '''
-    def __init__(self):
+    def __init__(self, keeptrying=False):
         self.baseurl = 'http://www.kegg.jp/'
         self.baseip = 'http://133.103.200.32'
         self._apiurl = 'http://rest.kegg.jp/'
@@ -82,6 +82,8 @@ class KeggAPI(object):
         self._maplink = 'http://www.kegg.jp/kegg-bin/show_pathway?'
         
         self.failed = False
+        
+        self.keeptrying = keeptrying
         
         self.clean()
     
@@ -173,6 +175,7 @@ class KeggAPI(object):
                 try:
                     logger.debug(url)
                 except:pass
+                if self.keeptrying:continue
                 if attempts >= retries:
                     self.failed = True
                     logger.warning('info failed!')
@@ -235,6 +238,7 @@ class KeggAPI(object):
                 try:
                     logger.debug(url)
                 except:pass
+                if self.keeptrying:continue
                 if attempts >= retries:
                     self.failed = True
                     logger.warning('get failed!')
@@ -296,6 +300,7 @@ class KeggAPI(object):
                 try:
                     logger.debug(url)
                 except:pass
+                if self.keeptrying:continue
                 if attempts >= retries:
                     self.failed = True
                     logger.warning('get (rpair) failed!')
@@ -330,6 +335,7 @@ class KeggAPI(object):
                 try:
                     logger.debug(url)
                 except:pass
+                if self.keeptrying:continue
                 if attempts >= retries:
                     self.failed = True
                     logger.warning('list (%s) failed!'%db)
@@ -361,6 +367,7 @@ class KeggAPI(object):
                 try:
                     logger.debug(url)
                 except:pass
+                if self.keeptrying:continue
                 if attempts >= retries:
                     self.failed = True
                     logger.warning('link (reaction) failed!')
@@ -392,6 +399,7 @@ class KeggAPI(object):
                 try:
                     logger.debug(url)
                 except:pass
+                if self.keeptrying:continue
                 if attempts >= retries:
                     self.failed = True
                     logger.warning('link (pathway) failed!')
@@ -423,6 +431,7 @@ class KeggAPI(object):
                 try:
                     logger.debug(url)
                 except:pass
+                if self.keeptrying:continue
                 if attempts >= retries:
                     self.failed = True
                     logger.warning('link (reaction) failed!')
@@ -454,6 +463,7 @@ class KeggAPI(object):
                 try:
                     logger.debug(url)
                 except:pass
+                if self.keeptrying:continue
                 if attempts >= retries:
                     self.failed = True
                     logger.warning('link (reaction) failed!')
@@ -485,6 +495,7 @@ class KeggAPI(object):
                 try:
                     logger.debug(url)
                 except:pass
+                if self.keeptrying:continue
                 if attempts >= retries:
                     self.failed = True
                     logger.warning('link (rpair) failed!')
@@ -516,6 +527,7 @@ class KeggAPI(object):
                 try:
                     logger.debug(url)
                 except:pass
+                if self.keeptrying:continue
                 if attempts >= retries:
                     self.failed = True
                     logger.warning('link (reaction) failed!')
@@ -547,6 +559,7 @@ class KeggAPI(object):
                 try:
                     logger.debug(url)
                 except:pass
+                if self.keeptrying:continue
                 if attempts >= retries:
                     self.failed = True
                     logger.warning('link (compound) failed!')
@@ -578,6 +591,7 @@ class KeggAPI(object):
                 try:
                     logger.debug(url)
                 except:pass
+                if self.keeptrying:continue
                 if attempts >= retries:
                     self.failed = True
                     logger.warning('link (compound) failed!')
@@ -620,6 +634,7 @@ class KeggAPI(object):
                               %attempts)
                 logger.debug('%s'%str(e))
                 time.sleep((2 + random.random())*attempts)
+                if self.keeptrying:continue
                 if attempts >= retries:
                     self.failed = True
                     logger.warning('show_pathway failed!')
@@ -805,7 +820,7 @@ class KeggDetails(object):
         return self.pathmaps
 
 class BaseKegg(CommonThread):
-    def __init__(self, threads=40, queue=Queue.Queue()):
+    def __init__(self, threads=40, keeptrying=False, queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         
         # Kegg connection
@@ -814,7 +829,7 @@ class BaseKegg(CommonThread):
         self.numThreads = threads
         
         for i in range(self.numThreads):
-            obj = KeggAPI()
+            obj = KeggAPI(keeptrying)
             self.handlers.append(obj)
             
         self.cleanHandlers()
@@ -848,8 +863,10 @@ class BaseKegg(CommonThread):
             raise Exception('KEGG seems to be offline')
             
 class BaseMapper(BaseKegg):
-    def __init__(self, threads=40, avoid=[], queue=Queue.Queue()):
-        BaseKegg.__init__(self, threads=threads, queue=queue)
+    def __init__(self, threads=40, avoid=[], keeptrying=False,
+                        queue=Queue.Queue()):
+        BaseKegg.__init__(self, threads=threads, keeptrying=keeptrying,
+                                queue=queue)
 
         # Skip these
         self.avoid = avoid
@@ -1534,8 +1551,10 @@ class KoMapper(BaseMapper):
     
     _substatuses = [2,3,4,5,6,7]
     
-    def __init__(self, ko_list, threads=40, avoid=[], queue=Queue.Queue()):
-        BaseMapper.__init__(self, threads=threads, avoid=avoid, queue=queue)
+    def __init__(self, ko_list, threads=40, avoid=[], keeptrying=False,
+                        queue=Queue.Queue()):
+        BaseMapper.__init__(self, threads=threads, avoid=avoid,
+                            keeptrying=keeptrying, queue=queue)
         # Kegg
         self.ko = ko_list
         
@@ -1879,8 +1898,10 @@ class CompMapper(BaseMapper):
     
     _substatuses = [2,3,4,5,6,7]
     
-    def __init__(self, co_list, threads=40, avoid=[], queue=Queue.Queue()):
-        BaseMapper.__init__(self, threads=threads, avoid=avoid, queue=queue)
+    def __init__(self, co_list, threads=40, avoid=[], keeptrying=False,
+                        queue=Queue.Queue()):
+        BaseMapper.__init__(self, threads=threads, avoid=avoid,
+                            keeptrying=keeptrying, queue=queue)
         # Kegg
         self.co = co_list
         
@@ -2102,8 +2123,10 @@ class MapsFetcher(BaseKegg):
     _substatuses = [3]
     
     def __init__(self, color_objs, pictures=True, html=True, prefix='', 
-                 legend=None, threads=40, queue=Queue.Queue()):
-        BaseKegg.__init__(self, threads=threads, queue=queue)
+                 legend=None, threads=40, keeptrying=False,
+                 queue=Queue.Queue()):
+        BaseKegg.__init__(self, threads=threads, keeptrying=keeptrying,
+                          queue=queue)
         
         self.colors = color_objs
         self.pictures = bool(pictures)
@@ -2355,8 +2378,10 @@ class KeggNet(BaseMapper):
     
     _substatuses = [3,4,5,6,7,8]
     
-    def __init__(self, threads=40, avoid=[], queue=Queue.Queue()):
-        BaseMapper.__init__(self, threads=threads, avoid=avoid, queue=queue)
+    def __init__(self, threads=40, avoid=[], keeptrying=False,
+                        queue=Queue.Queue()):
+        BaseMapper.__init__(self, threads=threads, avoid=avoid,
+                                    keeptrying=keeptrying, queue=queue)
         
     def getAllPathways(self):
         '''

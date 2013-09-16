@@ -125,7 +125,7 @@ def dstart(options, wdir, project):
             if options.g:
                 logger.warning('Skipping Kegg mapping')
                 continue
-            if not doMap2KEGG(project):
+            if not doMap2KEGG(project, options.k):
                 logger.error('Genome(s) could not be mapped to kegg!')
                 return False
             proj.setGenome('map2kegg')
@@ -273,12 +273,12 @@ def doMap2KO(project, infiles, local=False, keggdb='', cpu=1):
         
     return True
 
-def doMap2KEGG(project):
+def doMap2KEGG(project, keeptrying=False):
     from ductape.actionsterm import fetchKegg
     from ductape.kegg.kegg import KoMapper
     
     # Fetch the Kegg DB?
-    if not fetchKegg(project):
+    if not fetchKegg(project, keeptrying):
         logger.error('Could not fetch data from KEGG')
         return False
     
@@ -290,7 +290,7 @@ def doMap2KEGG(project):
         return True
     avoid = [kid for kid in kegg.getAllIDs()]
     
-    komap = KoMapper(kos,avoid=avoid)
+    komap = KoMapper(kos,avoid=avoid, keeptrying=keeptrying)
     
     if not RunThread(komap):
         return False
@@ -393,6 +393,9 @@ def getOptions():
     parser_start.add_argument('-g', action="store_true",
                             default=False,
                             help='Skip Kegg mapping')
+    parser_start.add_argument('-y', action="store_true",
+                            default=False,
+                            help='Try to fetch Kegg data even while encountering failures')
     parser_start.add_argument('-p', action="store", dest='prefix',
                             default='',
                             help='Orthologous groups prefix')

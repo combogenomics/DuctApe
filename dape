@@ -91,7 +91,7 @@ def dstart(options, wdir, project):
         logger.warning('Skipping mapping to Kegg')
     else:
         # Fetch the Kegg DB?
-        if not fetchKegg(project):
+        if not fetchKegg(project, options.k):
             logger.error('Could not fetch data from KEGG')
             return False
     
@@ -962,6 +962,9 @@ def getOptions():
     parser_start.add_argument('-g', action="store_true",
                             default=False,
                             help='Skip Kegg mapping')
+    parser_start.add_argument('-y', action="store_true",
+                            default=False,
+                            help='Try to fetch Kegg data even while encountering failures')
     parser_start.add_argument('-a', '--all', action="store_true",
                             default=False,
                             help='Create single organisms net')

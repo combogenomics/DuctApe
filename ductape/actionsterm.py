@@ -86,3 +86,5 @@ def fetchKegg(project):
             proj.setKegg(release)
     else:
         logger.info('KEGG db is up-to-date')
+        
+    return True

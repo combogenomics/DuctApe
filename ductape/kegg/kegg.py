@@ -79,11 +79,15 @@ class KeggAPI(object):
         self._apiurl = 'http://rest.kegg.jp/'
         self._apiip = 'http://133.103.200.38'
         self._maplink = 'http://www.kegg.jp/kegg-bin/show_pathway?'
+        
+        self.failed = False
+        
         self.clean()
     
     def clean(self):
         self.input = None
         self.result = None
+        self.failed = False
 
     def getEntryTag(self, entry, tag):
         '''
@@ -169,8 +173,9 @@ class KeggAPI(object):
                     logger.debug(url)
                 except:pass
                 if attempts >= retries:
+                    self.failed = True
                     logger.warning('info failed!')
-                    raise Exception('info request failed')
+                    return
     
     def getTitle(self, entries, otherTags=[], retries=5):
         '''
@@ -230,8 +235,9 @@ class KeggAPI(object):
                     logger.debug(url)
                 except:pass
                 if attempts >= retries:
+                    self.failed = True
                     logger.warning('get failed!')
-                    raise Exception('get request failed')
+                    return
           
     def getRPair(self, entries, retries=5):
         '''
@@ -290,8 +296,9 @@ class KeggAPI(object):
                     logger.debug(url)
                 except:pass
                 if attempts >= retries:
+                    self.failed = True
                     logger.warning('get (rpair) failed!')
-                    raise Exception('get request (rpair) failed')
+                    return
     
     def getIDListFromDB(self, db='pathway', retries=5):
         '''
@@ -323,8 +330,9 @@ class KeggAPI(object):
                     logger.debug(url)
                 except:pass
                 if attempts >= retries:
+                    self.failed = True
                     logger.warning('list (%s) failed!'%db)
-                    raise Exception('list (%s) request failed'%db)
+                    return
     
     def getReactions(self, ko_ids, retries=5):
         '''
@@ -353,8 +361,9 @@ class KeggAPI(object):
                     logger.debug(url)
                 except:pass
                 if attempts >= retries:
+                    self.failed = True
                     logger.warning('link (reaction) failed!')
-                    raise Exception('link (reaction) request failed')
+                    return
                 
     def getPathways(self, re_ids, retries=5):
         '''
@@ -383,8 +392,9 @@ class KeggAPI(object):
                     logger.debug(url)
                 except:pass
                 if attempts >= retries:
+                    self.failed = True
                     logger.warning('link (pathway) failed!')
-                    raise Exception('link (pathway) request failed')
+                    return
     
     def getReactionsByComp(self, co_ids, retries=5):
         '''
@@ -413,8 +423,9 @@ class KeggAPI(object):
                     logger.debug(url)
                 except:pass
                 if attempts >= retries:
+                    self.failed = True
                     logger.warning('link (reaction) failed!')
-                    raise Exception('link (reaction) request failed')
+                    return
     
     def getReactionsFromPath(self, path_ids, retries=5):
         '''
@@ -443,8 +454,9 @@ class KeggAPI(object):
                     logger.debug(url)
                 except:pass
                 if attempts >= retries:
+                    self.failed = True
                     logger.warning('link (reaction) failed!')
-                    raise Exception('link (reaction) request failed')
+                    return
     
     def getRPairsFromReaction(self, re_ids, retries=5):
         '''
@@ -473,8 +485,9 @@ class KeggAPI(object):
                     logger.debug(url)
                 except:pass
                 if attempts >= retries:
+                    self.failed = True
                     logger.warning('link (rpair) failed!')
-                    raise Exception('link (rpair) request failed')
+                    return
                 
     def getReactionsFromRPair(self, rp_ids, retries=5):
         '''
@@ -503,8 +516,9 @@ class KeggAPI(object):
                     logger.debug(url)
                 except:pass
                 if attempts >= retries:
+                    self.failed = True
                     logger.warning('link (reaction) failed!')
-                    raise Exception('link (reaction) request failed')
+                    return
     
     def getCompoundsFromReaction(self, re_ids, retries=5):
         '''
@@ -533,8 +547,9 @@ class KeggAPI(object):
                     logger.debug(url)
                 except:pass
                 if attempts >= retries:
+                    self.failed = True
                     logger.warning('link (compound) failed!')
-                    raise Exception('link (compound) request failed')
+                    return
     
     def getCompoundsFromPath(self, path_ids, retries=5):
         '''
@@ -563,8 +578,9 @@ class KeggAPI(object):
                     logger.debug(url)
                 except:pass
                 if attempts >= retries:
+                    self.failed = True
                     logger.warning('link (compound) failed!')
-                    raise Exception('link (compound) request failed')
+                    return
     
     def getHTMLColoredPathway(self, path_id, obj_list, color_list,
                                     border_list=None, retries=5):
@@ -604,8 +620,9 @@ class KeggAPI(object):
                 logger.debug('%s'%str(e))
                 time.sleep(2*attempts)
                 if attempts >= retries:
+                    self.failed = True
                     logger.warning('show_pathway failed!')
-                    raise Exception('show_pathway request failed')
+                    return
 
 class KeggColor(object):
     '''
@@ -893,6 +910,10 @@ class BaseMapper(BaseKegg):
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
+                if handler.failed:
+                    logger.error('KEGG API error, aborting')
+                    raise IOError('KEGG API error')
+                
                 if not handler.result:
                     logger.debug('Found an empty handler')
                     continue
@@ -940,6 +961,10 @@ class BaseMapper(BaseKegg):
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
+                if handler.failed:
+                    logger.error('KEGG API error, aborting')
+                    raise IOError('KEGG API error')
+                
                 if not handler.result:
                     logger.debug('Found an empty handler')
                     continue
@@ -987,6 +1012,10 @@ class BaseMapper(BaseKegg):
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
+                if handler.failed:
+                    logger.error('KEGG API error, aborting')
+                    raise IOError('KEGG API error')
+                
                 if not handler.result:
                     logger.debug('Found an empty handler')
                     continue
@@ -1026,6 +1055,10 @@ class BaseMapper(BaseKegg):
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
+                if handler.failed:
+                    logger.error('KEGG API error, aborting')
+                    raise IOError('KEGG API error')
+                
                 if not handler.result:
                     logger.debug('Found an empty handler')
                     continue
@@ -1072,6 +1105,10 @@ class BaseMapper(BaseKegg):
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
+                if handler.failed:
+                    logger.error('KEGG API error, aborting')
+                    raise IOError('KEGG API error')
+                
                 if not handler.result:
                     logger.debug('Found an empty handler')
                     continue
@@ -1124,6 +1161,10 @@ class BaseMapper(BaseKegg):
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
+                if handler.failed:
+                    logger.error('KEGG API error, aborting')
+                    raise IOError('KEGG API error')
+                
                 if not handler.result:
                     logger.debug('Found an empty handler')
                     continue
@@ -1176,6 +1217,10 @@ class BaseMapper(BaseKegg):
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
+                if handler.failed:
+                    logger.error('KEGG API error, aborting')
+                    raise IOError('KEGG API error')
+                
                 if not handler.result:
                     logger.debug('Found an empty handler')
                     continue
@@ -1223,6 +1268,10 @@ class BaseMapper(BaseKegg):
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
+                if handler.failed:
+                    logger.error('KEGG API error, aborting')
+                    raise IOError('KEGG API error')
+                
                 if not handler.result:
                     logger.debug('Found an empty handler')
                     continue
@@ -1278,6 +1327,10 @@ class BaseMapper(BaseKegg):
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
+                if handler.failed:
+                    logger.error('KEGG API error, aborting')
+                    raise IOError('KEGG API error')
+                
                 if not handler.result:
                     logger.debug('Found an empty handler')
                     continue
@@ -1330,6 +1383,10 @@ class BaseMapper(BaseKegg):
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
+                if handler.failed:
+                    logger.error('KEGG API error, aborting')
+                    raise IOError('KEGG API error')
+                
                 if not handler.result:
                     logger.debug('Found an empty handler')
                     continue
@@ -1382,6 +1439,10 @@ class BaseMapper(BaseKegg):
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
+                if handler.failed:
+                    logger.error('KEGG API error, aborting')
+                    raise IOError('KEGG API error')
+                
                 if not handler.result:
                     logger.debug('Found an empty handler')
                     continue
@@ -1434,6 +1495,10 @@ class BaseMapper(BaseKegg):
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
+                if handler.failed:
+                    logger.error('KEGG API error, aborting')
+                    raise IOError('KEGG API error')
+                
                 if not handler.result:
                     logger.debug('Found an empty handler')
                     continue
@@ -1517,6 +1582,10 @@ class KoMapper(BaseMapper):
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
+                if handler.failed:
+                    logger.error('KEGG API error, aborting')
+                    raise IOError('KEGG API error')
+                
                 if not handler.result:
                     logger.debug('Found an empty handler')
                     continue
@@ -1564,6 +1633,10 @@ class KoMapper(BaseMapper):
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
+                if handler.failed:
+                    logger.error('KEGG API error, aborting')
+                    raise IOError('KEGG API error')
+                
                 if not handler.result:
                     logger.debug('Found an empty handler')
                     continue
@@ -2117,6 +2190,10 @@ class MapsFetcher(BaseKegg):
                     if not thread.isAlive():
                         threads.remove(thread)
             for handler in self.handlers:
+                if handler.failed:
+                    logger.error('KEGG API error, aborting')
+                    raise IOError('KEGG API error')
+                
                 if not handler.result:
                     logger.debug('Found an empty handler')
                     continue

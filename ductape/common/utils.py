@@ -171,5 +171,5 @@ def isOnline(url='http://8.8.8.8', timeout=1, retries=2):
                 logger.debug(url)
             except:pass
             if attempts >= retries:
-                logger.warning('test failed!')
-        #        raise Exception('connectivity test failed')
+                logger.warning('Connection test failed!')
+                raise IOError('Connection test failed!')

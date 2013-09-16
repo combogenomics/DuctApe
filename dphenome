@@ -99,7 +99,9 @@ def dstart(options, wdir, project):
         return True
             
     # Fetch the Kegg DB?
-    fetchKegg(project)
+    if not fetchKegg(project):
+        logger.error('Could not fetch data from KEGG')
+        return False
     
     # We have to map 2 KEGG?
     proj = Project(project)

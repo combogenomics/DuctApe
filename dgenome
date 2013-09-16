@@ -278,7 +278,9 @@ def doMap2KEGG(project):
     from ductape.kegg.kegg import KoMapper
     
     # Fetch the Kegg DB?
-    fetchKegg(project)
+    if not fetchKegg(project):
+        logger.error('Could not fetch data from KEGG')
+        return False
     
     kegg = Kegg(project)
     kos = [ko.ko_id for ko in kegg.getKO2Analyze()]

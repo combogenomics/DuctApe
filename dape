@@ -91,7 +91,9 @@ def dstart(options, wdir, project):
         logger.warning('Skipping mapping to Kegg')
     else:
         # Fetch the Kegg DB?
-        fetchKegg(project)
+        if not fetchKegg(project):
+            logger.error('Could not fetch data from KEGG')
+            return False
     
     proj = Project(project)
     kind = dSetKind(project)

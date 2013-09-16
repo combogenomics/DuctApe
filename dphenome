@@ -99,7 +99,7 @@ def dstart(options, wdir, project):
         return True
             
     # Fetch the Kegg DB?
-    if not fetchKegg(project, options.k):
+    if not fetchKegg(project, options.y):
         logger.error('Could not fetch data from KEGG')
         return False
     
@@ -112,7 +112,7 @@ def dstart(options, wdir, project):
         return True
     
     # Map biolog compunds to kegg
-    if not doMap2KEGG(project, options.k):
+    if not doMap2KEGG(project, options.y):
         logger.error('Phenomic compounds could not be mapped to kegg!')
         return False
     

@@ -125,7 +125,7 @@ def dstart(options, wdir, project):
             if options.g:
                 logger.warning('Skipping Kegg mapping')
                 continue
-            if not doMap2KEGG(project, options.k):
+            if not doMap2KEGG(project, options.y):
                 logger.error('Genome(s) could not be mapped to kegg!')
                 return False
             proj.setGenome('map2kegg')

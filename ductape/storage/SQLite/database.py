@@ -3690,16 +3690,24 @@ class Biolog(DBBase):
         org = Organism(self.dbname)
         org.setPhenomeStatus(org_id, 'none')    
     
-    def getActivityDistribution(self):
+    def getActivityDistribution(self, plate_id=None):
         '''
         Get the total activity distribution (not replica-wise)
         Returns a dictionary of activity --> #wells
+        If plate_id is set, only a particular plate is returned
         '''
         with self.connection as conn:
-            cursor=conn.execute('''select activity, count(*) howmany
+            if plate_id is None:
+                cursor=conn.execute('''select activity, count(*) howmany
+                                       from biolog_exp
+                                       group by activity
+                                       order by activity;''')
+            else:
+                cursor=conn.execute('''select activity, count(*) howmany
                                    from biolog_exp
+                                   where plate_id=?
                                    group by activity
-                                   order by activity;''')
+                                   order by activity;''',[plate_id,])
         
         act = {}
         for res in cursor:

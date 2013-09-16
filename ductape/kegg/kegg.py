@@ -17,6 +17,7 @@ import os
 import shutil
 import threading
 import time
+import random
 
 __author__ = "Marco Galardini"
 
@@ -168,7 +169,7 @@ class KeggAPI(object):
                 logger.debug('info failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
-                time.sleep(2*attempts)
+                time.sleep((2 + random.random())*attempts)
                 try:
                     logger.debug(url)
                 except:pass
@@ -230,7 +231,7 @@ class KeggAPI(object):
                 logger.debug('get failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
-                time.sleep(2*attempts)
+                time.sleep((2 + random.random())*attempts)
                 try:
                     logger.debug(url)
                 except:pass
@@ -291,7 +292,7 @@ class KeggAPI(object):
                 logger.debug('get (rpair) failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
-                time.sleep(2*attempts)
+                time.sleep((2 + random.random())*attempts)
                 try:
                     logger.debug(url)
                 except:pass
@@ -325,7 +326,7 @@ class KeggAPI(object):
                 logger.debug('list (%s) failed! Attempt %d'
                               %(db,attempts))
                 logger.debug('%s'%str(e))
-                time.sleep(2*attempts)
+                time.sleep((2 + random.random())*attempts)
                 try:
                     logger.debug(url)
                 except:pass
@@ -356,7 +357,7 @@ class KeggAPI(object):
                 logger.debug('link (reaction) failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
-                time.sleep(2*attempts)
+                time.sleep((2 + random.random())*attempts)
                 try:
                     logger.debug(url)
                 except:pass
@@ -387,7 +388,7 @@ class KeggAPI(object):
                 logger.debug('link (pathway) failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
-                time.sleep(2*attempts)
+                time.sleep((2 + random.random())*attempts)
                 try:
                     logger.debug(url)
                 except:pass
@@ -418,7 +419,7 @@ class KeggAPI(object):
                 logger.debug('link (reaction) failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
-                time.sleep(2*attempts)
+                time.sleep((2 + random.random())*attempts)
                 try:
                     logger.debug(url)
                 except:pass
@@ -449,7 +450,7 @@ class KeggAPI(object):
                 logger.debug('link (reaction) failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
-                time.sleep(2*attempts)
+                time.sleep((2 + random.random())*attempts)
                 try:
                     logger.debug(url)
                 except:pass
@@ -480,7 +481,7 @@ class KeggAPI(object):
                 logger.debug('link (rpair) failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
-                time.sleep(2*attempts)
+                time.sleep((2 + random.random())*attempts)
                 try:
                     logger.debug(url)
                 except:pass
@@ -511,7 +512,7 @@ class KeggAPI(object):
                 logger.debug('link (reaction) failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
-                time.sleep(2*attempts)
+                time.sleep((2 + random.random())*attempts)
                 try:
                     logger.debug(url)
                 except:pass
@@ -542,7 +543,7 @@ class KeggAPI(object):
                 logger.debug('link (compound) failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
-                time.sleep(2*attempts)
+                time.sleep((2 + random.random())*attempts)
                 try:
                     logger.debug(url)
                 except:pass
@@ -573,7 +574,7 @@ class KeggAPI(object):
                 logger.debug('link (compound) failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
-                time.sleep(2*attempts)
+                time.sleep((2 + random.random())*attempts)
                 try:
                     logger.debug(url)
                 except:pass
@@ -618,7 +619,7 @@ class KeggAPI(object):
                 logger.debug('show_pathway failed! Attempt %d'
                               %attempts)
                 logger.debug('%s'%str(e))
-                time.sleep(2*attempts)
+                time.sleep((2 + random.random())*attempts)
                 if attempts >= retries:
                     self.failed = True
                     logger.warning('show_pathway failed!')

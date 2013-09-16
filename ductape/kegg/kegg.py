@@ -146,7 +146,7 @@ class KeggAPI(object):
             logger.debug('Could not parse KEGG database version (%s)'%dbver)
             return None
 
-    def getDBVersion(self, retries=5):
+    def getDBVersion(self, retries=8):
         '''
         Get the KEGG DB version
         Returns a tuple: full version string , release number (None if unparsable)
@@ -177,7 +177,7 @@ class KeggAPI(object):
                     logger.warning('info failed!')
                     return
     
-    def getTitle(self, entries, otherTags=[], retries=5):
+    def getTitle(self, entries, otherTags=[], retries=8):
         '''
         Get the title of a specific KEGG object
         Default behaviour is to return NAME and DEFINITION tags
@@ -239,7 +239,7 @@ class KeggAPI(object):
                     logger.warning('get failed!')
                     return
           
-    def getRPair(self, entries, retries=5):
+    def getRPair(self, entries, retries=8):
         '''
         Similar to getTitle, but targeting specific features of RPair
         Specifically the two co_id involved and the kind of interaction
@@ -300,7 +300,7 @@ class KeggAPI(object):
                     logger.warning('get (rpair) failed!')
                     return
     
-    def getIDListFromDB(self, db='pathway', retries=5):
+    def getIDListFromDB(self, db='pathway', retries=8):
         '''
         Get all the IDs from a specific database
         
@@ -334,7 +334,7 @@ class KeggAPI(object):
                     logger.warning('list (%s) failed!'%db)
                     return
     
-    def getReactions(self, ko_ids, retries=5):
+    def getReactions(self, ko_ids, retries=8):
         '''
         Get the reaction IDs for a given KO list
         '''
@@ -365,7 +365,7 @@ class KeggAPI(object):
                     logger.warning('link (reaction) failed!')
                     return
                 
-    def getPathways(self, re_ids, retries=5):
+    def getPathways(self, re_ids, retries=8):
         '''
         Get the pathway IDs for a given reaction list
         '''
@@ -396,7 +396,7 @@ class KeggAPI(object):
                     logger.warning('link (pathway) failed!')
                     return
     
-    def getReactionsByComp(self, co_ids, retries=5):
+    def getReactionsByComp(self, co_ids, retries=8):
         '''
         Get the reactions IDs for a given compound list
         '''
@@ -427,7 +427,7 @@ class KeggAPI(object):
                     logger.warning('link (reaction) failed!')
                     return
     
-    def getReactionsFromPath(self, path_ids, retries=5):
+    def getReactionsFromPath(self, path_ids, retries=8):
         '''
         Get the reaction IDs for a given pathway list
         '''
@@ -458,7 +458,7 @@ class KeggAPI(object):
                     logger.warning('link (reaction) failed!')
                     return
     
-    def getRPairsFromReaction(self, re_ids, retries=5):
+    def getRPairsFromReaction(self, re_ids, retries=8):
         '''
         Get the rpair IDs for a given reaction list
         '''
@@ -489,7 +489,7 @@ class KeggAPI(object):
                     logger.warning('link (rpair) failed!')
                     return
                 
-    def getReactionsFromRPair(self, rp_ids, retries=5):
+    def getReactionsFromRPair(self, rp_ids, retries=8):
         '''
         Get the reaction IDs for a given rpair list
         '''
@@ -520,7 +520,7 @@ class KeggAPI(object):
                     logger.warning('link (reaction) failed!')
                     return
     
-    def getCompoundsFromReaction(self, re_ids, retries=5):
+    def getCompoundsFromReaction(self, re_ids, retries=8):
         '''
         Get the compound IDs for a given reaction list
         '''
@@ -551,7 +551,7 @@ class KeggAPI(object):
                     logger.warning('link (compound) failed!')
                     return
     
-    def getCompoundsFromPath(self, path_ids, retries=5):
+    def getCompoundsFromPath(self, path_ids, retries=8):
         '''
         Get the compound IDs for a given pathway list
         '''
@@ -583,7 +583,7 @@ class KeggAPI(object):
                     return
     
     def getHTMLColoredPathway(self, path_id, obj_list, color_list,
-                                    border_list=None, retries=5):
+                                    border_list=None, retries=8):
         '''
         Get the URL of the colored pathway and return its content
         If it fails, an exception is thrown

@@ -8,7 +8,7 @@
     <meta name="author" content="Marco Galardini" >
     
     <!-- Le meta tag to refresh the cache -->
-    <meta http-equiv="last-modified" content="Tue, 27 Aug 2013 15:00:00 CET" />
+    <meta http-equiv="last-modified" content="Tue, 17 Sep 2013 18:00:00 CET" />
 
     <!-- Le styles -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -324,6 +324,8 @@
                                 <dl class="dl-horizontal">
                                   <dt>-g</dt>
                                   <dd>Skip Kegg mapping</dd>
+                                  <dt>-y</dt>
+                                  <dd>Try to fetch Kegg data even while encountering failures</dd>
                                   <dt>-p</dt>
                                   <dd>Save each pathway graph [default: no]</dd>
                                   <dt>-a</dt>
@@ -542,7 +544,9 @@
                                 <dt>-s</dt>
                                 <dd>Skip pangenome creation</dd>
                                 <dt>-g</dt>
-                                <dd>Skip Kegg mapping</dd>                          
+                                <dd>Skip Kegg mapping</dd>
+                                <dt>-y</dt>
+                                <dd>Try to fetch Kegg data even while encountering failures</dd>
                                 </dl>
                                 <p class="muted"><small><i class="icon-flag"></i> With many genomes, the pangenome analysis may need several hours.</small></p>
                                 <p><code>dgenome start -n 5</code></p>
@@ -734,7 +738,7 @@
                         </div>
                         
                         <h4>Growth curves analysis and KEGG mapping</h4>
-                        <p>Some Phenotype microarray plates (PM1 to PM8) have a control well, which can be used to subtract the background signal. If a "blank" plate file is available, each well can be subtracted to its blank well.</p>
+                        <p>Some Phenotype Microarray plates (PM1 to PM8) have a control well, which can be used to subtract the background signal. If a "blank" plate file is available, each well can be subtracted to its blank well.</p>
                         <div class="accordion">
                           <div class="accordion-group">
                             <div class="accordion-heading">
@@ -747,6 +751,20 @@
                                   <dd>Phenotype microarray blank file</dd>
                                 </dl>
                                 <p><code>dphenome zero</code></p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <p>In some cases the Phenotype Microarray plates may have a different time end point; if this difference is significant it may alter the subsequent calculations. It is wise to trim the PM data to the minimum common time point.</p>
+                        <div class="accordion">
+                          <div class="accordion-group">
+                            <div class="accordion-heading">
+                              <a class="accordion-toggle" data-toggle="collapse" href="#collapse28a"><i class="icon-chevron-right"></i> <b class="text-success">trim</b> trim the signals to the minimum common time point</a>
+                            </div>
+                            <div id="collapse28a" class="accordion-body collapse">
+                              <div class="accordion-inner">
+                                <p><code>dphenome trim</code></p>
                               </div>
                             </div>
                           </div>
@@ -767,6 +785,8 @@
                                 <dd>Skip parameters calculation</dd>
                                 <dt>-g</dt>
                                 <dd>Skip Kegg mapping</dd>
+                                <dt>-y</dt>
+                                <dd>Try to fetch Kegg data even while encountering failures</dd>
                                 <dt>-r</dt>
                                 <dd>Force parameters recalculation</dd>
                                 <dt>-n</dt>
@@ -781,8 +801,10 @@
                         </div>
                           
                         <h4>Replica management</h4>
-                        <p>DuctApe is able to remove the inconsistent replica from the phenomic experiment, following four distinct policies:</p>
+                        <p>DuctApe is able to remove the inconsistent replica from the phenomic experiment, following five distinct policies:</p>
                         <dl class="dl-horizontal">
+                          <dt>replica</dt>
+                          <dd>Remove a specific replica (the replica ID must be provided)</dd>
                           <dt>keep-max</dt>
                           <dd>Keep the highest AV values</dd>
                           <dt>keep-min</dt>
@@ -808,7 +830,8 @@
                                   <dt>-d</dt>
                                   <dd>Maximum AV delta before applying the purging policy [default: 3]</dd>
                                 </dl>
-                                <p><code>dphenome purge -d 4 keep-max</code></p>
+                                <pre>dphenome purge -d 4 keep-max
+dphenome purge replica 2</pre>
                               </div>
                             </div>
                           </div>

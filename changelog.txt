@@ -1,3 +1,19 @@
+Version 0.12.0
+==============   
+
+UPGRADE URGENCY: MODERATE, crashes on CentOS have been fixed and new commands/options are available
+
+FEATURES:
+* dphenome trim: new command to cut all PM data to the same time step
+	* The 'area' parameter is greater in longer PM curves, even if the curve shape is equal
+* dphenome purge: new purging policy ('replica') to remove a distinct replica by its ID
+* dape, dgenome, dphenome start: new option (-y) to fetch kegg data with unstable connections
+
+BUGFIXES:
+* dphenome start: support older scipy versions
+* dphenome start: support newer scikits.learn versions
+* dape, dgenome, dphenome start: correctly exit when kegg data fetch fails
+
 Version 0.10.0
 ==============
 

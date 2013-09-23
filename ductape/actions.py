@@ -509,6 +509,10 @@ def dPhenomeZero(project, blankfile=None):
     
     biolog = Biolog(project)
     
+    if not isPhenome(project):
+        logger.warning('No phenotypic data available!')
+        return False
+    
     if blankfile:
         logger.info('Going to use a blank file for zero subtraction')
         
@@ -593,6 +597,10 @@ def dPhenomeTrim(project):
     from ductape.phenome.biolog import getPlates, Experiment
     
     biolog = Biolog(project)
+    
+    if not isPhenome(project):
+        logger.warning('No phenotypic data available!')
+        return False
     
     sigs = [s for s in biolog.getAllSignals()]
     plates = [p for p in getPlates(sigs, nonmean=True)]
@@ -4383,6 +4391,8 @@ def createLegend(kind, project):
     
     # Get the maximum activity now present
     maxAct = Biolog(project).getMaxActivity()
+    if maxAct is None:
+        maxAct = 9
     
     rmatrix = np.outer(np.arange(0.33,1,0.01),np.ones(7))
     if kind == 'mutants' or 'singlediff':
@@ -4599,6 +4609,12 @@ def plotPanGenome(core, acc, uni, svg=False):
     plt.savefig(fname)
     
     logger.info('PanGenome shape graph saved (%s)'%fname)
+    
+def isPhenome(project):
+    '''
+    Checks the presence of phenomic data inside the project
+    '''
+    return not Biolog(project).isEmpty() 
 
 def isProject(project):
     '''

@@ -77,6 +77,11 @@ def dtrim(options, wdir, project):
 
 def dstart(options, wdir, project):
     from ductape.actionsterm import fetchKegg
+    from ductape.actions import isPhenome
+    
+    if not isPhenome(project):
+        logger.warning('No phenotypic data available!')
+        return False
     
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
@@ -121,7 +126,7 @@ def dstart(options, wdir, project):
     return True
 
 def dplot(options, wdir, project):
-    from ductape.actions import getOrganismsColors, dSetKind
+    from ductape.actions import getOrganismsColors, dSetKind, isPhenome
     
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
@@ -129,6 +134,10 @@ def dplot(options, wdir, project):
         return False
     
     biolog = Biolog(project)
+    
+    if not isPhenome(project):
+        logger.warning('No phenotypic data available!')
+        return False
     
     # Check!
     if biolog.atLeastOneNoParameter():
@@ -174,12 +183,16 @@ def dplot(options, wdir, project):
     return True
     
 def dpurge(options, wdir, project):
-    from ductape.actions import dPhenomePurge
+    from ductape.actions import dPhenomePurge, isPhenome
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
     biolog = Biolog(project)
+    
+    if not isPhenome(project):
+        logger.warning('No phenotypic data available!')
+        return False
     
     # Check!
     if biolog.atLeastOneNoParameter():
@@ -191,22 +204,30 @@ def dpurge(options, wdir, project):
                          options.plates, options.replica)
     
 def drestore(options, wdir, project):
-    from ductape.actions import dPhenomeRestore
+    from ductape.actions import dPhenomeRestore, isPhenome
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
     
+    if not isPhenome(project):
+        logger.warning('No phenotypic data available!')
+        return False
+    
     return dPhenomeRestore(project, options.plates, options.replica)
   
 def dstats(options, wdir, project):
-    from ductape.actions import dPhenomeStats
+    from ductape.actions import dPhenomeStats, isPhenome
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
     
     biolog = Biolog(project)
+    
+    if not isPhenome(project):
+        logger.warning('No phenotypic data available!')
+        return False
     
     # Check!
     if biolog.atLeastOneNoParameter():
@@ -218,13 +239,17 @@ def dstats(options, wdir, project):
                          delta=options.delta, svg=options.svg)
 
 def drings(options, wdir, project):
-    from ductape.actions import dPhenomeRings
+    from ductape.actions import dPhenomeRings, isPhenome
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
     
     biolog = Biolog(project)
+    
+    if not isPhenome(project):
+        logger.warning('No phenotypic data available!')
+        return False
     
     # Check!
     if biolog.atLeastOneNoParameter():
@@ -249,13 +274,17 @@ def dimportplates(options, wdir, project):
     return True
 
 def dexport(options, wdir, project):
-    from ductape.actions import dPhenomeExport
+    from ductape.actions import dPhenomeExport, isPhenome
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
     
     biolog = Biolog(project)
+    
+    if not isPhenome(project):
+        logger.warning('No phenotypic data available!')
+        return False
     
     # Check!
     if biolog.atLeastOneNoParameter():

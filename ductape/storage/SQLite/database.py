@@ -4310,6 +4310,15 @@ class Biolog(DBBase):
                                     where activity is null;''')
         return bool(cursor.fetchall()[0][0])
     
+    def isEmpty(self):
+        '''
+        Checks if there is at least some phenomic data
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select count(*)
+                                    from biolog_exp;''')
+        return not bool(cursor.fetchall()[0][0])
+    
     def getCompounds2Analyse(self):
         '''
         Get all the biolog compounds ID yet to be anlysed

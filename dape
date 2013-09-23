@@ -79,8 +79,14 @@ def dstart(options, wdir, project):
     
     # Max value for activity
     biolog = Biolog(project)
-    maxAct = biolog.getMaxActivity()
+    if biolog.isEmpty():
+        logger.warning('No phenotypic data is available!')
+        return False
+    elif biolog.atLeastOneNoParameter():
+        logger.warning('Phenome parametrization has not yet been performed!')
+        return False
     
+    maxAct = biolog.getMaxActivity()
     # Check the activity threshold value
     if options.pthresh >= maxAct:
         logger.warning('The activity threshold is higher than the maximum '+
@@ -150,7 +156,10 @@ def dmap(options, wdir, project):
     
     # Phenome
     biolog = Biolog(project)
-    if biolog.atLeastOneNoParameter():
+    if biolog.isEmpty():
+        logger.warning('No phenotypic data is available!')
+        phenome = False
+    elif biolog.atLeastOneNoParameter():
         logger.warning('Phenome parametrization has not yet been performed!')
         phenome = False
     else:
@@ -168,7 +177,9 @@ def dmap(options, wdir, project):
     
     # Check the delta threshold
     maxAct = biolog.getMaxActivity()
-    if phenome and maxAct <= options.delta:
+    if maxAct is None:
+        pass
+    elif phenome and maxAct <= options.delta:
         logger.warning('The delta activity threshold is higher than the maximum '+
                        'activity found (%d vs. %d)'%(options.delta,
                                                     maxAct))

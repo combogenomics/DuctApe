@@ -282,10 +282,6 @@ def dexport(options, wdir, project):
     
     biolog = Biolog(project)
     
-    if not isPhenome(project):
-        logger.warning('No phenotypic data available!')
-        return False
-    
     # Check!
     if biolog.atLeastOneNoParameter():
         logger.warning('The activity index must be calculated first (run %s start)'%

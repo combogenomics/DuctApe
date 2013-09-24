@@ -785,7 +785,7 @@ def dGenomeStats(project, svg=False, doPrint=True):
         plotMapBars(lOrg, 'Single genomes statistics', 'single', svg)
         
         if proj.isPanGenome():
-            logger.info('Pangenome stats')
+            logger.info('Pangenome stats (orthologs)')
             logger.warning('Please note that the dispensable genome includes'+
                            ' the accessory and unique genome')
             # Pangenome stats
@@ -860,6 +860,34 @@ def dGenomeStats(project, svg=False, doPrint=True):
                         svg, labels=['Size', 'Mapped to Kegg',
                                 'Kegg reactions', 'Excusive Kegg reaction IDs'])
             plotPanGenome(core, acc, uni, svg)
+            
+            logger.info('Pangenome stats (reactions)')
+            logger.warning('Please note that here we consider the presence of '+
+                           'distinct reaction IDs in each organism')
+            # Pangenome stats
+            # Header
+            header = '\t'.join( ['kind', 'distinct reaction IDs'] )
+            if doPrint:
+                print header
+            else:
+                logger.info(header)
+                
+            conserved = set([r.re_id for r in kegg.getConservedReactions()])
+            variable = set([r.re_id for r in kegg.getVariableReactions()]) 
+
+            stats = []
+            stats.append('\t'.join( [str(x) for x in ['conserved',
+                                                      len(conserved)]]))
+            stats.append('\t'.join( [str(x) for x in ['variable',
+                                                      len(variable)]]))
+            
+            for stat in stats:
+                if doPrint:
+                    print stat
+                else:
+                    logger.info(stat)
+                    
+            plotPanGenomeReactions(len(conserved), len(variable), svg)
     
     elif kind == 'mutants':
         refs = [org.org_id
@@ -4608,6 +4636,27 @@ def plotPanGenome(core, acc, uni, svg=False):
     plt.savefig(fname)
     
     logger.info('PanGenome shape graph saved (%s)'%fname)
+    
+def plotPanGenomeReactions(conserved, variable, svg=False):
+    plt.clf()
+    colors=('#D32626','#3366CC')
+    patches = plt.pie([conserved, variable], colors=colors,
+                      explode=(0.1,0.01),
+                      autopct='%1.1f%%',
+                      shadow=True)
+    plt.legend((patches[0][0], patches[0][1]),
+               ('Conserved','Variable'),
+               loc=(0,-.1),prop={'size':6})
+    plt.title('PanGenome shape (distinct reaction IDs)')
+    
+    if svg:
+        fname = 'pangenome_reaction_shape.svg'
+    else:
+        fname = 'pangenome_reaction_shape.png'
+    
+    plt.savefig(fname)
+    
+    logger.info('PanGenome reactions shape graph saved (%s)'%fname)
     
 def isPhenome(project):
     '''

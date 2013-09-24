@@ -8,7 +8,7 @@
     <meta name="author" content="Marco Galardini" >
     
     <!-- Le meta tag to refresh the cache -->
-    <meta http-equiv="last-modified" content="Tue, 27 Aug 2013 15:00:00 CET" />
+    <meta http-equiv="last-modified" content="Tue, 24 Aug 2013 16:00:00 CET" />
 
     <!-- Le styles -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -154,26 +154,20 @@ path:map00330 Arginine and proline metabolism 104 38 38 41 42
                                 </table>
                                 
                                 <p><b class="text-error">metNet_pangenome_length.tsv</b> pathway data</p>
-                                <p>A tab-delimited file containing the number of reaction IDs that are exclusive of each pangenome partition.</p>
+                                <p>A tab-delimited file containing the number of reaction IDs that are conserved or variable in the pangenome.</p>
                                 <pre># Comment (ignored)
-# Metabolic network length (number of exclusive reaction IDs)
-network name overall core dispensable accessory unique
-All  7310 922 42 22 20
-path:map00270 Cysteine and methionine metabolism 69 22 4 2 1
-path:map00230 Purine metabolism 126 75 2 2 0
-path:map00521 Streptomycin biosynthesis 23 3 0 0 0
-path:map00562 Inositol phosphate metabolism 47 10 0 0 0
-path:map00250 Alanine, aspartate and glutamate metabolism 31 13 1 0 1
-path:map00350 Tyrosine metabolism 83 12 0 0 0
-path:map00650 Butanoate metabolism 48 13 1 0 1
-path:map00730 Thiamine metabolism 15 7 0 0 0
-path:map00480 Glutathione metabolism 40 9 0 0 0
-path:map00980 Metabolism of xenobiotics by cytochrome P450 121 0 0 0 0
-path:map00982 Drug metabolism - cytochrome P450 83 4 0 0 0
-path:map00630 Glyoxylate and dicarboxylate metabolism 69 25 0 0 0
-path:map00380 Tryptophan metabolism 87 20 1 1 0
-path:map00052 Galactose metabolism 45 19 0 0 0
-path:map00600 Sphingolipid metabolism 34 2 0 0 0
+# Metabolic network length (number of variable reaction IDs)
+network name    overall conserved       variable
+All             7337    1152    39
+path:map00270   Cysteine and methionine metabolism      70      28      4
+path:map00230   Purine metabolism       126     80      2
+path:map00521   Streptomycin biosynthesis       23      9       0
+path:map00562   Inositol phosphate metabolism   47      13      0
+path:map00250   Alanine, aspartate and glutamate metabolism     31      20      1
+path:map00350   Tyrosine metabolism     83      16      0
+path:map00650   Butanoate metabolism    48      18      1
+path:map00730   Thiamine metabolism     15      8       0
+path:map00480   Glutathione metabolism  40      12      0
 [...]
 </pre>
                                 <p>The various fields are defined in the table below.</p>
@@ -202,9 +196,14 @@ path:map00600 Sphingolipid metabolism 34 2 0 0 0
                                       <td>230</td>
                                     </tr>
                                     <tr>
-                                      <td>PANGENOME</td>
-                                      <td>Number of exclusive reaction IDs found in this pathway. One column for each pangenome partition.</td>
+                                      <td>conserved</td>
+                                      <td>Number of conserved (found in all strains) reaction IDs found in this pathway.</td>
                                       <td>56</td>
+                                    </tr>
+                                    <tr>
+                                      <td>variable</td>
+                                      <td>Number of variable (found in some strains) reaction IDs found in this pathway.</td>
+                                      <td>15</td>
                                     </tr>
                                   </tbody>
                                 </table>
@@ -479,7 +478,7 @@ path:map00230 Purine metabolism nutrient_stimulation 101 0.857142857143 100 0.14
                                 </table>
                                 
                                 <p><b class="text-error">combined_pangenome.tsv</b> pathway-PM data</p>
-                                <p>A tab-delimited file containing both the genomic and the phenomic variability for each pathway and category. The genetic variability is expressed as the number of distinct dispensable reaction IDs divided by the total number of distinct reaction IDs mapped to the pathway; the phenomic variability is expressed as the average AV difference between each organism. The table is ordered from the most variable pathway (in terms of genetic variability) to the lesser variable.</p>
+                                <p>A tab-delimited file containing both the genomic and the phenomic variability for each pathway and category. The genetic variability is expressed as the number of variable reaction IDs divided by the total number of reaction IDs mapped to the pathway; the phenomic variability is expressed as the average AV difference between each organism. The table is ordered from the most variable pathway (in terms of genetic variability) to the lesser variable.</p>
                                 <pre># Comment (ignored)
 pathway name category disp/total diffAV
 ppath:map00910 Nitrogen metabolism nitrogen_peptides 0.357142857143 0.833333333333
@@ -526,7 +525,7 @@ path:map00051 Fructose and mannose metabolism nutrient_stimulation 0.13333333333
                                     </tr>
                                     <tr>
                                       <td>disp/total</td>
-                                      <td>The number of distinct dispensable reaction IDs divided by the total number of distinct reaction IDs mapped to the pathway; should go from 0 to 1. "inf" values indicate pathways with only dispensable reactions.</td>
+                                      <td>The number of variable reaction IDs divided by the total number of distinct reaction IDs mapped to the pathway; should go from 0 to 1. "inf" values indicate pathways with only variable reactions.</td>
                                       <td>0.35</td>
                                     </tr>
                                     <tr>
@@ -611,9 +610,8 @@ carbon cpd:C00064 L-Glutamine; L-2-Aminoglutaramic acid nan 6.1 6.1
                                   <li>Reactions:</li>
                                   <ul>
                                     <li>White: reaction not present</li>
-                                    <li>Blue: core reactions</li>
-                                    <li>Green: core/dispensable reactions</li>
-                                    <li>Shades of orange: dispensable reactions (color intensity proportional to the number of organisms in which the reaction is found)</li>
+                                    <li>Blue: conserved reactions</li>
+                                    <li>Shades of orange: variable reactions (color intensity proportional to the number of organisms in which the reaction is found)</li>
                                   </ul>
                                   <li>Compounds:</li>
                                   <ul>
@@ -1081,6 +1079,9 @@ pangenome_27 unique Rm1021
                                 <img src="img/io/pangenome_stats.png"/>
                                 <p><b class="text-error">pangenome_shape.png</b> pangenome partition pie chart</p>
                                 <img src="img/io/pangenome_shape.png"/>
+                                
+                                <p><b class="text-error">pangenome_reaction_shape.png</b> conserved/variable reactions pie chart</p>
+                                <img src="img/io/pangenome_reaction_shape.png"/>
                               </div>
                             </div>
                           </div>

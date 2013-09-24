@@ -2868,7 +2868,7 @@ def dNet(project, allorgs=False, allpaths=False):
         
         slen = 'metNet_pangenome_length.tsv'
         flen = open(slen,'w')
-        flen.write('# Metabolic network length (number of exclusive reaction IDs)\n')
+        flen.write('# Metabolic network length (number of distinct reaction IDs)\n')
         flen.write('\t'.join( ['network', 'name', 'overall'] + orgs) + '\n')
         
         sconn = 'metNet_pangenome_connected.tsv'

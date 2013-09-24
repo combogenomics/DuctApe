@@ -2635,6 +2635,24 @@ class Kegg(DBBase):
         for res in cursor:
             yield Row(res, cursor.description)
             
+    def getReactOrg(self, re_id):
+        '''
+        Get organism(s) from a defined reaction
+        '''
+        query = '''
+                select distinct org_id
+                from ko_react k, mapko m, protein p
+                where k.ko_id = m.ko_id
+                and p.prot_id = m.prot_id
+                and re_id = ?
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query,[re_id,])
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+            
     def getReferenceReact(self, mut_id, ref_id):
         '''
         Get reactions from a reference organism (and numerosity)

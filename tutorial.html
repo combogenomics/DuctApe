@@ -8,7 +8,7 @@
     <meta name="author" content="Marco Galardini" >
     
     <!-- Le meta tag to refresh the cache -->
-    <meta http-equiv="last-modified" content="Tue, 27 Aug 2013 15:00:00 CET" />
+    <meta http-equiv="last-modified" content="Tue, 24 Sep 2013 17:00:00 CET" />
 
     <!-- Le styles -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -137,7 +137,7 @@ dape map -d 3
 dape map -a
 
 # Combined genomic/phenomic analysis
-dape start -n 4 -p -t 2
+dape start -p -t 2
 dape start -a -p -t 2</pre></p>
                               </div>
                             </div>
@@ -345,7 +345,32 @@ dape add AK58 -c orange -n "Sinorhizobium meliloti"</pre></p>
                           </table>
                           <p class="muted"><small><i class="icon-th-list"></i> Second output table</small></p>
                           
-                          When the same analysis is applied to the pangenome, similar conclusions can be drawn. Most of the genes that are annotated by KEGG belong to the conserved "core" fraction, while only 815 genes from the dispensable genome are mapped to the metabolic maps. This implies that the majority of the metabolic features of these four strains will be conserved. By looking at the "exclusive reaction IDs" column (light red bar in the graph), it may be noticed that some reaction IDs (that are distinct metabolic reactions) are found only inside the variable (dispensable) pangenome fraction, meaning that they are not shared by the four strains. <b>In conclusion, it appears that some metabolic variability should be expected and it may be related to this genetic variability.</b>
+                          When the same analysis is applied to the pangenome, similar conclusions can be drawn. Most of the genes that are annotated by KEGG belong to the conserved "core" fraction, while only 815 genes from the dispensable genome are mapped to the metabolic maps. This implies that the majority of the metabolic-related orthologs of these four strains will be conserved. By looking at the "exclusive reaction IDs" column (light red bar in the graph), it may be noticed that some reaction IDs (that are distinct metabolic reactions) are found only inside the variable (dispensable) pangenome fraction, meaning that genes encoding these functions are not shared by the four strains. 
+                          
+                          <img src="img/io/pangenome_reaction_shape.png"/>
+                          <p class="muted"><small><i class="icon-file"></i> pangenome_reaction_shape.png</small></p>
+                          
+                          <table class="table table-striped table-bordered">
+                            <thead>
+                              <tr>
+                                <th>kind</th>
+                                <th>distinct reaction IDs</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td>conserved</td>
+                                <td>1304</td>
+                              </tr>
+                              <tr>
+                                <td>variable</td>
+                                <td>44</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                          <p class="muted"><small><i class="icon-th-list"></i> Third output table</small></p>
+                          
+                          The analysis on the pangenome doesn't take into account a phenomenon that may be encountered in distant genomes, that are those genes that have the same metabolic function but are NOT orthologs. According to the above table, only 44 reactions are found to be variable between the four strains. It should be noted that for this dataset (<b>closely related strains</b>), the number of variable reaction IDs is identical to the number of exclusively dispensable reaction IDs. <b>In conclusion, it appears that some metabolic variability should be expected and it may be related to this genetic variability.</b>
                           
                           <p><code>dgenome export</code></p>
                           
@@ -642,7 +667,7 @@ PM01 A07 L-Aspartic acid carbon C-Source, amino acid C00049 1 3 0.1 138.53822792
                         <p>
 						Once that both the genome and the phenome of our four strains have been analyzed, the <code>dape</code> module will be used to highlight the sources of genetic variability that may be related to the observed metabolic variability.
 						
-						<p><code>dape start -n 4 -p -t 2</code></p>
+						<p><code>dape start -p -t 2</code></p>
 						<p class="muted"><small><i class="icon-flag"></i> As suggested in the <a href="howto.html#dape">howto</a> page, we have set a AV threshold of 2, half of the maximum value (4).</small></p>
 						
 						<p><img src="img/io/combined_variability_exp.png"/></p>
@@ -665,7 +690,7 @@ dape map -a</pre></p>
 						<p><img src="img/io/pan00250.png"/></p>
 						<p class="muted"><small><i class="icon-file"></i> pangenome_carbon/map00250.png (detail)</small></p>
 						
-						<p class="muted"><small><i class="icon-flag"></i> As suggested in the <a href="io.html#dape">I/O</a> page, blue, green and orange boxes represent core, core/dispensable and dispensable reactions, respectively; circles filled with shades of purple are compounds with significant phenotypic variability.</small></p>
+						<p class="muted"><small><i class="icon-flag"></i> As suggested in the <a href="io.html#dape">I/O</a> page, blue and orange boxes represent conserved and variable reactions, respectively; circles filled with shades of purple are compounds with significant phenotypic variability.</small></p>
 						
 						In both pathways the <a href="http://www.genome.jp/dbget-bin/www_bget?R00261">reaction that converts L-Glutamate into 4-Aminobutanoate</a> is present (<a href="http://www.genome.jp/dbget-bin/www_bget?ec:4.1.1.15">EC number 4.1.1.15</a>); it is colored in yellow, indicating that this reaction belongs to the dispensable genome. Since one molecule of gasseous carbon dioxide is removed from L-Glutamate, this reaction is irreversible, thus reducing the L-Glutamate pool available for the other reactions/pathways. The reaction is present only in strain AK58 (gene id 2511503282), that is the only strain incapable of growing on this compound as a carbon source.
 

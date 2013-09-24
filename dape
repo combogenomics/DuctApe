@@ -70,7 +70,6 @@ def dstart(options, wdir, project):
     from ductape.actionsterm import fetchKegg
     from ductape.actions import dNet
     from ductape.actions import dCombine
-    from ductape.actions import dSetKind
     
     if not touchProject(project):
         logger.warning('You can setup a new project by running %s init'%
@@ -101,36 +100,11 @@ def dstart(options, wdir, project):
             logger.error('Could not fetch data from KEGG')
             return False
     
-    proj = Project(project)
-    kind = dSetKind(project)
-    if proj.isPanGenome() and kind == 'pangenome' and not options.all:
-        if options.cpu <= 0:
-            logger.warning('How can i use %d cpus?'%options.cpu)
-            return False
-        
-        from ductape.terminal import RunThread
-        from ductape.actionsparallel import PathPanGenomer
-        
-        logger.info('Fetching pathways')
-
-        kegg = Kegg(project)
-        paths = set([path.path_id for path in kegg.getMappedPathways()])
-
-        logger.info('Analyzing the pangenomic composition of %d pathways'%(len(paths)))
-        pang = PathPanGenomer(project, paths, options.cpu)
-    
-        if not RunThread(pang):
-            return False
-            
-        pangPaths = pang.result
-    else:
-        pangPaths = None
-    
-    if not dNet(project, options.all, options.paths, pangPaths):
+    if not dNet(project, options.all, options.paths):
         logger.warning('Combined network analysis failed!')
         return False
     
-    return dCombine(project, options.all, pangPaths, options.pthresh)
+    return dCombine(project, options.all, options.pthresh)
 
 def dmap(options, wdir, project):
     from ductape.actions import dSetKind, getPathsReacts, getPathsComps
@@ -375,47 +349,19 @@ def dmap(options, wdir, project):
             logger.info('All the single genome maps can be created using %s map -a'%
                         __prog__)
             
-            ecore, edisp, eacc, euni = kegg.getExclusiveReactionsPanGenome()
-            # Get the reactions in the pangenome space
-            core = set()
-            for cR in kegg.getCoreReact():
-                core.add(cR.re_id)
-            
-            disp = set()
-            ndisp = {}
-            for cR in kegg.getDispensableReact():
-                disp.add(cR.re_id)
-                if cR.re_id in ndisp:
-                    if cR.num > ndisp[cR.re_id]:
-                        ndisp[cR.re_id] = cR.num
-                else:
-                    ndisp[cR.re_id] = cR.num
-            
-            # Get the intersected reactions
-            mix = set()
-            
-            toremove = set()
-            for re_id in core:
-                if re_id not in ecore:
-                    mix.add(re_id)
-                    toremove.add(re_id)
-            for re_id in toremove:          
-                core.remove(re_id)
-                
-            toremove = set()
-            for re_id in disp:
-                if re_id not in edisp:
-                    mix.add(re_id)
-                    toremove.add(re_id)
-            for re_id in toremove:          
-                disp.remove(re_id)
+            conserved = set([r.re_id for r in kegg.getConservedReactions()])
+            varlist = [r for r in kegg.getVariableReactions()]
+            variable = set([r.re_id for r in varlist])
+            nvar = {}
+            for r in varlist:
+                nvar[r.re_id] = r.orgs
             
             # Go for the colors!
-            # Dispensable
-            if len(disp) == 0:
+            # Variable
+            if len(variable) == 0:
                 hexdisp = {}
             else:
-                hexdisp = prepareColors(max([ndisp[x] for x in edisp]),
+                hexdisp = prepareColors(max([r.orgs for r in varlist]),
                                         cm.autumn(np.arange(85,256))[::-1])
             
             # Create the legend
@@ -429,12 +375,10 @@ def dmap(options, wdir, project):
                 KC = KeggColor(path)
                 dreact = {}
                 for re_id in rpaths[path]:
-                    if re_id in mix:
-                        dreact[re_id] = colors.cnames['green']
-                    elif re_id in core:
+                    if re_id in conserved:
                         dreact[re_id] = colors.cnames['blue']
-                    elif re_id in disp:
-                        dreact[re_id] = hexdisp[ndisp[re_id]]
+                    elif re_id in variable:
+                        dreact[re_id] = hexdisp[nvar[re_id]]
                 KC.setReactions(dreact)
                 KC.setMap(kegg.getPathway(path).html)
                 colorPaths.append(KC)
@@ -447,7 +391,7 @@ def dmap(options, wdir, project):
             
             logger.info('%d maps are available in %s'%(len(kmap.pics),
                                                        kmap._keggroom))
-            
+
             if phenome:
                 for categ in biolog.getCategs():
                     logger.info('Plotting maps for biolog category %s'%categ.category)
@@ -504,16 +448,14 @@ def dmap(options, wdir, project):
                     colorPaths = []
                     for path in set(rpaths.keys() + cpaths.keys()):
                         KC = KeggColor(path)
-                        
+
                         dreact = {}
                         if path in rpaths:
                             for re_id in rpaths[path]:
-                                if re_id in mix:
-                                    dreact[re_id] = colors.cnames['green']
-                                elif re_id in core:
+                                if re_id in conserved:
                                     dreact[re_id] = colors.cnames['blue']
-                                elif re_id in disp:
-                                    dreact[re_id] = hexdisp[ndisp[re_id]]
+                                elif re_id in variable:
+                                    dreact[re_id] = hexdisp[nvar[re_id]]
                         
                         dcomp = {}            
                         if path in cpaths:
@@ -982,10 +924,6 @@ def getOptions():
     parser_start.add_argument('-p', '--paths', action="store_true",
                             default=False,
                             help='Save each pathway network')
-    parser_start.add_argument('-n', metavar='cpu', action="store", dest='cpu',
-                            type=int,
-                            default=1,
-                            help='Number of CPUs to be used')
     parser_start.add_argument('-t', '--phenome-threshold', metavar='pthresh',
                               action="store", dest='pthresh',
                             type=float,

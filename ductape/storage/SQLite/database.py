@@ -3149,6 +3149,174 @@ class Kegg(DBBase):
         
         for res in cursor:
             yield Row(res, cursor.description)
+            
+    def getConservedReactions(self, path_id=None):
+        '''
+        Get the reactions that are present in each organism
+        This does not consider the orthologs but just the reaction IDs
+        '''
+        # How many organisms are present?
+        oCheck = Organism(self.dbname)
+        nOrgs = oCheck.howMany()
+        
+        if path_id is None:
+            query = '''
+                    select distinct re_id, count(distinct org_id) orgs
+                    from protein p, mapko m, ko_react k
+                    where p.prot_id=m.prot_id
+                    and m.ko_id=k.ko_id
+                    group by re_id
+                    having orgs=?
+                    '''
+            
+            with self.connection as conn:
+                cursor=conn.execute(query,[nOrgs,])
+        else:
+            query = '''
+                    select distinct k.re_id, count(distinct org_id) orgs
+                    from protein p, mapko m, ko_react k, react_path r
+                    where p.prot_id=m.prot_id
+                    and m.ko_id=k.ko_id
+                    and k.re_id=r.re_id
+                    and path_id=?
+                    group by k.re_id
+                    having orgs=?
+                    '''
+            
+            with self.connection as conn:
+                cursor=conn.execute(query,[path_id, nOrgs,])
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+            
+    def getVariableReactions(self, path_id=None):
+        '''
+        Get the reactions that are differentially present in each organism
+        This does not consider the orthologs but just the reaction IDs
+        '''
+        # How many organisms are present?
+        oCheck = Organism(self.dbname)
+        nOrgs = oCheck.howMany()
+        
+        if path_id is None:
+            query = '''
+                    select distinct re_id, count(distinct org_id) orgs
+                    from protein p, mapko m, ko_react k
+                    where p.prot_id=m.prot_id
+                    and m.ko_id=k.ko_id
+                    group by re_id
+                    having orgs<?
+                    '''
+            
+            with self.connection as conn:
+                cursor=conn.execute(query,[nOrgs,])
+        else:
+            query = '''
+                    select distinct k.re_id, count(distinct org_id) orgs
+                    from protein p, mapko m, ko_react k, react_path r
+                    where p.prot_id=m.prot_id
+                    and m.ko_id=k.ko_id
+                    and k.re_id=r.re_id
+                    and path_id=?
+                    group by k.re_id
+                    having orgs<?
+                    '''
+            
+            with self.connection as conn:
+                cursor=conn.execute(query,[path_id, nOrgs,])
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+            
+    def getConservedRPairsReact(self, path_id=None):
+        '''
+        Get the reactions that are present in each organism
+        This does not consider the orthologs but just the reaction IDs
+        '''
+        # How many organisms are present?
+        oCheck = Organism(self.dbname)
+        nOrgs = oCheck.howMany()
+        
+        if path_id is None:
+            query = '''
+                    select k.re_id, co1, co2, re.name, count(distinct org_id) orgs
+                    from protein p, mapko m, ko_react k, rpair_react rr, rpair rp, reaction re
+                    where p.prot_id=m.prot_id
+                    and m.ko_id=k.ko_id
+                    and rr.re_id=k.re_id
+                    and rr.rp_id=rp.rp_id
+                    and rr.re_id=re.re_id
+                    group by k.re_id
+                    having orgs=?
+                    '''
+            
+            with self.connection as conn:
+                cursor=conn.execute(query,[nOrgs,])
+        else:
+            query = '''
+                    select k.re_id, co1, co2, re.name, count(distinct org_id) orgs
+                    from protein p, mapko m, ko_react k, rpair_react rr, rpair rp, reaction re, react_path r
+                    where p.prot_id=m.prot_id
+                    and m.ko_id=k.ko_id
+                    and rr.re_id=k.re_id
+                    and rr.rp_id=rp.rp_id
+                    and rr.re_id=re.re_id
+                    and k.re_id=r.re_id
+                    and path_id=?
+                    group by k.re_id
+                    having orgs=?
+                    '''
+            
+            with self.connection as conn:
+                cursor=conn.execute(query,[path_id, nOrgs,])
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+            
+    def getVariableRPairsReact(self, path_id=None):
+        '''
+        Get the reactions that are differentially present in each organism
+        This does not consider the orthologs but just the reaction IDs
+        '''
+        # How many organisms are present?
+        oCheck = Organism(self.dbname)
+        nOrgs = oCheck.howMany()
+        
+        if path_id is None:
+            query = '''
+                    select k.re_id, co1, co2, re.name, count(distinct org_id) orgs
+                    from protein p, mapko m, ko_react k, rpair_react rr, rpair rp, reaction re
+                    where p.prot_id=m.prot_id
+                    and m.ko_id=k.ko_id
+                    and rr.re_id=k.re_id
+                    and rr.rp_id=rp.rp_id
+                    and rr.re_id=re.re_id
+                    group by k.re_id
+                    having orgs<?
+                    '''
+            
+            with self.connection as conn:
+                cursor=conn.execute(query,[nOrgs,])
+        else:
+            query = '''
+                    select k.re_id, co1, co2, re.name, count(distinct org_id) orgs
+                    from protein p, mapko m, ko_react k, rpair_react rr, rpair rp, reaction re, react_path r
+                    where p.prot_id=m.prot_id
+                    and m.ko_id=k.ko_id
+                    and rr.re_id=k.re_id
+                    and rr.rp_id=rp.rp_id
+                    and rr.re_id=re.re_id
+                    and k.re_id=r.re_id
+                    and path_id=?
+                    group by k.re_id
+                    having orgs<?
+                    '''
+            
+            with self.connection as conn:
+                cursor=conn.execute(query,[path_id, nOrgs,])
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
     
 class Biolog(DBBase):
     '''

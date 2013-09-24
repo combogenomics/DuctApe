@@ -2635,7 +2635,7 @@ def getPanGenomeNet(project, dpangenome, pangenome='all', path_id=None, category
     Get a pangenomic slice of the metabolic network
     dpangenome is an input dictionary with pangenomic slices
     '''
-    if pangenome not in ['all', 'core', 'dispensable', 'accessory', 'unique']:
+    if pangenome not in ['all', 'conserved', 'variable']:
         logger.warning('Unknown pangenomic slice! (%s)'%pangenome)
         return None
     
@@ -2724,7 +2724,7 @@ def writeCombinedPanGenome(dvalues):
     fout = open(fname,'w')
     
     fout.write('# Genomic variability Vs. Phenomic variability\n')
-    fout.write('# disp/total = number of distinct dispensable reaction IDs / '+
+    fout.write('# disp/total = number of variable reaction IDs / '+
                'number of total reaction IDs \n')
     fout.write('# diffAV = mean AV difference\n')
     fout.write('# (-1, no activity available)\n')
@@ -2790,7 +2790,7 @@ def writeCombined(dvalues, orgs):
     fout.close()
     logger.info('Saved combined informations (%s)'%fname)
 
-def dNet(project, allorgs=False, allpaths=False, pangPaths=None):
+def dNet(project, allorgs=False, allpaths=False):
     '''
     Metabolic network reconstruction and analysis
     '''
@@ -2836,7 +2836,7 @@ def dNet(project, allorgs=False, allpaths=False, pangPaths=None):
             writeNet(v, npath, '%s.gml'%k)
         
     if proj.isPanGenome() and kind == 'pangenome' and not allorgs:
-        orgs = ['core', 'dispensable', 'accessory', 'unique']
+        orgs = ['conserved', 'variable']
         
         slen = 'metNet_pangenome_length.tsv'
         flen = open(slen,'w')
@@ -2868,9 +2868,9 @@ def dNet(project, allorgs=False, allpaths=False, pangPaths=None):
         logger.info('Overall network stats')
         
         allr = [r for r in kegg.getMappedRPairsReact()]
-        ecore, edisp, eacc, euni = kegg.getExclusiveRPairsReact()
-        dpangenome = {'all': allr,'core':ecore, 'dispensable':edisp,
-                      'accessory':eacc, 'unique':euni}
+        ecore = [r for r in kegg.getConservedRPairsReact()]
+        edisp = [r for r in kegg.getVariableRPairsReact()]
+        dpangenome = {'all': allr,'conserved':ecore, 'variable':edisp}
     
         oNet = {}
         for org in orgs:
@@ -2917,7 +2917,10 @@ def dNet(project, allorgs=False, allpaths=False, pangPaths=None):
             if ':' in path.path_id:
                 spath = path.path_id.split(':')[1]
             
-            dpangenome = pangPaths[path.path_id]
+            allr = [r for r in kegg.getMappedRPairsReact(path.path_id)]
+            ecore = [r for r in kegg.getConservedRPairsReact(path.path_id)]
+            edisp = [r for r in kegg.getVariableRPairsReact(path.path_id)]
+            dpangenome = {'all': allr,'conserved':ecore, 'variable':edisp}
             
             paNet = getPanGenomeNet(project, dpangenome,
                                     'all', path_id=path.path_id)
@@ -2936,8 +2939,8 @@ def dNet(project, allorgs=False, allpaths=False, pangPaths=None):
                     writeNet(oNet[org_id], npath, '%s_%s.gml'%(org_id, spath))
             
             iAll = len(dapNet[path.path_id])
-            iDisp = len(oNet['dispensable'].getDistinctReactions())
-            iCore = len(oNet['core'].getDistinctReactions())
+            iDisp = len(oNet['variable'].getDistinctReactions())
+            iCore = len(oNet['conserved'].getDistinctReactions())
             iTotal = len(paNet.getDistinctReactions())
             
             if not skip:
@@ -3670,7 +3673,7 @@ def getCombinations(matrix, phenome, genome, pthresh, gthresh):
     for o in sorted(out, key=lambda x: (x[5], x[6]), reverse=True):
         yield o
 
-def dCombine(project, allorgs=False, pangPaths=None, pthresh=5, doPrint=True):
+def dCombine(project, allorgs=False, pthresh=5, doPrint=True):
     '''
     Prepare a table/heatmap focused on compound activity/genetic content
     '''
@@ -3771,13 +3774,16 @@ def dCombine(project, allorgs=False, pangPaths=None, pthresh=5, doPrint=True):
         
         # Get the genetic variability
         for p in paths:
-            dpangenome = pangPaths[p]
+            allr = [r for r in kegg.getMappedRPairsReact(p)]
+            ecore = [r for r in kegg.getConservedRPairsReact(p)]
+            edisp = [r for r in kegg.getVariableRPairsReact(p)]
+            dpangenome = {'all': allr,'conserved':ecore, 'variable':edisp}
                 
             totNet = len(getPanGenomeNet(project,
                                      dpangenome, 'all',
                                      path_id=p).getDistinctReactions())
             dispNet = len(getPanGenomeNet(project,
-                                      dpangenome, 'dispensable',
+                                      dpangenome, 'variable',
                                       path_id=p).getDistinctReactions())
             
             pname = kegg.getPathway(p).name
@@ -3796,7 +3802,7 @@ def dCombine(project, allorgs=False, pangPaths=None, pthresh=5, doPrint=True):
                    ' between each organism of the pangenome\n')
         fout.write('#  Compounds are sorted by mean diffAV, '+
                    ' pathways by genomic variability '+
-                   '(number of exclusive dispensable reaction IDs / '+
+                   '(number of variable reaction IDs / '+
                    'numer of distinct reaction IDs)\n')
         writeCombinedMatrix(fout, matr_all, phen_all, gen_all)
         
@@ -3814,7 +3820,7 @@ def dCombine(project, allorgs=False, pangPaths=None, pthresh=5, doPrint=True):
                    ' between each organism of the pangenome\n')
         fout.write('#  Compounds are sorted by mean diffAV, '+
                    ' pathways by genomic variability '+
-                   '(number of exclusive dispensable reaction IDs / '+
+                   '(number of variable reaction IDs / '+
                    'numer of distinct reaction IDs)\n')
         fout.write('#  mean diffAV threshold: %f\n'%pthresh)
         fout.write('#  genomic variability threshold: > 0\n')
@@ -4403,29 +4409,22 @@ def createLegend(kind, project):
         cmatrix = np.outer(np.arange(0,maxAct,0.1),np.ones(7))
          
     if kind == 'pangenome':
-        ax = fig.add_subplot(141, axisbg='b')
+        ax = fig.add_subplot(131, axisbg='b')
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
         ax.axes.get_xaxis().set_ticks([])
-        ax.set_title('Core')
+        ax.set_title('Conserved')
         
-        ax = fig.add_subplot(142, axisbg='g')
-        ax.axes.get_xaxis().set_visible(False)
-        ax.axes.get_yaxis().set_visible(False)
-        ax.axes.get_yaxis().set_ticks([])
-        ax.axes.get_xaxis().set_ticks([])
-        ax.set_title('Core and Disp.')
-        
-        ax = fig.add_subplot(143)
+        ax = fig.add_subplot(132)
         ax.imshow(rmatrix, cmap=cm.autumn, vmin=0, vmax=1)
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
         ax.axes.get_xaxis().set_ticks([])
-        ax.set_title('Dispensable')
+        ax.set_title('Variable')
         
-        ax = fig.add_subplot(144)
+        ax = fig.add_subplot(133)
         ax.imshow(cmatrix, cmap=cm.Purples, vmin=0, vmax=maxAct)
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)

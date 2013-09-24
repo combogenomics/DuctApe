@@ -1,3 +1,23 @@
+Version 0.13.0
+==============
+
+UPGRADE URGENCY: HIGH, pangenome combined analysis have been changed to account for distant species
+
+The pathway maps and combined analysis have been remodulated to consider also the presence of genes that are not orthologs but share the same metabolic function (i.e. KEGG reaction ID).
+There are virtually no changes for pangenomic analyses on closely-related strains, as their metabolic variability is mainly based on orthology relationships.
+The KEGG reaction IDs that are common to all strains are labelled as 'conserved', as opposed to the 'variable' ones.
+
+FEATURES:
+* dgenome stats/export: new outputs and graphs for conserved/variable reactions
+* dape map: new pathway coloring policies for pangenomes
+	* Blue boxes means conserved reaction
+	* Orange boxes mean variable reactions (color intensity proportional to strains count)
+* dape start: consider conserved/variable reactions in the analysis
+	* -n option removed
+
+BUGFIXES:
+* dphenome: the commands that need phenotypic data will exit if no PM plate is available
+
 Version 0.12.0
 ==============   
 

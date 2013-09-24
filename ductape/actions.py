@@ -2189,6 +2189,31 @@ def dGenomeExport(project):
                 logger.warning('Please note that the dispensable genome includes'+
                            ' the accessory and unique genome')
         
+        ecore = [r for r in kegg.getConservedReactions()]
+        edisp = [r for r in kegg.getVariableReactions()]
+        preact = [('conserved', ecore), ('variable', edisp)]
+        
+        for label, er in preact:
+            if len(er) == 0:
+                logger.warning('No Kegg reactions available'+
+                               ' for %s reactions set'%label)
+                continue
+            fname = 'reactions_%s.tsv'%label
+            fout = open(fname,'w')
+            fout.write('#%s\t%s\t%s\t%s\n'%('re_id', 'name', 'description', 'pathway(s)'))
+            i = 0
+            for r in er:
+                re_id = r.re_id
+                re = kegg.getReaction(re_id)
+                paths = ','.join([p.path_id.lstrip('path:') for p in kegg.getReactPath(re.re_id)])
+                fout.write('%s\t%s\t%s\t%s\n'%(re_id.lstrip('rn:'), re.name,
+                              re.description, paths))
+                i += 1
+            fout.close()
+            
+            logger.info('Saved %d exclusive Kegg reactions for %s genome (%s)'%
+                        (i, label, fname))
+        
     logger.info('Exporting EC numbers')
     
     for org in organism.getAll():

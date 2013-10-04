@@ -23,16 +23,16 @@ logger = logging.getLogger('ductape.net')
 ################################################################################
 # Classes
 
-phenomeNorm = pltcls.Normalize(vmin=0, vmax=9)
-
 class Compound(object):
     '''
     Kegg compound, enconded as a node
     '''
-    def __init__(self, co_id, name, weight=None):
+    def __init__(self, co_id, name, weight=None, vmax=9):
         self.co_id = co_id
         self.name = name
         
+        self.vmax = vmax
+
         if weight is not None:
             self.weight = weight
             
@@ -40,6 +40,7 @@ class Compound(object):
         '''
         Transform the node weight into an hex color
         '''
+        phenomeNorm = pltcls.Normalize(vmin=0, vmax=self.vmax)
         if self.weight:
             return pltcls.rgb2hex( 
                                 plt.get_cmap('RdYlGn')(phenomeNorm(self.weight))

@@ -2592,6 +2592,7 @@ def getOrgNet(project, org_id, path_id=None, category=None):
         logger.debug('Fetching metabolic activity for category %s'%category)
         
         biolog = Biolog(project)
+        vmax = biolog.getMaxActivity()
 
         corg = {}
         
@@ -2621,7 +2622,7 @@ def getOrgNet(project, org_id, path_id=None, category=None):
         for k in toremove:
             del corg[k]
         
-        compounds = [Compound('cpd:'+k,kegg.getCompound('cpd:'+k).name,v) for k,v in corg.iteritems()]
+        compounds = [Compound('cpd:'+k,kegg.getCompound('cpd:'+k).name,v,vmax) for k,v in corg.iteritems()]
         net.addNodes(compounds)
         logger.debug('Added %d metabolic activities'%len(compounds))
         
@@ -2648,6 +2649,7 @@ def getMutNet(project, mut_id, mut_rpairs, path_id=None, category=None):
         logger.debug('Fetching metabolic activity for category %s'%category)
         
         biolog = Biolog(project)
+        vmax = biolog.getMaxActivity()
 
         corg = {}
         
@@ -2677,7 +2679,7 @@ def getMutNet(project, mut_id, mut_rpairs, path_id=None, category=None):
         for k in toremove:
             del corg[k]
         
-        compounds = [Compound('cpd:'+k,kegg.getCompound('cpd:'+k).name,v) for k,v in corg.iteritems()]
+        compounds = [Compound('cpd:'+k,kegg.getCompound('cpd:'+k).name,v,vmax) for k,v in corg.iteritems()]
         net.addNodes(compounds)
         logger.debug('Added %d metabolic activities'%len(compounds))
         
@@ -2714,7 +2716,8 @@ def getPanGenomeNet(project, dpangenome, pangenome='all', path_id=None, category
         logger.debug('Fetching metabolic activity for category %s'%category)
         
         biolog = Biolog(project)
-
+        vmax = biolog.getMaxActivity()
+        
         corg = {}
         
         # Filter by path?
@@ -2755,7 +2758,7 @@ def getPanGenomeNet(project, dpangenome, pangenome='all', path_id=None, category
         for k in toremove:
             del corg[k]
         
-        compounds = [Compound('cpd:'+k,kegg.getCompound('cpd:'+k).name,v) for k,v in corg.iteritems()]
+        compounds = [Compound('cpd:'+k,kegg.getCompound('cpd:'+k).name,v,vmax) for k,v in corg.iteritems()]
         net.addNodes(compounds)
         logger.debug('Added %d metabolic activities'%len(compounds))
         

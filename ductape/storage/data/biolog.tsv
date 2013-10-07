@@ -292,102 +292,102 @@ PM03B	H09	0	A01	Gly-Gln	CAS 13115-71-4		N-Source, peptide	nitrogen
 PM03B	H10	0	A01	Gly-Glu	CAS 7412-78-4		N-Source, peptide	nitrogen
 PM03B	H11	0	A01	Gly-Met	CAS 554-94-9		N-Source, peptide	nitrogen
 PM03B	H12	0	A01	Met-Ala	CAS 3061-96-9		N-Source, peptide	nitrogen
-PM04A	A01	0		Negative Control			P-Source, Negative control	phosphate & sulfur
-PM04A	A02	0	A01	Phosphate	CAS 10049-21-5 	C00009	P-Source, inorganic	phosphate & sulfur
-PM04A	A03	0	A01	Pyrophosphate	CAS 13472-36-1	C00013	P-Source, inorganic	phosphate & sulfur
-PM04A	A04	0	A01	Trimetaphosphate	CAS 7785-84-4 	C02466	P-Source, inorganic	phosphate & sulfur
-PM04A	A05	0	A01	Tripolyphosphate	CAS 15091-98-2	C00536	P-Source, inorganic	phosphate & sulfur
-PM04A	A06	0	A01	Triethyl Phosphate	CAS 78-40-0 		P-Source, organic	phosphate & sulfur
-PM04A	A07	0	A01	Hypophosphite	CAS 10039-56-2		P-Source, inorganic	phosphate & sulfur
-PM04A	A08	0	A01	Adenosine 2`-Monophosphate		C00946	P-Source, organic	phosphate & sulfur
-PM04A	A09	0	A01	Adenosine 3`-Monophosphate	CAS 84-21-9	C01367	P-Source, organic	phosphate & sulfur
-PM04A	A10	0	A01	Adenosine 5`-Monophosphate	CAS 18422-05-4	C00020	P-Source, organic	phosphate & sulfur
-PM04A	A11	0	A01	Adenosine 2`,3`-Cyclic Monophosphate	CAS 37063-35-7		P-Source, organic	phosphate & sulfur
-PM04A	A12	0	A01	Adenosine 3`,5`-Cyclic Monophosphate	CAS 37839-81-9	C00575	P-Source, organic	phosphate & sulfur
-PM04A	B01	0	A01	Thiophosphate	CAS 10489-48-2		P-Source, inorganic	phosphate & sulfur
-PM04A	B02	0	A01	Dithiophosphate	CAS 13473-25-1		P-Source, inorganic	phosphate & sulfur
-PM04A	B03	0	A01	DL-a-Glycerol Phosphate	CAS 3325-00-6	C00093	P-Source, organic	phosphate & sulfur
-PM04A	B04	0	A01	b-Glycerol Phosphate	CAS 154804-51-0	C02979	P-Source, organic	phosphate & sulfur
-PM04A	B05	0	A01	Carbamyl Phosphate	CAS 72461-86-0	C00169	P-Source, organic	phosphate & sulfur
-PM04A	B06	0	A01	D-2-Phospho-Glyceric acid	CAS 70195-25-4	C00631	P-Source, organic	phosphate & sulfur
-PM04A	B07	0	A01	D-3-Phospho-Glyceric acid	CAS 80731-10-8	C00197	P-Source, organic	phosphate & sulfur
-PM04A	B08	0	A01	Guanosine 2`-Monophosphate	CAS 6027-83-4		P-Source, organic	phosphate & sulfur
-PM04A	B09	0	A01	Guanosine 3`-Monophosphate		C06193	P-Source, organic	phosphate & sulfur
-PM04A	B10	0	A01	Guanosine 5`-Monophosphate	CAS 5550-12-9	C00144	P-Source, organic	phosphate & sulfur
-PM04A	B11	0	A01	Guanosine 2`,3`-Cyclic Monophosphate	CAS 15718-49-7		P-Source, organic	phosphate & sulfur
-PM04A	B12	0	A01	Guanosine 3`,5`-Cyclic Monophosphate	CAS 40732-48-7	C00942	P-Source, organic	phosphate & sulfur
-PM04A	C01	0	A01	Phosphoenol Pyruvate	CAS 5541-93-5	C00074	P-Source, organic	phosphate & sulfur
-PM04A	C02	0	A01	Phospho-Glycolic acid		C00988	P-Source, organic	phosphate & sulfur
-PM04A	C03	0	A01	D-Glucose-1-Phosphate	CAS 56401-20-8	C00103	P-Source, organic	phosphate & sulfur
-PM04A	C04	0	A01	D-Glucose-6-Phosphate	CAS 3671-99-6	C00092	P-Source, organic	phosphate & sulfur
-PM04A	C05	0	A01	2-Deoxy-D-Glucose 6-Phosphate	CAS 33068-19-8	C06369	P-Source, organic	phosphate & sulfur
-PM04A	C06	0	A01	D-Glucosamine-6-Phosphate	CAS 70442-23-8	C00352	P-Source, organic	phosphate & sulfur
-PM04A	C07	0	A01	6-Phospho-Gluconic acid	CAS 53411-70-4		P-Source, organic	phosphate & sulfur
-PM04A	C08	0	A01	Cytidine 2`-Monophosphate	CAS 85-94-9	C03104	P-Source, organic	phosphate & sulfur
-PM04A	C09	0	A01	Cytidine 3`-Monophosphate	CAS 84-52-6	C05822 	P-Source, organic	phosphate & sulfur
-PM04A	C10	0	A01	Cytidine 5`-Monophosphate	CAS 6757-06-8	C00055	P-Source, organic	phosphate & sulfur
-PM04A	C11	0	A01	Cytidine 2`,3`-Cyclic Monophosphate	CAS 15718-51-1		P-Source, organic	phosphate & sulfur
-PM04A	C12	0	A01	Cytidine 3`,5`-Cyclic Monophosphate	CAS 3616-08-8	C00941	P-Source, organic	phosphate & sulfur
-PM04A	D01	0	A01	D-Mannose-1-Phosphate	CAS 99749-54-9	C00636	P-Source, organic	phosphate & sulfur
-PM04A	D02	0	A01	D-Mannose-6-Phosphate	CAS 33068-18-7	C00275	P-Source, organic	phosphate & sulfur
-PM04A	D03	0	A01	Cysteamine-S-Phosphate	CAS 3724-89-8		P-Source, organic	phosphate & sulfur
-PM04A	D04	0	A01	Phospho-L-Arginine	CAS 108321-86-4	C05945	P-Source, organic	phosphate & sulfur
-PM04A	D05	0	A01	O-Phospho-D-Serine	CAS 73913-63-0	C02532	P-Source, organic	phosphate & sulfur
-PM04A	D06	0	A01	O-Phospho-L-Serine	CAS 407-41-0	C01005	P-Source, organic	phosphate & sulfur
-PM04A	D07	0	A01	O-Phospho-L-Threonine	CAS 1114-81-4		P-Source, organic	phosphate & sulfur
-PM04A	D08	0	A01	Uridine 2`-Monophosphate	CAS 56070-25-8	C03031	P-Source, organic	phosphate & sulfur
-PM04A	D09	0	A01	Uridine 3`-Monophosphate	CAS 35170-03-7	C01368	P-Source, organic	phosphate & sulfur
-PM04A	D10	0	A01	Uridine 5`-Monophosphate	CAS 3387-36-8	C00105	P-Source, organic	phosphate & sulfur
-PM04A	D11	0	A01	Uridine 2`,3`-Cyclic Monophosphate	CAS 15718-50-0	C02355	P-Source, organic	phosphate & sulfur
-PM04A	D12	0	A01	Uridine 3`,5`-Cyclic Monophosphate	CAS 56632-58-7		P-Source, organic	phosphate & sulfur
-PM04A	E01	0	A01	O-Phospho-D-Tyrosine	CAS 108321-25-1	C06501	P-Source, organic	phosphate & sulfur
-PM04A	E02	0	A01	O-Phospho-L-Tyrosine	CAS 21820-51-9	C06501	P-Source, organic	phosphate & sulfur
-PM04A	E03	0	A01	Phosphocreatine	CAS 19333-65-4	C02305	P-Source, organic	phosphate & sulfur
-PM04A	E04	0	A01	Phosphoryl Choline	CAS 4826-71-5	C00588	P-Source, organic	phosphate & sulfur
-PM04A	E05	0	A01	O-Phosphoryl-Ethanolamine	CAS 1071-23-4	C00346	P-Source, organic	phosphate & sulfur
-PM04A	E06	0	A01	Phosphono Acetic acid	CAS 4408-78-0	C05682	P-Source, organic	phosphate & sulfur
-PM04A	E07	0	A01	2-Aminoethyl Phosphonic acid	CAS 2041-14-7	C03557	P-Source, organic	phosphate & sulfur
-PM04A	E08	0	A01	Methylene Diphosphonic acid	CAS 39478-93-8		P-Source, organic	phosphate & sulfur
-PM04A	E09	0	A01	Thymidine 3`-Monophosphate	CAS 108320-91-8		P-Source, organic	phosphate & sulfur
-PM04A	E10	0	A01	Thymidine 5`-Monophosphate	CAS 33430-62-5	C00364	P-Source, organic	phosphate & sulfur
-PM04A	E11	0	A01	Inositol Hexaphosphate	CAS 14306-25-3	C01204	P-Source, organic	phosphate & sulfur
-PM04A	E12	0	A01	Thymidine 3`,5`-Cyclic Monophosphate	CAS 76567-90-3		P-Source, organic	phosphate & sulfur
-PM04A	F01	0		Negative Control			S-Source, Negative control	phosphate & sulfur
-PM04A	F02	0	F01	Sulfate	CAS 7727-73-3	C00059	S-Source, inorganic	phosphate & sulfur
-PM04A	F03	0	F01	Thiosulfate	CAS 10102-17-7	C00320	S-Source, inorganic	phosphate & sulfur
-PM04A	F04	0	F01	Tetrathionate	CAS 13721-29-4	C02084	S-Source, inorganic	phosphate & sulfur
-PM04A	F05	0	F01	Thiophosphate	CAS 10489-48-2		S-Source, inorganic	phosphate & sulfur
-PM04A	F06	0	F01	Dithiophosphate	CAS 13473-25-1		S-Source, inorganic	phosphate & sulfur
-PM04A	F07	0	F01	L-Cysteine	CAS 7048-04-6	C00097	S-Source, organic	phosphate & sulfur
-PM04A	F08	0	F01	D-Cysteine	CAS 207121-46-8	C00793	S-Source, organic	phosphate & sulfur
-PM04A	F09	0	F01	Cys-Gly	CAS 19246-18-5		S-Source, organic	phosphate & sulfur
-PM04A	F10	0	F01	L-Cysteic acid	CAS 23537-25-9	C00506	S-Source, organic	phosphate & sulfur
-PM04A	F11	0	F01	Cysteamine	CAS 156-57-0	C01678	S-Source, organic	phosphate & sulfur
-PM04A	F12	0	F01	L-Cysteine Sulfinic acid	CAS 1115-65-7	C00606	S-Source, organic	phosphate & sulfur
-PM04A	G01	0	F01	N-Acetyl-L-Cysteine	CAS 616-91-1	C06809	S-Source, organic	phosphate & sulfur
-PM04A	G02	0	F01	S-Methyl-L-Cysteine	CAS 1187-84-4	C03540	S-Source, organic	phosphate & sulfur
-PM04A	G03	0	F01	Cystathionine	CAS 535-34-2	C00542	S-Source, organic	phosphate & sulfur
-PM04A	G04	0	F01	Lanthionine	CAS 922-55-4		S-Source, organic	phosphate & sulfur
-PM04A	G05	0	F01	Glutathione	CAS 70-18-8 	C00051	S-Source, organic	phosphate & sulfur
-PM04A	G06	0	F01	DL-Ethionine	CAS 67-21-0	C11227	S-Source, organic	phosphate & sulfur
-PM04A	G07	0	F01	L-Methionine	CAS 63-68-3	C00073	S-Source, organic	phosphate & sulfur
-PM04A	G08	0	F01	D-Methionine	CAS 348-67-4	C00855	S-Source, organic	phosphate & sulfur
-PM04A	G09	0	F01	Gly-Met	CAS 554-94-9		S-Source, organic	phosphate & sulfur
-PM04A	G10	0	F01	N-Acetyl-D,L-Methionine	CAS 71463-44-0	C02712	S-Source, organic	phosphate & sulfur
-PM04A	G11	0	F01	L-Methionine Sulfoxide	CAS 3226-65-1	C02989	S-Source, organic	phosphate & sulfur
-PM04A	G12	0	F01	L-Methionine Sulfone	CAS 7314-32-1		S-Source, organic	phosphate & sulfur
-PM04A	H01	0	F01	L-Djenkolic acid	CAS 28052-93-9	C08275	S-Source, organic	phosphate & sulfur
-PM04A	H02	0	F01	Thiourea	CAS 62-56-6	C14415	S-Source, organic	phosphate & sulfur
-PM04A	H03	0	F01	1-Thio-b-D-Glucose	CAS 10593-29-0		S-Source, organic	phosphate & sulfur
-PM04A	H04	0	F01	DL-Lipoamide	CAS 940-69-2	C00248	S-Source, organic	phosphate & sulfur
-PM04A	H05	0	F01	Taurocholic acid	CAS 145-42-6	C05122	S-Source, organic	phosphate & sulfur
-PM04A	H06	0	F01	Taurine	CAS 107-35-7	C00245	S-Source, organic	phosphate & sulfur
-PM04A	H07	0	F01	Hypotaurine	CAS 300-84-5	C00519	S-Source, organic	phosphate & sulfur
-PM04A	H08	0	F01	p-Aminobenzene Sulfonic acid	CAS 555-06-6	C00568	S-Source, organic	phosphate & sulfur
-PM04A	H09	0	F01	Butane Sulfonic acid	CAS 2386-54-1		S-Source, organic	phosphate & sulfur
-PM04A	H10	0	F01	2-Hydroxyethane Sulfonic acid	CAS 1562-00-1	C05123	S-Source, organic	phosphate & sulfur
-PM04A	H11	0	F01	Methane Sulfonic acid	CAS 75-75-2	C11145	S-Source, organic	phosphate & sulfur
-PM04A	H12	0	F01	Tetramethylene Sulfone	CAS 126-33-0		S-Source, organic	phosphate & sulfur
+PM04A	A01	0		Negative Control			P-Source, Negative control	phosphate & sulphur
+PM04A	A02	0	A01	Phosphate	CAS 10049-21-5 	C00009	P-Source, inorganic	phosphate & sulphur
+PM04A	A03	0	A01	Pyrophosphate	CAS 13472-36-1	C00013	P-Source, inorganic	phosphate & sulphur
+PM04A	A04	0	A01	Trimetaphosphate	CAS 7785-84-4 	C02466	P-Source, inorganic	phosphate & sulphur
+PM04A	A05	0	A01	Tripolyphosphate	CAS 15091-98-2	C00536	P-Source, inorganic	phosphate & sulphur
+PM04A	A06	0	A01	Triethyl Phosphate	CAS 78-40-0 		P-Source, organic	phosphate & sulphur
+PM04A	A07	0	A01	Hypophosphite	CAS 10039-56-2		P-Source, inorganic	phosphate & sulphur
+PM04A	A08	0	A01	Adenosine 2`-Monophosphate		C00946	P-Source, organic	phosphate & sulphur
+PM04A	A09	0	A01	Adenosine 3`-Monophosphate	CAS 84-21-9	C01367	P-Source, organic	phosphate & sulphur
+PM04A	A10	0	A01	Adenosine 5`-Monophosphate	CAS 18422-05-4	C00020	P-Source, organic	phosphate & sulphur
+PM04A	A11	0	A01	Adenosine 2`,3`-Cyclic Monophosphate	CAS 37063-35-7		P-Source, organic	phosphate & sulphur
+PM04A	A12	0	A01	Adenosine 3`,5`-Cyclic Monophosphate	CAS 37839-81-9	C00575	P-Source, organic	phosphate & sulphur
+PM04A	B01	0	A01	Thiophosphate	CAS 10489-48-2		P-Source, inorganic	phosphate & sulphur
+PM04A	B02	0	A01	Dithiophosphate	CAS 13473-25-1		P-Source, inorganic	phosphate & sulphur
+PM04A	B03	0	A01	DL-a-Glycerol Phosphate	CAS 3325-00-6	C00093	P-Source, organic	phosphate & sulphur
+PM04A	B04	0	A01	b-Glycerol Phosphate	CAS 154804-51-0	C02979	P-Source, organic	phosphate & sulphur
+PM04A	B05	0	A01	Carbamyl Phosphate	CAS 72461-86-0	C00169	P-Source, organic	phosphate & sulphur
+PM04A	B06	0	A01	D-2-Phospho-Glyceric acid	CAS 70195-25-4	C00631	P-Source, organic	phosphate & sulphur
+PM04A	B07	0	A01	D-3-Phospho-Glyceric acid	CAS 80731-10-8	C00197	P-Source, organic	phosphate & sulphur
+PM04A	B08	0	A01	Guanosine 2`-Monophosphate	CAS 6027-83-4		P-Source, organic	phosphate & sulphur
+PM04A	B09	0	A01	Guanosine 3`-Monophosphate		C06193	P-Source, organic	phosphate & sulphur
+PM04A	B10	0	A01	Guanosine 5`-Monophosphate	CAS 5550-12-9	C00144	P-Source, organic	phosphate & sulphur
+PM04A	B11	0	A01	Guanosine 2`,3`-Cyclic Monophosphate	CAS 15718-49-7		P-Source, organic	phosphate & sulphur
+PM04A	B12	0	A01	Guanosine 3`,5`-Cyclic Monophosphate	CAS 40732-48-7	C00942	P-Source, organic	phosphate & sulphur
+PM04A	C01	0	A01	Phosphoenol Pyruvate	CAS 5541-93-5	C00074	P-Source, organic	phosphate & sulphur
+PM04A	C02	0	A01	Phospho-Glycolic acid		C00988	P-Source, organic	phosphate & sulphur
+PM04A	C03	0	A01	D-Glucose-1-Phosphate	CAS 56401-20-8	C00103	P-Source, organic	phosphate & sulphur
+PM04A	C04	0	A01	D-Glucose-6-Phosphate	CAS 3671-99-6	C00092	P-Source, organic	phosphate & sulphur
+PM04A	C05	0	A01	2-Deoxy-D-Glucose 6-Phosphate	CAS 33068-19-8	C06369	P-Source, organic	phosphate & sulphur
+PM04A	C06	0	A01	D-Glucosamine-6-Phosphate	CAS 70442-23-8	C00352	P-Source, organic	phosphate & sulphur
+PM04A	C07	0	A01	6-Phospho-Gluconic acid	CAS 53411-70-4		P-Source, organic	phosphate & sulphur
+PM04A	C08	0	A01	Cytidine 2`-Monophosphate	CAS 85-94-9	C03104	P-Source, organic	phosphate & sulphur
+PM04A	C09	0	A01	Cytidine 3`-Monophosphate	CAS 84-52-6	C05822 	P-Source, organic	phosphate & sulphur
+PM04A	C10	0	A01	Cytidine 5`-Monophosphate	CAS 6757-06-8	C00055	P-Source, organic	phosphate & sulphur
+PM04A	C11	0	A01	Cytidine 2`,3`-Cyclic Monophosphate	CAS 15718-51-1		P-Source, organic	phosphate & sulphur
+PM04A	C12	0	A01	Cytidine 3`,5`-Cyclic Monophosphate	CAS 3616-08-8	C00941	P-Source, organic	phosphate & sulphur
+PM04A	D01	0	A01	D-Mannose-1-Phosphate	CAS 99749-54-9	C00636	P-Source, organic	phosphate & sulphur
+PM04A	D02	0	A01	D-Mannose-6-Phosphate	CAS 33068-18-7	C00275	P-Source, organic	phosphate & sulphur
+PM04A	D03	0	A01	Cysteamine-S-Phosphate	CAS 3724-89-8		P-Source, organic	phosphate & sulphur
+PM04A	D04	0	A01	Phospho-L-Arginine	CAS 108321-86-4	C05945	P-Source, organic	phosphate & sulphur
+PM04A	D05	0	A01	O-Phospho-D-Serine	CAS 73913-63-0	C02532	P-Source, organic	phosphate & sulphur
+PM04A	D06	0	A01	O-Phospho-L-Serine	CAS 407-41-0	C01005	P-Source, organic	phosphate & sulphur
+PM04A	D07	0	A01	O-Phospho-L-Threonine	CAS 1114-81-4		P-Source, organic	phosphate & sulphur
+PM04A	D08	0	A01	Uridine 2`-Monophosphate	CAS 56070-25-8	C03031	P-Source, organic	phosphate & sulphur
+PM04A	D09	0	A01	Uridine 3`-Monophosphate	CAS 35170-03-7	C01368	P-Source, organic	phosphate & sulphur
+PM04A	D10	0	A01	Uridine 5`-Monophosphate	CAS 3387-36-8	C00105	P-Source, organic	phosphate & sulphur
+PM04A	D11	0	A01	Uridine 2`,3`-Cyclic Monophosphate	CAS 15718-50-0	C02355	P-Source, organic	phosphate & sulphur
+PM04A	D12	0	A01	Uridine 3`,5`-Cyclic Monophosphate	CAS 56632-58-7		P-Source, organic	phosphate & sulphur
+PM04A	E01	0	A01	O-Phospho-D-Tyrosine	CAS 108321-25-1	C06501	P-Source, organic	phosphate & sulphur
+PM04A	E02	0	A01	O-Phospho-L-Tyrosine	CAS 21820-51-9	C06501	P-Source, organic	phosphate & sulphur
+PM04A	E03	0	A01	Phosphocreatine	CAS 19333-65-4	C02305	P-Source, organic	phosphate & sulphur
+PM04A	E04	0	A01	Phosphoryl Choline	CAS 4826-71-5	C00588	P-Source, organic	phosphate & sulphur
+PM04A	E05	0	A01	O-Phosphoryl-Ethanolamine	CAS 1071-23-4	C00346	P-Source, organic	phosphate & sulphur
+PM04A	E06	0	A01	Phosphono Acetic acid	CAS 4408-78-0	C05682	P-Source, organic	phosphate & sulphur
+PM04A	E07	0	A01	2-Aminoethyl Phosphonic acid	CAS 2041-14-7	C03557	P-Source, organic	phosphate & sulphur
+PM04A	E08	0	A01	Methylene Diphosphonic acid	CAS 39478-93-8		P-Source, organic	phosphate & sulphur
+PM04A	E09	0	A01	Thymidine 3`-Monophosphate	CAS 108320-91-8		P-Source, organic	phosphate & sulphur
+PM04A	E10	0	A01	Thymidine 5`-Monophosphate	CAS 33430-62-5	C00364	P-Source, organic	phosphate & sulphur
+PM04A	E11	0	A01	Inositol Hexaphosphate	CAS 14306-25-3	C01204	P-Source, organic	phosphate & sulphur
+PM04A	E12	0	A01	Thymidine 3`,5`-Cyclic Monophosphate	CAS 76567-90-3		P-Source, organic	phosphate & sulphur
+PM04A	F01	0		Negative Control			S-Source, Negative control	phosphate & sulphur
+PM04A	F02	0	F01	Sulfate	CAS 7727-73-3	C00059	S-Source, inorganic	phosphate & sulphur
+PM04A	F03	0	F01	Thiosulfate	CAS 10102-17-7	C00320	S-Source, inorganic	phosphate & sulphur
+PM04A	F04	0	F01	Tetrathionate	CAS 13721-29-4	C02084	S-Source, inorganic	phosphate & sulphur
+PM04A	F05	0	F01	Thiophosphate	CAS 10489-48-2		S-Source, inorganic	phosphate & sulphur
+PM04A	F06	0	F01	Dithiophosphate	CAS 13473-25-1		S-Source, inorganic	phosphate & sulphur
+PM04A	F07	0	F01	L-Cysteine	CAS 7048-04-6	C00097	S-Source, organic	phosphate & sulphur
+PM04A	F08	0	F01	D-Cysteine	CAS 207121-46-8	C00793	S-Source, organic	phosphate & sulphur
+PM04A	F09	0	F01	Cys-Gly	CAS 19246-18-5		S-Source, organic	phosphate & sulphur
+PM04A	F10	0	F01	L-Cysteic acid	CAS 23537-25-9	C00506	S-Source, organic	phosphate & sulphur
+PM04A	F11	0	F01	Cysteamine	CAS 156-57-0	C01678	S-Source, organic	phosphate & sulphur
+PM04A	F12	0	F01	L-Cysteine Sulfinic acid	CAS 1115-65-7	C00606	S-Source, organic	phosphate & sulphur
+PM04A	G01	0	F01	N-Acetyl-L-Cysteine	CAS 616-91-1	C06809	S-Source, organic	phosphate & sulphur
+PM04A	G02	0	F01	S-Methyl-L-Cysteine	CAS 1187-84-4	C03540	S-Source, organic	phosphate & sulphur
+PM04A	G03	0	F01	Cystathionine	CAS 535-34-2	C00542	S-Source, organic	phosphate & sulphur
+PM04A	G04	0	F01	Lanthionine	CAS 922-55-4		S-Source, organic	phosphate & sulphur
+PM04A	G05	0	F01	Glutathione	CAS 70-18-8 	C00051	S-Source, organic	phosphate & sulphur
+PM04A	G06	0	F01	DL-Ethionine	CAS 67-21-0	C11227	S-Source, organic	phosphate & sulphur
+PM04A	G07	0	F01	L-Methionine	CAS 63-68-3	C00073	S-Source, organic	phosphate & sulphur
+PM04A	G08	0	F01	D-Methionine	CAS 348-67-4	C00855	S-Source, organic	phosphate & sulphur
+PM04A	G09	0	F01	Gly-Met	CAS 554-94-9		S-Source, organic	phosphate & sulphur
+PM04A	G10	0	F01	N-Acetyl-D,L-Methionine	CAS 71463-44-0	C02712	S-Source, organic	phosphate & sulphur
+PM04A	G11	0	F01	L-Methionine Sulfoxide	CAS 3226-65-1	C02989	S-Source, organic	phosphate & sulphur
+PM04A	G12	0	F01	L-Methionine Sulfone	CAS 7314-32-1		S-Source, organic	phosphate & sulphur
+PM04A	H01	0	F01	L-Djenkolic acid	CAS 28052-93-9	C08275	S-Source, organic	phosphate & sulphur
+PM04A	H02	0	F01	Thiourea	CAS 62-56-6	C14415	S-Source, organic	phosphate & sulphur
+PM04A	H03	0	F01	1-Thio-b-D-Glucose	CAS 10593-29-0		S-Source, organic	phosphate & sulphur
+PM04A	H04	0	F01	DL-Lipoamide	CAS 940-69-2	C00248	S-Source, organic	phosphate & sulphur
+PM04A	H05	0	F01	Taurocholic acid	CAS 145-42-6	C05122	S-Source, organic	phosphate & sulphur
+PM04A	H06	0	F01	Taurine	CAS 107-35-7	C00245	S-Source, organic	phosphate & sulphur
+PM04A	H07	0	F01	Hypotaurine	CAS 300-84-5	C00519	S-Source, organic	phosphate & sulphur
+PM04A	H08	0	F01	p-Aminobenzene Sulfonic acid	CAS 555-06-6	C00568	S-Source, organic	phosphate & sulphur
+PM04A	H09	0	F01	Butane Sulfonic acid	CAS 2386-54-1		S-Source, organic	phosphate & sulphur
+PM04A	H10	0	F01	2-Hydroxyethane Sulfonic acid	CAS 1562-00-1	C05123	S-Source, organic	phosphate & sulphur
+PM04A	H11	0	F01	Methane Sulfonic acid	CAS 75-75-2	C11145	S-Source, organic	phosphate & sulphur
+PM04A	H12	0	F01	Tetramethylene Sulfone	CAS 126-33-0		S-Source, organic	phosphate & sulphur
 PM05	A01	0		Negative Control			Nutritional supplement, Negative control	nutrient stimulation
 PM05	A02	0	A01	Positive Control			Nutritional supplement, Positive control	nutrient stimulation
 PM05	A03	0	A01	L-Alanine	CAS 56-41-7	C00041	Nutritional supplement	nutrient stimulation

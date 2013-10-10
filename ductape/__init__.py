@@ -1,2 +1,2 @@
-__version__ = '0.13.0'
+__version__ = '0.13.1'
 __email__ = 'ductape-users@googlegroups.com'

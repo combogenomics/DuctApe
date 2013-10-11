@@ -611,8 +611,10 @@ class Plate(object):
             strains = set(strains)
             unknown = set(strains).difference(self.strains.keys())
             if len( unknown ) > 0:
-                raise ValueError('Unknown strain(s) were provided (%s)'%
+                logger.warning('Unknown strain(s) were provided (%s)'%
                                  ' '.join(unknown))
+                # Fall back
+                strains = sorted(self.strains.keys())
         else:
             strains = sorted(self.strains.keys())
         
@@ -660,8 +662,10 @@ class Plate(object):
             strains = set(strains)
             unknown = set(strains).difference(self.strains.keys())
             if len( unknown ) > 0:
-                raise ValueError('Unknown strain(s) were provided (%s)'%
+                logger.warning('Unknown strain(s) were provided (%s)'%
                                  ' '.join(unknown))
+                # Fall back
+                strains = sorted(self.strains.keys())
         else:
             strains = sorted(self.strains.keys())
         

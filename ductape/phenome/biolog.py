@@ -744,7 +744,10 @@ class Plate(object):
 
         self.strains[strain].append(data)
         
-        data.replica = len(self.strains[strain])
+        # This should not be needed anymore...
+        # Replica should be handled from the DB
+        #data.replica = len(self.strains[strain])
+        # Keeping the scarf tissue code just in case something breaks
         
         return True
 
@@ -1189,7 +1192,7 @@ class Experiment(object):
         '''
         rep = set()
         for w in self.getWells(False):
-            rep.add(w.activity)
+            rep.add(w.replica)
         return rep
     
     def getDistinctActivity(self):

@@ -2302,6 +2302,7 @@ def dBiologImport(project, infile):
 def dPhenomeExport(project, json=False):
     from ductape.phenome.biolog import getSinglePlatesFromSignals
     from ductape.phenome.biolog import toYAML, toJSON
+    from ductape.common.utils import safeSubtraction
     
     biolog = Biolog(project)    
     
@@ -2537,10 +2538,11 @@ def dPhenomeExport(project, json=False):
                 for ref in refs:
                     ref_act = biolog.getAvgActivity(w.plate_id, w.well_id, ref)
                     fout.write('\t' + '\t'.join([xstr(ref_act)] + 
-                                                [xstr(ref_act - biolog.getAvgActivity(
-                                                    w.plate_id,
-                                                    w.well_id,
-                                                    x))
+                                                [xstr(safeSubtraction(ref_act, 
+                                                      biolog.getAvgActivity(
+                                                                    w.plate_id,
+                                                                    w.well_id,
+                                                                    x)))
                                                  for x in organism.getOrgMutants(ref)]))
                 fout.write('\n')
                 i += 1

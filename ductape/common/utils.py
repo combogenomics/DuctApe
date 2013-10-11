@@ -173,3 +173,12 @@ def isOnline(url='http://8.8.8.8', timeout=1, retries=2):
             if attempts >= retries:
                 logger.warning('Connection test failed!')
                 raise IOError('Connection test failed!')
+
+def safeSubtraction(a, b):
+    '''
+    Tries to perform a subtraction: if it doesn't work returns None
+    '''
+    try:
+        return a - b
+    except:
+        return None

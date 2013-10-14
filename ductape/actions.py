@@ -254,6 +254,7 @@ def dPhenomeMultiAdd(project, filename):
             if plate.strain == orgID:
                 if plate.plate_id not in dPlates:
                     dPlates[plate.plate_id] = Plate(plate.plate_id)
+                dPlates[plate.plate_id].addData(plate.strain, plate)
                 if plate.strain in dPlates[plate.plate_id].strains:
                     plate.replica = len(dPlates[plate.plate_id].strains[plate.strain]) + 1
                 else:

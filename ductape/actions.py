@@ -174,6 +174,10 @@ def dPhenomeAdd(project, orgID, filename):
     for plate in bparser.plates:
         if plate.plate_id not in dPlates:
             dPlates[plate.plate_id] = Plate(plate.plate_id)
+        if plate.strain in dPlates[plate.plate_id].strains:
+            plate.replica = len(dPlates[plate.plate_id].strains[plate.strain]) + 1
+        else:
+            plate.replica = 1
         dPlates[plate.plate_id].addData(plate.strain, plate)
     
     # Grep the wells
@@ -251,6 +255,10 @@ def dPhenomeMultiAdd(project, filename):
                 if plate.plate_id not in dPlates:
                     dPlates[plate.plate_id] = Plate(plate.plate_id)
                 dPlates[plate.plate_id].addData(plate.strain, plate)
+                if plate.strain in dPlates[plate.plate_id].strains:
+                    plate.replica = len(dPlates[plate.plate_id].strains[plate.strain]) + 1
+                else:
+                    plate.replica = 1
         
         # Grep the wells
         wells = [w for plate in dPlates.itervalues() 
@@ -2302,6 +2310,7 @@ def dBiologImport(project, infile):
 def dPhenomeExport(project, json=False):
     from ductape.phenome.biolog import getSinglePlatesFromSignals
     from ductape.phenome.biolog import toYAML, toJSON
+    from ductape.common.utils import safeSubtraction
     
     biolog = Biolog(project)    
     
@@ -2537,10 +2546,11 @@ def dPhenomeExport(project, json=False):
                 for ref in refs:
                     ref_act = biolog.getAvgActivity(w.plate_id, w.well_id, ref)
                     fout.write('\t' + '\t'.join([xstr(ref_act)] + 
-                                                [xstr(ref_act - biolog.getAvgActivity(
-                                                    w.plate_id,
-                                                    w.well_id,
-                                                    x))
+                                                [xstr(safeSubtraction(ref_act, 
+                                                      biolog.getAvgActivity(
+                                                                    w.plate_id,
+                                                                    w.well_id,
+                                                                    x)))
                                                  for x in organism.getOrgMutants(ref)]))
                 fout.write('\n')
                 i += 1

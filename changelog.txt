@@ -1,3 +1,15 @@
+Version 0.14.0
+==============
+
+UPGRADE URGENCY: MODERATE, introduced some bugfixes in handling missing wells and in purging distinct replica
+
+BUGFIXES:
+* dphenome purge: replica id management bugfix
+	* dphenome add/add-multi/add-dir have been changed accordingly
+* dphenome plot: handle missing strains
+* dphenome: handle missing wells in mutation experiments
+* dphenome: typo, "Sulfur" should be "Sulphur"
+
 Version 0.13.0
 ==============
 

@@ -333,13 +333,6 @@ class SinglePlate(object):
         # This plate was zero-subtracted?
         self.zero = False
         
-    def getWell(self):
-        '''
-        Generator to the single wells
-        '''
-        for well_id, well in self.data.iteritems():
-            yield well
-        
     def getMax(self):
         '''
         Maximum signal for the entire plate
@@ -618,8 +611,10 @@ class Plate(object):
             strains = set(strains)
             unknown = set(strains).difference(self.strains.keys())
             if len( unknown ) > 0:
-                raise ValueError('Unknown strain(s) were provided (%s)'%
+                logger.warning('Unknown strain(s) were provided (%s)'%
                                  ' '.join(unknown))
+                # Fall back
+                strains = sorted(self.strains.keys())
         else:
             strains = sorted(self.strains.keys())
         
@@ -667,8 +662,10 @@ class Plate(object):
             strains = set(strains)
             unknown = set(strains).difference(self.strains.keys())
             if len( unknown ) > 0:
-                raise ValueError('Unknown strain(s) were provided (%s)'%
+                logger.warning('Unknown strain(s) were provided (%s)'%
                                  ' '.join(unknown))
+                # Fall back
+                strains = sorted(self.strains.keys())
         else:
             strains = sorted(self.strains.keys())
         
@@ -751,7 +748,10 @@ class Plate(object):
 
         self.strains[strain].append(data)
         
-        data.replica = len(self.strains[strain])
+        # This should not be needed anymore...
+        # Replica should be handled from the DB
+        #data.replica = len(self.strains[strain])
+        # Keeping the scarf tissue code just in case something breaks
         
         return True
 
@@ -1196,7 +1196,7 @@ class Experiment(object):
         '''
         rep = set()
         for w in self.getWells(False):
-            rep.add(w.activity)
+            rep.add(w.replica)
         return rep
     
     def getDistinctActivity(self):
@@ -1906,7 +1906,7 @@ class BiologZero(object):
                 self._zeroNormal(plate)
                 
             plate.zero = True
-            for well in plate.getWell():
+            for well in plate.getWells():
                 well.zero = True
                 
         self.plates = self.data

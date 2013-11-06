@@ -1272,18 +1272,18 @@ class Experiment(object):
         for param in self.getWells():
             if self.zero and param.plate_id in self.zeroPlates:
                 dWells['zero'].append(param)
-                dParams['zero'].append([self.normalizeParam('max', purgeNAN(param.max), True),
-                                        self.normalizeParam('area', purgeNAN(param.area), True), 
-                                        self.normalizeParam('height', purgeNAN(param.height), True),
-                                        self.normalizeParam('lag', purgeNAN(param.lag), True),
-                                        self.normalizeParam('slope', purgeNAN(param.slope), True)])
+                dParams['zero'].append([self.normalizeParam('max', removeNegatives(purgeNAN(param.max)), True),
+                            self.normalizeParam('area', removeNegatives(purgeNAN(param.area)), True), 
+                            self.normalizeParam('height', removeNegatives(purgeNAN(param.height)), True),
+                            self.normalizeParam('lag', removeNegatives(purgeNAN(param.lag)), True),
+                            self.normalizeParam('slope', removeNegatives(purgeNAN(param.slope)), True)])
             else:
                 dWells['nonzero'].append(param)
-                dParams['nonzero'].append([self.normalizeParam('max', purgeNAN(param.max)),
-                                           self.normalizeParam('area', purgeNAN(param.area)),
-                                           self.normalizeParam('height', purgeNAN(param.height)),
-                                           self.normalizeParam('lag', purgeNAN(param.lag)),
-                                           self.normalizeParam('slope', purgeNAN(param.slope))])
+                dParams['nonzero'].append([self.normalizeParam('max', removeNegatives(purgeNAN(param.max))),
+                           self.normalizeParam('area', removeNegatives(purgeNAN(param.area))),
+                           self.normalizeParam('height', removeNegatives(purgeNAN(param.height))),
+                           self.normalizeParam('lag', removeNegatives(purgeNAN(param.lag))),
+                           self.normalizeParam('slope', removeNegatives(purgeNAN(param.slope)))])
         
         return dParams, dWells
     
@@ -2594,7 +2594,7 @@ def nullifyNAN(value):
         return float(value)
     except:
         return None
-    
+   
 def purgeNAN(value):
     if value is None:
         return 0
@@ -2605,3 +2605,8 @@ def purgeNAN(value):
     
     return value
 
+def removeNegatives(value):
+    if value < 0.0:
+        return 0
+    
+    return value

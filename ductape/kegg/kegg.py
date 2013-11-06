@@ -159,7 +159,7 @@ class KeggAPI(object):
             try:
                 self.input = None
                 logger.debug('Looking for KEGG db version')
-                url = self._apiurl + 'info/kegg'
+                url = self._apiurl + urllib.quote('info/kegg')
                 data = urllib.urlopen(url, timeout=20).read().split('\n')
                 
                 line = data[1].split('             ')[1]
@@ -192,7 +192,7 @@ class KeggAPI(object):
             try:
                 self.input = entries
                 logger.debug('Looking for title for %d KEGG entries'%len(entries))
-                url = self._apiurl + 'get/'
+                url = ''
                 for entry in entries:
                     url += '%s+'%entry
                     
@@ -202,6 +202,7 @@ class KeggAPI(object):
                 #
                 
                 url = url.rstrip('+')
+                url = self._apiurl + 'get/' + urllib.quote(url)
                 data = urllib.urlopen(url, timeout=20).read()
                 
                 self.result = {}
@@ -254,7 +255,7 @@ class KeggAPI(object):
             try:
                 self.input = entries
                 logger.debug('Looking for details on %d RPair entries'%len(entries))
-                url = self._apiurl + 'get/'
+                url = ''
                 for entry in entries:
                     url += '%s+'%entry
                 
@@ -264,6 +265,7 @@ class KeggAPI(object):
                 #
                     
                 url = url.rstrip('+')
+                url = self._apiurl + 'get/' + urllib.quote(url)
                 data = urllib.urlopen(url, timeout=20).read()
                 
                 self.result = {}
@@ -317,7 +319,7 @@ class KeggAPI(object):
             try:
                 self.input = db
                 logger.debug('Looking for KEGG IDs from db %s'%db)
-                url = self._apiurl + 'list/%s/'%db
+                url = self._apiurl + 'list/%s/'%urllib.quote(db)
                 
                 data = urllib.urlopen(url, timeout=20).read()
                 self.result = set([x.split('\t')[0] for x in data.split('\n')])
@@ -350,10 +352,12 @@ class KeggAPI(object):
             try:
                 self.input = ko_ids
                 logger.debug('Looking for KEGG reactions from %d KO IDs'%len(ko_ids))
-                url = self._apiurl + 'link/reaction/'
+                url = ''
                 for ko_id in ko_ids:
                     url += '%s+'%ko_id
                 url = url.rstrip('+')
+                
+                url = self._apiurl + 'link/reaction' + urllib.quote(url)
                 
                 data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
@@ -382,10 +386,12 @@ class KeggAPI(object):
             try:
                 self.input = re_ids
                 logger.debug('Looking for KEGG pathways from %d RE IDs'%len(re_ids))
-                url = self._apiurl + 'link/pathway/'
+                url = ''
                 for re_id in re_ids:
                     url += '%s+'%re_id
                 url = url.rstrip('+')
+                
+                url = self._apiurl + 'link/pathway/' + urllib.quote(url)
                 
                 data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
@@ -414,10 +420,12 @@ class KeggAPI(object):
             try:
                 self.input = co_ids
                 logger.debug('Looking for KEGG reactions from %d CO IDs'%len(co_ids))
-                url = self._apiurl + 'link/reaction/'
+                url = ''
                 for co_id in co_ids:
                     url += '%s+'%co_id
                 url = url.rstrip('+')
+                
+                url = self._apiurl + 'link/reaction/' + urllib.quote(url)
                 
                 data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
@@ -446,10 +454,12 @@ class KeggAPI(object):
             try:
                 self.input = path_ids
                 logger.debug('Looking for KEGG reactions from %d PATH IDs'%len(path_ids))
-                url = self._apiurl + 'link/reaction/'
+                url = ''
                 for path_id in path_ids:
                     url += '%s+'%path_id
                 url = url.rstrip('+')
+                
+                url = self._apiurl + 'link/reaction/' + urllib.quote(url)
                 
                 data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
@@ -478,10 +488,12 @@ class KeggAPI(object):
             try:
                 self.input = re_ids
                 logger.debug('Looking for KEGG rpairs from %d RE IDs'%len(re_ids))
-                url = self._apiurl + 'link/rpair/'
+                url = ''
                 for re_id in re_ids:
                     url += '%s+'%re_id
                 url = url.rstrip('+')
+                
+                url = self._apiurl + 'link/rpair/' + urllib.quote(url)
                 
                 data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
@@ -510,10 +522,12 @@ class KeggAPI(object):
             try:
                 self.input = rp_ids
                 logger.debug('Looking for KEGG reactions from %d RP IDs'%len(rp_ids))
-                url = self._apiurl + 'link/reaction/'
+                url = ''
                 for rp_id in rp_ids:
                     url += '%s+'%rp_id
                 url = url.rstrip('+')
+                
+                url = self._apiurl + 'link/reaction/' + urllib.quote(url)
                 
                 data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
@@ -542,10 +556,12 @@ class KeggAPI(object):
             try:
                 self.input = re_ids
                 logger.debug('Looking for KEGG compounds from %d RE IDs'%len(re_ids))
-                url = self._apiurl + 'link/compound/'
+                url = ''
                 for re_id in re_ids:
                     url += '%s+'%re_id
                 url = url.rstrip('+')
+                
+                url = self._apiurl + 'link/compound/' + urllib.quote(url)
                 
                 data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
@@ -574,10 +590,12 @@ class KeggAPI(object):
             try:
                 self.input = path_ids
                 logger.debug('Looking for KEGG compounds from %d PATH IDs'%len(path_ids))
-                url = self._apiurl + 'link/compound/'
+                url = ''
                 for path_id in path_ids:
                     url += '%s+'%path_id
                 url = url.rstrip('+')
+                
+                url = self._apiurl + 'link/compound/' + urllib.quote(url)
                 
                 data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
@@ -615,12 +633,14 @@ class KeggAPI(object):
                 #
                 
                 logger.debug('Looking for KEGG colored map from %s'%path_id)
-                url = self._maplink + path_id.lstrip('path:') + '/default%3white/'
+                url = path_id.lstrip('path:') + '/default%3white/'
                 for i in range(len(obj_list)):
                     if border_list is not None and border_list[i] is not None:
                         url += obj_list[i] + '%09' + color_list[i] + ',' + border_list[i] + '/'
                     else:
                         url += obj_list[i] + '%09' + color_list[i] + '/'
+                
+                url = self._maplink + urllib.quote(url)
                 
                 logger.debug(url)
                 

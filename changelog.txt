@@ -1,3 +1,14 @@
+Version 0.14.2
+==============
+
+UPGRADE URGENCY: MODERATE, introduced some bugfixes in the KEGG API and in imported PM parameters handling
+
+BUGFIXES:
+* KEGG API: quote the URLs to avoid HTTP error 400 on some systems
+* dphenome start: force negative parameters to zero for the clusterization
+	* The parameters stored in the database are left unchanged
+* dape start: the maximum AV value in network reconstruction was still hard coded
+
 Version 0.14.0
 ==============
 

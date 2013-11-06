@@ -357,7 +357,7 @@ class KeggAPI(object):
                     url += '%s+'%ko_id
                 url = url.rstrip('+')
                 
-                url = self._apiurl + 'link/reaction' + urllib.quote(url)
+                url = self._apiurl + 'link/reaction/' + urllib.quote(url)
                 
                 data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)

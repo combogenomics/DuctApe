@@ -172,6 +172,13 @@ def dPhenomeAdd(project, orgID, filename):
     # (replicas will be handled by the db tough)
     dPlates={}
     for plate in bparser.plates:
+        # Check if some plateIDs are unknown
+        if not biolog.isPlate(plate.plate_id):
+            logger.warning('Plate ID (%s) not present in the project, skipping this plate'%plate.plate_id)
+            logger.warning('Or you can import your custom plate with the import-plates command')
+            bparser.plates.remove(plate)
+            continue
+        #
         if plate.plate_id not in dPlates:
             dPlates[plate.plate_id] = Plate(plate.plate_id)
         if plate.strain in dPlates[plate.plate_id].strains:
@@ -252,6 +259,13 @@ def dPhenomeMultiAdd(project, filename):
         dPlates={}
         for plate in bparser.plates:
             if plate.strain == orgID:
+                # Check if some plateIDs are unknown
+                if not biolog.isPlate(plate.plate_id):
+                    logger.warning('Plate ID (%s) not present in the project, skipping this plate'%plate.plate_id)
+                    logger.warning('Or you can import your custom plate with the import-plates command')
+                    bparser.plates.remove(plate)
+                    continue
+                #
                 if plate.plate_id not in dPlates:
                     dPlates[plate.plate_id] = Plate(plate.plate_id)
                 dPlates[plate.plate_id].addData(plate.strain, plate)

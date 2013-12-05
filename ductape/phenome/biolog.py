@@ -1587,42 +1587,11 @@ class BiologParser(object):
     _other = 'Other'
     _dataStart = 'Hour'
     
-    _dPlates = { 'PM01-':'PM01', 'PM02-A':'PM02A',
-            'PM03-B':'PM03B', 'PM04-A':'PM04A',
-            'PM05-':'PM05', 'PM06-':'PM06',
-            'PM07-':'PM07', 'PM08-':'PM08',
-            'PM09-':'PM09',
-            'PM 1-':'PM01', 'PM 2-A':'PM02A',
-            'PM 3-B':'PM03B', 'PM 4-A':'PM04A',
-            'PM 5-':'PM05', 'PM 6-':'PM06',
-            'PM 7-':'PM07', 'PM 8-':'PM08',
-            'PM 9-':'PM09', 'PM10-':'PM10',
-            'PM11-C':'PM11C', 'PM12-B':'PM12B',
-            'PM13-B':'PM13B', 'PM14-A':'PM14A',
-            'PM15-B':'PM15B', 'PM16-A':'PM16A',
-            'PM17-A':'PM17A', 'PM18-C':'PM18C',
-            'PM19-':'PM19', 'PM20-B':'PM20B',
-            # opm-bugfix
-            'PM02':'PM02A', 'PM03':'PM03B', 'PM04':'PM04A',
-            'PM11':'PM11C', 'PM12':'PM12B',
-            'PM13':'PM13B', 'PM14':'PM14A',
-            'PM15':'PM15B', 'PM16':'PM16A',
-            'PM17':'PM17A', 'PM18':'PM18C',
-            'PM20':'PM20B',
-            # TODO: These are just guesses for now
-            'PM21-D':'PM21D', 'PM22-C':'PM22C',
-            'PM23-A':'PM23A', 'PM24-B':'PM24B',
-            }
-
-    _acceptedPlates = set(_dPlates.values())
+    _platesPrefix = 'PM'
     
     def __init__(self, infile, validPlates=[]):
         # Biolog
         self.file = infile
-        
-        # Accepted plate IDs
-        for pid in validPlates:
-            self._acceptedPlates.add(pid)
         
         # Results
         self.plates = []
@@ -1661,19 +1630,37 @@ class BiologParser(object):
             elif self._plate in line[0].strip():
                 plateID = line[1].strip()
                 
-                if(plateID not in self._dPlates
-                        and plateID not in self._acceptedPlates):
-                    logger.warning('Unknown plate ID has been found (%s)'%plateID)
-                    logger.warning(
-                        'Please send your csv file to %s'%__email__)
-                    logger.warning('Or you can import your custom plate')
-                    plate = None
+                # Parse also non-standard plate IDs
+                if not plateID.startswith(self._platesPrefix):
+                    logger.warning('Non-standard plate ID found (%s)'%plateID)
+                    logger.warning('Plate IDs should start with %s'%self._platesPrefix)
+                    plate.plate_id = plateID
+                    continue
+                    
+                # Simplify the plates IDs, removing letters, as opm does
+                pID = plateID[2:]
+                while len(pID) > 0:
+                    try:
+                        int(pID)
+                        break
+                    except ValueError:
+                        pID = pID[:-1]
+                
+                # No luck
+                if len(pID) == 0:
+                    logger.warning('Non-standard plate ID found (%s)'%plateID)
+                    plate.plate_id = plateID
+                    continue
+                elif int(pID) < 0:
+                    logger.warning('Non-standard plate ID found (%s)'%plateID)
+                    plateID = self._platesPrefix + abs(int(pID))
+                    logger.warning('Going to use this ID (%s)'%plateID)
+                    plate.plate_id = plateID
                     continue
                 
-                if plateID in self._acceptedPlates:
-                    plate.plate_id = plateID
-                else:
-                    plate.plate_id = self._dPlates[plateID]
+                plateID = self._platesPrefix + '%02d'%int(pID)
+                plate.plate_id = plateID
+                    
             elif self._strainType in line[0].strip():
                 if not plate:continue
                 plate.strainType = line[1].strip()
@@ -1740,19 +1727,36 @@ class BiologParser(object):
             # General plate attributes
             plateID = pobj['csv_data'][self._plate]
                 
-            if(plateID not in self._dPlates
-                    and plateID not in self._acceptedPlates):
-                logger.warning('Unknown plate ID has been found (%s)'%plateID)
-                logger.warning(
-                    'Please send your input file to %s'%__email__)
-                logger.warning('Or you can import your custom plate')
-                plate = None
+            # Parse also non-standard plate IDs
+            if not plateID.startswith(self._platesPrefix):
+                logger.warning('Non-standard plate ID found (%s)'%plateID)
+                logger.warning('Plate IDs should start with %s'%self._platesPrefix)
+                plate.plate_id = plateID
+                continue
+                
+            # Simplify the plates IDs, removing letters, as opm does
+            pID = plateID[2:]
+            while len(pID) > 0:
+                try:
+                    int(pID)
+                    break
+                except ValueError:
+                    pID = pID[:-1]
+            
+            # No luck
+            if len(pID) == 0:
+                logger.warning('Non-standard plate ID found (%s)'%plateID)
+                plate.plate_id = plateID
+                continue
+            elif int(pID) < 0:
+                logger.warning('Non-standard plate ID found (%s)'%plateID)
+                plateID = self._platesPrefix + abs(int(pID))
+                logger.warning('Going to use this ID (%s)'%plateID)
+                plate.plate_id = plateID
                 continue
             
-            if plateID in self._acceptedPlates:
-                plate.plate_id = plateID
-            else:
-                plate.plate_id = self._dPlates[plateID]
+            plateID = self._platesPrefix + '%02d'%int(pID)
+            plate.plate_id = plateID
                 
             plate.strainType = pobj['csv_data'][self._strainType]
             plate.sample = pobj['csv_data'][self._strainType]

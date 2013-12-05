@@ -37,4 +37,11 @@ sleep 5
 
 rm ductape.db
 
+./dape init || die "dape init"
+./dape add Rm1021 -c red || die "dape add"
+./dphenome add test/input/Rm1021strangeplate.csv Rm1021 || die "dphenome add (strange)"
+./dphenome add test/input/Rm1021strangeplate.yml Rm1021 || die "dphenome add (strange yml)"
+
+rm ductape.db
+
 echo -e $green"All tests passed"$reset

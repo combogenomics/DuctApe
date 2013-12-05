@@ -1732,31 +1732,29 @@ class BiologParser(object):
                 logger.warning('Non-standard plate ID found (%s)'%plateID)
                 logger.warning('Plate IDs should start with %s'%self._platesPrefix)
                 plate.plate_id = plateID
-                continue
+            else:
+                    
+                # Simplify the plates IDs, removing letters, as opm does
+                pID = plateID[2:]
+                while len(pID) > 0:
+                    try:
+                        int(pID)
+                        break
+                    except ValueError:
+                        pID = pID[:-1]
                 
-            # Simplify the plates IDs, removing letters, as opm does
-            pID = plateID[2:]
-            while len(pID) > 0:
-                try:
-                    int(pID)
-                    break
-                except ValueError:
-                    pID = pID[:-1]
-            
-            # No luck
-            if len(pID) == 0:
-                logger.warning('Non-standard plate ID found (%s)'%plateID)
-                plate.plate_id = plateID
-                continue
-            elif int(pID) < 0:
-                logger.warning('Non-standard plate ID found (%s)'%plateID)
-                plateID = self._platesPrefix + abs(int(pID))
-                logger.warning('Going to use this ID (%s)'%plateID)
-                plate.plate_id = plateID
-                continue
-            
-            plateID = self._platesPrefix + '%02d'%int(pID)
-            plate.plate_id = plateID
+                # No luck
+                if len(pID) == 0:
+                    logger.warning('Non-standard plate ID found (%s)'%plateID)
+                    plate.plate_id = plateID
+                elif int(pID) < 0:
+                    logger.warning('Non-standard plate ID found (%s)'%plateID)
+                    plateID = self._platesPrefix + abs(int(pID))
+                    logger.warning('Going to use this ID (%s)'%plateID)
+                    plate.plate_id = plateID
+                else:             
+                    plateID = self._platesPrefix + '%02d'%int(pID)
+                    plate.plate_id = plateID
                 
             plate.strainType = pobj['csv_data'][self._strainType]
             plate.sample = pobj['csv_data'][self._strainType]

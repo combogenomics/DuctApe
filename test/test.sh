@@ -169,8 +169,8 @@ cleanUp
 
 ../dape init || die "dape init"
 ../dape add Rm1021 -c red || die "dape add"
-../dphenome add input/Rm1021strangeplate.csv Rm1021 && die "dphenome add (strange)"
-../dphenome add input/Rm1021strangeplate.yml Rm1021 && die "dphenome add (strange yml)"
+../dphenome add input/Rm1021strangeplate.csv Rm1021 || die "dphenome add (strange)"
+../dphenome add input/Rm1021strangeplate.yml Rm1021 || die "dphenome add (strange yml)"
 
 cleanUp
 

@@ -1557,6 +1557,8 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     # Statistics printing
     logger.info('Active wells stats')
     
+    f = open('active_stats.tsv', 'w')
+    
     # Get the organisms order (to have a nice order in case of mutants)
     orgs = []
     refs = {}
@@ -1580,12 +1582,14 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         print(header)
     else:
         logger.info(header)
+    f.write(header+'\n')
     
     header = '\t'.join( ['Category'] + orgs )
     if doPrint:
         print(header)
     else:
         logger.info(header)
+    f.write(header+'\n')
         
     for categ in categorder:
         line = [categ]
@@ -1606,11 +1610,16 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             print(line)
         else:
             logger.info(line)
+        f.write(line+'\n')
+    
+    f.close()
+    logger.info('Table also saved in file %s'%('active_stats.tsv'))
     
     if kind == 'single':
         return True
     
     logger.info('Active differences stats')
+    f = open('active_diffs_stats.tsv', 'w')
     
     header = '\t'.join( ['Category', 'Average difference',
              'Main differences (%% of wells whose average difference >= %d)'%delta] )
@@ -1618,6 +1627,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         print(header)
     else:
         logger.info(header)
+    f.write(header+'\n')
         
     for categ in categorder:
         pwlist = filter(lambda x: x[0] in category[categ],
@@ -1680,6 +1690,10 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             print(line)
         else:
             logger.info(line)
+        f.write(line+'\n')
+    
+    f.close()
+    logger.info('Table also saved in file %s'%('active_diffs_stats.tsv'))
        
     ############################################################################
     
@@ -1687,18 +1701,21 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         return True
     
     logger.info('Unique metabolic functions')
+    f = open('unique_stats.tsv', 'w')
     
     header = 'Unique metabolic functions (%% of wells with delta >= %d)'%delta
     if doPrint:
         print(header)
     else:
         logger.info(header)
+    f.write(header+'\n')
     
     header = '\t'.join( [''] + orgs )
     if doPrint:
         print(header)
     else:
         logger.info(header)
+    f.write(header+'\n')
     
     UpUnique = {}
     for oid in orgs:
@@ -1732,24 +1749,31 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         print(line)
     else:
         logger.info(line)
+    f.write(line+'\n')
     
     line = '\t'.join(['Less active'] + [str(DownUnique[oid]) for oid in orgs])    
     if doPrint:
         print(line)
     else:
         logger.info(line)
+    f.write(line+'\n')
             
     line = '\t'.join(['Total'] + [str(UpUnique[oid] + DownUnique[oid]) for oid in orgs])    
     if doPrint:
         print(line)
     else:
         logger.info(line)
-        
+    f.write(line+'\n')
+    
     line = '\t'.join(['%'] + [str(((UpUnique[oid] + DownUnique[oid])/total)*100) for oid in orgs])    
     if doPrint:
         print(line)
     else:
         logger.info(line)
+    f.write(line+'\n')
+    
+    f.close()
+    logger.info('Table also saved in file %s'%('unique_stats.tsv'))
     
     return True
 

@@ -766,7 +766,10 @@ def dGenomeStats(project, svg=False, doPrint=True):
     
     if kind == 'single' or kind == 'pangenome':
         logger.info('Single genomes stats')
+        
         # Single genomes stats
+        f = open('single_stats.tsv', 'w')
+        
         # Header
         header = '\t'.join( ['ID', 'name', 'description', 'proteome size',
                                 'mapped to kegg', 'KEGG orthology IDs',
@@ -776,6 +779,7 @@ def dGenomeStats(project, svg=False, doPrint=True):
             print(header)
         else:
             logger.info(header)
+        f.write(header+'\n')
         
         eReacts = kegg.getExclusiveReactions()
         
@@ -801,16 +805,22 @@ def dGenomeStats(project, svg=False, doPrint=True):
                 print(stats)
             else:
                 logger.info(stats)
+            f.write(stats+'\n')
                 
             lOrg.append([org_id, prots, mapped, react, unireact])
             
+        f.close()
+        logger.info('Table also saved in file %s'%('single_stats.tsv'))       
         plotMapBars(lOrg, 'Single genomes statistics', 'single', svg)
         
         if proj.isPanGenome():
             logger.info('Pangenome stats (orthologs)')
             logger.warning('Please note that the dispensable genome includes'+
                            ' the accessory and unique genome')
+            
             # Pangenome stats
+            f = open('pangenome_stats.tsv', 'w')
+            
             # Header
             header = '\t'.join( ['kind', 'size',
                                 'mapped to kegg', 'KEGG orthology IDs',
@@ -820,6 +830,7 @@ def dGenomeStats(project, svg=False, doPrint=True):
                 print(header)
             else:
                 logger.info(header)
+            f.write(header+'\n')
                 
             core, disp, acc, uni = (genome.getLenCore(), genome.getLenDisp(),
                               genome.getLenAcc(), genome.getLenUni())
@@ -861,6 +872,10 @@ def dGenomeStats(project, svg=False, doPrint=True):
                     print(stat)
                 else:
                     logger.info(stat)
+                f.write(stat+'\n')
+                
+            f.close()
+            logger.info('Table also saved in file %s'%('pangenome_stats.tsv'))
             
             lPanGenome = [['Core', core, kegg.howManyMapped(pangenome='core'),
                            kegg.howManyReactions(pangenome='core'),
@@ -887,12 +902,15 @@ def dGenomeStats(project, svg=False, doPrint=True):
             logger.warning('Please note that here we consider the presence of '+
                            'distinct reaction IDs in each organism')
             # Pangenome stats
+            f = open('pangenome_reactions_stats.tsv', 'w')
+            
             # Header
             header = '\t'.join( ['kind', 'distinct reaction IDs'] )
             if doPrint:
                 print(header)
             else:
                 logger.info(header)
+            f.write(header+'\n')
                 
             conserved = set([r.re_id for r in kegg.getConservedReactions()])
             variable = set([r.re_id for r in kegg.getVariableReactions()]) 
@@ -908,7 +926,11 @@ def dGenomeStats(project, svg=False, doPrint=True):
                     print(stat)
                 else:
                     logger.info(stat)
+                f.write(stat+'\n')
                     
+            f.close()
+            logger.info('Table also saved in file %s'%(
+                                               'pangenome_reactions_stats.tsv'))
             plotPanGenomeReactions(len(conserved), len(variable), svg)
     
     elif kind == 'mutants':
@@ -928,10 +950,13 @@ def dGenomeStats(project, svg=False, doPrint=True):
         for ref_id in refs:
             logger.info('Mutants of %s stats'%ref_id)
             
+            f = open('%s_stats.tsv'%ref_id, 'w')
+            
             if doPrint:
                 print(header)
             else:
                 logger.info(header)
+            f.write(header+'\n')
             
             muts = [x for x in organism.getOrgMutants(ref_id)]
             
@@ -979,9 +1004,14 @@ def dGenomeStats(project, svg=False, doPrint=True):
                     print(stats)
                 else:
                     logger.info(stats)
+                f.write(stats+'\n')
                 
                 lOrg.append([org_id, prots, mapped, react, ereact])
         
+            f.close()
+            logger.info('Table also saved in file %s'%(
+                                               '%s_stats.tsv'%ref_id))
+            
             plotMapBars(lOrg, 'Wild-type (%s) and mutants statistics'%ref_id,
                         '%s'%ref_id, svg,
                         labels=['Size', 'Mapped to Kegg',

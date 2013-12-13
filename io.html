@@ -8,7 +8,7 @@
     <meta name="author" content="Marco Galardini" >
     
     <!-- Le meta tag to refresh the cache -->
-    <meta http-equiv="last-modified" content="Mon, 9 Dec 2013 18:30:00 CET" />
+    <meta http-equiv="last-modified" content="Fri, 13 Dec 2013 17:00:00 CET" />
 
     <!-- Le styles -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -1127,6 +1127,240 @@ pangenome_27 unique Rm1021
                                 
                                 <p><b class="text-error">pangenome_reaction_shape.png</b> conserved/variable reactions pie chart</p>
                                 <img src="img/io/pangenome_reaction_shape.png"/>
+                                
+                                <p><b class="text-error">single_stats.tsv</b> single genomes stats table</p>
+                                <p>A file in tab-delimited format containing some statistics on each organism present in the project.</p>
+                                <pre># Comment (ignored)
+ID      name    description     proteome size   mapped to kegg  KEGG orthology IDs      pathways        reactions       unique reactions        exclusive reaction IDs
+AK58    NONE    NONE    24      16      16      14      12      12      0
+AK83    NONE    NONE    22      14      14      14      12      12      0
+BL225C  NONE    NONE    25      15      15      14      12      12      0
+Rm1021  NONE    NONE    23      16      16      14      12      12      0
+[...]
+</pre>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>ID</td>
+                                      <td>Organism ID</td>
+                                      <td>Rm1021</td>
+                                    </tr>
+                                    <tr>
+                                      <td>name</td>
+                                      <td>Organism species name</td>
+                                      <td>Sinorhizobium meliloti</td>
+                                    </tr>
+                                    <tr>
+                                      <td>description</td>
+                                      <td>Organism description</td>
+                                      <td>Reference strain</td>
+                                    </tr>
+                                    <tr>
+                                      <td>proteome size</td>
+                                      <td>Number of proteins belonging to this organism</td>
+                                      <td>6533</td>
+                                    </tr>
+                                    <tr>
+                                      <td>mapped to kegg</td>
+                                      <td>Number of proteins having a KO (KEGG orthology) ID</td>
+                                      <td>3500</td>
+                                    </tr>
+                                    <tr>
+                                      <td>KEGG orthology IDs</td>
+                                      <td>Number of distinct KEGG orthology IDs</td>
+                                      <td>1250</td>
+                                    </tr>
+                                    <tr>
+                                      <td>pathways</td>
+                                      <td>Number of distinct KEGG pathways IDs</td>
+                                      <td>120</td>
+                                    </tr>
+                                    <tr>
+                                      <td>reactions</td>
+                                      <td>Number of proteins mapped to a KEGG reaction</td>
+                                      <td>3356</td>
+                                    </tr>
+                                    <tr>
+                                      <td>unique reactions</td>
+                                      <td>Number of distinct KEGG reactions IDs</td>
+                                      <td>1056</td>
+                                    </tr>
+                                    <tr>
+                                      <td>exclusive reaction IDs</td>
+                                      <td>Number of distinct KEGG reactions IDs that are exclusively found in this organism (and not in the others)</td>
+                                      <td>19</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                                
+                                <p><b class="text-error">REFID_stats.tsv</b> mutant genomes stats table</p>
+                                <p>A file in tab-delimited format containing some statistics on each organism present in the project. One file for each wild-type genome will be created. This file is created only in mutational experiments.</p>
+                                <pre># Comment (ignored)
+ID      name    description     proteome size   mapped to kegg  KEGG orthology IDs      pathways        reactions       unique reactions        exclusive reaction IDs
+AK58    NONE    NONE    24      16      16      14      12      12      0
+AK83    NONE    NONE    22      14      14      14      12      12      0
+BL225C  NONE    NONE    25      15      15      14      12      12      0
+Rm1021  NONE    NONE    23      16      16      14      12      12      0
+[...]
+</pre>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>ID</td>
+                                      <td>Organism ID</td>
+                                      <td>Rm1021</td>
+                                    </tr>
+                                    <tr>
+                                      <td>name</td>
+                                      <td>Organism species name</td>
+                                      <td>Sinorhizobium meliloti</td>
+                                    </tr>
+                                    <tr>
+                                      <td>description</td>
+                                      <td>Organism description</td>
+                                      <td>Reference strain</td>
+                                    </tr>
+                                    <tr>
+                                      <td>proteome size</td>
+                                      <td>Number of proteins belonging to this organism</td>
+                                      <td>6533</td>
+                                    </tr>
+                                    <tr>
+                                      <td>mapped to kegg</td>
+                                      <td>Number of proteins having a KO (KEGG orthology) ID</td>
+                                      <td>3500</td>
+                                    </tr>
+                                    <tr>
+                                      <td>KEGG orthology IDs</td>
+                                      <td>Number of distinct KEGG orthology IDs</td>
+                                      <td>1250</td>
+                                    </tr>
+                                    <tr>
+                                      <td>pathways</td>
+                                      <td>Number of distinct KEGG pathways IDs</td>
+                                      <td>120</td>
+                                    </tr>
+                                    <tr>
+                                      <td>reactions</td>
+                                      <td>Number of proteins mapped to a KEGG reaction</td>
+                                      <td>3356</td>
+                                    </tr>
+                                    <tr>
+                                      <td>unique reactions</td>
+                                      <td>Number of distinct KEGG reactions IDs</td>
+                                      <td>1056</td>
+                                    </tr>
+                                    <tr>
+                                      <td>exclusive reaction IDs</td>
+                                      <td>Number of distinct KEGG reactions IDs that are exclusively found in this organism (and not in the <b>wild-type genome</b>)</td>
+                                      <td>19</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                                
+                                <p><b class="text-error">pangenome_stats.tsv</b> pangenome stats table</p>
+                                <p>A file in tab-delimited format containing some statistics on the pangenome.</p>
+                                <pre># Comment (ignored)
+kind    size    mapped to kegg  KEGG orthology IDs      pathways        reactions       unique reactions        exclusive reaction IDs
+core    19      14      14      14      12      12      12
+dispensable     12      3       3       0       0       0       0
+accessory       4       1       1       0       0       0       0
+unique  8       2       2       0       0       0       0
+</pre>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>kind</td>
+                                      <td>Pangenomic fraction</td>
+                                      <td>core</td>
+                                    </tr>
+                                    <tr>
+                                      <td>size</td>
+                                      <td>Number of orthologous groups (OGs)</td>
+                                      <td>3562</td>
+                                    </tr>
+                                    <tr>
+                                      <td>mapped to kegg</td>
+                                      <td>Number of OGs having a KO (KEGG orthology) ID</td>
+                                      <td>3500</td>
+                                    </tr>
+                                    <tr>
+                                      <td>KEGG orthology IDs</td>
+                                      <td>Number of distinct KEGG orthology IDs</td>
+                                      <td>1250</td>
+                                    </tr>
+                                    <tr>
+                                      <td>pathways</td>
+                                      <td>Number of distinct KEGG pathways IDs</td>
+                                      <td>120</td>
+                                    </tr>
+                                    <tr>
+                                      <td>reactions</td>
+                                      <td>Number of proteins mapped to a KEGG reaction</td>
+                                      <td>3356</td>
+                                    </tr>
+                                    <tr>
+                                      <td>unique reactions</td>
+                                      <td>Number of distinct KEGG reactions IDs</td>
+                                      <td>1056</td>
+                                    </tr>
+                                    <tr>
+                                      <td>exclusive reaction IDs</td>
+                                      <td>Number of distinct KEGG reactions IDs that are exclusively found in this pangenomic compartment (and not in the others)</td>
+                                      <td>19</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                                
+                                <p><b class="text-error">pangenome_reactions_stats.tsv</b> pangenome reactions stats table</p>
+                                <p>A file in tab-delimited format containing some statistics on the reactions [present in the pangenome.</p>
+                                <pre># Comment (ignored)
+kind    distinct reaction IDs
+conserved       12
+variable        0
+</pre>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>kind</td>
+                                      <td>Pangenomic fraction</td>
+                                      <td>conserved</td>
+                                    </tr>
+                                    <tr>
+                                      <td>distinct reaction IDs</td>
+                                      <td>Number of distinct KEGG reactions IDs</td>
+                                      <td>1056</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
                               </div>
                             </div>
                           </div>
@@ -2155,6 +2389,184 @@ PM01 B03 Glycerol carbon C-Source, carbohydrate C00116 6.5 0.0 0.0
                                 <p><b class="text-error">ActivityCategBoxplot.png</b> AV values distribution</p>
                                 <p>Distribution boxplots of each AV value divided by organism and category.</p>
                                 <img src="img/io/ActivityCategBoxplot.png"/>
+                                
+                                <p><b class="text-error">REFID_stats.tsv</b> mutant genomes stats table</p>
+                                <p>A file in tab-delimited format containing some statistics on each organism present in the project. One file for each wild-type genome will be created. This file is created only in mutational experiments.</p>
+                                <pre># Comment (ignored)
+ID      name    description     proteome size   mapped to kegg  KEGG orthology IDs      pathways        reactions       unique reactions        exclusive reaction IDs
+AK58    NONE    NONE    24      16      16      14      12      12      0
+AK83    NONE    NONE    22      14      14      14      12      12      0
+BL225C  NONE    NONE    25      15      15      14      12      12      0
+Rm1021  NONE    NONE    23      16      16      14      12      12      0
+[...]
+</pre>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>ID</td>
+                                      <td>Organism ID</td>
+                                      <td>Rm1021</td>
+                                    </tr>
+                                    <tr>
+                                      <td>name</td>
+                                      <td>Organism species name</td>
+                                      <td>Sinorhizobium meliloti</td>
+                                    </tr>
+                                    <tr>
+                                      <td>description</td>
+                                      <td>Organism description</td>
+                                      <td>Reference strain</td>
+                                    </tr>
+                                    <tr>
+                                      <td>proteome size</td>
+                                      <td>Number of proteins belonging to this organism</td>
+                                      <td>6533</td>
+                                    </tr>
+                                    <tr>
+                                      <td>mapped to kegg</td>
+                                      <td>Number of proteins having a KO (KEGG orthology) ID</td>
+                                      <td>3500</td>
+                                    </tr>
+                                    <tr>
+                                      <td>KEGG orthology IDs</td>
+                                      <td>Number of distinct KEGG orthology IDs</td>
+                                      <td>1250</td>
+                                    </tr>
+                                    <tr>
+                                      <td>pathways</td>
+                                      <td>Number of distinct KEGG pathways IDs</td>
+                                      <td>120</td>
+                                    </tr>
+                                    <tr>
+                                      <td>reactions</td>
+                                      <td>Number of proteins mapped to a KEGG reaction</td>
+                                      <td>3356</td>
+                                    </tr>
+                                    <tr>
+                                      <td>unique reactions</td>
+                                      <td>Number of distinct KEGG reactions IDs</td>
+                                      <td>1056</td>
+                                    </tr>
+                                    <tr>
+                                      <td>exclusive reaction IDs</td>
+                                      <td>Number of distinct KEGG reactions IDs that are exclusively found in this organism (and not in the <b>wild-type genome</b>)</td>
+                                      <td>19</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                                
+                                <p><b class="text-error">active_stats.tsv</b> Active wells stats table</p>
+                                <p>A file in tab-delimited format containing some statistics on the active wells in the phenomic experiments.</p>
+                                <pre># Comment (ignored)
+Active wells (% of wells with activity >= 2)
+Category        AK58    AK83    BL225C  Rm1021
+carbon  38.5416666667   36.4583333333   44.7916666667   48.9583333333
+nitrogen        N/A     N/A     N/A     N/A
+phosphate_and_sulphur   N/A     N/A     N/A     N/A
+nutrient_stimulation    N/A     N/A     N/A     N/A
+nitrogen_peptides       N/A     N/A     N/A     N/A
+osmolytes_and_ph        13.5416666667   17.7083333333   14.5833333333   13.5416666667
+chemicals       N/A     N/A     N/A     N/A
+</pre>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>Category</td>
+                                      <td>Wells category</td>
+                                      <td>carbon</td>
+                                    </tr>
+                                    <tr>
+                                      <td>ORG_ID</td>
+                                      <td>Organism's proportion of active wells in the category</td>
+                                      <td>35.8%</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                                
+                                <p><b class="text-error">active_diffs_stats.tsv</b> Active wells differences stats table</p>
+                                <p>A file in tab-delimited format containing some statistics on the differences between the organisms in the active wells.</p>
+                                <pre># Comment (ignored)
+Category        Average difference      Main differences (% of wells whose average difference >= 2)
+carbon  0.526909722222  2.08333333333
+nitrogen        N/A     N/A
+phosphate_and_sulphur   N/A     N/A
+nutrient_stimulation    N/A     N/A
+nitrogen_peptides       N/A     N/A
+osmolytes_and_ph        0.225694444444  1.04166666667
+chemicals       N/A     N/A
+</pre>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td>Category</td>
+                                      <td>Wells category</td>
+                                      <td>carbon</td>
+                                    </tr>
+                                    <tr>
+                                      <td>Average difference</td>
+                                      <td>Average AV difference between each organism in each well</td>
+                                      <td>0.561</td>
+                                    </tr>
+                                    <tr>
+                                      <td>Main differences</td>
+                                      <td>% of wells whose average difference >= 2</td>
+                                      <td>2.851</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                                
+                                <p><b class="text-error">unique_stats.tsv</b> Unique metabolic functions stats table</p>
+                                <p>A file in tab-delimited format containing some statistics on the wells in which an organism is exclusively active/inactive as compared to the others.</p>
+                                <pre># Comment (ignored)
+Unique metabolic functions (% of wells with delta >= 2)
+        AK58    AK83    BL225C  Rm1021
+More active     0       2       1       5
+Less active     0       1       0       3
+Total   0       3       1       8
+%       0.0     1.5625  0.520833333333  4.16666666667
+</pre>
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th>Field</th>
+                                      <th>Description</th>
+                                      <th>Example</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td></td>
+                                      <td>More/Less active</td>
+                                      <td>More active</td>
+                                    </tr>
+                                    <tr>
+                                      <td>ORG_ID</td>
+                                      <td>Number of wells with delta >= 2 with respect to the others</td>
+                                      <td>38</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
                               </div>
                             </div>
                           </div>

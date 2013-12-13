@@ -1,3 +1,23 @@
+Version 0.15.0
+==============
+
+UPGRADE URGENCY: MODERATE, only feature improvements
+
+IMPORTANT NOTE: this version introduces a backward incompatible change in dphenome
+Users who want to analyze an old DuctApe project files should rebuilt it from scratch (or using the various "export" and "import" commands)
+
+FEATURES:
+* dphenome add: new parsing logic for plate IDs
+    * Before: PM03B --> the final letter was kept, causing confusion and failures
+    * After: PM03 --> more consistent and durable
+    * This is a backward incompatible change
+* dphenome stats: output the tables to file (not just to the terminal)
+* dgenome stats: output the tables to file (not just to the terminal)
+
+BUGFIXES:
+* dphenome add: yml files with "strange" plate IDs caused crashes
+* Print functions compatible with python 3
+
 Version 0.14.2
 ==============
 

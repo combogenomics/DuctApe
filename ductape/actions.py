@@ -773,7 +773,7 @@ def dGenomeStats(project, svg=False, doPrint=True):
                                 'pathways', 'reactions', 'unique reactions',
                                 'exclusive reaction IDs'] )
         if doPrint:
-            print header
+            print(header)
         else:
             logger.info(header)
         
@@ -798,7 +798,7 @@ def dGenomeStats(project, svg=False, doPrint=True):
                                                  prots, mapped, ko, path,
                                                  react, unireact, ereact]] )
             if doPrint:
-                print stats
+                print(stats)
             else:
                 logger.info(stats)
                 
@@ -817,7 +817,7 @@ def dGenomeStats(project, svg=False, doPrint=True):
                                 'pathways', 'reactions', 'unique reactions', 
                                 'exclusive reaction IDs'] )
             if doPrint:
-                print header
+                print(header)
             else:
                 logger.info(header)
                 
@@ -858,7 +858,7 @@ def dGenomeStats(project, svg=False, doPrint=True):
             
             for stat in stats:
                 if doPrint:
-                    print stat
+                    print(stat)
                 else:
                     logger.info(stat)
             
@@ -890,7 +890,7 @@ def dGenomeStats(project, svg=False, doPrint=True):
             # Header
             header = '\t'.join( ['kind', 'distinct reaction IDs'] )
             if doPrint:
-                print header
+                print(header)
             else:
                 logger.info(header)
                 
@@ -905,7 +905,7 @@ def dGenomeStats(project, svg=False, doPrint=True):
             
             for stat in stats:
                 if doPrint:
-                    print stat
+                    print(stat)
                 else:
                     logger.info(stat)
                     
@@ -929,7 +929,7 @@ def dGenomeStats(project, svg=False, doPrint=True):
             logger.info('Mutants of %s stats'%ref_id)
             
             if doPrint:
-                print header
+                print(header)
             else:
                 logger.info(header)
             
@@ -976,7 +976,7 @@ def dGenomeStats(project, svg=False, doPrint=True):
                                                  mkind, prots, mapped,
                                                  react, unireact, ereact]] )
                 if doPrint:
-                    print stats
+                    print(stats)
                 else:
                     logger.info(stats)
                 
@@ -1547,13 +1547,13 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             
     header = 'Active wells (%% of wells with activity >= %d)'%activity
     if doPrint:
-        print header
+        print(header)
     else:
         logger.info(header)
     
     header = '\t'.join( ['Category'] + orgs )
     if doPrint:
-        print header
+        print(header)
     else:
         logger.info(header)
         
@@ -1573,7 +1573,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     
         line = '\t'.join(line)
         if doPrint:
-            print line
+            print(line)
         else:
             logger.info(line)
     
@@ -1585,7 +1585,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     header = '\t'.join( ['Category', 'Average difference',
              'Main differences (%% of wells whose average difference >= %d)'%delta] )
     if doPrint:
-        print header
+        print(header)
     else:
         logger.info(header)
         
@@ -1647,7 +1647,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         
         line = '\t'.join( [categ, avgdiff, maindiff] )
         if doPrint:
-            print line
+            print(line)
         else:
             logger.info(line)
        
@@ -1660,13 +1660,13 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     
     header = 'Unique metabolic functions (%% of wells with delta >= %d)'%delta
     if doPrint:
-        print header
+        print(header)
     else:
         logger.info(header)
     
     header = '\t'.join( [''] + orgs )
     if doPrint:
-        print header
+        print(header)
     else:
         logger.info(header)
     
@@ -1699,25 +1699,25 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     
     line = '\t'.join(['More active'] + [str(UpUnique[oid]) for oid in orgs])    
     if doPrint:
-        print line
+        print(line)
     else:
         logger.info(line)
     
     line = '\t'.join(['Less active'] + [str(DownUnique[oid]) for oid in orgs])    
     if doPrint:
-        print line
+        print(line)
     else:
         logger.info(line)
             
     line = '\t'.join(['Total'] + [str(UpUnique[oid] + DownUnique[oid]) for oid in orgs])    
     if doPrint:
-        print line
+        print(line)
     else:
         logger.info(line)
         
     line = '\t'.join(['%'] + [str(((UpUnique[oid] + DownUnique[oid])/total)*100) for oid in orgs])    
     if doPrint:
-        print line
+        print(line)
     else:
         logger.info(line)
     
@@ -3924,7 +3924,7 @@ def dCombine(project, allorgs=False, pthresh=5, doPrint=True):
                              'path_id', 'name',
                              'mean diffAV', 'genomic variability'] )
         if doPrint:
-            print header
+            print(header)
         else:
             logger.info(header)
         
@@ -3938,7 +3938,7 @@ def dCombine(project, allorgs=False, pthresh=5, doPrint=True):
                                          p, pname, pval, gval]] )
             
             if doPrint:
-                print line
+                print(line)
             else:
                 logger.info(line)
         
@@ -4168,7 +4168,7 @@ def dCombine(project, allorgs=False, pthresh=5, doPrint=True):
                                         'diffAV',
                                         'distinct mutated reaction IDs'] )
                 if doPrint:
-                    print header
+                    print(header)
                 else:
                     logger.info(header)
                 
@@ -4182,7 +4182,7 @@ def dCombine(project, allorgs=False, pthresh=5, doPrint=True):
                                                  p, pname, pval, gval]] )
                     
                     if doPrint:
-                        print line
+                        print(line)
                     else:
                         logger.info(line)
     

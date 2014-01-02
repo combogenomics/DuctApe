@@ -39,6 +39,8 @@ sleep 5
 ./dphenome -v restore PM03B || die "./dphenome restore"
 ./dphenome -v purge keep-min PM03B || die "./dphenome purge plate"
 ./dphenome plot > /dev/null || die "./dphenome plot"
+./dphenome plot PM01 > /dev/null || die "./dphenome plot PM01"
+./dphenome plot PM01 H12 > /dev/null || die "./dphenome plot PM01 H12"
 ./dphenome -v rings || die "./dphenome -v rings"
 ./dphenome -v stats || die "./dphenome -v stats"
 ./dphenome -v export || die "./dphenome -v export"

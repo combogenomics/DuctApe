@@ -140,7 +140,7 @@ def dplot(options, wdir, project):
         return False
     
     # Check!
-    if biolog.atLeastOneNoParameter():
+    if biolog.atLeastOneNoParameter() and not options.well:
         logger.warning('The activity index must be calculated first (run %s start)'%
                        __prog__)
         return False
@@ -169,16 +169,25 @@ def dplot(options, wdir, project):
                 for x in organism.getOrgMutants(org.org_id):
                     order.append(x)
     
+    if options.plate != None and options.well == None:
+        logger.info('Going to plot just plate %s'%options.plate)
+    elif options.plate != None and options.well != None:
+        logger.info('Going to plot just well %s - %s'%(options.plate, options.well))
+        
     bplot = BiologPlot(plates, colors=getOrganismsColors(project),
                 avgdata=avgplates, wellNames=titles,
                maxsig=biolog.maxSignal(), plotAll=True,
                expname=options.n, order=order, category=category,
-               svg=options.svg)
+               svg=options.svg,
+               plate=options.plate, well=options.well)
 
     if not RunThread(bplot):
         return False
     
-    logger.info('Successefully generated phenomic plots (%s)'%bplot._room)
+    if options.plate == None:
+        logger.info('Successefully generated phenomic plots (%s)'%bplot._room)
+    else:
+        logger.info('Successefully generated phenomic plots')
     
     return True
     
@@ -509,6 +518,10 @@ def getOptions():
     parser_plot.add_argument('-s', '--svg', action="store_true",
                             default=False,
                             help='Figures in svg format instead of png')
+    parser_plot.add_argument('plate', action="store", nargs='?',
+                            help='Plate ID (plot one specific plate instead of all)')
+    parser_plot.add_argument('well', action='store', nargs='?',
+                            help='Well ID (plot one specific well instead of all)')
     parser_plot.set_defaults(func=dplot)
     
     parser_purge = subparsers.add_parser('purge', help='Remove inconsistent replicas')

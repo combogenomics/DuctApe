@@ -1941,6 +1941,8 @@ class BiologPlot(CommonThread):
                  plotPlates=True, plotAll=False, plotActivity=True,
                  order = [], category = {},
                  svg=False,
+                 plate=None,
+                 well=None,
                  queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         # Biolog
@@ -1966,6 +1968,10 @@ class BiologPlot(CommonThread):
         self.order = order
         self.category = category
         self.svg = bool(svg)
+        
+        # Single plate/well
+        self.splate = plate
+        self.swell = well
         
         # Results
         # Plate_id --> Plate
@@ -2023,17 +2029,30 @@ class BiologPlot(CommonThread):
         return True
     
     def run(self):
-        self.updateStatus()
-        self.makeRoom()
-        self.startCleanUp()
-        self.makeRoom()
+        if self.splate == None:
+            self.updateStatus()
+            self.makeRoom()
+            self.startCleanUp()
+            self.makeRoom()
+        else:
+            self.updateStatus(send=False)
         
         if self.killed:
             return
         
-        self._maxsubstatus = len(self.data)
+        if self.splate == None:
+            self._maxsubstatus = len(self.data)
+        else:
+            self._maxsubstatus = len(filter(lambda x: x.plate_id == self.splate,
+                                            self.data))
         self.updateStatus()
         for plate in self.data:
+            
+            # Single plate mode
+            if self.splate != None and plate.plate_id != self.splate:
+                continue
+            #
+                
             self._substatus += 1
             self.updateStatus(True)
             logger.debug('Adding plate %s'%plate.plate_id)
@@ -2063,9 +2082,24 @@ class BiologPlot(CommonThread):
         if self.killed:
             return
         
-        self._maxsubstatus = len(self.avgdata)
-        self.updateStatus()
+        if self.splate == None:
+            self._maxsubstatus = len(self.avgdata)
+        else:
+            self._maxsubstatus = 1
+        if self.swell == None:
+            self.updateStatus()
+        else:
+            self.updateStatus(send=False)
         for plate in self.avgdata:
+            
+            # Single well mode
+            if self.swell != None:
+                break
+            # Single plate mode
+            if self.splate != None and plate.plate_id != self.splate:
+                continue
+            #
+        
             self._substatus += 1
             self.updateStatus(True)
             logger.debug('Adding average plate %s'%plate.plate_id)
@@ -2108,7 +2142,10 @@ class BiologPlot(CommonThread):
             return
         
         # Plot the legend
-        self._maxsubstatus = len(self.results)
+        if self.splate == None:
+            self._maxsubstatus = len(self.results)
+        else:
+            self._maxsubstatus = 1
         self.updateStatus()
         for plate_id in sorted(self.results.keys()):
             self._substatus += 1
@@ -2117,17 +2154,20 @@ class BiologPlot(CommonThread):
             
             self.results[plate_id].plotLegend(plate_id, strains=self.order)
             
-            if plate_id in self.category:
-                path = os.path.join(self._room,self.category[plate_id])
-            else:
-                path = self._room
-            
             if self.svg:
                 fformat = 'svg'
             else:
                 fformat = 'png'
-                
-            fname = os.path.join(path,'%s_legend.%s'%(plate_id, fformat))
+            
+            if self.splate == None:
+                if plate_id in self.category:
+                    path = os.path.join(self._room,self.category[plate_id])
+                else:
+                    path = self._room
+                fname = os.path.join(path,'%s_legend.%s'%(plate_id, fformat))
+            else:
+                # Single mode, save here
+                fname = '%s_legend.%s'%(plate_id, fformat)
             
             if self.svg:
                 self.results[plate_id].legend.savefig(fname, dpi=300)
@@ -2141,9 +2181,20 @@ class BiologPlot(CommonThread):
         self.resetSubStatus()
         
         if self.plotPlates:
-            self._maxsubstatus = len(self.results)*96
-            self.updateStatus()
+            if self.splate == None:
+                self._maxsubstatus = len(self.results)*96
+            elif self.splate != None and self.swell == None:
+                self._maxsubstatus = 96
+            
+            if self.splate != None and self.swell != None:
+                self.updateStatus(send=False)
+            else:
+                self.updateStatus()
             for plate_id in sorted(self.results.keys()):
+                if self.splate != None and self.swell != None:
+                    break
+                #
+                
                 logger.debug('Plotting plate %s'%plate_id)
                 for i in self.results[plate_id].plotAll():
                     self._substatus += 1
@@ -2151,19 +2202,21 @@ class BiologPlot(CommonThread):
                     
                     if self.killed:
                         return
-                    
-                # TODO: remember qgraphicspixmapitem for GUI clickable!
-                if plate_id in self.category:
-                    path = os.path.join(self._room,self.category[plate_id])
-                else:
-                    path = self._room
-                    
+                
                 if self.svg:
                     fformat = 'svg'
                 else:
                     fformat = 'png'
-                    
-                fname = os.path.join(path,'%s.%s'%(plate_id, fformat))
+                 
+                if self.splate == None:  
+                    # TODO: remember qgraphicspixmapitem for GUI clickable!
+                    if plate_id in self.category:
+                        path = os.path.join(self._room,self.category[plate_id])
+                    else:
+                        path = self._room
+                    fname = os.path.join(path,'%s.%s'%(plate_id, fformat))
+                else:
+                    fname = '%s.%s'%(plate_id, fformat)
                 
                 if self.svg:
                     self.results[plate_id].figure.savefig(fname, dpi=300)
@@ -2177,31 +2230,52 @@ class BiologPlot(CommonThread):
         if self.killed:
             return
         
-        if self.plotAll:
-            self._maxsubstatus = len(self.results)*96
-            self.updateStatus()
+        if self.plotAll or (self.splate != None and self.swell != None):
+            if self.swell == None:
+                self._maxsubstatus = len(self.results)*96
+            else:
+                self._maxsubstatus = 1
+            if self.splate != None and self.swell == None:
+                self.updateStatus(send=False)
+            else:
+                self.updateStatus()
             for plate_id in sorted(self.results.keys()):
+            
+                # Single plate
+                if self.splate != None and self.swell == None:
+                    break
+                #
+            
                 if plate_id in self.wellNames:
                     self.results[plate_id].addWellTitles(self.wellNames[plate_id])
                     
                 for well_id in sorted(self.results[plate_id].wells):
+                    # Single well
+                    if self.swell != None and self.swell != well_id:
+                        continue
+                    #
+                    
                     logger.debug('Plotting %s %s'%(plate_id, well_id))
                     
                     if not self.getPlot(plate_id, well_id):
                         self.sendFailure('Single plot creation failure')
                         return
-                    if plate_id in self.category:
-                        path = os.path.join(self._room,self.category[plate_id])
-                    else:
-                        path = self._room
                         
                     if self.svg:
                         fformat = 'svg'
                     else:
                         fformat = 'png'
                         
-                    fname = os.path.join(path,'%s_%s.%s'%(plate_id,
+                    if self.swell == None:
+                        if plate_id in self.category:
+                            path = os.path.join(self._room,self.category[plate_id])
+                        else:
+                            path = self._room
+                        fname = os.path.join(path,'%s_%s.%s'%(plate_id,
                                                          well_id, fformat))
+                    else:
+                        fname = '%s_%s.%s'%(plate_id, well_id, fformat)
+                    
                     if self.svg:
                         self.well.savefig(fname, dpi=300)
                     else:
@@ -2220,10 +2294,24 @@ class BiologPlot(CommonThread):
             return
         
         if self.plotActivity:
-            self._maxsubstatus = len(self.results)*96
-            self.updateStatus()
-            maxAct = max([p.getMaxActivity() for pid, p in self.avgresults.iteritems()])
+            if self.splate == None:
+                self._maxsubstatus = len(self.results)*96
+            else:
+                self._maxsubstatus = 96
+            if self.swell == None:
+                self.updateStatus()
+            else:
+                self.updateStatus(send=False)
+            if len(self.avgresults) != 0:
+                maxAct = max([p.getMaxActivity() for pid, p in self.avgresults.iteritems()])
+            else:
+                maxAct = 0
             for plate_id in sorted(self.avgresults.keys()):
+                # Single well:
+                if self.swell != None:
+                    break
+                #
+                
                 logger.debug('Plotting heatmap %s'%plate_id)
                 
                 for i in self.avgresults[plate_id].plotActivity(strains=self.order, maxAct=maxAct):
@@ -2232,17 +2320,21 @@ class BiologPlot(CommonThread):
                     
                     if self.killed:
                         return
-                if plate_id in self.category:
-                    path = os.path.join(self._room,self.category[plate_id])
-                else:
-                    path = self._room
                     
                 if self.svg:
                     fformat = 'svg'
                 else:
                     fformat = 'png'
-                    
-                fname = os.path.join(path,'%sheat.%s'%(plate_id, fformat))
+                
+                if self.splate == None:   
+                    if plate_id in self.category:
+                        path = os.path.join(self._room,self.category[plate_id])
+                    else:
+                        path = self._room
+                    fname = os.path.join(path,'%sheat.%s'%(plate_id, fformat))
+                else:
+                    fname = '%sheat.%s'%(plate_id, fformat)
+                
                 if self.svg:
                     self.avgresults[plate_id].heatfig.savefig(fname)
                 else:

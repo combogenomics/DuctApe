@@ -33,6 +33,9 @@ Installation
 * Method 2 (missing dependencies will be downloaded)
     * sudo pip install DuctApe-X.X.X.tar.gz
 
+* Dependencies installation on Debian/Ubuntu
+    * sudo apt-get install python-numpy python-scipy python-sklearn python-matplotlib python-biopython python-networkx ncbi-blast+
+
 Quick how-to
 ------------
 Three command line utilities will be installed

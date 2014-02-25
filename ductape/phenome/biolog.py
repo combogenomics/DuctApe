@@ -690,6 +690,8 @@ class Plate(object):
         # Plot the strains names in the proper order
         for i in range(len(array)):
             for j in range(len(array[i])):
+                if array[i,j] not in self.colors:
+                    continue
                 ax.text(j, i, array[i,j], color=self.colors[array[i,j]],
                         fontsize='x-large', fontweight='bold', ha='center')
         

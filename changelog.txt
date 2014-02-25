@@ -1,3 +1,16 @@
+Version 0.16.0
+==============
+
+UPGRADE URGENCY: MODERATE, one corner-case crash on dphenome plot has been fixed
+
+FEATURES:
+* dphenome plot: it is now possible to plot single plates/wells with one command
+    * dphenome plot PM01 --> plots only plate PM01 (w/ heatmap)
+    * dphenome plot PM01 A01 --> plots only well PM01 A01
+    
+BUGFIXES:
+* dphenome plot: in some cases the creation of the legends caused a crash of the command
+
 Version 0.15.0
 ==============
 

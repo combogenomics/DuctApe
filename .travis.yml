@@ -1,6 +1,7 @@
 language: python
 python:
   - "2.7"
+  - "3.3"
 before_install:
  - sudo apt-get install -qq python-numpy python-scipy python-sklearn python-matplotlib python-biopython python-networkx
  # Workaround for a permissions issue with Travis virtual machine images

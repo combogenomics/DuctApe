@@ -17,7 +17,8 @@ setup(
     long_description = open('README.txt').read(),
     install_requires = ['argparse >= 1.1', 'biopython >= 1.5', 'numpy',
                         'matplotlib >= 1.1', 'multiprocessing',
-                        'scipy', 'scikit-learn >= 0.11', 'PyYAML']
+                        'scipy', 'scikit-learn >= 0.11', 'PyYAML',
+			'networkx']
 )
 
 

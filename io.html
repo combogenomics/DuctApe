@@ -8,7 +8,7 @@
     <meta name="author" content="Marco Galardini" >
     
     <!-- Le meta tag to refresh the cache -->
-    <meta http-equiv="last-modified" content="Mon, 20 Jan 2014 13:00:00 CET" />
+    <meta http-equiv="last-modified" content="Fri, 07 Mar 2014 10:30:00 CET" />
 
     <!-- Le styles -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -1898,119 +1898,6 @@ PM01 B04 0 A01 L-Fucose CAS 2438-80-4 C01019 C-Source, carbohydrate carbon
                                 
                                 <p><b class="text-error">PLATE_ID_ORG_ID_REPLICA.yml</b> Phenotype Microarray file</p>
                                 <p>A file containing one plates data on one organism and one replica. The file can be either in <a href="http://en.wikipedia.org/wiki/YAML">YAML</a> or <a href="http://en.wikipedia.org/wiki/JSON">JSON</a> format, depending on the option provided. YAML or JSON files may be used by other software, like <a href="http://opm.dsmz.de">opm</a>, or be stored.</p>
-                                
-                                <p><b class="text-error">phenome_ORG_ID.tsv</b> phenome parameters table</p>
-                                <p>A tab-delimited file containing the curve parameters for each compound in the provided organism.</p>
-                                <pre># Comment (ignored)
-#plate_id well_id chemical category moa co_id replica activity min max height plateau slope lag area source
-PM01 A01 Negative Control carbon C-Source, negative control  1 0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 DuctApe
-PM01 A02 L-Arabinose carbon C-Source, carbohydrate C00259 1 4 0.1 212.876351661 88.4481873788 217.820042396 8.17836437167 26.5905182274 6222.53364031 DuctApe
-PM01 A03 N-Acetyl-D-Glucosamine carbon C-Source, carbohydrate C00140 1 3 0.1 175.750723251 72.2820872802 180.106135342 6.19972356011 25.4451576156 5084.32121119 DuctApe
-PM01 A04 D-Saccharic acid carbon C-Source, carboxylic acid C00818 1 0 0.1 0.1 0.1 0.0 0.0 0.0 7.05 DuctApe
-PM01 A05 Succinic acid carbon C-Source, carboxylic acid C00042 1 4 0.1 215.615477063 89.6254004782 225.986240731 7.30545393964 24.904552184 6305.05627692 DuctApe
-PM01 A06 D-Galactose carbon C-Source, carbohydrate C00124 1 3 0.1 192.507967471 70.0603851535 196.340666445 7.67622266928 30.6220829804 4919.67860561 DuctApe
-PM01 A07 L-Aspartic acid carbon C-Source, amino acid C00049 1 3 0.1 138.538227924 52.3515997237 152.92481527 4.05461063968 25.5909464203 3678.06214484 DuctApe
-PM01 A08 L-Proline carbon C-Source, amino acid C00148 1 3 0.1 159.426424525 55.242482911 174.544222968 4.97915743191 28.8880663867 3876.20449821 DuctApe
-PM01 A09 D-Alanine carbon C-Source, amino acid C00133 1 0 0.1 0.1 0.1 0.0 0.0 0.0 7.05 DuctApe
-PM01 A10 D-Trehalose carbon C-Source, carbohydrate C01083 1 3 0.1 172.360816522 67.9253535538 180.98680765 5.74067225952 26.089886528 4775.07888792 DuctApe
-PM01 A11 D-Mannose carbon C-Source, carbohydrate C00159 1 3 0.1 180.324918868 72.034665281 187.654279607 5.84619375648 25.388251942 5064.8736555 DuctApe
-PM01 A12 Dulcitol carbon C-Source, carbohydrate C01697 1 3 3.20889170278 169.115730471 70.3661407768 180.043552333 4.72459819003 24.9793274449 4948.97009753 DuctApe
-PM01 B01 D-Serine carbon C-Source, amino acid C00740 1 0 0.1 1.43523714004 0.19528979129 0.0 0.0 0.0 13.7977201409 DuctApe
-PM01 B02 D-Sorbitol carbon C-Source, carbohydrate C00794 1 3 0.1 157.074255439 59.6792654806 162.450723993 5.91004239304 28.9002668047 4193.74610059 DuctApe
-[...]
-</pre>
-                                <p>The various fields are defined in the table below.</p>
-                                <table class="table table-striped table-bordered">
-                                  <thead>
-                                    <tr>
-                                      <th>Field</th>
-                                      <th>Description</th>
-                                      <th>Example</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    <tr>
-                                      <td>plate_id</td>
-                                      <td>PM plate ID</td>
-                                      <td>PM01</td>
-                                    </tr>
-                                    <tr>
-                                      <td>well_id</td>
-                                      <td>PM well ID; should follow the following format: first charachter a upper-case letter from A to H, second and third charachters a number from 01 to 12.</td>
-                                      <td>A02</td>
-                                    </tr>
-                                    <tr>
-                                      <td>chemical</td>
-                                      <td>Name of the compound contained in the well.</td>
-                                      <td>L-Arabinose</td>
-                                    </tr>
-                                    <tr>
-                                      <td>category</td>
-                                      <td>Used to classify each well with other wells present in the project; should describe the class of compounds contained in the plate.</td>
-                                      <td>carbon</td>
-                                    </tr>
-                                    <tr>
-                                      <td>moa</td>
-                                      <td>The "mode of action" of the compound contained in the well. It's a comma separated list of nested classifications of the compound, from the most general to the most specific.</td>
-                                      <td>C-Source, carbohydrate</td>
-                                    </tr>
-                                    <tr>
-                                      <td>co_id</td>
-                                      <td>The <a href="https://www.kegg.jp/">KEGG</a> compound ID for the compound contained in the well.</td>
-                                      <td>C00259</td>
-                                    </tr>
-                                    <tr>
-                                      <td>replica</td>
-                                      <td>The replica ID for this curve.</td>
-                                      <td>1</td>
-                                    </tr>
-                                    <tr>
-                                      <td>Activity</td>
-                                      <td>The AV value for this curve. The higher the value, the higher the activity of the organism on the compound: the maximum AV value depends on the number of clusters defined when using the <code>dphenome start</code>.</td>
-                                      <td>3</td>
-                                    </tr>
-                                    <tr>
-                                      <td>min</td>
-                                      <td>Lowest point in the curve.</td>
-                                      <td>0.0</td>
-                                    </tr>
-                                    <tr>
-                                      <td>max</td>
-                                      <td>Highest point in the curve.</td>
-                                      <td>150.2</td>
-                                    </tr>
-                                    <tr>
-                                      <td>height</td>
-                                      <td>Average height of the curve.</td>
-                                      <td>75.3</td>
-                                    </tr>
-                                    <tr>
-                                      <td>plateau</td>
-                                      <td>Time point in which the curve reaches the stationary phase.</td>
-                                      <td>55.3</td>
-                                    </tr>
-                                    <tr>
-                                      <td>slope</td>
-                                      <td>The curve slope in the exponential phase.</td>
-                                      <td>4.3</td>
-                                    </tr>
-                                    <tr>
-                                      <td>lag</td>
-                                      <td>Time point in which the curve enters the exponential phase.</td>
-                                      <td>20.5</td>
-                                    </tr>
-                                    <tr>
-                                      <td>area</td>
-                                      <td>The area below the curve.</td>
-                                      <td>20156.5</td>
-                                    </tr>
-                                    <tr>
-                                      <td>source</td>
-                                      <td>The software responsible for the parameters extimation.</td>
-                                      <td>DuctApe</td>
-                                    </tr>
-                                  </tbody>
-                                </table>
                                 
                                 <p><b class="text-error">phenome_ORG_ID.tsv</b> phenome parameters table</p>
                                 <p>A tab-delimited file containing the curve parameters for each compound in the provided organism.</p>

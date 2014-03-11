@@ -2010,7 +2010,7 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
     if (kind == 'mutants' or difforg):
         cNorm  = colors.Normalize(vmin=-maxAct, vmax=maxAct)
         scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.PuOr)
-        scalarMap.set_array(np.array(range(-maxAct,maxAct,20)))
+        scalarMap.set_array(np.array(range(-int(maxAct),int(maxAct),20)))
         cax = fig.add_axes([0.04, 0.2, 0.03, 0.6])
         cax.text(0.50, 1.01, 'Delta activity', size=20, ha='center')
         plt.colorbar(scalarMap, cax=cax)

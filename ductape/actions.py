@@ -1867,18 +1867,30 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
             orgs.append(org.org_id)
     
     # "Legend"
-    i = 0.1
+    if len(orgs) > 10:
+        i = 0.05
+        i_space = 0.05
+        text_incr = 0.015
+        i_incr = 0.07
+        t_size = 10
+    else:
+        i = 0.1
+        i_space = 0.1
+        text_incr = 0.03
+        i_incr = 0.15
+        t_size = 17
     for org_id in orgs:
-        radius = np.linspace(i, i+0.1, 10)
+        radius = np.linspace(i, i+i_space, 10)
         theta = np.linspace(0, 2*np.pi, 628)
         R,T  = np.meshgrid(radius,theta)
     
-        ax.pcolor(T, R, [[1 for y in range(10)] for x in range(628)], cmap=cm.Greys,
+        ax.pcolor(T, R, np.array([[1 for y in range(10)] for x in range(628)]),
+                  cmap=cm.Greys,
                   vmin=0, vmax=maxAct)
         
-        ax.text(0, i+0.03, org_id, size=17, weight='black', alpha=0.77, ha='center')
+        ax.text(0, i+text_incr, org_id, size=t_size, weight='black', alpha=0.77, ha='center')
         
-        i += 0.15
+        i += i_incr
         
     # Category and plate/well fail-safe tweaks
     # What if a plate/well is missing?
@@ -1960,6 +1972,11 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
     
     start_arch = 0
     stop_arch = 0
+    
+    if len(orgs) > 10:
+        l_width = 15
+    else:
+        l_width = 35    
     for categ in categorder:
         if len(categpworder[categ]) == 0:continue
         
@@ -1970,7 +1987,7 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
         theta = np.linspace(start_arch, stop_arch, 100)
         
         ax.plot(theta, [i for t in theta], color=categcolor[categ],
-                linewidth=35, label=categ)
+                linewidth=l_width, label=categ)
         
         start_arch += 2*np.pi*categprop
 

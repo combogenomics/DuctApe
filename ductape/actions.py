@@ -1958,7 +1958,8 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
             
         cmap.set_under('#F8F8F8',1.)
         
-        ax.pcolor(T, R, [[x for y in range(10)] for x in acts], cmap=cmap,
+        ax.pcolor(T, R, np.array([[x for y in range(10)] for x in acts]),
+                  cmap=cmap,
                   vmin=vmin, vmax=vmax)
         
         i += 0.25
@@ -2001,7 +2002,7 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
     import matplotlib.colors as colors
     cNorm  = colors.Normalize(vmin=0, vmax=maxAct)
     scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.RdYlGn)
-    scalarMap.set_array(np.array(range(maxAct + 1)))
+    scalarMap.set_array(np.array(range(int(maxAct) + 1)))
     cax = fig.add_axes([0.93, 0.2, 0.03, 0.6])
     cax.text(0.50, 1.01, 'Activity', size=20, ha='center')
     plt.colorbar(scalarMap, cax=cax)

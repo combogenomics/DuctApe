@@ -1797,7 +1797,7 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
     biolog = Biolog(project)
     
     # Setup an experiment
-    sigs = [s for s in biolog.getAllSignals()]
+    sigs = [s for s in biolog.getAllActivity()]
     plates = [p for p in getPlates(sigs)]
     
     isZero = biolog.atLeastOneZeroSubtracted()

@@ -4338,6 +4338,18 @@ class Biolog(DBBase):
         for res in cursor:
             yield Row(res, cursor.description)
     
+    def getAllActivity(self):
+        '''
+        Get all the activities from the storage
+        '''
+        with self.connection as conn:
+            cursor=conn.execute('''select b.plate_id, b.well_id, b.org_id,
+                                          b.replica, b.activity
+                                   from biolog_exp b;''')
+        
+        for res in cursor:
+            yield Row(res, cursor.description)
+    
     def getAllSignals(self):
         '''
         Get all the signals from the storage

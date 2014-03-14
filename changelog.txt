@@ -1,3 +1,16 @@
+Version 0.16.2
+==============
+
+UPGRADE URGENCY: HIGH if you use the "dape map" command or have the latest matplolib library, LOW otherwise
+
+BUGFIXES:
+* dape map: could not get any colored pathway map
+* Installation: NetworkX was missing in the setup file
+* dphenome rings:
+    * Memory-leak when many organisms are present
+    * Different proportions when orgs > 10
+    * Fix crashes w/ latest matplotlib version
+
 Version 0.16.0
 ==============
 

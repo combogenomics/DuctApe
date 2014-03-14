@@ -42,7 +42,7 @@ echo -e $green"Single organism"$reset
 ../dphenome export || die "dphenome export"
 
 ../dape map || die "dape map"
-../dape start -p || die "dape start"
+../dape start -s || die "dape start"
 
 ../dape export || die "dape export"
 
@@ -89,7 +89,7 @@ sleep 5
 ../dphenome export || die "dphenome export"
 
 ../dape map || die "dape map"
-../dape start -p || die "dape start"
+../dape start -s || die "dape start"
 
 ../dape export || die "dape export"
 
@@ -136,7 +136,7 @@ sleep 5
 ../dphenome export || die "dphenome export"
 
 ../dape map || die "dape map"
-../dape start -p || die "dape start"
+../dape start -s || die "dape start"
 
 ../dape export || die "dape export"
 ../dape clear --keep-org || die "dape clear"

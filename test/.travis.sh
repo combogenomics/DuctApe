@@ -32,7 +32,7 @@ echo -e $green"Single organism"$reset
 ./dphenome -v stats || die "./dphenome -v stats"
 ./dphenome -v export || die "./dphenome -v export"
 
-./dape start -p > /dev/null || die "./dape start"
+./dape start -s > /dev/null || die "./dape start"
 
 ./dape -v export || die "./dape -v export"
 
@@ -73,7 +73,7 @@ sleep 5
 ./dphenome -v stats || die "./dphenome -v stats"
 ./dphenome -v export || die "./dphenome -v export"
 
-./dape start -p > /dev/null || die "./dape start"
+./dape start -s > /dev/null || die "./dape start"
 
 ./dape -v export || die "./dape -v export"
 
@@ -112,7 +112,7 @@ sleep 5
 ./dphenome -v stats || die "./dphenome -v stats"
 ./dphenome -v export || die "./dphenome -v export"
 
-./dape start -p > /dev/null || die "./dape start"
+./dape start -s > /dev/null || die "./dape start"
 
 ./dape -v export || die "./dape -v export"
 ./dape -v clear --keep-org || die "./dape -v clear"

@@ -486,7 +486,7 @@ def getOptions():
     parser_trim.set_defaults(func=dtrim)
 
     parser_start = subparsers.add_parser('start', help='Start the analysis')
-    parser_start.add_argument('-p', action="store_true",
+    parser_start.add_argument('-s', action="store_true",
                             default=False,
                             help='Skip parameters calculation')
     parser_start.add_argument('-g', action="store_true",

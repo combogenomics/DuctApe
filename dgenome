@@ -396,7 +396,7 @@ def getOptions():
     parser_start.add_argument('-y', action="store_true",
                             default=False,
                             help='Try to fetch Kegg data even while encountering failures')
-    parser_start.add_argument('-p', action="store", dest='prefix',
+    parser_start.add_argument('-x', action="store", dest='prefix',
                             default='',
                             help='Orthologous groups prefix')
     parser_start.add_argument('-m', action="store", dest='matrix',

@@ -639,8 +639,10 @@ class KeggAPI(object):
                         url += obj_list[i] + '%09' + color_list[i] + ',' + border_list[i] + '/'
                     else:
                         url += obj_list[i] + '%09' + color_list[i] + '/'
-                
-                url = self._maplink + urllib.quote(url)
+               
+                # Cannot quote this url, no colored pathway can be obtained then
+                #url = self._maplink + urllib.quote(url)
+                url = self._maplink + url
                 
                 logger.debug(url)
                 

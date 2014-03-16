@@ -192,7 +192,14 @@ class Well(object):
         '''
         from scipy.integrate import trapz
         from ductape.phenome.fitting import fitData, getFlex, getPlateau
-        
+       
+        # If there are not enough signals, do not compress + smooth
+        if len(self.signals) <= 3*11:
+            logger.debug('Too few time points for %s %s (%d): no compressing/smoothing'%
+                        (self.plate_id, self.well_id, len(self.signals)))
+            noCompress = True
+            noSmooth = True 
+
         if not self.compressed and not noCompress:
             self.compress()
         if not self.smoothed and not noSmooth:

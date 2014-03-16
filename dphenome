@@ -88,7 +88,7 @@ def dstart(options, wdir, project):
                        __prog__)
         return False
 
-    if options.p:
+    if options.s:
         logger.warning('Skipping parameters calculation')
     else:
         # Clusterize the biolog experiment

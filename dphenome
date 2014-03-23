@@ -293,9 +293,8 @@ def dexport(options, wdir, project):
     
     # Check!
     if biolog.atLeastOneNoParameter():
-        logger.warning('The activity index must be calculated first (run %s start)'%
+        logger.warning('The activity index has not been computed yet (run %s start)'%
                        __prog__)
-        return False
     
     return dPhenomeExport(project, options.json)
 

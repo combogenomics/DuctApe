@@ -1,3 +1,23 @@
+Version 0.16.4
+==============
+
+UPGRADE URGENCY: LOW if you are not using PM experiments with a low number of time points
+
+FEATURES:
+* dphenome start: no smoothing/compressing when not enough time points
+    * when the number of time points is below 33
+    * "manual" phenomic experiments may have a very low number of time points
+
+BUGFIXES:
+* Full python3 compatibility
+    * dgenome start still had some python2 bits
+* dape/dgenome/dphenome start: option "-p" renamed to avoid conflicts
+    * dape start -p --> dape start -s
+    * dgenome start -p PREFIX --> dgenome start -x PREFIX
+    * dphenome start -p --> dphenome start -s
+* dphenome stats: do not exit if the AV has not been computed yet
+    * The command may still output useful data
+
 Version 0.16.2
 ==============
 

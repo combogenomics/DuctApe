@@ -80,7 +80,7 @@ class DBBase(object):
             # Import Biolog data
             b = Biolog(self.dbname)
             b.create()
-        except sqlite3.Error, e:
+        except sqlite3.Error as e:
             logger.error('Could not create the database!')
             logger.error(e)
             return False
@@ -1472,7 +1472,7 @@ class Kegg(DBBase):
                 cursor=conn.execute('select count(*) from ko where ko_id=?;',
                                     (ko_id,))
             return bool(cursor.fetchall()[0][0])
-        except Exception, e:
+        except Exception as e:
             logger.debug('Got error %s on id %s, assuming id is present'%
                          (str(e),ko_id))
             return True
@@ -1511,7 +1511,7 @@ class Kegg(DBBase):
                 cursor=conn.execute('select count(*) from rpair where rp_id=?;',
                                     (rp_id,))
             return bool(cursor.fetchall()[0][0])
-        except Exception, e:
+        except Exception as e:
             logger.debug('Got error %s on id %s, assuming id is present'%
                          (str(e),rp_id))
             return True
@@ -1774,7 +1774,7 @@ class Kegg(DBBase):
                 cursor=conn.execute('select count(*) from reaction where re_id=?;',
                                     (re_id,))
             return bool(cursor.fetchall()[0][0])
-        except Exception, e:
+        except Exception as e:
             logger.debug('Got error %s on id %s, assuming id is present'%
                          (str(e),re_id))
             return True
@@ -1836,7 +1836,7 @@ class Kegg(DBBase):
                 cursor=conn.execute('select count(*) from compound where co_id=?;',
                                     (co_id,))
             return bool(cursor.fetchall()[0][0])
-        except Exception, e:
+        except Exception as e:
             logger.debug('Got error %s on id %s, assuming id is present'%
                          (str(e),co_id))
             return True
@@ -2065,7 +2065,7 @@ class Kegg(DBBase):
                 cursor=conn.execute('select count(*) from pathway where path_id=?;',
                                     [path_id,])
             return bool(cursor.fetchall()[0][0])
-        except Exception, e:
+        except Exception as e:
             logger.debug('Got error %s on id %s, assuming id is present'%
                          (str(e),path_id))
             return True

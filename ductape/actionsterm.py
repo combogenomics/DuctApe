@@ -31,7 +31,7 @@ def fetchKegg(project, keeptrying=False):
     bk = BaseKegg()
     try:
         bk.checkConnection()
-    except Exception, e:
+    except Exception as e:
         logger.error(str(e))
         return False
     

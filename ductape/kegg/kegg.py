@@ -166,7 +166,7 @@ class KeggAPI(object):
                 self.result = (line, self.getRelease(line))
 
                 return
-            except Exception, e:
+            except Exception as e:
                 attempts += 1
                 logger.debug('info failed! Attempt %d'
                               %attempts)
@@ -230,7 +230,7 @@ class KeggAPI(object):
                         self.result[entry] = ['','']
                 
                 return
-            except Exception, e:
+            except Exception as e:
                 attempts += 1
                 logger.debug('get failed! Attempt %d'
                               %attempts)
@@ -293,7 +293,7 @@ class KeggAPI(object):
                         self.result[entry] = ['','','']
                  
                 return
-            except Exception, e:
+            except Exception as e:
                 attempts += 1
                 logger.debug('get (rpair) failed! Attempt %d'
                               %attempts)
@@ -328,7 +328,7 @@ class KeggAPI(object):
                 except:pass
                 self.result = list(self.result)
                 return
-            except Exception, e:
+            except Exception as e:
                 attempts += 1
                 logger.debug('list (%s) failed! Attempt %d'
                               %(db,attempts))
@@ -362,7 +362,7 @@ class KeggAPI(object):
                 data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
                 return
-            except Exception, e:
+            except Exception as e:
                 attempts += 1
                 logger.debug('link (reaction) failed! Attempt %d'
                               %attempts)
@@ -396,7 +396,7 @@ class KeggAPI(object):
                 data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
                 return
-            except Exception, e:
+            except Exception as e:
                 attempts += 1
                 logger.debug('link (pathway) failed! Attempt %d'
                               %attempts)
@@ -430,7 +430,7 @@ class KeggAPI(object):
                 data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
                 return
-            except Exception, e:
+            except Exception as e:
                 attempts += 1
                 logger.debug('link (reaction) failed! Attempt %d'
                               %attempts)
@@ -464,7 +464,7 @@ class KeggAPI(object):
                 data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
                 return
-            except Exception, e:
+            except Exception as e:
                 attempts += 1
                 logger.debug('link (reaction) failed! Attempt %d'
                               %attempts)
@@ -498,7 +498,7 @@ class KeggAPI(object):
                 data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
                 return
-            except Exception, e:
+            except Exception as e:
                 attempts += 1
                 logger.debug('link (rpair) failed! Attempt %d'
                               %attempts)
@@ -532,7 +532,7 @@ class KeggAPI(object):
                 data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
                 return
-            except Exception, e:
+            except Exception as e:
                 attempts += 1
                 logger.debug('link (reaction) failed! Attempt %d'
                               %attempts)
@@ -566,7 +566,7 @@ class KeggAPI(object):
                 data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
                 return
-            except Exception, e:
+            except Exception as e:
                 attempts += 1
                 logger.debug('link (compound) failed! Attempt %d'
                               %attempts)
@@ -600,7 +600,7 @@ class KeggAPI(object):
                 data = urllib.urlopen(url, timeout=20).read()
                 self.result = self.parseLinks(data)
                 return
-            except Exception, e:
+            except Exception as e:
                 attempts += 1
                 logger.debug('link (compound) failed! Attempt %d'
                               %attempts)
@@ -650,7 +650,7 @@ class KeggAPI(object):
                 self.result = sock.read()
                 sock.close()
                 return
-            except Exception, e:
+            except Exception as e:
                 attempts += 1
                 logger.debug('show_pathway failed! Attempt %d'
                               %attempts)
@@ -1695,7 +1695,7 @@ class KoMapper(BaseMapper):
         self.updateStatus()
         try:
             self.checkConnection()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
     
@@ -1704,7 +1704,7 @@ class KoMapper(BaseMapper):
         self.updateStatus()
         try:
             self.getReactions()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -1718,7 +1718,7 @@ class KoMapper(BaseMapper):
         self.updateStatus()
         try:
             self.getReactRPairs()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -1730,7 +1730,7 @@ class KoMapper(BaseMapper):
         self._maxsubstatus = len(self.rpairdet)
         try:
             self.getRPairReacts()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -1744,7 +1744,7 @@ class KoMapper(BaseMapper):
         self.updateStatus()
         try:
             self.getPathways()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -1759,7 +1759,7 @@ class KoMapper(BaseMapper):
         self.updateStatus()
         try:
             self.getPathReactions()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -1772,7 +1772,7 @@ class KoMapper(BaseMapper):
         self._maxsubstatus = len(self.pathdet)
         try:
             self.getPathCompounds()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -1786,7 +1786,7 @@ class KoMapper(BaseMapper):
         self.updateStatus()
         try:
             self.getReactCompounds()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -1799,7 +1799,7 @@ class KoMapper(BaseMapper):
         self._maxsubstatus = len(self.compdet)
         try:
             self.getCompoundReacts()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -1813,7 +1813,7 @@ class KoMapper(BaseMapper):
         self.updateStatus()
         try:
             self.getKOdet()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -1826,7 +1826,7 @@ class KoMapper(BaseMapper):
         self._maxsubstatus = len(self.pathdet)
         try:
             self.getPathDetails()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -1839,7 +1839,7 @@ class KoMapper(BaseMapper):
         self._maxsubstatus = len(self.pathdet)
         try:
             self.getMapsDetails()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -1852,7 +1852,7 @@ class KoMapper(BaseMapper):
         self._maxsubstatus = len(self.reactdet)
         try:
             self.getReactDetails()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -1865,7 +1865,7 @@ class KoMapper(BaseMapper):
         self._maxsubstatus = len(self.compdet)
         try:
             self.getCompDetails()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -1878,7 +1878,7 @@ class KoMapper(BaseMapper):
         self._maxsubstatus = len(self.rpairdet)
         try:
             self.getRPairDetails()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -1934,7 +1934,7 @@ class CompMapper(BaseMapper):
         self.updateStatus()
         try:
             self.checkConnection()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
     
@@ -1945,7 +1945,7 @@ class CompMapper(BaseMapper):
         self.updateStatus()
         try:
             self.getCompoundReacts()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -1959,7 +1959,7 @@ class CompMapper(BaseMapper):
         self.updateStatus()
         try:
             self.getReactRPairs()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -1971,7 +1971,7 @@ class CompMapper(BaseMapper):
         self._maxsubstatus = len(self.rpairdet)
         try:
             self.getRPairReacts()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -1985,7 +1985,7 @@ class CompMapper(BaseMapper):
         self.updateStatus()
         try:
             self.getPathways()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2000,7 +2000,7 @@ class CompMapper(BaseMapper):
         self.updateStatus()
         try:
             self.getPathReactions()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2013,7 +2013,7 @@ class CompMapper(BaseMapper):
         self._maxsubstatus = len(self.pathdet)
         try:
             self.getPathCompounds()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2027,7 +2027,7 @@ class CompMapper(BaseMapper):
         self.updateStatus()
         try:
             self.getReactCompounds()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2040,7 +2040,7 @@ class CompMapper(BaseMapper):
         self._maxsubstatus = len(self.compdet)
         try:
             self.getCompoundReacts()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2054,7 +2054,7 @@ class CompMapper(BaseMapper):
         self.updateStatus()
         try:
             self.getPathDetails()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2067,7 +2067,7 @@ class CompMapper(BaseMapper):
         self._maxsubstatus = len(self.pathdet)
         try:
             self.getMapsDetails()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2080,7 +2080,7 @@ class CompMapper(BaseMapper):
         self._maxsubstatus = len(self.reactdet)
         try:
             self.getReactDetails()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2093,7 +2093,7 @@ class CompMapper(BaseMapper):
         self._maxsubstatus = len(self.compdet)
         try:
             self.getCompDetails()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2106,7 +2106,7 @@ class CompMapper(BaseMapper):
         self._maxsubstatus = len(self.rpairdet)
         try:
             self.getRPairDetails()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2339,7 +2339,7 @@ class MapsFetcher(BaseKegg):
         self.updateStatus()
         try:
             self.checkConnection()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
     
@@ -2360,7 +2360,7 @@ class MapsFetcher(BaseKegg):
             self.updateStatus()
             try:
                 self.getMaps()
-            except Exception, e:
+            except Exception as e:
                 self.sendFailure(e)
                 return
             self.cleanHandlers()
@@ -2375,7 +2375,7 @@ class MapsFetcher(BaseKegg):
             self.updateStatus()
             try:
                 self.getWebPages()
-            except Exception, e:
+            except Exception as e:
                 self.sendFailure(e)
                 return
         else:
@@ -2420,7 +2420,7 @@ class KeggNet(BaseMapper):
         self.updateStatus()
         try:
             self.checkConnection()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
     
@@ -2428,7 +2428,7 @@ class KeggNet(BaseMapper):
         self.updateStatus()
         try:
             self.getAllPathways()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         
@@ -2440,7 +2440,7 @@ class KeggNet(BaseMapper):
         self.updateStatus()
         try:
             self.getPathCompounds()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2454,7 +2454,7 @@ class KeggNet(BaseMapper):
         self.updateStatus()
         try:
             self.getCompoundReacts()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2468,7 +2468,7 @@ class KeggNet(BaseMapper):
         self.updateStatus()
         try:
             self.getPathReactions()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2482,7 +2482,7 @@ class KeggNet(BaseMapper):
         self.updateStatus()
         try:
             self.getReactRPairs()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2494,7 +2494,7 @@ class KeggNet(BaseMapper):
         self._maxsubstatus = len(self.rpairdet)
         try:
             self.getRPairReacts()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2508,7 +2508,7 @@ class KeggNet(BaseMapper):
         self.updateStatus()
         try:
             self.getReactCompounds()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2523,7 +2523,7 @@ class KeggNet(BaseMapper):
         self.updateStatus()
         try:
             self.getPathDetails()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2536,7 +2536,7 @@ class KeggNet(BaseMapper):
         self._maxsubstatus = len(self.pathdet)
         try:
             self.getMapsDetails()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2549,7 +2549,7 @@ class KeggNet(BaseMapper):
         self._maxsubstatus = len(self.reactdet)
         try:
             self.getReactDetails()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2562,7 +2562,7 @@ class KeggNet(BaseMapper):
         self._maxsubstatus = len(self.compdet)
         try:
             self.getCompDetails()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()
@@ -2575,7 +2575,7 @@ class KeggNet(BaseMapper):
         self._maxsubstatus = len(self.rpairdet)
         try:
             self.getRPairDetails()
-        except Exception, e:
+        except Exception as e:
             self.sendFailure(str(e))
             return
         self.cleanHandlers()

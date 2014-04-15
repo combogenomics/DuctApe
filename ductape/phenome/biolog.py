@@ -1608,12 +1608,12 @@ class BiologParser(object):
     def parse(self):
         try:
             self.parseOPM()
-        except Exception, e:
+        except Exception as e:
             logger.warning('YAML/OPM parsing failed!')
             logger.debug('%s'%e)
             try:
                 self.parseCSV()
-            except Exception, e:
+            except Exception as e:
                 logger.error('CSV parsing failed!')
                 logger.debug('%s'%e)
                 return False

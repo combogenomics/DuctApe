@@ -75,11 +75,11 @@ def smooth(x,window_len=11,window='hanning'):
     x = numpy.array(x)
 
     if x.ndim != 1:
-        raise ValueError, "smooth only accepts 1 dimension arrays."
+        raise ValueError("smooth only accepts 1 dimension arrays.")
 
     if x.size < window_len:
     #if len(x) < window_len:
-        raise ValueError, "Input vector needs to be bigger than window size."
+        raise ValueError("Input vector needs to be bigger than window size.")
 
 
     if window_len<3:
@@ -87,7 +87,7 @@ def smooth(x,window_len=11,window='hanning'):
 
 
     if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-        raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+        raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
 
 
     s=numpy.r_[2*x[0]-x[window_len:1:-1],x,2*x[-1]-x[-1:-window_len:-1]]
@@ -113,7 +113,7 @@ def rangeColors(minimum, maximum, colorrange):
     hexs = {}
     prev = '#FFFFFF'
     i = minimum
-    for color in slice_it(colorrange, cols=maximum-minimum+1):
+    for color in slice_it(colorrange, cols=int(maximum-minimum+1)):
         if len(color) == 0:
             hexs[i] = prev
         else:
@@ -161,7 +161,7 @@ def isOnline(url='http://8.8.8.8', timeout=1, retries=2):
             import urllib2
             response=urllib2.urlopen(url, timeout=1)
             return
-        except Exception, e:
+        except Exception as e:
             attempts += 1
             logger.debug('test failed! Attempt %d'
                           %attempts)

@@ -1934,7 +1934,7 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
                             acts.append(np.nan)
                         else:
                             acts.append(w.activity - refact)
-                    except Exception, e:
+                    except Exception as e:
                         logger.warning(e)
                         acts.append(np.nan)
                 else:
@@ -2380,7 +2380,7 @@ def dBiologImport(project, infile):
     
     try:
         biolog.importBiolog(infile)
-    except Exception, e:
+    except Exception as e:
         logger.error('Could not import the custom plate(s)!')
         logger.error(e)
         return False

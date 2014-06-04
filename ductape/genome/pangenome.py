@@ -133,6 +133,14 @@ class PanGenomer(CommonMultiProcess):
                 self._substatus += 1
                 self.updateStatus(sub=True)
                 
+                # Log some info, might be useful for
+                # long running jobs
+                logger.debug('Running orthology prediction for protein %d/%d'%(
+                                            self._substatus,
+                                            self._maxsubstatus))
+
+                logger.debug('Organism: %s, Protein: %s'%(org, seq.id))
+
                 if seq.id in self._already:
                     continue
                 orthname = self.prefix + str(orthindex)

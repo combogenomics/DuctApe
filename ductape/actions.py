@@ -2354,15 +2354,15 @@ def dGenomeExport(project):
             for group in genome.getCore():
                 fout.write('%s\t%s\t%s\n'%(group.group_id,
                                            'core',
-                                           '-'.join(dG[group.group_id])))
+                                           '\t'.join(dG[group.group_id])))
             for group in genome.getAcc():
                 fout.write('%s\t%s\t%s\n'%(group.group_id,
                                            'accessory',
-                                           '-'.join(dG[group.group_id])))
+                                           '\t'.join(dG[group.group_id])))
             for group in genome.getUni():
                 fout.write('%s\t%s\t%s\n'%(group.group_id,
                                            'unique',
-                                           '-'.join(dG[group.group_id])))
+                                           '\t'.join(dG[group.group_id])))
             fout.close()
             
             logger.info('Exported orthologs informations (%s)'%fname)

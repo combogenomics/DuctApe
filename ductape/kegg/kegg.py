@@ -633,7 +633,7 @@ class KeggAPI(object):
                 #
                 
                 logger.debug('Looking for KEGG colored map from %s'%path_id)
-                url = path_id.lstrip('path:') + '/default%3white/'
+                url = path_id.replace('path:', '') + '/default%3white/'
                 for i in range(len(obj_list)):
                     if border_list is not None and border_list[i] is not None:
                         url += obj_list[i] + '%09' + color_list[i] + ',' + border_list[i] + '/'

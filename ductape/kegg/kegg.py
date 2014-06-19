@@ -308,11 +308,12 @@ class KeggAPI(object):
                     logger.warning('get (rpair) failed!')
                     return
     
-    def getIDListFromDB(self, db='pathway', retries=8):
+    def getIDListFromDB(self, db='pathway', field=0, retries=8):
         '''
         Get all the IDs from a specific database
         
         Default: pathway
+        Default: field 0 is returned (entry ID)
         '''
         attempts = 0
         while True:
@@ -322,7 +323,9 @@ class KeggAPI(object):
                 url = self._apiurl + 'list/%s/'%urllib.quote(db)
                 
                 data = urllib.urlopen(url, timeout=20).read()
-                self.result = set([x.split('\t')[0] for x in data.split('\n')])
+                self.result = set([x.split('\t')[field] if len(x.split('\t')) > field
+                                  else ''
+                                  for x in data.split('\n')])
                 try:
                     self.result.remove('')
                 except:pass
@@ -2593,3 +2596,22 @@ class KeggNet(BaseMapper):
                              rpairreact=self.rpairreact,
                              reactrpair=self.reactrpair)
         self.result.setMaps(self.pathmap)
+
+##########################################
+# Functions
+
+def checkOrg(org):
+    '''
+    Check the organism tag exists in KEGG
+
+    Uses the KEGG API
+    '''
+    o = KeggAPI()
+
+    o.getIDListFromDB(db='organism', field=1)
+    
+    if o.failed:
+        logger.error('KEGG API error, aborting')
+        raise IOError('KEGG API error')
+
+    return org in o.result

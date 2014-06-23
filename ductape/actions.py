@@ -610,11 +610,13 @@ def dPhenomeZero(project, blankfile=None):
     
     return True
 
-def dPhenomeTrim(project):
+def dPhenomeTrim(project, trimTime = None):
     '''
     Takes all the biolog data available and performs the signals trimming
     The minimum time available will be used as global time maximum for all signals
     To be used when there are very different ending times inside an experiment
+
+    If trimTime is provided, that time will be used for the trim
     '''
     from ductape.phenome.biolog import getPlates, Experiment
     
@@ -633,11 +635,14 @@ def dPhenomeTrim(project):
         return True
     else:
         logger.info('Trimming %d phenomic plates'%len(plates))
+    
+    if trimTime is not None:
+        logger.info('Trimming plates at %f'%trimTime)
 
     zeroPlates = [x.plate_id for x in biolog.getZeroSubtractablePlates()]
     
     exp = Experiment(plates=plates, zero=isZero, zeroPlates=zeroPlates)
-    mtime = exp.trim()
+    mtime = exp.trim(trimTime)
     
     logger.info('Trimmed %d plates at %f'%(len(plates), mtime))
     

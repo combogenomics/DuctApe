@@ -1049,13 +1049,18 @@ class Experiment(object):
             for strain in d:
                 yield d[strain]
     
-    def trim(self):
+    def trim(self, trimTime = None):
         '''
         Set the maximum time for each well by using the lowest value in the
         experiment.
         Returns the trim time.
+
+        If trimTime is set, that time will be used
         '''
-        mtime = self.getMinTime()
+        if trimTime is not None:
+            mtime = trimTime
+        else:
+            mtime = self.getMinTime()
         
         for w in self.getWells(False):
             to_del = set()

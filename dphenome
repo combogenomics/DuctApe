@@ -73,7 +73,7 @@ def dtrim(options, wdir, project):
         logger.warning('You can setup a new project by running %s init'%
                        __prog__)
         return False
-    return dPhenomeTrim(project)
+    return dPhenomeTrim(project, options.time)
 
 def dstart(options, wdir, project):
     from ductape.actionsterm import fetchKegg
@@ -482,6 +482,11 @@ def getOptions():
     parser_zero.set_defaults(func=dzero)
     
     parser_trim = subparsers.add_parser('trim', help='Biolog signals trimming')
+    parser_trim.add_argument('-t', metavar='time', action="store",
+                            dest='time',
+                            type=float,
+                            default=None,
+                            help='Trim time [Default: least common time]')
     parser_trim.set_defaults(func=dtrim)
 
     parser_start = subparsers.add_parser('start', help='Start the analysis')

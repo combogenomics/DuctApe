@@ -1059,6 +1059,9 @@ class Experiment(object):
         '''
         if trimTime is not None:
             mtime = trimTime
+            if mtime > self.getMaxTime():
+                logger.warning('Selected trim time > then max time (%f vs. %f)'%(
+                                mtime, self.getMaxTime()))
         else:
             mtime = self.getMinTime()
         
@@ -1234,6 +1237,12 @@ class Experiment(object):
         Get the minimum time
         '''
         return min([w.getMaxTime() for w in self.getWells(False)])
+    
+    def getMaxTime(self):
+        '''
+        Get the maximum time
+        '''
+        return max([w.getMaxTime() for w in self.getWells(False)])
     
     def setMaxParams(self):
         '''

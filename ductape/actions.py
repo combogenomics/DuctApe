@@ -4405,6 +4405,21 @@ def getPathsReacts(project):
         
     return paths
 
+# Used for organism specific maps
+def getPathsKOs(project):
+    from ductape.kegg.kegg import avoidedPaths
+    kegg = Kegg(project)
+    # Get the pathway - reaction links
+    paths = {}
+    for pR in kegg.getPathKOs():
+        if pR.path_id in avoidedPaths:
+            continue
+        if pR.path_id not in paths:
+            paths[pR.path_id] = []
+        paths[pR.path_id].append(pR.ko_id)
+        
+    return paths
+
 def getPathsComps(project):
     from ductape.kegg.kegg import avoidedPaths
     kegg = Kegg(project)
@@ -4444,6 +4459,31 @@ def getExclusiveReactions(project, orgs=set()):
         
     return mreacts, ereacts
 
+def getExclusiveKOs(project, orgs=set()):
+    '''
+    Given a bunch of organisms, get two dicts
+    mreacts: org_id -->  set(ko_id, ...) (common)
+    ereacts: org_id -->  set(ko_id, ...) (exclusive)
+    '''
+    from ductape.storage.SQLite.database import Kegg
+    
+    kegg = Kegg(project)
+    
+    # Get the exclusive reactions
+    ereacts = kegg.getExclusiveKOs(orgs)
+    # Get the reactions of each organisms
+    mreacts = {}
+    for org_id in orgs:
+        mreacts[org_id] = set()
+        for oR in kegg.getOrgKO(org_id):
+            mreacts[org_id].add(oR.ko_id)
+    
+    # Remove the exclusives
+    for org_id in orgs:
+        mreacts[org_id].difference_update(ereacts[org_id])
+        
+    return mreacts, ereacts
+
 def getExclusiveReactionsMutants(project, ref_id, muts=set()):
     '''
     Given a bunch of organisms, get two dicts
@@ -4473,6 +4513,38 @@ def getExclusiveReactionsMutants(project, ref_id, muts=set()):
                 mix[mut_id].add(oR.re_id)
             else:
                 mreacts[mut_id].add(oR.re_id)
+        
+    return mreacts, mix, ereacts
+
+def getExclusiveKOsMutants(project, ref_id, muts=set()):
+    '''
+    Given a bunch of organisms, get two dicts
+    mreacts: org_id -->  set(ko_id, ...) (wild-type)
+    mix: org_id --> set(ko_id, ...) (mutated but also in wild-type)
+    ereacts: org_id -->  set(ko_id, ...) (exclusive mutated)
+    '''
+    from ductape.storage.SQLite.database import Kegg
+    
+    kegg = Kegg(project)
+    
+    # Get the exclusive reactions
+    ereacts = kegg.getExclusiveKOsMutants(ref_id, muts)    
+    # Get the reactions of each organisms
+    mreacts = {}
+    mix = {}
+    for mut_id in muts:
+        # Reference genome reactions
+        mut = set()
+        for oR in kegg.getOrgKO(mut_id):
+            mut.add(oR.ko_id)
+        
+        mreacts[mut_id] = set()
+        mix[mut_id] = set()
+        for oR in kegg.getReferenceKO(mut_id, ref_id):
+            if oR.re_id in mut:
+                mix[mut_id].add(oR.ko_id)
+            else:
+                mreacts[mut_id].add(oR.ko_id)
         
     return mreacts, mix, ereacts
 

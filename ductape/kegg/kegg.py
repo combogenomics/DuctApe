@@ -2147,6 +2147,7 @@ class MapsFetcher(BaseKegg):
     
     def __init__(self, color_objs, pictures=True, html=True, prefix='', 
                  legend=None, threads=40, keeptrying=False,
+                 keggorg=None,
                  queue=Queue.Queue()):
         BaseKegg.__init__(self, threads=threads, keeptrying=keeptrying,
                           queue=queue)
@@ -2156,6 +2157,9 @@ class MapsFetcher(BaseKegg):
         self.web = bool(html)
         self.legend = legend 
         
+        # Are we using organism specific organism maps?
+        self.keggorg = keggorg
+
         self._keggroom = None
         self._prefix = prefix 
         
@@ -2219,6 +2223,10 @@ class MapsFetcher(BaseKegg):
                     continue
                 #
                 
+                # Here do the magic about kegg organisms specific maps
+                if self.keggorg is not None:
+                    path = path.replace('map', self.keggorg)
+
                 objs,colors = kmap.getAll()
                 dummy,borders = kmap.getBorders()
                 

@@ -109,8 +109,10 @@ def dstart(options, wdir, project):
 def dmap(options, wdir, project):
     from ductape.actions import dSetKind, getPathsReacts, getPathsComps
     from ductape.actions import getExclusiveReactions, getExclusiveReactionsMutants
+    from ductape.actions import getPathsKOs
+    from ductape.actions import getExclusiveKOs, getExclusiveKOsMutants
     from ductape.actions import prepareColors, createLegend
-    from ductape.kegg.kegg import KeggColor, MapsFetcher
+    from ductape.kegg.kegg import KeggColor, MapsFetcher, checkOrg
     from ductape.terminal import RunThread
     from ductape.common.utils import rgb_to_hex
     from itertools import combinations
@@ -141,12 +143,22 @@ def dmap(options, wdir, project):
     if phenome and options.s:
         phenome = False
         logger.warning('Skipping the phenomic data')
-    
+   
+    # Are we trying to get organism specific maps?
+    if options.keggorg is not None:
+        if not checkOrg(options.keggorg):
+            logger.error('KEGG organism identifier %s not found!'%options.keggorg)
+            return False
+        logger.info('Using KEGG organism %s specific maps'%options.keggorg)
+
     kegg = Kegg(project)
     
     kind = dSetKind(project)
     
-    rpaths = getPathsReacts(project)
+    if options.keggorg:
+        rpaths = getPathsKOs(project)
+    else:
+        rpaths = getPathsReacts(project)
     cpaths = getPathsComps(project)
     
     # Check the delta threshold
@@ -180,7 +192,10 @@ def dmap(options, wdir, project):
                 
                 orgs = set([x.org_id for x in organism.getAll()])
                 
-                mreacts, ereacts = getExclusiveReactions(project, orgs)
+                if options.keggorg is not None:
+                    mreacts, ereacts = getExclusiveKOs(project, orgs)
+                else:
+                    mreacts, ereacts = getExclusiveReactions(project, orgs)
                 
                 logger.info('Going to generate the metabolic map for reference %s'%
                             ref_id)
@@ -191,7 +206,8 @@ def dmap(options, wdir, project):
                 if phenome:
                     logger.info('Generating the reactions-only map')
                 if not doFetchMaps(project, ref_id, rpaths, cpaths, legend,
-                               rorg=mreacts[ref_id], eorg=ereacts[ref_id]):
+                               rorg=mreacts[ref_id], eorg=ereacts[ref_id],
+                               keggorg=options.keggorg):
                     return False
                 
                 if phenome:
@@ -200,7 +216,8 @@ def dmap(options, wdir, project):
                         if not doFetchMaps(project, ref_id, rpaths, cpaths, legend,
                                            categ.category,
                                            rorg=mreacts[ref_id],
-                                           eorg=ereacts[ref_id]):
+                                           eorg=ereacts[ref_id],
+                                           keggorg=options.keggorg):
                             return False
                     
                     for org_id in diffs:
@@ -231,7 +248,8 @@ def dmap(options, wdir, project):
                             colorPaths.append(KC)
                             
                         # Go!
-                        kmap = MapsFetcher(colorPaths, prefix=org_id, legend=legend)
+                        kmap = MapsFetcher(colorPaths, prefix=org_id, legend=legend,
+                                           keggorg=options.keggorg)
                 
                         if not RunThread(kmap):
                             return False
@@ -304,7 +322,8 @@ def dmap(options, wdir, project):
                                     
                                 # Go!
                                 prefix = org_id+'_'+categ.category.replace(' ','_').replace('&','and')
-                                kmap = MapsFetcher(colorPaths, prefix=prefix, legend=legend)
+                                kmap = MapsFetcher(colorPaths, prefix=prefix, legend=legend,
+                                                   keggorg=options.keggorg)
                         
                                 if not RunThread(kmap):
                                     return False
@@ -318,7 +337,10 @@ def dmap(options, wdir, project):
             else:
                 orgs = [x.org_id for x in organism.getAll()]
                 
-                mreacts, ereacts = getExclusiveReactions(project, orgs)
+                if options.keggorg is not None:
+                    mreacts, ereacts = getExclusiveKOs(project, orgs)
+                else:
+                    mreacts, ereacts = getExclusiveReactions(project, orgs)
         
                 for org_id in orgs:
                     logger.info('Going to generate the metabolic map for %s'%org_id)
@@ -329,7 +351,8 @@ def dmap(options, wdir, project):
                     if phenome:
                         logger.info('Generating the reactions-only map')
                     if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
-                                       rorg=mreacts[org_id], eorg=ereacts[org_id]):
+                                       rorg=mreacts[org_id], eorg=ereacts[org_id],
+                                       keggorg=options.keggorg):
                         return False
                     if phenome:
                         for categ in biolog.getCategs():
@@ -337,7 +360,8 @@ def dmap(options, wdir, project):
                             if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
                                                categ.category,
                                                rorg=mreacts[org_id],
-                                               eorg=ereacts[org_id]):
+                                               eorg=ereacts[org_id],
+                                               keggorg=options.keggorg):
                                 return False
                 
         elif proj.isPanGenome() and kind == 'pangenome':
@@ -349,12 +373,20 @@ def dmap(options, wdir, project):
             logger.info('All the single genome maps can be created using %s map -a'%
                         __prog__)
             
-            conserved = set([r.re_id for r in kegg.getConservedReactions()])
-            varlist = [r for r in kegg.getVariableReactions()]
-            variable = set([r.re_id for r in varlist])
-            nvar = {}
-            for r in varlist:
-                nvar[r.re_id] = r.orgs
+            if options.keggorg is not None:
+                conserved = set([r.ko_id for r in kegg.getConservedKOs()])
+                varlist = [r for r in kegg.getVariableKOs()]
+                variable = set([r.ko_id for r in varlist])
+                nvar = {}
+                for r in varlist:
+                    nvar[r.ko_id] = r.orgs
+            else:
+                conserved = set([r.re_id for r in kegg.getConservedReactions()])
+                varlist = [r for r in kegg.getVariableReactions()]
+                variable = set([r.re_id for r in varlist])
+                nvar = {}
+                for r in varlist:
+                    nvar[r.re_id] = r.orgs
             
             # Go for the colors!
             # Variable
@@ -384,7 +416,8 @@ def dmap(options, wdir, project):
                 colorPaths.append(KC)
                 
             # Go!
-            kmap = MapsFetcher(colorPaths, prefix='pangenome', legend=legend)
+            kmap = MapsFetcher(colorPaths, prefix='pangenome', legend=legend,
+                               keggorg=options.keggorg)
     
             if not RunThread(kmap):
                 return False
@@ -477,7 +510,8 @@ def dmap(options, wdir, project):
                         
                     # Go!
                     prefix = 'pangenome_'+categ.category.replace(' ','_').replace('&','and')
-                    kmap = MapsFetcher(colorPaths, prefix=prefix, legend=legend)
+                    kmap = MapsFetcher(colorPaths, prefix=prefix, legend=legend,
+                                       keggorg=options.keggorg)
             
                     if not RunThread(kmap):
                         return False
@@ -496,14 +530,16 @@ def dmap(options, wdir, project):
             
             if phenome:
                 logger.info('Generating the reactions-only map')
-            if not doFetchMaps(project, org_id, rpaths, cpaths, legend):
+            if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
+                                keggorg=options.keggorg):
                 return False
             
             if phenome:
                 for categ in biolog.getCategs():
                     logger.info('Plotting maps for biolog category %s'%categ.category)
                     if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
-                                       categ.category):
+                                       categ.category,
+                                       keggorg=options.keggorg):
                         return False                
         
         elif kind == 'mutants':
@@ -518,7 +554,12 @@ def dmap(options, wdir, project):
             for ref_id in refs:
                 muts = [x for x in organism.getOrgMutants(ref_id)]
                 
-                mreacts, mix, ereacts = getExclusiveReactionsMutants(project,
+                if options.keggorg is not None:
+                    mreacts, mix, ereacts = getExclusiveKOsMutants(project,
+                                                            ref_id,
+                                                            muts)
+                else:
+                    mreacts, mix, ereacts = getExclusiveReactionsMutants(project,
                                                                      ref_id,
                                                                      muts)
                 
@@ -530,14 +571,16 @@ def dmap(options, wdir, project):
                 
                 if phenome:
                     logger.info('Generating the reactions-only map')
-                if not doFetchMaps(project, ref_id, rpaths, cpaths, legend):
+                if not doFetchMaps(project, ref_id, rpaths, cpaths, legend,
+                                   keggorg=options.keggorg):
                     return False
                 
                 if phenome:
                     for categ in biolog.getCategs():
                         logger.info('Plotting maps for biolog category %s'%categ.category)
                         if not doFetchMaps(project, ref_id, rpaths, cpaths, legend,
-                                           categ.category):
+                                           categ.category,
+                                           keggorg=options.keggorg):
                             return False
                 
                 for mut_id in muts:
@@ -567,7 +610,8 @@ def dmap(options, wdir, project):
                         colorPaths.append(KC)
                         
                     # Go!
-                    kmap = MapsFetcher(colorPaths, prefix=mut_id, legend=legend)
+                    kmap = MapsFetcher(colorPaths, prefix=mut_id, legend=legend,
+                                       keggorg=options.keggorg)
             
                     if not RunThread(kmap):
                         return False
@@ -642,7 +686,8 @@ def dmap(options, wdir, project):
                                 
                             # Go!
                             prefix = mut_id+'_'+categ.category.replace(' ','_').replace('&','and')
-                            kmap = MapsFetcher(colorPaths, prefix=prefix, legend=legend)
+                            kmap = MapsFetcher(colorPaths, prefix=prefix, legend=legend,
+                                               keggorg=options.keggorg)
                     
                             if not RunThread(kmap):
                                 return False
@@ -669,13 +714,15 @@ def dmap(options, wdir, project):
         
         if phenome:
             logger.info('Generating the reactions-only map')
-        if not doFetchMaps(project, org_id, rpaths, cpaths, legend):
+        if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
+                           keggorg=options.keggorg):
             return False
         if phenome:
             for categ in biolog.getCategs():
                 logger.info('Plotting maps for biolog category %s'%categ.category)
                 if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
-                                   categ.category):
+                                   categ.category,
+                                   keggorg=options.keggorg):
                     return False
                     
     else:
@@ -689,8 +736,11 @@ def dmap(options, wdir, project):
                 logger.warning('Organism %s is not present: skipping'%org_id)
                 orgs.remove(org_id)
                 continue
-            
-        mreacts, ereacts = getExclusiveReactions(project, orgs)
+        
+        if options.keggorg is not None:
+            mreacts, ereacts = getExclusiveKOs(project, orgs)
+        else:
+            mreacts, ereacts = getExclusiveReactions(project, orgs)
         
         for org_id in orgs:
             logger.info('Going to generate the metabolic map for %s'%org_id)
@@ -701,7 +751,8 @@ def dmap(options, wdir, project):
             if phenome:
                 logger.info('Generating the reactions-only map')
             if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
-                               rorg=mreacts[org_id], eorg=ereacts[org_id]):
+                               rorg=mreacts[org_id], eorg=ereacts[org_id],
+                               keggorg=options.keggorg):
                 return False
             if phenome:
                 for categ in biolog.getCategs():
@@ -709,7 +760,8 @@ def dmap(options, wdir, project):
                     if not doFetchMaps(project, org_id, rpaths, cpaths, legend,
                                        categ.category,
                                        rorg=mreacts[org_id],
-                                       eorg=ereacts[org_id]):
+                                       eorg=ereacts[org_id],
+                                       keggorg=options.keggorg):
                         return False
     
     return True
@@ -749,7 +801,7 @@ def dclear(options, wdir, project):
     return dClear(project, options.keep_org, options.keep_kegg)
 
 def doFetchMaps(project, org_id, rpaths, cpaths, legend=None, category=None,
-                rorg=set(), eorg=set()):
+                rorg=set(), eorg=set(), keggorg=None):
     from ductape.kegg.kegg import KeggColor, MapsFetcher
     from ductape.terminal import RunThread
     from ductape.common.utils import rgb_to_hex
@@ -761,8 +813,12 @@ def doFetchMaps(project, org_id, rpaths, cpaths, legend=None, category=None,
     # Get the reactions in the organism space
     if len(rorg) == 0:
         rorg = set()
-        for oR in kegg.getOrgReact(org_id):
-            rorg.add(oR.re_id)
+        if keggorg is not None:
+            for oR in kegg.getOrgKO(org_id):
+                rorg.add(oR.ko_id)
+        else:
+            for oR in kegg.getOrgReact(org_id):
+                rorg.add(oR.re_id)
         
     # Get the compounds in the phenomics space
     corg = {}
@@ -827,7 +883,7 @@ def doFetchMaps(project, org_id, rpaths, cpaths, legend=None, category=None,
         prefix = org_id + '_' + category.replace(' ','_').replace('&','and')
     else:
         prefix = org_id
-    kmap = MapsFetcher(colorPaths, prefix=prefix, legend=legend)
+    kmap = MapsFetcher(colorPaths, prefix=prefix, legend=legend, keggorg=keggorg)
 
     if not RunThread(kmap):
         return False
@@ -946,6 +1002,9 @@ def getOptions():
     parser_map.add_argument('-s', action="store_true",
                             default=False,
                             help='Skip the phenomic data')
+    parser_map.add_argument('-m', '--keggorg', metavar='keggorg' ,action="store",
+                            default=None,
+                            help='KEGG organism identifier for specific maps [Default: None]')
     parser_map.add_argument('organisms', metavar='orgID', nargs='*',
                             action="store",
                             default=[],

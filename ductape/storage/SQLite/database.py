@@ -1929,6 +1929,21 @@ class Kegg(DBBase):
             
         for res in cursor:
             yield Row(res, cursor.description)
+    
+    def getPathKOs(self):
+        '''
+        Get all the pathway - KO links
+        '''
+        query = '''select distinct path_id, ko_id
+                   from react_path r, ko_react k
+                   where r.re_id = k.re_id
+                   order by path_id'''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query)
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
             
     def getPathComps(self, path_id=None):
         '''
@@ -2696,6 +2711,29 @@ class Kegg(DBBase):
         for res in cursor:
             yield Row(res, cursor.description)
     
+    def getReferenceKO(self, mut_id, ref_id):
+        '''
+        Get KO id from a reference organism (and numerosity)
+        The mutated proteins won't be taken into account
+        '''
+        query = '''
+                select distinct ko_id, count(distinct p.prot_id) num
+                from mapko m, protein p
+                where p.prot_id = m.prot_id
+                and org_id = ?
+                and p.prot_id not in (select prot_id
+                                    from protein
+                                    where org_id = ?)
+                group by ko_id
+                order by num DESC;
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query,[ref_id,mut_id,])
+            
+        for res in cursor:
+            yield Row(res, cursor.description)
+    
     def getExclusiveReactions(self, orgs=set()):
         '''
         Return the number of reactions ID exclusive to a list of organisms
@@ -2721,6 +2759,53 @@ class Kegg(DBBase):
                     where org_id=?
                     and p.prot_id=m.prot_id
                     and m.ko_id=k.ko_id;
+                    '''
+            
+            with self.connection as conn:
+                cursor=conn.execute(query,[org_id,])
+            
+                r = set()
+                for res in cursor:
+                    r.add(res[0])
+                react[org_id] = r
+        
+        out = {}
+        
+        # Thanks to @balpha for this one
+        # http://stackoverflow.com/a/2042394/1237531
+        from itertools import combinations
+        all_orgs = set(react.keys())
+        for i in combinations(react, len(react)-1):
+            this_orgs = set(i)
+            org_id = all_orgs.difference(this_orgs).pop()
+            out[org_id] = react[org_id].difference(*[react[x] for x in this_orgs])            
+           
+        return out
+    
+    def getExclusiveKOs(self, orgs=set()):
+        '''
+        Return the number of KO ID exclusive to a list of organisms
+        return a dictionary of org_id --> set(ko_id, ...)
+        if the organisms list is empty, all the organisms are queried
+        '''
+        organism = Organism(self.dbname)
+        if len(orgs) == 0:
+            orgs = [org.org_id for org in organism.getAll()]
+        else:
+            orgs = set(orgs)
+            for org_id in orgs:
+                if not organism.isOrg(org_id):
+                    logger.warning('Organism %s is not present yet!'%org_id)
+                    raise Exception('This Organism (%s) is not present yet!'%org_id)
+        
+        react = {}
+        
+        for org_id in orgs:
+            query = '''
+                    select distinct ko_id
+                    from protein p, mapko m
+                    where org_id=?
+                    and p.prot_id=m.prot_id;
                     '''
             
             with self.connection as conn:
@@ -2799,6 +2884,62 @@ class Kegg(DBBase):
                 out[mut_id] = absent.difference(present)       
            
         return out
+    
+    def getExclusiveKOsMutants(self, ref_id, muts=set()):
+        '''
+        Return the KO ID exclusive to a list of organisms
+        return a dictionary of org_id --> set(ko_id, ...)
+        '''
+        organism = Organism(self.dbname)
+        
+        if not organism.isOrg(ref_id):
+            logger.warning('Organism %s is not present yet!'%ref_id)
+            raise Exception('This Organism (%s) is not present yet!'%ref_id)
+        
+        muts = set(muts)
+        for mut_id in muts:
+            if not organism.isOrg(mut_id) or not organism.isMutant(mut_id):
+                logger.warning('Wrong organism! (%s)'%mut_id)
+                raise Exception('Wrong organism! (%s)'%mut_id)
+        
+        out = {}
+        out[ref_id] = set()
+        
+        for mut_id in muts:
+            # which kind of mutant is this?
+            kind = organism.getOrg(mut_id).mkind
+            
+            if kind == 'insertion':
+                ref = self.getExclusiveKOs( [ref_id] )[ref_id]
+                mut = self.getExclusiveKOs( [mut_id] )[mut_id].union(ref)
+                out[mut_id] = mut.difference(ref)
+            else:
+                # prot_id --> [re_id, ...]
+                ref_react = {}
+                for re in self.getAllKO(ref_id):
+                    ref_react[re.prot_id] = ref_react.get(re.prot_id, set())
+                    ref_react[re.prot_id].add(re.ko_id)
+                
+                mut_react = {}
+                for re in self.getAllKO(mut_id):
+                    mut_react[re.prot_id] = mut_react.get(re.prot_id, set())
+                    mut_react[re.prot_id].add(re.ko_id)
+                    
+                for prot_id in mut_react:
+                    del ref_react[prot_id]
+                    
+                present = set()
+                for prot_id, ko_ids in ref_react.iteritems():
+                    for ko_id in re_ids:
+                        present.add(ko_id)
+                absent = set()
+                for prot_id, ko_ids in mut_react.iteritems():
+                    for ko_id in ko_ids:
+                        absent.add(ko_id)
+                
+                out[mut_id] = absent.difference(present)       
+           
+        return out
            
     def getExclusiveReactionsPanGenome(self):
         '''
@@ -2834,6 +2975,40 @@ class Kegg(DBBase):
                 rdisp.difference(rcore),
                 racc.difference(rcore, runi),
                 runi.difference(rcore, racc))
+    
+    def getExclusiveKOsPanGenome(self):
+        '''
+        Return the KO ID exclusive to each pangenome category
+        core, dispensable, accessory, unique
+        note: the dispensable genome includes the accessory and the unique
+        '''
+        genome = Genome(self.dbname)
+        
+        query = '''
+                select distinct ko_id, o.group_id
+                from mapko m, ortholog o
+                where m.prot_id = o.prot_id;
+                '''
+        
+        with self.connection as conn:
+            cursor=conn.execute(query)
+        
+        core = set([x.group_id for x in genome.getCore()])
+        disp = set([x.group_id for x in genome.getDisp()])
+        acc = set([x.group_id for x in genome.getAcc()])
+        uni = set([x.group_id for x in genome.getUni()])
+            
+        rall = [Row(res, cursor.description) for res in cursor]
+
+        rcore = set([r.ko_id for r in filter(lambda x: x.group_id in core, rall)])
+        rdisp = set([r.ko_id for r in filter(lambda x: x.group_id in disp, rall)])
+        racc = set([r.ko_id for r in filter(lambda x: x.group_id in acc, rall)])
+        runi = set([r.ko_id for r in filter(lambda x: x.group_id in uni, rall)])
+        
+        return (rcore.difference(rdisp),
+                rdisp.difference(rcore),
+                racc.difference(rcore, runi),
+                runi.difference(rcore, racc))        
             
     def howManyMapped(self, org_id=None, pangenome=''):
         '''

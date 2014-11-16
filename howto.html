@@ -8,7 +8,7 @@
     <meta name="author" content="Marco Galardini" >
     
     <!-- Le meta tag to refresh the cache -->
-    <meta http-equiv="last-modified" content="Tue, 23 Jun 2014 11:50:00 GMT" />
+    <meta http-equiv="last-modified" content="Tue, 16 Nov 2014 17:50:00 GMT" />
 
     <!-- Le styles -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -95,7 +95,7 @@
                         DuctApe should work in all Unix systems with a python install; the dependencies are the following:
                       </p>
                       <ul>
-                        <li><a href="http://www.python.org/">python</a> 2.6 or higher (yep, it works also with python 3!)</li>
+                        <li><a href="http://www.python.org/">python</a> 2.6 or higher (still not working with python 3)</li>
                         <li><a href="http://www.biopython.org/">Biopython</a></li>
                         <li><a href="http://numpy.scipy.org/">NumPy</a></li>
                         <li><a href="http://scipy.org/">SciPy</a></li>
@@ -895,9 +895,11 @@ dphenome plot PM01 A01</pre></p>
                               <div class="accordion-inner">
                                 <dl class="dl-horizontal">
                                   <dt>-d</dt>
-                                  <dd>Activity Index delta threshold [default: 3]</dd>
+                                  <dd>Activity Index delta threshold [default: 3] (doesn't apply when option -r is used)</dd>
                                   <dt>-o</dt>
                                   <dd>Diff mode: reference OrgID to which compare the other organisms</dd>                        
+                                  <dt>-r</dt>
+                                  <dd>Single parameter mode: use a single curve parameter instead of activity</dd>                        
                                   <dt>-s</dt>
                                   <dd>Save pictures in svg format, instead of png</dd>
                                 </dl>

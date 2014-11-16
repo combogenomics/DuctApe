@@ -1,17 +1,13 @@
 language: python
 python:
   - "2.7"
-  - "3.3"
 before_install:
- - sudo apt-get install -qq python-numpy python-scipy python-sklearn python-matplotlib python-biopython python-networkx python3-numpy python3-scipy
+ - sudo apt-get install -qq python-numpy python-scipy python-sklearn python-matplotlib python-biopython python-networkx
  # Workaround for a permissions issue with Travis virtual machine images
  # that breaks Python's multiprocessing:
  # https://github.com/travis-ci/travis-cookbooks/issues/155
  - sudo rm -rf /dev/shm
  - sudo ln -s /run/shm /dev/shm
-install:
- - pip install matplotlib 
- - pip install networkx
 script:
  - bash test/.travis_single.sh
  - bash test/.travis_mutant.sh

@@ -842,15 +842,17 @@ class Experiment(object):
                 for org in self.sumexp[pid][wid]:
                     reps = self.experiment[pid][wid][org].keys()
                     
-                    act = []
-                    for r in reps:
-                        if self.experiment[pid][wid][org][r].activity is None:
-                            break
-                        act.append(self.experiment[pid][wid][org][r].activity)
+                    # Keep track of all mean parameters
+                    for param in Well('phony', 'phony').params + ['activity']:
+                        act = []
+                        for r in reps:
+                            if getattr(self.experiment[pid][wid][org][r], param) is None:
+                                break
+                            act.append(getattr(self.experiment[pid][wid][org][r], param))
                         
-                    if len(act) > 0:
-                        mean = np.array(act).mean()
-                        self.sumexp[pid][wid][org].activity = mean
+                        if len(act) > 0:
+                            mean = np.array(act).mean()
+                            setattr(self.sumexp[pid][wid][org], param, mean)
     
     def getMax(self):
         '''
@@ -1231,6 +1233,12 @@ class Experiment(object):
         Which is also the number of clusters used...
         '''
         return max([w.activity for w in self.getWells(False)])
+    
+    def getMaxParam(self, param):
+        '''
+        Get the maximum value for a certain parameter
+        '''
+        return max([getattr(w, param) for w in self.getWells()])
     
     def getMinTime(self):
         '''

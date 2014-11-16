@@ -1782,7 +1782,8 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     
     return True
 
-def dPhenomeRings(project, delta=1, difforg=None, svg=False):
+def dPhenomeRings(project, delta=1, difforg=None, svg=False,
+        param='activity'):
     from ductape.phenome.biolog import getPlates, Experiment
     
     # Which project are we talking about?
@@ -1802,7 +1803,7 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
     biolog = Biolog(project)
     
     # Setup an experiment
-    sigs = [s for s in biolog.getAllActivity()]
+    sigs = [s for s in biolog.getAllSignals()]
     plates = [p for p in getPlates(sigs)]
     
     isZero = biolog.atLeastOneZeroSubtracted()
@@ -1825,11 +1826,13 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
                      category=category, categorder=categorder,
                      zeroPlates=zeroPlates)
     
-    # Max value for activity
-    maxAct = exp.getMaxActivity()
+    # Max value for the chosen parameter
+    maxAct = exp.getMaxParam(param)
     
     # Check the activity delta value
-    if delta >= maxAct:
+    # We don't check the delta for other parameters
+    # Hopefully they have an higher range
+    if param == 'activity' and delta >= maxAct:
         logger.warning('The delta activity threshold is higher than the maximum '+
                        'activity found (%d vs. %d)'%(delta, maxAct))
         return False
@@ -1840,6 +1843,8 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
     # http://stackoverflow.com/questions/12803883
     
     logger.info('Activity ring')
+    if param != 'activity':
+        logger.info('Using %s instead of activity'%param)
     
     fig = plt.figure(figsize=(25,25), dpi=300)
     # Polar plot!
@@ -1927,26 +1932,27 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
             for pid, wid in categpworder[categ]:
                 try:
                     w = exp.sumexp[pid][wid][org_id]
-                except:
+                except Exception as e:
+                    logger.warning(e)
                     acts.append(np.nan)
                     continue
                 if (kind == 'mutants' or difforg) and org_id in muts:
                     # Check if the reference has a value for this
                     try:
                         ref_id = muts[org_id]
-                        refact = exp.sumexp[w.plate_id][w.well_id][ref_id].activity
-                        if abs(w.activity - refact) <= delta:
+                        refact = getattr(exp.sumexp[w.plate_id][w.well_id][ref_id], param)
+                        if param == 'activity' and abs(getattr(w, param) - refact) <= delta:
                             acts.append(np.nan)
                         else:
-                            acts.append(w.activity - refact)
+                            acts.append(getattr(w, param) - refact)
                     except Exception as e:
                         logger.warning(e)
                         acts.append(np.nan)
                 else:
-                    if w.activity is None:
+                    if getattr(w, param) is None:
                         acts.append(np.nan)
                     else:
-                        acts.append(w.activity)
+                        acts.append(getattr(w, param))
                     
         radius = np.linspace(i, i+0.2, 10)
         theta = np.linspace(0, 2*np.pi, len(acts))
@@ -2009,7 +2015,7 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
     scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.RdYlGn)
     scalarMap.set_array(np.array(range(int(maxAct) + 1)))
     cax = fig.add_axes([0.93, 0.2, 0.03, 0.6])
-    cax.text(0.50, 1.01, 'Activity', size=20, ha='center')
+    cax.text(0.50, 1.01, param, size=20, ha='center')
     plt.colorbar(scalarMap, cax=cax)
     
     if (kind == 'mutants' or difforg):
@@ -2017,7 +2023,7 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False):
         scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.PuOr)
         scalarMap.set_array(np.array(range(-int(maxAct),int(maxAct),20)))
         cax = fig.add_axes([0.04, 0.2, 0.03, 0.6])
-        cax.text(0.50, 1.01, 'Delta activity', size=20, ha='center')
+        cax.text(0.50, 1.01, 'Delta %s'%param, size=20, ha='center')
         plt.colorbar(scalarMap, cax=cax)
         
         # Title

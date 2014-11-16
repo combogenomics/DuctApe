@@ -8,7 +8,7 @@ from ductape import __version__
 from ductape.actions import touchProject
 from ductape.common.colorlog import ColorFormatter
 from ductape.phenome.biolog import Experiment, BiologCluster, getPlates, \
-    getSinglePlates, BiologPlot
+    getSinglePlates, BiologPlot, Well
 from ductape.storage.SQLite.database import Biolog, Kegg, Project, Organism
 from ductape.terminal import RunThread
 import argparse
@@ -266,8 +266,16 @@ def drings(options, wdir, project):
                        __prog__)
         return False
     
+    # Check the chosen parameter
+    if options.r not in Well('phony', 'phony').params + ['activity']:
+        logger.error('Parameter %s is not present!'%options.r)
+        logger.error('Available parameters for the Activity ring: %s'
+                %', '.join(['activity'] + Well('phony', 'phony').params))
+        return False
+
     return dPhenomeRings(project, delta=options.delta, difforg=options.o,
-                         svg=options.svg)
+                         svg=options.svg,
+                         param=options.r)
 
 def dimportplates(options, wdir, project):
     from ductape.actions import dBiologImport
@@ -578,10 +586,13 @@ def getOptions():
     parser_rings.add_argument('-d', metavar='delta', action="store", dest='delta',
                               type=int,
                               default=1,
-                              help='Activity delta threshold')
+                              help='Activity delta threshold (not used if -r is used)')
     parser_rings.add_argument('-o', metavar='difforg', action="store",
                             default = None,
                             help='Diff mode: reference organism ID')
+    parser_rings.add_argument('-r', metavar='parameter', action="store",
+                            default = 'activity',
+                            help='Single parameter mode: use a single curve parameter instead of activity')
     parser_rings.add_argument('-s', '--svg', action="store_true",
                             default=False,
                             help='Figures in svg format instead of png')

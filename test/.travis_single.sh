@@ -32,6 +32,8 @@ echo -e $green"Single organism"$reset
 ./dphenome plot PM01 > /dev/null || die "./dphenome plot PM01"
 ./dphenome plot PM01 H12 > /dev/null || die "./dphenome plot PM01 H12"
 ./dphenome -v rings || die "./dphenome -v rings"
+./dphenome -v rings -r area || die "./dphenome -v rings -r area"
+./dphenome -v rings -r areaz && die "./dphenome -v rings -r area"
 ./dphenome -v stats || die "./dphenome -v stats"
 ./dphenome -v export || die "./dphenome -v export"
 

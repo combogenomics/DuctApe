@@ -38,6 +38,8 @@ echo -e $green"Single organism"$reset
 ../dphenome plot PM01 || die "dphenome plot PM01"
 ../dphenome plot PM01 H12 || die "dphenome plot PM01 H12"
 ../dphenome rings || die "dphenome rings"
+../dphenome rings -r area || die "dphenome rings -r area"
+../dphenome rings -r areaz && die "dphenome rings -r areaz"
 ../dphenome stats || die "dphenome stats"
 ../dphenome export || die "dphenome export"
 

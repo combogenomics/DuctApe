@@ -1,3 +1,18 @@
+Version 0.17.0
+==============
+
+UPGRADE URGENCY: LOW if you are not interested in the new features
+Please note that python 3 is still not supported
+
+FEATURES:
+* dphenome rings: use a parameter of choice instead of the activity
+    * the new -r option can be used
+* dphenome trim: the time at which perform the trim can be set by the user
+* dgenome export: organisms are separated by tab (pangenome_category.tsv)
+
+BUGFIXES:
+* dgenome start: more information in the logs
+
 Version 0.16.4
 ==============
 

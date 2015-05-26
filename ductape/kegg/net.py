@@ -193,7 +193,7 @@ class MetabolicNet(object):
         return np.array(weights).std()
 
     def getComponents(self):
-        return len(nx.connected_components(self.net))
+        return len(list(nx.connected_components(self.net)))
     
     def getComponentsSizes(self):
         return [len(x) for x in nx.connected_components(self.net)]

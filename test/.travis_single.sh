@@ -14,36 +14,36 @@ die () {
 
 echo -e $green"Single organism"$reset
 
-python dape -v init || die "python dape -v init"
-python dape -v add Rm1021 -c red || die "python dape -v add"
-python dgenome -v add test/input/Rm1021.faa Rm1021 || die "python dgenome -v add"
-python dgenome -v add-ko test/input/ko_Rm1021.tsv || die "python dgenome -v add-ko"
-python dgenome start || die "python dgenome start"
-python dgenome -v stats || die "python dgenome -v stats"
-python dgenome -v export || die "python dgenome -v export"
+/usr/bin/python dape -v init || die "/usr/bin/python dape -v init"
+/usr/bin/python dape -v add Rm1021 -c red || die "/usr/bin/python dape -v add"
+/usr/bin/python dgenome -v add test/input/Rm1021.faa Rm1021 || die "/usr/bin/python dgenome -v add"
+/usr/bin/python dgenome -v add-ko test/input/ko_Rm1021.tsv || die "/usr/bin/python dgenome -v add-ko"
+/usr/bin/python dgenome start || die "/usr/bin/python dgenome start"
+/usr/bin/python dgenome -v stats || die "/usr/bin/python dgenome -v stats"
+/usr/bin/python dgenome -v export || die "/usr/bin/python dgenome -v export"
 
-python dphenome -v add test/input/Rm1021.csv Rm1021 || die "python dphenome -v add"
-python dphenome -v zero || die "python dphenome -v zero"
-python dphenome start -g -e || die "python dphenome start (elbow)"
-python dphenome start -f > /dev/null || die "python dphenome start"
-python dphenome -v purge keep-max || die "python dphenome -v purge"
-python dphenome -v restore || die "python dphenome -v restore"
-python dphenome plot > /dev/null || die "python dphenome plot"
-python dphenome plot PM01 > /dev/null || die "python dphenome plot PM01"
-python dphenome plot PM01 H12 > /dev/null || die "python dphenome plot PM01 H12"
-python dphenome -v rings || die "python dphenome -v rings"
-python dphenome -v rings -r area || die "python dphenome -v rings -r area"
-python dphenome -v rings -r areaz && die "python dphenome -v rings -r area"
-python dphenome -v stats || die "python dphenome -v stats"
-python dphenome -v export || die "python dphenome -v export"
+/usr/bin/python dphenome -v add test/input/Rm1021.csv Rm1021 || die "/usr/bin/python dphenome -v add"
+/usr/bin/python dphenome -v zero || die "/usr/bin/python dphenome -v zero"
+/usr/bin/python dphenome start -g -e || die "/usr/bin/python dphenome start (elbow)"
+/usr/bin/python dphenome start -f > /dev/null || die "/usr/bin/python dphenome start"
+/usr/bin/python dphenome -v purge keep-max || die "/usr/bin/python dphenome -v purge"
+/usr/bin/python dphenome -v restore || die "/usr/bin/python dphenome -v restore"
+/usr/bin/python dphenome plot > /dev/null || die "/usr/bin/python dphenome plot"
+/usr/bin/python dphenome plot PM01 > /dev/null || die "/usr/bin/python dphenome plot PM01"
+/usr/bin/python dphenome plot PM01 H12 > /dev/null || die "/usr/bin/python dphenome plot PM01 H12"
+/usr/bin/python dphenome -v rings || die "/usr/bin/python dphenome -v rings"
+/usr/bin/python dphenome -v rings -r area || die "/usr/bin/python dphenome -v rings -r area"
+/usr/bin/python dphenome -v rings -r areaz && die "/usr/bin/python dphenome -v rings -r area"
+/usr/bin/python dphenome -v stats || die "/usr/bin/python dphenome -v stats"
+/usr/bin/python dphenome -v export || die "/usr/bin/python dphenome -v export"
 
-python dape start -s > /dev/null || die "python dape start"
+/usr/bin/python dape start -s > /dev/null || die "/usr/bin/python dape start"
 
-python dape -v export || die "python dape -v export"
+/usr/bin/python dape -v export || die "/usr/bin/python dape -v export"
 
-python dape -v clear --keep-org || die "python dape -v clear"
+/usr/bin/python dape -v clear --keep-org || die "/usr/bin/python dape -v clear"
 sleep 5
-python dape -v import kegg.tsv || die "python dape -v import"
+/usr/bin/python dape -v import kegg.tsv || die "/usr/bin/python dape -v import"
 
 rm ductape.db
 rm -rf tmp

@@ -1,3 +1,12 @@
+Version 0.17.2
+==============
+
+UPGRADE URGENCY: LOW if you are not experiencing crashes with the "dape start" command
+
+BUGFIXES:
+* dape start: avoid crashes when recent networkx versions are used
+* dape/dgenome/dphenome: use "/usr/bin/env python" instead of "/usr/bin/python"
+
 Version 0.17.0
 ==============
 

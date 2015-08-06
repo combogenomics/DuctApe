@@ -149,6 +149,13 @@ class Well(object):
         '''
         if not self.smoothed:
             signals = [self.signals[hour] for hour in sorted(self.signals.keys())]
+            
+            # If there are not enough signals, do not smooth
+            if len(signals) <= 3*11:
+                logger.debug('Too few time points for %s %s (%d): no smoothing'%
+                            (self.plate_id, self.well_id, len(signals)))
+                return
+
             smoothed = smooth(signals, window_len = window_len, 
                               window = window_type)
             
@@ -175,6 +182,13 @@ class Well(object):
         
         if not self.compressed:
             times = compress( sorted(self.signals.keys()), span = span)
+            
+            # If there are not enough time points, do not compress
+            if len(times) <= 3*11:
+                logger.debug('Too few time points for %s %s (%d): no compress'%
+                            (self.plate_id, self.well_id, len(times)))
+                return
+            
             toremove = [t for t in self.signals.keys() if t not in times]
             for t in toremove:
                 del self.signals[t]
@@ -193,16 +207,9 @@ class Well(object):
         from scipy.integrate import trapz
         from ductape.phenome.fitting import fitData, getFlex, getPlateau
        
-        # If there are not enough signals, do not compress + smooth
-        if len(self.signals) <= 3*11:
-            logger.debug('Too few time points for %s %s (%d): no compressing/smoothing'%
-                        (self.plate_id, self.well_id, len(self.signals)))
-            noCompress = True
-            noSmooth = True 
-
-        if not self.compressed and not noCompress:
+        if not self.compressed:
             self.compress()
-        if not self.smoothed and not noSmooth:
+        if not self.smoothed:
             self.smooth(window_len=11, window_type='blackman')
             
         # Let's start with the easy ones!

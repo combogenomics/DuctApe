@@ -4682,14 +4682,23 @@ def colorBoxPlot(ax, bplot, colors):
     for i in range(1,len(bplot['whiskers']),2):
         color = colors[i/2]
     
-        tocolor.append((bplot['caps'][i-1], color))
-        tocolor.append((bplot['caps'][i], color))
+        try:
+            tocolor.append((bplot['caps'][i-1], color))
+            tocolor.append((bplot['caps'][i], color))
+        except:
+            pass
         
-        tocolor.append((bplot['fliers'][i-1], color))
-        tocolor.append((bplot['fliers'][i], color))
+        try:
+            tocolor.append((bplot['fliers'][i-1], color))
+            tocolor.append((bplot['fliers'][i], color))
+        except:
+            pass
         
-        tocolor.append((bplot['whiskers'][i-1], color))
-        tocolor.append((bplot['whiskers'][i], color))
+        try:
+            tocolor.append((bplot['whiskers'][i-1], color))
+            tocolor.append((bplot['whiskers'][i], color))
+        except:
+            pass
     
     for obj, color in tocolor:
         art.setp(obj, color=color, linewidth=2)

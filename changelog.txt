@@ -1,3 +1,13 @@
+Version 0.17.4
+==============
+
+UPGRADE URGENCY: LOW if you are not experiencing crashes with the "dphenome
+stats" command
+
+BUGFIXES:
+* Do not smooth/compress PM signals when they are too few (manual experiments)
+* dphenome stats: avoid crashes for unusual AV distributions
+
 Version 0.17.2
 ==============
 

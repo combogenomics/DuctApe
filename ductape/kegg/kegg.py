@@ -76,9 +76,7 @@ class KeggAPI(object):
     '''
     def __init__(self, keeptrying=False):
         self.baseurl = 'http://www.kegg.jp/'
-        self.baseip = 'http://133.103.200.32'
         self._apiurl = 'http://rest.kegg.jp/'
-        self._apiip = 'http://133.103.200.38'
         self._maplink = 'http://www.kegg.jp/kegg-bin/show_pathway?'
         
         self.failed = False
@@ -873,14 +871,14 @@ class BaseKegg(CommonThread):
         Check if there are connection problems
         First check the two IP addresses, then the URL
         '''
-        check = [KeggAPI().baseip, KeggAPI()._apiip,
-                 KeggAPI().baseurl, KeggAPI()._apiurl]
+        check = [KeggAPI().baseurl, KeggAPI()._apiurl]
         online = False
         for addr in check:
             try:
                 isOnline(addr)
                 online = True
-            except:pass
+            except:
+                logger.debug('address %s not working'%addr)        
         if not online:
             raise Exception('KEGG seems to be offline')
             

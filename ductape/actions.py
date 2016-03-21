@@ -2876,7 +2876,8 @@ def writeNet(net, path, name):
     Save a network as a gml file in the desired location
     '''
     import networkx as nx
-    nx.write_gml(net.net, os.path.join(path,name))
+    nx.write_gml(net.net, os.path.join(path,name),
+                 nx.readwrite.gml.literal_stringizer)
     logger.debug('Saved network %s to %s'%(name, path))
 
 def writeCombinedPanGenome(dvalues):

@@ -1636,6 +1636,7 @@ class KoMapper(BaseMapper):
         # Related rpairs
         self._maxsubstatus = len(self.reactdet)
         self.updateStatus()
+        logger.warning('Using RCLASS attribute of KEGG reactions, as the RPAIR database has now been discontinued')
         try:
             self.getReactRPairs()
         except Exception as e:
@@ -1784,6 +1785,7 @@ class KoMapper(BaseMapper):
         
         # RPair details
         self._maxsubstatus = len(self.rpairdet)
+        logger.warning('Using RCLASS attribute of KEGG reactions, as the RPAIR database has now been discontinued')
         try:
             self.getRPairDetails()
         except Exception as e:
@@ -1865,6 +1867,7 @@ class CompMapper(BaseMapper):
         # Related rpairs
         self._maxsubstatus = len(self.reactdet)
         self.updateStatus()
+        logger.warning('Using RCLASS attribute of KEGG reactions, as the RPAIR database has now been discontinued')
         try:
             self.getReactRPairs()
         except Exception as e:
@@ -2000,6 +2003,7 @@ class CompMapper(BaseMapper):
         
         # RPair details
         self._maxsubstatus = len(self.rpairdet)
+        logger.warning('Using RCLASS attribute of KEGG reactions, as the RPAIR database has now been discontinued')
         try:
             self.getRPairDetails()
         except Exception as e:
@@ -2376,6 +2380,7 @@ class KeggNet(BaseMapper):
         # Related rpairs
         self._maxsubstatus = len(self.reactdet)
         self.updateStatus()
+        logger.warning('Using RCLASS attribute of KEGG reactions, as the RPAIR database has now been discontinued')
         try:
             self.getReactRPairs()
         except Exception as e:
@@ -2457,6 +2462,7 @@ class KeggNet(BaseMapper):
         
         # RPair details
         self._maxsubstatus = len(self.rpairdet)
+        logger.warning('Using RCLASS attribute of KEGG reactions, as the RPAIR database has now been discontinued')
         try:
             self.getRPairDetails()
         except Exception as e:

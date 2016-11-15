@@ -1,3 +1,13 @@
+Version 0.17.8
+==============
+
+UPGRADE URGENCY: HIGH, the KEGG data download step is now broken due to the
+retirement of the RPAIR database
+
+BUGFIXES:
+* kegg: the data contained in the now discontinued RPAIR database is retrieved
+        from the KEGG reactions DB
+
 Version 0.17.6
 ==============
 

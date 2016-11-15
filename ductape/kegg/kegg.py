@@ -110,6 +110,21 @@ class KeggAPI(object):
             return None
         return res.lstrip()
     
+    def getLinkTag(self, entry, tag):
+        '''
+        Get the tag content inside a kegg entry (flat file)
+        This variant function extract links from an entry
+        '''
+        b = False
+        for line in entry.split('\n'):
+            if line.startswith(tag):
+                yield line.rstrip().lstrip(tag).lstrip().split()[-1]
+                b = True
+            elif b and line[0] == ' ':
+                yield line.rstrip().lstrip().split()[-1]
+            elif b and line[0] != ' ':
+                b = False
+        
     def parseLinks(self, links):
         '''
         Parse the results of 
@@ -137,6 +152,7 @@ class KeggAPI(object):
         try:
             s = dbver.split(' ')
             release = s[1]
+
             while True:
                 try:
                     release = float(release)
@@ -477,24 +493,42 @@ class KeggAPI(object):
                     logger.warning('link (reaction) failed!')
                     return
     
-    def getRPairsFromReaction(self, re_ids, retries=8):
+    def getRPairsFromReaction(self, entries, retries=8):
         '''
         Get the rpair IDs for a given reaction list
         '''
         attempts = 0
         while True:
             try:
-                self.input = re_ids
-                logger.debug('Looking for KEGG rpairs from %d RE IDs'%len(re_ids))
+                self.input = entries
+                logger.debug('Looking for RClass for %d KEGG entries'%len(entries))
                 url = ''
-                for re_id in re_ids:
-                    url += '%s+'%re_id
+                for entry in entries:
+                    url += '%s+'%entry
+                    
+                # Dummy entry to avoid a rare bug when all the provided entries
+                if 'cpd:C00099' not in entries or 'C00099' not in entries:
+                    url += 'cpd:C00099'
+                #
+                
                 url = url.rstrip('+')
-                
-                url = self._apiurl + 'link/rpair/' + urllib.quote(url)
-                
+                url = self._apiurl + 'get/' + urllib.quote(url)
                 data = urllib.urlopen(url, timeout=20).read()
-                self.result = self.parseLinks(data)
+                
+                self.result = {}
+                for lines in data.split('///'):
+                    if len(lines) == 1:continue
+                    try:
+                        shortID = self.getEntryTag(lines,'ENTRY').split(' ')[0]
+                        for longID in self.input:
+                            if shortID in longID:
+                                for rclass in self.getLinkTag(lines, 'RCLASS'):
+                                    self.result[longID] = self.result.get(longID,
+                                                                          set())
+                                    self.result[longID].add(rclass)
+                    except:
+                        continue
+                    
                 return
             except Exception as e:
                 attempts += 1
@@ -511,40 +545,6 @@ class KeggAPI(object):
                     logger.warning('link (rpair) failed!')
                     return
                 
-    def getReactionsFromRPair(self, rp_ids, retries=8):
-        '''
-        Get the reaction IDs for a given rpair list
-        '''
-        attempts = 0
-        while True:
-            try:
-                self.input = rp_ids
-                logger.debug('Looking for KEGG reactions from %d RP IDs'%len(rp_ids))
-                url = ''
-                for rp_id in rp_ids:
-                    url += '%s+'%rp_id
-                url = url.rstrip('+')
-                
-                url = self._apiurl + 'link/reaction/' + urllib.quote(url)
-                
-                data = urllib.urlopen(url, timeout=20).read()
-                self.result = self.parseLinks(data)
-                return
-            except Exception as e:
-                attempts += 1
-                logger.debug('link (reaction) failed! Attempt %d'
-                              %attempts)
-                logger.debug('%s'%str(e))
-                time.sleep((2 + random.random())*attempts)
-                try:
-                    logger.debug(url)
-                except:pass
-                if self.keeptrying:continue
-                if attempts >= retries:
-                    self.failed = True
-                    logger.warning('link (reaction) failed!')
-                    return
-    
     def getCompoundsFromReaction(self, re_ids, retries=8):
         '''
         Get the compound IDs for a given reaction list
@@ -972,7 +972,6 @@ class BaseMapper(BaseKegg):
                 self._substatus = self._maxsubstatus
             self.updateStatus(sub=True)
             
-            threads = []
             for ids in piece:
                 remove = set()
                 for i in ids:
@@ -984,31 +983,10 @@ class BaseMapper(BaseKegg):
                 if len(ids) == 0:
                     continue
                 
-                obj = threading.Thread(
-                                target = self.getHandler().getRPair,
-                                args = (ids,))
-                obj.start()
-                threads.append(obj)
-            time.sleep(0.01)
-            
-            if len(threads) == 0:
-                continue
-            
-            while len(threads) > 0:
-                for thread in threads:
-                    if not thread.isAlive():
-                        threads.remove(thread)
-            for handler in self.handlers:
-                if handler.failed:
-                    logger.error('KEGG API error, aborting')
-                    raise IOError('KEGG API error')
-                
-                if not handler.result:
-                    logger.debug('Found an empty handler')
-                    continue
-                
-                for kid, title in handler.result.iteritems():
-                    self.rpairdet[kid] = title
+                for rid in ids:
+                    self.rpairdet[rid] = [rid.split('_')[0],
+                                          rid.split('_')[1],
+                                          'main']
     
     def getPathDetails(self):
         pieces = [p for p in get_span(self.pathdet.keys(), 9)]
@@ -1437,62 +1415,6 @@ class BaseMapper(BaseKegg):
                     if react not in self.reactdet:
                         self.reactdet[react] = None
     
-    def getRPairReacts(self):
-        pieces = [p for p in get_span(self.rpairdet.keys(), 80)]
-        for piece in get_span(pieces, self.numThreads):
-            if self.killed:
-                logger.debug('Exiting for a kill signal')
-                return
-            
-            self.cleanHandlers()
-            self._substatus += len([i for p in piece for i in p])
-            if self._substatus > self._maxsubstatus:
-                self._substatus = self._maxsubstatus
-            self.updateStatus(sub=True)
-            
-            threads = []
-            for ids in piece:
-                remove = set()
-                for i in ids:
-                    if i in self.avoid:
-                        remove.add(i)
-                for i in remove:
-                    ids.remove(i)
-                    
-                if len(ids) == 0:
-                    continue
-                
-                obj = threading.Thread(
-                                target = self.getHandler().getReactionsFromRPair,
-                                args = (ids,))
-                obj.start()
-                threads.append(obj)
-            time.sleep(0.01)
-            
-            if len(threads) == 0:
-                continue
-            
-            while len(threads) > 0:
-                for thread in threads:
-                    if not thread.isAlive():
-                        threads.remove(thread)
-            for handler in self.handlers:
-                if handler.failed:
-                    logger.error('KEGG API error, aborting')
-                    raise IOError('KEGG API error')
-                
-                if not handler.result:
-                    logger.debug('Found an empty handler')
-                    continue
-                
-                for rpair, reacts in handler.result.iteritems():
-                    if rpair not in self.rpairreact:
-                        self.rpairreact[rpair] = reacts
-                reacts = set([v for vs in handler.result.itervalues() for v in vs])
-                for react in reacts:
-                    if react not in self.reactdet:
-                        self.reactdet[react] = None
-    
     def getReactRPairs(self):
         pieces = [p for p in get_span(self.reactdet.keys(), 80)]
         for piece in get_span(pieces, self.numThreads):
@@ -1725,18 +1647,6 @@ class KoMapper(BaseMapper):
         if self.killed:
             return
         
-        self._maxsubstatus = len(self.rpairdet)
-        try:
-            self.getRPairReacts()
-        except Exception as e:
-            self.sendFailure(str(e))
-            return
-        self.cleanHandlers()
-        self.resetSubStatus()
-        
-        if self.killed:
-            return
-        
         # Related pathways...
         self._maxsubstatus = len(self.reactdet)
         self.updateStatus()
@@ -1957,18 +1867,6 @@ class CompMapper(BaseMapper):
         self.updateStatus()
         try:
             self.getReactRPairs()
-        except Exception as e:
-            self.sendFailure(str(e))
-            return
-        self.cleanHandlers()
-        self.resetSubStatus()
-        
-        if self.killed:
-            return
-        
-        self._maxsubstatus = len(self.rpairdet)
-        try:
-            self.getRPairReacts()
         except Exception as e:
             self.sendFailure(str(e))
             return
@@ -2480,18 +2378,6 @@ class KeggNet(BaseMapper):
         self.updateStatus()
         try:
             self.getReactRPairs()
-        except Exception as e:
-            self.sendFailure(str(e))
-            return
-        self.cleanHandlers()
-        self.resetSubStatus()
-        
-        if self.killed:
-            return
-        
-        self._maxsubstatus = len(self.rpairdet)
-        try:
-            self.getRPairReacts()
         except Exception as e:
             self.sendFailure(str(e))
             return

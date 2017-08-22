@@ -2284,7 +2284,8 @@ class Kegg(DBBase):
                     mut[row.re_id+row.co1+row.co2] = row
                     
                 for k in mut:
-                    del ref_temp[k]
+                    if k in ref_temp:
+                        del ref_temp[k]
                     
                 present = set()
                 for k, r in ref_temp.iteritems():
@@ -2766,7 +2767,8 @@ class Kegg(DBBase):
                     mut_react[re.prot_id].add(re.re_id)
                     
                 for prot_id in mut_react:
-                    del ref_react[prot_id]
+                    if prot_id in ref_react:
+                        del ref_react[prot_id]
                     
                 present = set()
                 for prot_id, re_ids in ref_react.iteritems():

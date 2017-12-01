@@ -1,0 +1,6 @@
+biopython
+matplotlib
+networkx
+numpy
+scikit-learn
+scipy

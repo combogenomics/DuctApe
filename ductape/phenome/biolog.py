@@ -690,11 +690,11 @@ class Plate(object):
         ax = self.legend.add_subplot(111)
         
         # Show the array
-        acts = np.array([np.nan for strain in strains])
+        acts = np.array([0 for strain in strains])
         acts = self.arrayReshape(acts, strains)
         
         # Setup the legend
-        ax.matshow(acts)
+        ax.matshow(acts, cmap='Greys', vmin=0, vmax=1)
         for i in range(acts.shape[0] - 1):
             ax.axhline(y=i+0.5, color='black')
         

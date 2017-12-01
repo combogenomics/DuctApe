@@ -1,3 +1,13 @@
+Version 0.17.10
+==============
+
+UPGRADE URGENCY: LOW, HIGH if you use the latest version of matplotlib
+(2.1.0)
+
+BUGFIXES:
+* kegg: avoid a crash when running a mutant analysis
+* dphenome plot: avoid crashes due to changes in behavior of numpy/matplotlib
+
 Version 0.17.8
 ==============
 

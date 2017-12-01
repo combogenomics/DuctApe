@@ -87,7 +87,7 @@ class MetabolicNet(object):
             for e in edges:
                 self.net.add_edge(e.co1, e.co2, reid=e.re_id, name=e.name)
                 if hasattr(e, 'weight'):
-                    self.net.edge[e.co1][e.co2]['weight'] = e.weight
+                    self.net.adj[e.co1][e.co2]['weight'] = e.weight
                     
     def hasNodesWeight(self):
         '''
@@ -106,7 +106,7 @@ class MetabolicNet(object):
         At least one edge has weight?
         '''
         for e in self.net.edges():
-            if 'weight' in self.net.edge[e[0]][e[1]]:
+            if 'weight' in self.net.adj[e[0]][e[1]]:
                 return True
 
         return False
@@ -143,8 +143,8 @@ class MetabolicNet(object):
         '''
         i = 0
         for e in self.net.edges():
-            if 'weight' in self.net.edge[e[0]][e[1]]:
-                i += self.net.edge[e[0]][e[1]]['weight']
+            if 'weight' in self.net.adj[e[0]][e[1]]:
+                i += self.net.adj[e[0]][e[1]]['weight']
             else:
                 i += 1
                 
@@ -156,7 +156,7 @@ class MetabolicNet(object):
         '''
         re_id = set()
         for e in self.net.edges():
-            re_id.add(self.net.edge[e[0]][e[1]]['reid'])
+            re_id.add(self.net.adj[e[0]][e[1]]['reid'])
         
         return re_id
     

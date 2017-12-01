@@ -597,13 +597,13 @@ class Plate(object):
         square = np.sqrt( len(acts) )
         if square.is_integer():
             # Yep
-            acts = acts.reshape(square, square)
+            acts = acts.reshape(int(square), int(square))
         else:
             # Oh snap!
             cols = int(square)
             rows = len(acts) / float(cols)
             if rows.is_integer():
-                acts = acts.reshape(rows, cols)
+                acts = acts.reshape(int(rows), cols)
             else:
                 # Some fake signals will be added
                 rows = int(rows) + 1

@@ -118,10 +118,10 @@ class Blaster(object):
     def retrieveFromDB(self, db, accession, out='out.fsa', isFile=False):
         '''Retrieve the desired sequence(s) from a Blast DB'''
         if not isFile:
-            cmd=('blastdbcmd -db %s -entry "%s"'
+            cmd=('blastdbcmd -db %s -entry "%s" -long_seqids'
                  %(db,accession))
         else:
-            cmd=('blastdbcmd -db %s -entry_batch "%s"'
+            cmd=('blastdbcmd -db %s -entry_batch "%s" -long_seqids'
                  %(db,accession))
         
         if self._useDisk:

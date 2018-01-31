@@ -118,10 +118,10 @@ class Blaster(object):
     def retrieveFromDB(self, db, accession, out='out.fsa', isFile=False):
         '''Retrieve the desired sequence(s) from a Blast DB'''
         if not isFile:
-            cmd=('blastdbcmd -db %s -entry "%s" -long_seqids'
+            cmd=('blastdbcmd -db %s -entry "%s"'
                  %(db,accession))
         else:
-            cmd=('blastdbcmd -db %s -entry_batch "%s" -long_seqids'
+            cmd=('blastdbcmd -db %s -entry_batch "%s"'
                  %(db,accession))
         
         if self._useDisk:
@@ -288,7 +288,7 @@ class RunBBH(object):
                         os.remove(self.out)
                     except:pass
                     
-                return (None, self.targetorg, False)
+                return [None, self.targetorg, False]
             
             self.blaster.parseBlast(self.out)
             for hits in self.blaster.getHits(self.evalue):
@@ -304,7 +304,7 @@ class RunBBH(object):
                             os.remove(self.out)
                         except:pass
                         
-                    return (None, self.targetorg, False)
+                    return [None, self.targetorg, False]
     
                 # Second Blast run            
                 res = self._secondRun(targethit.hit_len)
@@ -317,7 +317,7 @@ class RunBBH(object):
                         os.remove(self.out)
                     except:
                         pass
-                return (None, self.targetorg, False)
+                return [None, self.targetorg, False]
             res = self._secondRun()
         
         if not res:
@@ -327,28 +327,28 @@ class RunBBH(object):
                     os.remove(self.out)
                     os.remove(self.queryreturn)
                 except:pass
-            return (None, self.targetorg, False)
+            return [None, self.targetorg, False]
         
         self.blaster.parseBlast(self.out)
         for hits in self.blaster.getHits(self.evalue):
             if len(hits) == 0:
-                return (None, self.targetorg, True)
+                return [None, self.targetorg, True]
             sourcehit = hits[0]
             if self.queryid == sourcehit.hit:
                 if self.useDisk:
                     os.remove(self.out)
                     os.remove(self.queryreturn)
                 if self.kegg:
-                    return (self.ko_id,self.queryid, True)
+                    return [self.ko_id,self.queryid, True]
                 else:
-                    return (sourcehit.query_id.replace('lcl|',''),
-                        self.targetorg, True)
+                    return [sourcehit.query_id.replace('lcl|',''),
+                        self.targetorg, True]
             else:
                 if self.useDisk:
                     os.remove(self.out)
                     os.remove(self.queryreturn)
-                return (None, self.targetorg, True)
+                return [None, self.targetorg, True]
 
         if self.useDisk:
             os.remove(self.out)
-        return (None, self.targetorg, True)
+        return [None, self.targetorg, True]

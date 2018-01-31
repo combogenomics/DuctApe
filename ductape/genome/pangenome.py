@@ -188,6 +188,21 @@ class PanGenomer(CommonMultiProcess):
                             logger.error('An error occurred for BBH on query %s'%seq.id+
                                          ' and target %s'%result[1])
                             return False
+                        # bugfix for blast versions parsing legacy NCBI codes
+                        # retrieve the original ID and use it instead
+                        if result[0] is not None:
+                            prots = filter(lambda x: result[0] in x,
+                                           self._prot2orgs)
+                            if len(prots) == 0:
+                                logger.error('Can\'t find protein %s in '%result[0]+
+                                             'supplied genomes')
+                                return False
+                            if len(prots) > 1:
+                                logger.error('Found too many matches for  protein %s in '%result[0]+
+                                             'supplied genomes')
+                                return False
+                            result[0] = prots.pop()
+                        #
                         if result[0] and result[0] not in self._already:
                             self.orthologs[orthname].append(result[0])
                             orgsincluded.append(result[1])
@@ -209,6 +224,21 @@ class PanGenomer(CommonMultiProcess):
                         logger.error('An error occurred for BBH on query %s'%seq.id+
                                      ' and target %s'%result[1])
                         return False
+                    # bugfix for blast versions parsing legacy NCBI codes
+                    # retrieve the original ID and use it instead
+                    if result[0] is not None:
+                        prots = filter(lambda x: result[0] in x,
+                                       self._prot2orgs)
+                        if len(prots) == 0:
+                            logger.error('Can\'t find protein %s in '%result[0]+
+                                         'supplied genomes')
+                            return False
+                        if len(prots) > 1:
+                            logger.error('Found too many matches for  protein %s in '%result[0]+
+                                         'supplied genomes')
+                            return False
+                        result[0] = prots.pop()
+                    #
                     if result[0] and result[0] not in self._already:
                         self.orthologs[orthname].append(result[0])
                         orgsincluded.append(result[1])
@@ -270,6 +300,21 @@ class PanGenomer(CommonMultiProcess):
                                     logger.error('An error occurred for BBH on query %s'%seq.id+
                                                  ' and target %s'%result[1])
                                     return False
+                                # bugfix for blast versions parsing legacy NCBI codes
+                                # retrieve the original ID and use it instead
+                                if result[0] is not None:
+                                    prots = filter(lambda x: result[0] in x,
+                                                   self._prot2orgs)
+                                    if len(prots) == 0:
+                                        logger.error('Can\'t find protein %s in '%result[0]+
+                                                     'supplied genomes')
+                                        return False
+                                    if len(prots) > 1:
+                                        logger.error('Found too many matches for  protein %s in '%result[0]+
+                                                     'supplied genomes')
+                                        return False
+                                    result[0] = prots.pop()
+                                #
                                 if result[0] and result[0] not in self._already:
                                     self.orthologs[orthname].append(result[0])
                                     orgsincluded.append(result[1])
@@ -291,6 +336,21 @@ class PanGenomer(CommonMultiProcess):
                                 logger.error('An error occurred for BBH on query %s'%seq.id+
                                              ' and target %s'%result[1])
                                 return False
+                            # bugfix for blast versions parsing legacy NCBI codes
+                            # retrieve the original ID and use it instead
+                            if result[0] is not None:
+                                prots = filter(lambda x: result[0] in x,
+                                               self._prot2orgs)
+                                if len(prots) == 0:
+                                    logger.error('Can\'t find protein %s in '%result[0]+
+                                                 'supplied genomes')
+                                    return False
+                                if len(prots) > 1:
+                                    logger.error('Found too many matches for  protein %s in '%result[0]+
+                                                 'supplied genomes')
+                                    return False
+                                result[0] = prots.pop()
+                            #
                             if result[0] and result[0] not in self._already:
                                 self.orthologs[orthname].append(result[0])
                                 orgsincluded.append(result[1])

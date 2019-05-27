@@ -1,3 +1,12 @@
+Version 0.17.13
+==============
+
+UPGRADE URGENCY: LOW, MODERATE if you use the latest version of matplotlib
+
+BUGFIXES:
+* yaml parsing: avoid deprecation warning when parsing
+* avoid deprecation warning/error when using latest and new-ish matploblib
+
 Version 0.17.12
 ==============
 

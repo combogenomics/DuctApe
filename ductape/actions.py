@@ -4577,7 +4577,7 @@ def createLegend(kind, project):
         cmatrix = np.outer(np.arange(0,maxAct,0.1),np.ones(7))
          
     if kind == 'pangenome':
-        ax = fig.add_subplot(131, axisbg='b')
+        ax = fig.add_subplot(131, facecolor='b')
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
@@ -4603,7 +4603,7 @@ def createLegend(kind, project):
         fig.savefig(fname)
             
     elif kind == 'single':
-        ax = fig.add_subplot(121, axisbg='b')
+        ax = fig.add_subplot(121, facecolor='b')
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
@@ -4621,7 +4621,7 @@ def createLegend(kind, project):
         fig.savefig(fname)
         
     elif kind == 'singlediff':
-        ax = fig.add_subplot(121, axisbg='b')
+        ax = fig.add_subplot(121, facecolor='b')
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
@@ -4639,21 +4639,21 @@ def createLegend(kind, project):
         fig.savefig(fname)
 
     elif kind == 'mutants':
-        ax = fig.add_subplot(141, axisbg='b')
+        ax = fig.add_subplot(141, facecolor='b')
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
         ax.axes.get_xaxis().set_ticks([])
         ax.set_title('Wild-type')
         
-        ax = fig.add_subplot(142, axisbg='g')
+        ax = fig.add_subplot(142, facecolor='g')
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])
         ax.axes.get_xaxis().set_ticks([])
         ax.set_title('Wild-type and Mutated')
         
-        ax = fig.add_subplot(143, axisbg=pltcls.cnames['yellow'])
+        ax = fig.add_subplot(143, facecolor=pltcls.cnames['yellow'])
         ax.axes.get_xaxis().set_visible(False)
         ax.axes.get_yaxis().set_visible(False)
         ax.axes.get_yaxis().set_ticks([])

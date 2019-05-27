@@ -1749,9 +1749,9 @@ class BiologParser(object):
     
     def parseOPM(self):
         import yaml
-        
-        data = yaml.load(open(self.file))
-        
+
+        data = yaml.load(open(self.file), Loader=yaml.FullLoader)
+
         # We can have one single plate or several
         # we need to discriminate
         try:

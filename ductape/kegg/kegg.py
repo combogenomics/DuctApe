@@ -32,9 +32,11 @@ logger = logging.getLogger('ductape.kegg')
 avoidedPaths = set(['path:rn01110','path:rn01100','path:rn01120',
                 'path:ko01100','path:ko01110','path:ko01120',
                 'path:map01110','path:map01100','path:map01120',
+                'path:map01230',
                 'rn01110','rn01100','rn01120',
                 'ko01100','ko01110','ko01120',
-                'map01110','map01100','map01120',])
+                'map01110','map01100','map01120',
+                'map01230'])
 
 ################################################################################
 # Classes

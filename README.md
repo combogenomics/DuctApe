@@ -30,17 +30,17 @@ Installation
 
 * Method 1 (missing dependencies will be downloaded)
 
-    * sudo pip install DuctApe
+    * python2 -m pip install DuctApe
 
 * Method 2 (the dependencies won't be checked)
 
     * (Download and extract the tarball)
-    * sudo python setup.py install
+    * sudo python2 setup.py install
 
 * Method 3 (missing dependencies will be downloaded)
 
     * (Download and extract the tarball)
-    * sudo pip install DuctApe-X.X.X.tar.gz
+    * python2 -m pip install .
 
 * Dependencies installation on Debian/Ubuntu
     

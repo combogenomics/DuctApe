@@ -5,7 +5,7 @@ setup(
     name = 'DuctApe',
     version = __version__,
     author = 'Marco Galardini',
-    author_email = 'marco.galardini@unifi.it',
+    author_email = 'mgala@bu.edu',
     packages = ['ductape','ductape.common', 'ductape.genome', 'ductape.kegg',
                 'ductape.phenome', 'ductape.storage', 'ductape.storage.SQLite',
 				'ductape.storage.data'],

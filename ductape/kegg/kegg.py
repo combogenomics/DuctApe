@@ -841,7 +841,7 @@ class KeggDetails(object):
         return self.pathmaps
 
 class BaseKegg(CommonThread):
-    def __init__(self, threads=40, keeptrying=False, queue=Queue.Queue()):
+    def __init__(self, threads=10, keeptrying=False, queue=Queue.Queue()):
         CommonThread.__init__(self,queue)
         
         # Kegg connection
@@ -884,7 +884,7 @@ class BaseKegg(CommonThread):
             raise Exception('KEGG seems to be offline')
             
 class BaseMapper(BaseKegg):
-    def __init__(self, threads=40, avoid=[], keeptrying=False,
+    def __init__(self, threads=10, avoid=[], keeptrying=False,
                         queue=Queue.Queue()):
         BaseKegg.__init__(self, threads=threads, keeptrying=keeptrying,
                                 queue=queue)

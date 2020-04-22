@@ -1,3 +1,11 @@
+Version 0.17.15
+==============
+
+BUGFIXES:
+* kegg: add a more robust mechanism to ignore kegg generic pathways
+* kegg: reduce the number of threads for kegg mapping to reduce HTTP 403 errors
+* enforce the use of python2
+
 Version 0.17.14
 ==============
 

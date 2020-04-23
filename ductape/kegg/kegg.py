@@ -11,6 +11,7 @@ from ductape.common.commonthread import CommonThread
 from ductape.common.utils import get_span
 from ductape.common.utils import isOnline
 from ductape.kegg.web import kheader
+from matplotlib import colors
 import Queue
 import logging
 import os
@@ -626,25 +627,39 @@ class KeggAPI(object):
                 self.input = path_id
                 
                 # Fix color codes
+                hblue = colors.cnames['blue'].replace('#', '%23')
                 for i in range(len(color_list)):
                     if '#' in color_list[i]:
                         color_list[i] = color_list[i].replace('#', '%23')
                 #
                 
                 logger.debug('Looking for KEGG colored map from %s'%path_id)
-                url = path_id.lstrip('path:') + '/default%3white/'
+                url = path_id.lstrip('path:') + '/default%3dblue/'
                 for i in range(len(obj_list)):
-                    if border_list is not None and border_list[i] is not None:
-                        url += obj_list[i] + '%09' + color_list[i] + ',' + border_list[i] + '/'
+                    url += obj_list[i]
+                    # do not waste precious characters
+                    if color_list[i] == hblue:
+                        if border_list is not None and border_list[i] is not None:
+                            url += '%09,' + border_list[i] + '/'
+                        else:
+                            url += '/'
+                    #
                     else:
-                        url += obj_list[i] + '%09' + color_list[i] + '/'
+                        if border_list is not None and border_list[i] is not None:
+                            url += obj_list[i] + '%09' + color_list[i] + ',' + border_list[i] + '/'
+                        else:
+                            url += obj_list[i] + '%09' + color_list[i] + '/'
                
                 # Cannot quote this url, no colored pathway can be obtained then
                 #url = self._maplink + urllib.quote(url)
                 url = self._maplink + url
                 
                 logger.debug(url)
-                
+                # check that URL length is below 2000
+                if len(url) > 2000:
+                    logger.warning('URL too long for pathway %s, will skip'%path_id)
+                    self.result = ''
+
                 sock=urllib.urlopen(url, timeout=60)
                 self.result = sock.read()
                 sock.close()

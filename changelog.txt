@@ -1,3 +1,9 @@
+Version 0.17.18
+==============
+
+BUGFIXES:
+* kegg: try to salvage downloading pathways with many annotations
+
 Version 0.17.17
 ==============
 

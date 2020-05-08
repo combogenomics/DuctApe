@@ -1641,13 +1641,125 @@ class BiologParser(object):
             logger.warning('YAML/OPM parsing failed!')
             logger.debug('%s'%e)
             try:
-                self.parseCSV()
+                self.parseNewCSV()
             except Exception as e:
-                logger.error('CSV parsing failed!')
+                logger.error('CSV (new version) parsing failed!')
                 logger.debug('%s'%e)
-                return False
+                try:
+                    self.parseCSV()
+                except Exception as e:
+                    logger.error('CSV (old version) parsing failed!')
+                    logger.debug('%s'%e)
+                    return False
         return True
-    
+
+    def parseNewCSV(self):
+        plate = None
+        data = False
+        current_plate = None
+        wells = []
+
+        tblreader = csv.reader(open(self.file, 'rbU'), delimiter=',',
+                               quotechar='"')
+        header = True
+        for line in tblreader:
+            # skip comments and empty lines
+            if line[0].startswith('#') or ''.join(line) == '':
+                continue
+
+            if header:
+                # old version CSV
+                if line[0].strip() == 'Data File':
+                    logger.warning('This CSV file appears to be following the "old" format')
+                    logger.warning('Switching to the old parser')
+                    raise Exception('Encountered "Data File" as header, assuming old CSV format')
+                #
+                start_wells = False
+                for x in line:
+                    if x == 'Hour':
+                        start_wells = True
+                        continue
+                    elif start_wells:
+                        wells.append(x.rstrip())
+                header = False
+                continue
+
+            # header repetition
+            if not header and line[0].strip() == 'Record File':
+                continue
+
+            record_file, setup_time, position, plate_type, f1, f2, f3, f4, hour = line[:9]
+            if current_plate is None or current_plate != (position, plate_type):
+                if current_plate is not None:
+                    self.plates.append(plate)
+                plate = SinglePlate()
+                plate.strainType = f1.strip()
+                plate.sample = f2.strip()
+                plate.strainNumber = f4.strip()
+                plate.strainName = f3.strip()
+
+                plateID = plate_type
+                # Parse also non-standard plate IDs
+                if not plateID.startswith(self._platesPrefix):
+                    logger.warning('Non-standard plate ID found (%s)'%plateID)
+                    logger.warning('Plate IDs should start with %s'%self._platesPrefix)
+                    plate.plate_id = plateID
+                    continue
+
+                # Simplify the plates IDs, removing letters, as opm does
+                pID = plateID[2:]
+                while len(pID) > 0:
+                    try:
+                        int(pID)
+                        break
+                    except ValueError:
+                        pID = pID[:-1]
+
+                # No luck
+                if len(pID) == 0:
+                    logger.warning('Non-standard plate ID found (%s)'%plateID)
+                    plate.plate_id = plateID
+                    continue
+                elif int(pID) < 0:
+                    logger.warning('Non-standard plate ID found (%s)'%plateID)
+                    plateID = self._platesPrefix + abs(int(pID))
+                    logger.warning('Going to use this ID (%s)'%plateID)
+                    plate.plate_id = plateID
+                    continue
+
+                plateID = self._platesPrefix + '%02d'%int(pID)
+                plate.plate_id = plateID
+
+                # preload wells
+                for i, x in enumerate(wells):
+                    if x == '':
+                        continue
+                    plate.data[x.strip()] = Well(plate.plate_id, x.strip())
+                    plate._idx[i] = x.strip()
+
+                current_plate == position, plate_type
+
+            # Workaround for bad-formatted files
+            try: float(hour)
+            except:
+                logger.debug('Could not parse this line from biolog file (%s)'%line)
+                continue
+            #
+
+            time = float(hour)
+            for i in range(len(line[10:])):
+                x = line[10:][i]
+                if x == '':
+                    continue
+                well = plate._idx[i]
+                plate.data[well].addSignal(time, float(x))
+
+        # The last plate should be saved as well!
+        if plate and plate not in self.plates:
+            self.plates.append(plate)
+
+        return True
+
     def parseCSV(self):
         plate = None
         data = False

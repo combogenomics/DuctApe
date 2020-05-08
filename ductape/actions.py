@@ -128,11 +128,11 @@ def dPhenomeAdd(project, orgID, filename):
     samples = set([plate.sample for plate in bparser.plates])
     
     if orgID not in samples:
-        logger.debug('No sign of %s in sample field'%orgID)
+        logger.debug('No sign of %s in sample field ("Field 2" in new CSV version)'%orgID)
     if orgID not in strainNames:
-        logger.debug('No sign of %s in strainName field'%orgID)
+        logger.debug('No sign of %s in strainName field ("Field 3" in new CSV version)'%orgID)
     if orgID not in strainNumbers:
-        logger.debug('No sign of %s in strainNumber field'%orgID)
+        logger.debug('No sign of %s in strainNumber field ("Field 4" in new CSV version)'%orgID)
     
     # TODO: regular expression search
     orgFound = True
@@ -229,14 +229,15 @@ def dPhenomeMultiAdd(project, filename):
     
     # Check the organism ids inside the biolog files
     # Assuming the names are correct AND stored inside the strainName field
-    logger.debug('Assuming organism IDs are correct and inside the field strainName')
+    logger.debug('Assuming organism IDs are correct and inside the field strainName '
+                 '("Field 3" in the new CSV version)')
     strainNames = set([plate.strainName for plate in bparser.plates])
     
     strainNames.discard(None)
     strainNames.discard('')
     
     if len(strainNames) == 0:
-        logger.warning('''Field strainName doesn't contain any value (%s)'''%filename)
+        logger.warning('''Field strainName ("Field 3" in new CSV version) doesn't contain any value (%s)'''%filename)
         return False
         
     logger.info('Found the following organism IDs: %s'%' '.join(strainNames))

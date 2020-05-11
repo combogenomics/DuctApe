@@ -46,7 +46,7 @@ Installation
 
     * `conda create -n ductape pip numpy scipy scikit-learn matplotlib biopython networkx blast`
     * `conda activate ductape` (or `source activate ductape`)
-    * python -m pip install DuctApe
+    * `python -m pip install DuctApe`
 
 * Dependencies installation on Debian/Ubuntu
     

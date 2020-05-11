@@ -27,11 +27,11 @@ def plotElbow(d, param_labels):
     
     figidx = 1
     
-    figsize = (len(d[d.keys()[0]][0])/2) + (len(d[d.keys()[0]][0])%2)  
+    figsize = (len(d[list(d.keys())[0]][0])/2) + (len(d[list(d.keys())[0]][0])%2)  
     
     fig = plt.figure(figsize=(3.5*figsize, 8))
     fig.clf()
-    for j in range(len(d[d.keys()[0]][0])):
+    for j in range(len(d[list(d.keys())[0]][0])):
         ax = fig.add_subplot(2, figsize, figidx)
         
         figidx += 1
@@ -40,9 +40,9 @@ def plotElbow(d, param_labels):
         for i in d:
             diffs[i] = np.array([p[j] for p in d[i]]).mean()
         
-        inter = interp1d(d.keys(), [diffs[i] for i in d], bounds_error=False,
+        inter = interp1d(list(d.keys()), [diffs[i] for i in d], bounds_error=False,
                      kind='cubic')
-        ax.plot(d.keys(),[diffs[i] for i in d],'o', x_new, inter(x_new),'-')
+        ax.plot(list(d.keys()),[diffs[i] for i in d],'o', x_new, inter(x_new),'-')
         ax.set_ylabel('Sum of squared errors')
         ax.set_xlabel('Num. clusters')
         ax.set_title(param_labels[j])
@@ -63,7 +63,7 @@ def plotClusters(X, labels, params=None, method='', prefix='clusters'):
     figidx = 1
     fig = plt.figure(1)
     fig.clf()
-    for x, y in product(range(len(X[0])), repeat=2):
+    for x, y in product(list(range(len(X[0]))), repeat=2):
         ax = fig.add_subplot(len(X[0]),len(X[0]),figidx)
         
         if figidx%len(X[0]) == 1:
@@ -81,7 +81,7 @@ def plotClusters(X, labels, params=None, method='', prefix='clusters'):
 
         color = dict()
         j = 0
-        for i in slice_it(range(255), cols=n_clusters_):
+        for i in slice_it(list(range(255)), cols=n_clusters_):
             color[j] = cm.RdYlGn(i[0])
             j += 1
 

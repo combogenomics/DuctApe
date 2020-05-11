@@ -11,7 +11,11 @@ from ductape.common.commonthread import CommonThread
 from ductape.common.utils import smooth, compress
 from matplotlib import cm
 from matplotlib import colors
-import Queue
+import sys
+if sys.version_info[0] < 3:
+    import Queue as queue
+else:
+    import queue
 import csv
 import logging
 import matplotlib.pyplot as plt
@@ -189,7 +193,7 @@ class Well(object):
                             (self.plate_id, self.well_id, len(times)))
                 return
             
-            toremove = [t for t in self.signals.keys() if t not in times]
+            toremove = [t for t in list(self.signals.keys()) if t not in times]
             for t in toremove:
                 del self.signals[t]
             
@@ -217,7 +221,7 @@ class Well(object):
         
         self.min = self.getMin()
         
-        self.height = np.array( self.signals.values() ).mean()
+        self.height = np.array( list(self.signals.values()) ).mean()
         
         # Let's go with the function fitting
         xdata = np.array( [x for x in sorted(self.signals.keys())] )
@@ -293,8 +297,7 @@ class Well(object):
         '''
         Do we have at least one parameter calculated?
         '''
-        params = filter(lambda x: x!=None,
-                      [self.max,
+        params = [x for x in [self.max,
                        self.min,
                        self.height,
                        self.plateau,
@@ -302,7 +305,7 @@ class Well(object):
                        self.lag,
                        self.area,
                        self.v,
-                       self.y0])
+                       self.y0] if x!=None]
         
         if len(params) == 0:
             return False
@@ -358,7 +361,7 @@ class SinglePlate(object):
         Iterate over each well: calculate parameters and return the
         A generator is returned
         '''
-        for well_id, well in self.data.iteritems():
+        for well_id, well in list(self.data.items()):
             if not well.isParams():
                 well.calculateParams()
             yield True
@@ -367,7 +370,7 @@ class SinglePlate(object):
         '''
         Generator to get the single wells
         '''
-        for well_id, well in self.data.iteritems():
+        for well_id, well in list(self.data.items()):
             well.replica = self.replica
             well.strain = self.strain
             yield well
@@ -420,7 +423,7 @@ class Plate(object):
     
     def getMax(self):
         return max([plate.getMax() 
-                    for strain, plates in self.strains.iteritems()
+                    for strain, plates in list(self.strains.items())
                     for plate in plates])
                     
     def getMaxActivity(self):
@@ -430,7 +433,7 @@ class Plate(object):
         '''
         Iterate over the single wells and calculate the parameters
         '''
-        for strain, plates in self.strains.iteritems():
+        for strain, plates in list(self.strains.items()):
             for plate in plates:
                 plate.calculateParams()
             yield True
@@ -439,7 +442,7 @@ class Plate(object):
         '''
         Generator to get the single wells
         '''
-        for strain, plates in self.strains.iteritems():
+        for strain, plates in list(self.strains.items()):
             for plate in plates:
                 for well in plate.getWells():
                     yield well
@@ -473,7 +476,7 @@ class Plate(object):
         Smooths the signal and plots it
         If there are more than one exp for a strain, the intersection is plotted
         '''
-        for strain,signals in dWell.iteritems():
+        for strain,signals in list(dWell.items()):
             if len(signals) > 1:
                 # Intersect!
                 maxsig,minsig = self._bracketing(signals)
@@ -520,10 +523,10 @@ class Plate(object):
                 
         # Check time concordance
         times = []
-        for strain, plates in self.strains.iteritems():
+        for strain, plates in list(self.strains.items()):
             for plate in plates:
-                for well_id, data in plate.data.iteritems():
-                    for time in data.signals.keys():
+                for well_id, data in list(plate.data.items()):
+                    for time in list(data.signals.keys()):
                         if time not in times:
                             times.append(time)
                     break
@@ -535,9 +538,9 @@ class Plate(object):
         
         # Get also each plate/well pair
         wells = []
-        for strain, plates in self.strains.iteritems():
+        for strain, plates in list(self.strains.items()):
             for plate in plates:
-                for well_id, data in plate.data.iteritems():
+                for well_id, data in list(plate.data.items()):
                     data.fillMissing(self.times)
                     if well_id not in wells:
                         wells.append(well_id)
@@ -550,7 +553,7 @@ class Plate(object):
         '''
         strain_signals = {}
         
-        for strain, plates in self.strains.iteritems():
+        for strain, plates in list(self.strains.items()):
             strain_signals[strain] = []
             for plate in plates:
                 try:
@@ -558,8 +561,8 @@ class Plate(object):
                             [plate.data[well_id].signals[hour]
                              for hour in self.times])
                 except:
-                    logger.debug('Something missing: %s, %s, %f'%(
-                                    strain, well_id, hour))
+                    logger.debug('Something missing: %s, %s'%(
+                                    strain, well_id))
             
         return strain_signals
     
@@ -623,7 +626,7 @@ class Plate(object):
         # Reality check on provided strains
         if len(strains) > 0:
             strains = set(strains)
-            unknown = set(strains).difference(self.strains.keys())
+            unknown = set(strains).difference(list(self.strains.keys()))
             if len( unknown ) > 0:
                 logger.warning('Unknown strain(s) were provided (%s)'%
                                  ' '.join(unknown))
@@ -674,7 +677,7 @@ class Plate(object):
         # Reality check on provided strains
         if len(strains) > 0:
             strains = set(strains)
-            unknown = set(strains).difference(self.strains.keys())
+            unknown = set(strains).difference(list(self.strains.keys()))
             if len( unknown ) > 0:
                 logger.warning('Unknown strain(s) were provided (%s)'%
                                  ' '.join(unknown))
@@ -847,7 +850,7 @@ class Experiment(object):
         for pid in self.sumexp:
             for wid in self.sumexp[pid]:
                 for org in self.sumexp[pid][wid]:
-                    reps = self.experiment[pid][wid][org].keys()
+                    reps = list(self.experiment[pid][wid][org].keys())
                     
                     # Keep track of all mean parameters
                     for param in Well('phony', 'phony').params + ['activity']:
@@ -866,8 +869,8 @@ class Experiment(object):
         Get the maximum signal value of the whole experiment
         '''
         return max([plate.getMax()
-                    for plate_id, Plate in self.plates.iteritems()
-                    for strain, plates in Plate.strains.iteritems()
+                    for plate_id, Plate in list(self.plates.items())
+                    for strain, plates in list(Plate.strains.items())
                     for plate in plates])
         
     def calculateParams(self):
@@ -1010,9 +1013,9 @@ class Experiment(object):
         # TODO: distinguish between zero and nonzero
         for plate_id in self.plates:
             Plate = self.plates[plate_id]
-            for strain, plates in Plate.strains.iteritems():
+            for strain, plates in list(Plate.strains.items()):
                 for plate in plates:
-                    for wid, well in plate.data.iteritems():
+                    for wid, well in list(plate.data.items()):
                         well.activity = 0
     
     def getPurgedWells(self):
@@ -1022,7 +1025,7 @@ class Experiment(object):
         for plate in self.experiment:
             for well in self.experiment[plate]:
                 for strain in self.experiment[plate][well]:  
-                    reps = self.experiment[plate][well][strain].values()
+                    reps = list(self.experiment[plate][well][strain].values())
                     for w in reps:
                         yield w
                         
@@ -1076,7 +1079,7 @@ class Experiment(object):
         
         for w in self.getWells(False):
             to_del = set()
-            for time in w.signals.keys():
+            for time in list(w.signals.keys()):
                 if time > mtime:
                     to_del.add(time)
             for time in to_del:
@@ -1122,8 +1125,8 @@ class Experiment(object):
                             del self.experiment[plate][well][strain][replica]
                             
                             # TODO: simplify here
-                            rem_p = filter(lambda x: x.replica == replica,
-                                        self.plates[plate].strains[strain])[0]
+                            rem_p = list(filter(lambda x: x.replica == replica,
+                                        self.plates[plate].strains[strain]))[0]
                             del rem_p.data[well]
                             
                             logger.debug('Purged %s %s %s %d'%(plate, well,
@@ -1134,7 +1137,7 @@ class Experiment(object):
         for plate in self.experiment:
             for well in self.experiment[plate]:
                 for strain in self.experiment[plate][well]:  
-                    reps = self.experiment[plate][well][strain].values()
+                    reps = list(self.experiment[plate][well][strain].values())
                     act = np.array([x.activity for x in reps])
                     
                     if policy == 'keep-min' or policy == 'keep-min-one':
@@ -1147,7 +1150,7 @@ class Experiment(object):
                     # matches the policy as close as possible
                     # (i.e. keep-min-one --> replica with smaller average signal)    
                     if policy == 'keep-min-one' or policy == 'keep-max-one':
-                        candidates = filter(lambda x: x.activity == m, reps)
+                        candidates = [x for x in reps if x.activity == m]
                         if len(candidates) == 1:
                             self.sumexp[plate][well][strain] = candidates[0]
                         elif len(candidates) == 0:
@@ -1169,8 +1172,7 @@ class Experiment(object):
                     # minimum-maximum
                     if policy == 'keep-min' or policy == 'keep-max':
                         if policy == 'keep-min':
-                            candidates = filter(lambda x: x.activity <= m + delta,
-                                                reps)
+                            candidates = [x for x in reps if x.activity <= m + delta]
                             if len(candidates) == 1:
                                 self.sumexp[plate][well][strain] = candidates[0]
                             elif len(candidates) == 0:
@@ -1183,8 +1185,7 @@ class Experiment(object):
                                                               for x in candidates]
                                                                  ).mean()
                         else:
-                            candidates = filter(lambda x: x.activity >= m - delta,
-                                                reps)
+                            candidates = [x for x in reps if x.activity >= m - delta]
                             if len(candidates) == 1:
                                 self.sumexp[plate][well][strain] = candidates[0]
                             elif len(candidates) == 0:
@@ -1206,8 +1207,8 @@ class Experiment(object):
                             del self.experiment[plate][well][strain][w.replica]
                             
                             # TODO: simplify here
-                            rem_p = filter(lambda x: x.replica == w.replica,
-                                        self.plates[plate].strains[strain])[0]
+                            rem_p = list(filter(lambda x: x.replica == w.replica,
+                                        self.plates[plate].strains[strain]))[0]
                             del rem_p.data[well]
                             
                             logger.debug('Purged %s %s %s %d'%(plate, well,
@@ -1325,7 +1326,7 @@ class Experiment(object):
         
         return dParams, dWells
     
-    def elbowTest(self, nrange=range(2, 13)):
+    def elbowTest(self, nrange=list(range(2, 13))):
         '''
         Perform an elbow test on the k-means clustering
         nrange should be a list with each n going to be used in the clusterization
@@ -1486,7 +1487,7 @@ class Experiment(object):
         
         cNorm  = colors.Normalize(vmin=0, vmax=self.getMaxActivity())
         scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.RdYlGn)
-        scalarMap.set_array(np.array(range(10)))
+        scalarMap.set_array(np.array(list(range(10))))
         cax = fig.add_axes([0.925, 0.2, 0.03, 0.6])
         cax.text(0.50, 1.01, 'Activity', size=10, ha='center')       
         plt.colorbar(scalarMap, cax=cax)
@@ -1599,7 +1600,7 @@ class Experiment(object):
         if not axis:
             cNorm  = colors.Normalize(vmin=0, vmax=self.getMaxActivity())
             scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.RdYlGn)
-            scalarMap.set_array(np.array(range(10)))
+            scalarMap.set_array(np.array(list(range(10))))
             cax = fig.add_axes([0.925, 0.2, 0.03, 0.6])
             cax.text(0.50, 1.05, 'Activity', size=10, ha='center')       
             plt.colorbar(scalarMap, cax=cax)
@@ -1643,12 +1644,12 @@ class BiologParser(object):
             try:
                 self.parseNewCSV()
             except Exception as e:
-                logger.error('CSV (new version) parsing failed!')
+                logger.warning('CSV (new version) parsing failed!')
                 logger.debug('%s'%e)
                 try:
                     self.parseCSV()
                 except Exception as e:
-                    logger.error('CSV (old version) parsing failed!')
+                    logger.warning('CSV (old version) parsing failed!')
                     logger.debug('%s'%e)
                     return False
         return True
@@ -1659,7 +1660,7 @@ class BiologParser(object):
         current_plate = None
         wells = []
 
-        tblreader = csv.reader(open(self.file, 'rbU'), delimiter=',',
+        tblreader = csv.reader(open(self.file, 'r'), delimiter=',',
                                quotechar='"')
         header = True
         for line in tblreader:
@@ -1765,7 +1766,7 @@ class BiologParser(object):
         data = False
         wells = []
         
-        tblreader = csv.reader(open(self.file, 'rbU'), delimiter=',',
+        tblreader = csv.reader(open(self.file, 'r'), delimiter=',',
                                quotechar='"')
         for line in tblreader:
             if len(line) < 2:
@@ -1867,7 +1868,7 @@ class BiologParser(object):
         # We can have one single plate or several
         # we need to discriminate
         try:
-            data.keys()
+            list(data.keys())
             data = [data]
         except:pass
             
@@ -2001,7 +2002,7 @@ class BiologZero(object):
             # Last step: put the control wells to zero
             for zerowell in self.controlWells[plate.plate_id]:
                 zero = plate.data[zerowell]
-                for hour in zero.signals.keys():
+                for hour in list(zero.signals.keys()):
                     zero.signals[hour]=0
                     
     def _zeroBlank(self, plate):
@@ -2093,7 +2094,7 @@ class BiologPlot(CommonThread):
                  svg=False,
                  plate=None,
                  well=None,
-                 queue=Queue.Queue()):
+                 queue=queue.Queue()):
         CommonThread.__init__(self,queue)
         # Biolog
         self.data = data
@@ -2193,8 +2194,7 @@ class BiologPlot(CommonThread):
         if self.splate == None:
             self._maxsubstatus = len(self.data)
         else:
-            self._maxsubstatus = len(filter(lambda x: x.plate_id == self.splate,
-                                            self.data))
+            self._maxsubstatus = len([x for x in self.data if x.plate_id == self.splate])
         self.updateStatus()
         for plate in self.data:
             
@@ -2453,7 +2453,7 @@ class BiologPlot(CommonThread):
             else:
                 self.updateStatus(send=False)
             if len(self.avgresults) != 0:
-                maxAct = max([p.getMaxActivity() for pid, p in self.avgresults.iteritems()])
+                maxAct = max([p.getMaxActivity() for pid, p in list(self.avgresults.items())])
             else:
                 maxAct = 0
             for plate_id in sorted(self.avgresults.keys()):
@@ -2526,7 +2526,7 @@ class BiologCluster(CommonThread):
     def __init__(self,experiment,
                  save_fig_clusters=False, force_params=False, n_clusters=10,
                  elbow=False,
-                 queue=Queue.Queue()):
+                 queue=queue.Queue()):
         CommonThread.__init__(self,queue)
         # Experiment
         self.exp = experiment
@@ -2637,9 +2637,9 @@ def getSinglePlatesFromSignals(signals):
                         getattr(well, param, None))
         
     # Return all the SinglePlates objects 
-    for orgs in dExp.itervalues():
-        for replicas in orgs.itervalues():
-            for splate in replicas.itervalues():
+    for orgs in list(dExp.values()):
+        for replicas in list(orgs.values()):
+            for splate in list(replicas.values()):
                 yield splate
 
 def getSinglePlatesFromParameters(wells, nonmean=False):
@@ -2678,9 +2678,9 @@ def getSinglePlatesFromParameters(wells, nonmean=False):
                         getattr(well, param, None)) 
             
         # Return all the SinglePlates objects 
-        for orgs in dExp.itervalues():
-            for replicas in orgs.itervalues():
-                for splate in replicas.itervalues():
+        for orgs in list(dExp.values()):
+            for replicas in list(orgs.values()):
+                for splate in list(replicas.values()):
                     yield splate
     else:
         for well in wells:
@@ -2722,7 +2722,7 @@ def getPlates(signals, nonmean=False):
             dExp[splate.plate_id] = Plate(splate.plate_id)
         dExp[splate.plate_id].addData(splate.strain, splate)
     
-    for plate in dExp.itervalues():
+    for plate in list(dExp.values()):
         yield plate
 
 def toOPM(p):

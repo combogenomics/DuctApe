@@ -9,7 +9,11 @@ All the actions required for the analysis (parallel utilitites)
 from ductape.common.commonmultiprocess import CommonMultiProcess
 from ductape.storage.SQLite.database import Kegg
 import logging
-import Queue
+import sys
+if sys.version_info[0] < 3:
+    import Queue as queue
+else:
+    import queue
 
 __author__ = "Marco Galardini"
 
@@ -46,7 +50,7 @@ class PathPanGenomer(CommonMultiProcess):
     _substatuses = [1]
     
     def __init__(self,project, paths,
-                 ncpus=1,queue=Queue.Queue()):
+                 ncpus=1,queue=queue.Queue()):
         CommonMultiProcess.__init__(self,ncpus,queue)
         
         # DB name

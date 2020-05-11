@@ -10,9 +10,9 @@ import logging
 import os
 import subprocess
 import sys
-try:
+if sys.version_info[0] < 3:
     from StringIO import StringIO # Python 2
-except ImportError:
+else:
     from io import StringIO # Python 3
 
 __author__ = "Marco Galardini"
@@ -118,10 +118,10 @@ class Blaster(object):
     def retrieveFromDB(self, db, accession, out='out.fsa', isFile=False):
         '''Retrieve the desired sequence(s) from a Blast DB'''
         if not isFile:
-            cmd=('blastdbcmd -db %s -entry "%s"'
+            cmd=('blastdbcmd -db %s -entry "%s" -long_seqids'
                  %(db,accession))
         else:
-            cmd=('blastdbcmd -db %s -entry_batch "%s"'
+            cmd=('blastdbcmd -db %s -entry_batch "%s" -long_seqids'
                  %(db,accession))
         
         if self._useDisk:
@@ -170,7 +170,10 @@ class Blaster(object):
                     stderr=subprocess.PIPE)
         
         if not self._useDisk:
-            proc.stdin.write(self.query)
+            if isinstance(self.query, str):
+                proc.stdin.write(self.query.encode())
+            else:
+                proc.stdin.write(self.query)
                     
         out = proc.communicate()
         
@@ -193,7 +196,7 @@ class Blaster(object):
             self._out = fileOut
             handle = open(fileOut)
         else:
-            handle = StringIO(self.out)
+            handle = StringIO(self.out.decode('utf-8'))
             
         self._hits = NCBIXML.parse(handle)
         
@@ -216,6 +219,11 @@ class RunBBH(object):
                  source, target, targetorg,
                  evalue, matrix, short = False, uniqueid = 1,
                  kegg = False, ko_entry = None, ko_id = None, useDisk=True):
+        for x in [query, queryid, source, target, targetorg,
+                  evalue, matrix, short, uniqueid,
+                  kegg, ko_entry, ko_id, useDisk]:
+            if isinstance(x, bytes):
+                x = x.decode('utf-8')
         self.query = query
         self.queryid = queryid
         self.source = source
@@ -230,7 +238,7 @@ class RunBBH(object):
         self.ko_id = ko_id
         self.useDisk = bool(useDisk)
         
-        self.out = self.query + '_' + str(self.uniqueid) +'.xml'
+        self.out = self.queryid + '_' + str(self.uniqueid) +'.xml'
         self.blaster = Blaster(useDisk=self.useDisk)
         self.additional = (' -soft_masking true -dbsize 500000000 '+
                     '-use_sw_tback -max_target_seqs 1 -matrix %s'%self.matrix)

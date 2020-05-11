@@ -80,8 +80,8 @@ class MetabolicNet(object):
             for n in nodes:
                 self.net.add_node(n.co_id, name=n.name)
                 if hasattr(n, 'weight'):
-                    self.net.node[n.co_id]['weight'] = n.weight
-                    self.net.node[n.co_id]['graphics'] = {'fill': n.getColor()}
+                    self.net.nodes[n.co_id]['weight'] = n.weight
+                    self.net.nodes[n.co_id]['graphics'] = {'fill': n.getColor()}
         
         if edges:
             for e in edges:
@@ -95,7 +95,7 @@ class MetabolicNet(object):
         '''
         for co in self.net.nodes():
             try:
-                self.net.node[co]['weight']
+                self.net.nodes[co]['weight']
                 return True
             except:pass
             
@@ -115,8 +115,7 @@ class MetabolicNet(object):
         '''
         Remove nodes with degree 0
         '''
-        to_remove = filter(lambda x: self.net.degree()[x] == 0,
-                           self.net.nodes())
+        to_remove = [x for x in self.net.nodes() if self.net.degree()[x] == 0]
         self.net.remove_nodes_from(to_remove)
             
     def setNet(self, net):
@@ -134,8 +133,8 @@ class MetabolicNet(object):
         for n in nodes:
             self.net.add_node(n.co_id, name=n.name)
             if hasattr(n, 'weight'):
-                self.net.node[n.co_id]['weight'] = n.weight
-                self.net.node[n.co_id]['graphics'] = {'fill': n.getColor()}
+                self.net.nodes[n.co_id]['weight'] = n.weight
+                self.net.nodes[n.co_id]['graphics'] = {'fill': n.getColor()}
                 
     def __len__(self):
         '''
@@ -168,7 +167,7 @@ class MetabolicNet(object):
         
         for co in self.net.nodes():
             try:
-                weights.append(self.net.node[co]['weight'])
+                weights.append(self.net.nodes[co]['weight'])
             except:pass
             
         if len(weights) == 0:
@@ -184,7 +183,7 @@ class MetabolicNet(object):
         
         for co in self.net.nodes():
             try:
-                weights.append(self.net.node[co]['weight'])
+                weights.append(self.net.nodes[co]['weight'])
             except:pass
             
         if len(weights) == 0:

@@ -6,13 +6,20 @@ Kegg Library
 
 Kegg data fetching
 """
-import urllib2 as urllib
+import sys
+if sys.version_info[0] < 3:
+    import Queue as queue
+    from urllib2 import quote
+    from urllib2 import urlopen
+else:
+    from urllib.request import urlopen
+    from urllib.parse import quote
+    import queue
 from ductape.common.commonthread import CommonThread
 from ductape.common.utils import get_span
 from ductape.common.utils import isOnline
 from ductape.kegg.web import kheader
 from matplotlib import colors
-import Queue
 import logging
 import os
 import shutil
@@ -175,8 +182,8 @@ class KeggAPI(object):
             try:
                 self.input = None
                 logger.debug('Looking for KEGG db version')
-                url = self._apiurl + urllib.quote('info/kegg')
-                data = urllib.urlopen(url, timeout=20).read().split('\n')
+                url = self._apiurl + quote('info/kegg')
+                data = urlopen(url, timeout=20).read().decode('utf-8').split('\n')
                 
                 line = data[1].split('             ')[1]
                 self.result = (line, self.getRelease(line))
@@ -218,8 +225,8 @@ class KeggAPI(object):
                 #
                 
                 url = url.rstrip('+')
-                url = self._apiurl + 'get/' + urllib.quote(url)
-                data = urllib.urlopen(url, timeout=20).read()
+                url = self._apiurl + 'get/' + quote(url)
+                data = urlopen(url, timeout=20).read().decode('utf-8')
                 
                 self.result = {}
                 for lines in data.split('///'):
@@ -281,8 +288,8 @@ class KeggAPI(object):
                 #
                     
                 url = url.rstrip('+')
-                url = self._apiurl + 'get/' + urllib.quote(url)
-                data = urllib.urlopen(url, timeout=20).read()
+                url = self._apiurl + 'get/' + quote(url)
+                data = urlopen(url, timeout=20).read().decode('utf-8')
                 
                 self.result = {}
                 for lines in data.split('///'):
@@ -335,9 +342,9 @@ class KeggAPI(object):
             try:
                 self.input = db
                 logger.debug('Looking for KEGG IDs from db %s'%db)
-                url = self._apiurl + 'list/%s/'%urllib.quote(db)
+                url = self._apiurl + 'list/%s/' % quote(db)
                 
-                data = urllib.urlopen(url, timeout=20).read()
+                data = urlopen(url, timeout=20).read().decode('utf-8')
                 self.result = set([x.split('\t')[0] for x in data.split('\n')])
                 try:
                     self.result.remove('')
@@ -373,9 +380,9 @@ class KeggAPI(object):
                     url += '%s+'%ko_id
                 url = url.rstrip('+')
                 
-                url = self._apiurl + 'link/reaction/' + urllib.quote(url)
+                url = self._apiurl + 'link/reaction/' + quote(url)
                 
-                data = urllib.urlopen(url, timeout=20).read()
+                data = urlopen(url, timeout=20).read().decode('utf-8')
                 self.result = self.parseLinks(data)
                 return
             except Exception as e:
@@ -407,9 +414,9 @@ class KeggAPI(object):
                     url += '%s+'%re_id
                 url = url.rstrip('+')
                 
-                url = self._apiurl + 'link/pathway/' + urllib.quote(url)
+                url = self._apiurl + 'link/pathway/' + quote(url)
                 
-                data = urllib.urlopen(url, timeout=20).read()
+                data = urlopen(url, timeout=20).read().decode('utf-8')
                 self.result = self.parseLinks(data)
                 return
             except Exception as e:
@@ -441,9 +448,9 @@ class KeggAPI(object):
                     url += '%s+'%co_id
                 url = url.rstrip('+')
                 
-                url = self._apiurl + 'link/reaction/' + urllib.quote(url)
+                url = self._apiurl + 'link/reaction/' + quote(url)
                 
-                data = urllib.urlopen(url, timeout=20).read()
+                data = urlopen(url, timeout=20).read().decode('utf-8')
                 self.result = self.parseLinks(data)
                 return
             except Exception as e:
@@ -475,9 +482,9 @@ class KeggAPI(object):
                     url += '%s+'%path_id
                 url = url.rstrip('+')
                 
-                url = self._apiurl + 'link/reaction/' + urllib.quote(url)
+                url = self._apiurl + 'link/reaction/' + quote(url)
                 
-                data = urllib.urlopen(url, timeout=20).read()
+                data = urlopen(url, timeout=20).read().decode('utf-8')
                 self.result = self.parseLinks(data)
                 return
             except Exception as e:
@@ -514,8 +521,8 @@ class KeggAPI(object):
                 #
                 
                 url = url.rstrip('+')
-                url = self._apiurl + 'get/' + urllib.quote(url)
-                data = urllib.urlopen(url, timeout=20).read()
+                url = self._apiurl + 'get/' + quote(url)
+                data = urlopen(url, timeout=20).read().decode('utf-8')
                 
                 self.result = {}
                 for lines in data.split('///'):
@@ -561,9 +568,9 @@ class KeggAPI(object):
                     url += '%s+'%re_id
                 url = url.rstrip('+')
                 
-                url = self._apiurl + 'link/compound/' + urllib.quote(url)
+                url = self._apiurl + 'link/compound/' + quote(url)
                 
-                data = urllib.urlopen(url, timeout=20).read()
+                data = urlopen(url, timeout=20).read().decode('utf-8')
                 self.result = self.parseLinks(data)
                 return
             except Exception as e:
@@ -595,9 +602,9 @@ class KeggAPI(object):
                     url += '%s+'%path_id
                 url = url.rstrip('+')
                 
-                url = self._apiurl + 'link/compound/' + urllib.quote(url)
+                url = self._apiurl + 'link/compound/' + quote(url)
                 
-                data = urllib.urlopen(url, timeout=20).read()
+                data = urlopen(url, timeout=20).read().decode('utf-8')
                 self.result = self.parseLinks(data)
                 return
             except Exception as e:
@@ -646,12 +653,12 @@ class KeggAPI(object):
                     #
                     else:
                         if border_list is not None and border_list[i] is not None:
-                            url += obj_list[i] + '%09' + color_list[i] + ',' + border_list[i] + '/'
+                            url += '%09' + color_list[i] + ',' + border_list[i] + '/'
                         else:
-                            url += obj_list[i] + '%09' + color_list[i] + '/'
+                            url += '%09' + color_list[i] + '/'
                
                 # Cannot quote this url, no colored pathway can be obtained then
-                #url = self._maplink + urllib.quote(url)
+                #url = self._maplink + quote(url)
                 url = self._maplink + url
                 
                 logger.debug(url)
@@ -660,8 +667,8 @@ class KeggAPI(object):
                     logger.warning('URL too long for pathway %s, will skip'%path_id)
                     self.result = ''
 
-                sock=urllib.urlopen(url, timeout=60)
-                self.result = sock.read()
+                sock=urlopen(url, timeout=60)
+                self.result = sock.read().decode('utf-8')
                 sock.close()
                 return
             except Exception as e:
@@ -722,8 +729,8 @@ class KeggColor(object):
         objs += [x for x in self.compounds]
         
         colors = []
-        for x in self.reactions.keys()+self.compounds.keys():
-            if x in self.borders.keys():
+        for x in list(self.reactions.keys())+list(self.compounds.keys()):
+            if x in list(self.borders.keys()):
                 colors.append(self.borders[x])
             else:
                 colors.append(None)
@@ -758,7 +765,7 @@ class KeggDetails(object):
         if not det:
             return det
         
-        for key, value in det.iteritems():
+        for key, value in list(det.items()):
             if not value:
                 erase.append(key)
         
@@ -779,28 +786,28 @@ class KeggDetails(object):
                  rpairreact=None):
         self.koreact = {}
         if koreact:
-            for k,v in koreact.iteritems():
+            for k,v in list(koreact.items()):
                 self.koreact[k] = []
                 for i in v:
                     self.koreact[k].append(str(i))
 
         self.pathreact = {}
         if pathreact:
-            for k,v in pathreact.iteritems():
+            for k,v in list(pathreact.items()):
                 self.pathreact[k] = []
                 for i in v:
                     self.pathreact[k].append(str(i))
                     
         self.pathcomp = {}
         if pathcomp:
-            for k,v in pathcomp.iteritems():
+            for k,v in list(pathcomp.items()):
                 self.pathcomp[k] = []
                 for i in v:
                     self.pathcomp[k].append(str(i))
                     
         self.compreact = {}
         if compreact:
-            for k,v in compreact.iteritems():
+            for k,v in list(compreact.items()):
                 self.compreact[k] = []
                 for i in v:
                     self.compreact[k].append(str(i))
@@ -809,21 +816,21 @@ class KeggDetails(object):
         
         self.reactcomp = {}
         if reactcomp:
-            for k,v in reactcomp.iteritems():
+            for k,v in list(reactcomp.items()):
                 self.reactcomp[k] = []
                 for i in v:
                     self.reactcomp[k].append(str(i))
                     
         self.reactrpair = {}
         if reactrpair:
-            for k,v in reactrpair.iteritems():
+            for k,v in list(reactrpair.items()):
                 self.reactrpair[k] = []
                 for i in v:
                     self.reactrpair[k].append(str(i))
                     
         self.rpairreact = {}
         if rpairreact:
-            for k,v in rpairreact.iteritems():
+            for k,v in list(rpairreact.items()):
                 self.rpairreact[k] = []
                 for i in v:
                     self.rpairreact[k].append(str(i))
@@ -856,7 +863,7 @@ class KeggDetails(object):
         return self.pathmaps
 
 class BaseKegg(CommonThread):
-    def __init__(self, threads=10, keeptrying=False, queue=Queue.Queue()):
+    def __init__(self, threads=10, keeptrying=False, queue=queue.Queue()):
         CommonThread.__init__(self,queue)
         
         # Kegg connection
@@ -900,7 +907,7 @@ class BaseKegg(CommonThread):
             
 class BaseMapper(BaseKegg):
     def __init__(self, threads=10, avoid=[], keeptrying=False,
-                        queue=Queue.Queue()):
+                        queue=queue.Queue()):
         BaseKegg.__init__(self, threads=threads, keeptrying=keeptrying,
                                 queue=queue)
 
@@ -925,7 +932,7 @@ class BaseMapper(BaseKegg):
         self.result = None
         
     def getReactDetails(self):
-        pieces = [p for p in get_span(self.reactdet.keys(), 9)]
+        pieces = [p for p in get_span(list(self.reactdet.keys()), 9)]
         for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
@@ -972,11 +979,11 @@ class BaseMapper(BaseKegg):
                     logger.debug('Found an empty handler')
                     continue
                 
-                for kid, title in handler.result.iteritems():
+                for kid, title in list(handler.result.items()):
                     self.reactdet[kid] = title
     
     def getRPairDetails(self):
-        pieces = [p for p in get_span(self.rpairdet.keys(), 9)]
+        pieces = [p for p in get_span(list(self.rpairdet.keys()), 9)]
         for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
@@ -1005,7 +1012,7 @@ class BaseMapper(BaseKegg):
                                           'main']
     
     def getPathDetails(self):
-        pieces = [p for p in get_span(self.pathdet.keys(), 9)]
+        pieces = [p for p in get_span(list(self.pathdet.keys()), 9)]
         for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
@@ -1052,11 +1059,11 @@ class BaseMapper(BaseKegg):
                     logger.debug('Found an empty handler')
                     continue
                 
-                for kid, title in handler.result.iteritems():
+                for kid, title in list(handler.result.items()):
                     self.pathdet[kid] = title
     
     def getMapsDetails(self):
-        for piece in get_span(self.pathdet.keys(), self.numThreads):
+        for piece in get_span(list(self.pathdet.keys()), self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
                 return
@@ -1098,7 +1105,7 @@ class BaseMapper(BaseKegg):
                 self.pathmap[handler.input] = parser.map
     
     def getPathReactions(self):
-        pieces = [p for p in get_span(self.pathdet.keys(), 80)]
+        pieces = [p for p in get_span(list(self.pathdet.keys()), 80)]
         for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
@@ -1145,16 +1152,16 @@ class BaseMapper(BaseKegg):
                     logger.debug('Found an empty handler')
                     continue
                 
-                for path, reacts in handler.result.iteritems():
+                for path, reacts in list(handler.result.items()):
                     if path not in self.pathreact:
                         self.pathreact[path] = reacts
-                reacts = set([v for vs in handler.result.itervalues() for v in vs])
+                reacts = set([v for vs in list(handler.result.values()) for v in vs])
                 for react in reacts:
                     if react not in self.reactdet:
                         self.reactdet[react] = None
                         
     def getPathCompounds(self):
-        pieces = [p for p in get_span(self.pathdet.keys(), 80)]
+        pieces = [p for p in get_span(list(self.pathdet.keys()), 80)]
         for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
@@ -1201,16 +1208,16 @@ class BaseMapper(BaseKegg):
                     logger.debug('Found an empty handler')
                     continue
                 
-                for path, comps in handler.result.iteritems():
+                for path, comps in list(handler.result.items()):
                     if path not in self.pathcomp:
                         self.pathcomp[path] = comps
-                comps = set([v for vs in handler.result.itervalues() for v in vs])
+                comps = set([v for vs in list(handler.result.values()) for v in vs])
                 for comp in comps:
                     if comp not in self.compdet:
                         self.compdet[comp] = None
                         
     def getCompDetails(self):
-        pieces = [p for p in get_span(self.compdet.keys(), 9)]
+        pieces = [p for p in get_span(list(self.compdet.keys()), 9)]
         for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
@@ -1257,11 +1264,11 @@ class BaseMapper(BaseKegg):
                     logger.debug('Found an empty handler')
                     continue
                 
-                for kid, title in handler.result.iteritems():
+                for kid, title in list(handler.result.items()):
                     self.compdet[kid] = title
     
     def getPathways(self):
-        pieces = [p for p in get_span(self.reactdet.keys(), 80)]
+        pieces = [p for p in get_span(list(self.reactdet.keys()), 80)]
         for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
@@ -1308,19 +1315,19 @@ class BaseMapper(BaseKegg):
                     logger.debug('Found an empty handler')
                     continue
                 
-                for react, paths in handler.result.iteritems():
+                for react, paths in list(handler.result.items()):
                     if react not in self.reactpath:
                         self.reactpath[react] = []
                     for path in paths:
                         if path.startswith('path:map'):continue
                         self.reactpath[react].append(path)
-                paths = set([v for vs in handler.result.itervalues() for v in vs])
+                paths = set([v for vs in list(handler.result.values()) for v in vs])
                 for path in paths:
                     if path not in self.pathdet and not path.startswith('path:map'):
                         self.pathdet[path] = None
                         
     def getReactCompounds(self):
-        pieces = [p for p in get_span(self.reactdet.keys(), 80)]
+        pieces = [p for p in get_span(list(self.reactdet.keys()), 80)]
         for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
@@ -1367,16 +1374,16 @@ class BaseMapper(BaseKegg):
                     logger.debug('Found an empty handler')
                     continue
                 
-                for react, comps in handler.result.iteritems():
+                for react, comps in list(handler.result.items()):
                     if react not in self.reactcomp:
                         self.reactcomp[react] = comps
-                comps = set([v for vs in handler.result.itervalues() for v in vs])
+                comps = set([v for vs in list(handler.result.values()) for v in vs])
                 for comp in comps:
                     if comp not in self.compdet:
                         self.compdet[comp] = None
                         
     def getCompoundReacts(self):
-        pieces = [p for p in get_span(self.compdet.keys(), 80)]
+        pieces = [p for p in get_span(list(self.compdet.keys()), 80)]
         for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
@@ -1423,16 +1430,16 @@ class BaseMapper(BaseKegg):
                     logger.debug('Found an empty handler')
                     continue
                 
-                for comp, reacts in handler.result.iteritems():
+                for comp, reacts in list(handler.result.items()):
                     if comp not in self.compreact:
                         self.compreact[comp] = reacts
-                reacts = set([v for vs in handler.result.itervalues() for v in vs])
+                reacts = set([v for vs in list(handler.result.values()) for v in vs])
                 for react in reacts:
                     if react not in self.reactdet:
                         self.reactdet[react] = None
     
     def getReactRPairs(self):
-        pieces = [p for p in get_span(self.reactdet.keys(), 80)]
+        pieces = [p for p in get_span(list(self.reactdet.keys()), 80)]
         for piece in get_span(pieces, self.numThreads):
             if self.killed:
                 logger.debug('Exiting for a kill signal')
@@ -1479,10 +1486,10 @@ class BaseMapper(BaseKegg):
                     logger.debug('Found an empty handler')
                     continue
                 
-                for react, rpairs in handler.result.iteritems():
+                for react, rpairs in list(handler.result.items()):
                     if react not in self.reactrpair:
                         self.reactrpair[react] = rpairs
-                rpairs = set([v for vs in handler.result.itervalues() for v in vs])
+                rpairs = set([v for vs in list(handler.result.values()) for v in vs])
                 for rpair in rpairs:
                     if rpair not in self.rpairdet:
                         self.rpairdet[rpair] = None
@@ -1510,7 +1517,7 @@ class KoMapper(BaseMapper):
     _substatuses = [2,3,4,5,6,7]
     
     def __init__(self, ko_list, threads=40, avoid=[], keeptrying=False,
-                        queue=Queue.Queue()):
+                        queue=queue.Queue()):
         BaseMapper.__init__(self, threads=threads, avoid=avoid,
                             keeptrying=keeptrying, queue=queue)
         # Kegg
@@ -1568,7 +1575,7 @@ class KoMapper(BaseMapper):
                     logger.debug('Found an empty handler')
                     continue
                 
-                for kid, title in handler.result.iteritems():
+                for kid, title in list(handler.result.items()):
                     self.kodet[kid] = title
                 
     def getReactions(self):
@@ -1619,10 +1626,10 @@ class KoMapper(BaseMapper):
                     logger.debug('Found an empty handler')
                     continue
                 
-                for ko, reacts in handler.result.iteritems():
+                for ko, reacts in list(handler.result.items()):
                     if ko not in self.koreact:
                         self.koreact[ko] = reacts
-                reacts = set([v for vs in handler.result.itervalues() for v in vs])
+                reacts = set([v for vs in list(handler.result.values()) for v in vs])
                 for react in reacts:
                     if react not in self.reactdet:
                         self.reactdet[react] = None
@@ -1847,7 +1854,7 @@ class CompMapper(BaseMapper):
     _substatuses = [2,3,4,5,6,7]
     
     def __init__(self, co_list, threads=40, avoid=[], keeptrying=False,
-                        queue=Queue.Queue()):
+                        queue=queue.Queue()):
         BaseMapper.__init__(self, threads=threads, avoid=avoid,
                             keeptrying=keeptrying, queue=queue)
         # Kegg
@@ -2062,7 +2069,7 @@ class MapsFetcher(BaseKegg):
     
     def __init__(self, color_objs, pictures=True, html=True, prefix='', 
                  legend=None, threads=40, keeptrying=False,
-                 queue=Queue.Queue()):
+                 queue=queue.Queue()):
         BaseKegg.__init__(self, threads=threads, keeptrying=keeptrying,
                           queue=queue)
         
@@ -2165,17 +2172,21 @@ class MapsFetcher(BaseKegg):
                 
                 # Fetch the map picture
                 # Hoping it won't change much in the future
+                if isinstance(handler.result, bytes):
+                    handler.result = handler.result.decode('utf-8')
                 for line in handler.result.split('\n'):
                     if ('<img' in line
                         and 'pathwayimage' in line
                         and 'usemap="#mapdata"' in line):
                         urlimage = 'http://www.kegg.jp/' + line.split('src="')[1].split('"')[0]
 
-                        sock=urllib.urlopen(urlimage, timeout=30)
+                        sock=urlopen(urlimage, timeout=30)
                         pic = sock.read()
+                        #if isinstance(pic, bytes):
+                        #    pic = pic.decode('utf-8')
                         sock.close()
                         
-                        fOut = open(fname,'w')
+                        fOut = open(fname,'wb')
                         fOut.write(pic)
                         fOut.close()
                         self.pics.append(fname)
@@ -2317,7 +2328,7 @@ class KeggNet(BaseMapper):
     _substatuses = [3,4,5,6,7,8]
     
     def __init__(self, threads=40, avoid=[], keeptrying=False,
-                        queue=Queue.Queue()):
+                        queue=queue.Queue()):
         BaseMapper.__init__(self, threads=threads, avoid=avoid,
                                     keeptrying=keeptrying, queue=queue)
         

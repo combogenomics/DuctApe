@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 """
 DuctApe
 
@@ -215,7 +215,7 @@ def dmap(options, wdir, project):
                          
                         # Create the input objects
                         colorPaths = []
-                        for path in set(rpaths.keys() + cpaths.keys()):
+                        for path in set(list(rpaths.keys()) + list(cpaths.keys())):
                             KC = KeggColor(path)
                             
                             # Reactions
@@ -261,7 +261,7 @@ def dmap(options, wdir, project):
                                     else:
                                         grey.add(well.co_id)
                                 
-                                for k, v in corg.iteritems():
+                                for k, v in corg.items():
                                     mean = np.array(v).mean()
                                     if mean != np.nan or abs(diff) >= options.delta:
                                         corg[k] = mean
@@ -274,7 +274,7 @@ def dmap(options, wdir, project):
                                 
                                 # Create the input objects
                                 colorPaths = []
-                                for path in set(rpaths.keys() + cpaths.keys()):
+                                for path in set(list(rpaths.keys()) + list(cpaths.keys())):
                                     KC = KeggColor(path)
 
                                     dreact = {}
@@ -431,7 +431,7 @@ def dmap(options, wdir, project):
                         corg[well.co_id].append(avgdiff)
                     
                     toremove = set()
-                    for k, v in corg.iteritems():
+                    for k, v in corg.items():
                         mean = np.array(v).mean()
                         if mean != np.nan:
                             corg[k] = mean
@@ -446,7 +446,7 @@ def dmap(options, wdir, project):
                     
                     # Create the input objects
                     colorPaths = []
-                    for path in set(rpaths.keys() + cpaths.keys()):
+                    for path in set(list(rpaths.keys()) + list(cpaths.keys())):
                         KC = KeggColor(path)
 
                         dreact = {}
@@ -597,7 +597,7 @@ def dmap(options, wdir, project):
                                 else:
                                     grey.add(well.co_id)
                             
-                            for k, v in corg.iteritems():
+                            for k, v in corg.items():
                                 mean = np.array(v).mean()
                                 if mean != np.nan or abs(diff) >= options.delta:
                                     corg[k] = mean
@@ -610,7 +610,7 @@ def dmap(options, wdir, project):
                             
                             # Create the input objects
                             colorPaths = []
-                            for path in set(rpaths.keys() + cpaths.keys()):
+                            for path in set(list(rpaths.keys()) + list(cpaths.keys())):
                                 KC = KeggColor(path)
                                 
                                 dreact = {}
@@ -779,7 +779,7 @@ def doFetchMaps(project, org_id, rpaths, cpaths, legend=None, category=None,
             corg[well.co_id].append(act)
     
     toremove = set()
-    for k, v in corg.iteritems():
+    for k, v in corg.items():
         mean = np.array(v).mean()
         if mean != np.nan:
             corg[k] = mean
@@ -794,7 +794,7 @@ def doFetchMaps(project, org_id, rpaths, cpaths, legend=None, category=None,
      
     # Create the input objects
     colorPaths = []
-    for path in set(rpaths.keys() + cpaths.keys()):
+    for path in set(list(rpaths.keys()) + list(cpaths.keys())):
         KC = KeggColor(path)
         
         # Reactions

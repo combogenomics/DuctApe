@@ -9,7 +9,11 @@ Uses a serial-BBH approach to compute a pangenome of the desired organisms list
 from Bio import SeqIO
 from ductape.common.commonmultiprocess import CommonMultiProcess
 from ductape.genome.blast import Blaster, RunBBH
-import Queue
+import sys
+if sys.version_info[0] < 3:
+    import Queue as queue
+else:
+    import queue
 import logging
 import os
 import shutil
@@ -40,7 +44,7 @@ class PanGenomer(CommonMultiProcess):
     def __init__(self,organisms,
                  ncpus=1,evalue=1e-10,
                  recover=False,prefix='',
-                 matrix='BLOSUM80',queue=Queue.Queue()):
+                 matrix='BLOSUM80',queue=queue.Queue()):
         CommonMultiProcess.__init__(self,ncpus,queue)
         # Blast
         self.organisms = list(organisms)

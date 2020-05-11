@@ -809,7 +809,7 @@ class Genome(DBBase):
         An exception is raised if at least one protein is missing
         '''
         # Check if all the proteins are present
-        prots = [prot_id for ps in orthologs.values() for prot_id in ps]
+        prots = [prot_id for ps in list(orthologs.values()) for prot_id in ps]
         for prot_id in prots:
             if not self.isProt(prot_id):
                 logger.warning('Protein %s is not present yet!'%prot_id)
@@ -882,7 +882,7 @@ class Genome(DBBase):
         pangenome = self.getPanGenome()
         
         panko = {}
-        for group_id, prots in pangenome.iteritems():
+        for group_id, prots in pangenome.items():
             panko[group_id] = {}
             for prot_id in prots:
                 panko[group_id][prot_id] = ko.get(prot_id, None)
@@ -1285,7 +1285,7 @@ class Kegg(DBBase):
         self.boost()
         
         with self.connection as conn:
-            for ko_id,values in ko.iteritems():
+            for ko_id,values in ko.items():
                 name = values[0]
                 if len(values) > 1:
                     description = values[1]
@@ -1486,7 +1486,7 @@ class Kegg(DBBase):
         self.boost()
         
         with self.connection as conn:
-            for re_id, values in react.iteritems():
+            for re_id, values in react.items():
                 name = values[0]
                 
                 if len(values) > 1:
@@ -1610,7 +1610,7 @@ class Kegg(DBBase):
         self.boost()
         
         with self.connection as conn:
-            for rp_id, values in rp.iteritems():
+            for rp_id, values in rp.items():
                 co1, co2, kind = values[0], values[1], values[2]
                 conn.execute('insert or ignore into rpair values (?,?,?,?);',
                      (rp_id,co1,co2,kind,))
@@ -1788,7 +1788,7 @@ class Kegg(DBBase):
         self.boost()
         
         with self.connection as conn:
-            for co_id, values in co.iteritems():
+            for co_id, values in co.items():
                 name = values[0]
                 if len(values) > 1:
                     description = values[1]
@@ -1850,7 +1850,7 @@ class Kegg(DBBase):
         self.boost()
         
         with self.connection as conn:
-            for path_id, values in path.iteritems():
+            for path_id, values in path.items():
                 name = values[0]
                 if len(values) > 1:
                     description = values[1]
@@ -1871,7 +1871,7 @@ class Kegg(DBBase):
         with self.connection as conn:
             conn.text_factory = str
             
-            for path_id, html in path.iteritems():
+            for path_id, html in path.items():
                 if not html:continue
                 html = '\n'.join(html)
                 conn.execute('''update pathway set html=? where path_id=?;''',
@@ -2199,10 +2199,10 @@ class Kegg(DBBase):
             
         rall = [Row(res, cursor.description) for res in cursor]
 
-        rcore = set([r for r in filter(lambda x: x.group_id in ocore, rall)])
-        rdisp = set([r for r in filter(lambda x: x.group_id in odisp, rall)])
-        racc = set([r for r in filter(lambda x: x.group_id in oacc, rall)])
-        runi = set([r for r in filter(lambda x: x.group_id in ouni, rall)])
+        rcore = set([r for r in [x for x in rall if x.group_id in ocore]])
+        rdisp = set([r for r in [x for x in rall if x.group_id in odisp]])
+        racc = set([r for r in [x for x in rall if x.group_id in oacc]])
+        runi = set([r for r in [x for x in rall if x.group_id in ouni]])
         
         rnums = {}
         for r in self.getAllReactNum():
@@ -2267,7 +2267,7 @@ class Kegg(DBBase):
                 mut = {}
                 for row in self.getAllRPairsReacts(mut_id, path_id):
                     mut[row.re_id+row.co1+row.co2] = row
-                mut = dict(mut.items() + ref.items())
+                mut = dict(list(mut.items()) + list(ref.items()))
                 
                 out[mut_id] = {}
                 
@@ -2288,10 +2288,10 @@ class Kegg(DBBase):
                         del ref_temp[k]
                     
                 present = set()
-                for k, r in ref_temp.iteritems():
+                for k, r in ref_temp.items():
                     present.add(r.re_id+r.co1+r.co2)
                 absent = set()
-                for k, r in mut.iteritems():
+                for k, r in mut.items():
                     absent.add(r.re_id+r.co1+r.co2)
                 
                 out[mut_id] = {}
@@ -2324,7 +2324,7 @@ class Kegg(DBBase):
         rall = [Row(res, cursor.description) for res in cursor]
         groups = set([x.group_id for x in genome.getCore()])
         
-        for r in filter(lambda x: x.group_id in groups, rall):
+        for r in [x for x in rall if x.group_id in groups]:
             setattr(r, 'num', nOrg)
             yield r
             
@@ -2373,7 +2373,7 @@ class Kegg(DBBase):
         groups = set([x.group_id for x in genome.getCore()])
         
         already = set()
-        for r in filter(lambda x: x.group_id in groups, rall):
+        for r in [x for x in rall if x.group_id in groups]:
             setattr(r, 'weight', nOrg)
             if r.re_id+r.co1+r.co2 in already:
                 continue
@@ -2400,7 +2400,7 @@ class Kegg(DBBase):
         rall = [Row(res, cursor.description) for res in cursor]
         groups = set([x.group_id for x in genome.getDisp()])
         
-        for r in filter(lambda x: x.group_id in groups, rall):
+        for r in [x for x in rall if x.group_id in groups]:
             setattr(r, 'num', genome.getGroupNum(r.group_id))
             yield r
     
@@ -2449,12 +2449,12 @@ class Kegg(DBBase):
         
         # Get max organism numerosity
         rpath = {}
-        for r in filter(lambda x: x.group_id in groups, rall):
+        for r in [x for x in rall if x.group_id in groups]:
             rpath[r.re_id+r.co1+r.co2] = rpath.get(r.re_id+r.co1+r.co2, set())
             rpath[r.re_id+r.co1+r.co2].add(genome.getGroupNum(r.group_id))
         
         already = set()
-        for r in filter(lambda x: x.group_id in groups, rall):
+        for r in [x for x in rall if x.group_id in groups]:
             if r.re_id+r.co1+r.co2 in already:
                 continue
             already.add(r.re_id+r.co1+r.co2)
@@ -2481,7 +2481,7 @@ class Kegg(DBBase):
         rall = [Row(res, cursor.description) for res in cursor]
         groups = set([x.group_id for x in genome.getAcc()])
         
-        for r in filter(lambda x: x.group_id in groups, rall):
+        for r in [x for x in rall if x.group_id in groups]:
             setattr(r, 'num', genome.getGroupNum(r.group_id))
             yield r
     
@@ -2530,12 +2530,12 @@ class Kegg(DBBase):
         
         # Get max organism numerosity
         rpath = {}
-        for r in filter(lambda x: x.group_id in groups, rall):
+        for r in [x for x in rall if x.group_id in groups]:
             rpath[r.re_id+r.co1+r.co2] = rpath.get(r.re_id+r.co1+r.co2, set())
             rpath[r.re_id+r.co1+r.co2].add(genome.getGroupNum(r.group_id))
         
         already = set()
-        for r in filter(lambda x: x.group_id in groups, rall):
+        for r in [x for x in rall if x.group_id in groups]:
             if r.re_id+r.co1+r.co2 in already:
                 continue
             already.add(r.re_id+r.co1+r.co2)
@@ -2561,7 +2561,7 @@ class Kegg(DBBase):
         rall = [Row(res, cursor.description) for res in cursor]
         groups = set([x.group_id for x in genome.getUni()])
         
-        for r in filter(lambda x: x.group_id in groups, rall):
+        for r in [x for x in rall if x.group_id in groups]:
             setattr(r, 'num', 1)
             yield r
             
@@ -2609,7 +2609,7 @@ class Kegg(DBBase):
         groups = set([x.group_id for x in genome.getUni()])
         
         already = set()
-        for r in filter(lambda x: x.group_id in groups, rall):
+        for r in [x for x in rall if x.group_id in groups]:
             if r.re_id+r.co1+r.co2 in already:
                 continue
             already.add(r.re_id+r.co1+r.co2)
@@ -2771,11 +2771,11 @@ class Kegg(DBBase):
                         del ref_react[prot_id]
                     
                 present = set()
-                for prot_id, re_ids in ref_react.iteritems():
+                for prot_id, re_ids in ref_react.items():
                     for re_id in re_ids:
                         present.add(re_id)
                 absent = set()
-                for prot_id, re_ids in mut_react.iteritems():
+                for prot_id, re_ids in mut_react.items():
                     for re_id in re_ids:
                         absent.add(re_id)
                 
@@ -2808,10 +2808,10 @@ class Kegg(DBBase):
             
         rall = [Row(res, cursor.description) for res in cursor]
 
-        rcore = set([r.re_id for r in filter(lambda x: x.group_id in core, rall)])
-        rdisp = set([r.re_id for r in filter(lambda x: x.group_id in disp, rall)])
-        racc = set([r.re_id for r in filter(lambda x: x.group_id in acc, rall)])
-        runi = set([r.re_id for r in filter(lambda x: x.group_id in uni, rall)])
+        rcore = set([r.re_id for r in [x for x in rall if x.group_id in core]])
+        rdisp = set([r.re_id for r in [x for x in rall if x.group_id in disp]])
+        racc = set([r.re_id for r in [x for x in rall if x.group_id in acc]])
+        runi = set([r.re_id for r in [x for x in rall if x.group_id in uni]])
         
         return (rcore.difference(rdisp),
                 rdisp.difference(rcore),
@@ -2857,7 +2857,7 @@ class Kegg(DBBase):
                 groups = set([x.group_id for x in genome.getUni()])
                 
             mapped = set([r.group_id
-                         for r in filter(lambda x: x.group_id in groups, rall)])
+                         for r in [x for x in rall if x.group_id in groups]])
             return len(mapped)
         
         else:
@@ -2912,7 +2912,7 @@ class Kegg(DBBase):
                 groups = set([x.group_id for x in genome.getUni()])
                 
             kos = set([r.ko_id
-                         for r in filter(lambda x: x.group_id in groups, rall)])
+                         for r in [x for x in rall if x.group_id in groups]])
             return len(kos)
         else:
             query = '''
@@ -2968,7 +2968,7 @@ class Kegg(DBBase):
                 groups = set([x.group_id for x in genome.getUni()])
                 
             pairs = set([(r.re_id, r.group_id)
-                         for r in filter(lambda x: x.group_id in groups, rall)])
+                         for r in [x for x in rall if x.group_id in groups]])
             return len(pairs)    
 
         else:
@@ -3025,7 +3025,7 @@ class Kegg(DBBase):
             elif pangenome == 'unique':
                 groups = set([x.group_id for x in genome.getUni()])
                 
-            reacts = set([r.re_id for r in filter(lambda x: x.group_id in groups, rall)])
+            reacts = set([r.re_id for r in [x for x in rall if x.group_id in groups]])
             return len(reacts)
             
         else:
@@ -3085,7 +3085,7 @@ class Kegg(DBBase):
             elif pangenome == 'unique':
                 groups = set([x.group_id for x in genome.getUni()])
                 
-            paths = set([r.path_id for r in filter(lambda x: x.group_id in groups, rall)])
+            paths = set([r.path_id for r in [x for x in rall if x.group_id in groups]])
             return len(paths)
         
         else:
@@ -3148,7 +3148,7 @@ class Kegg(DBBase):
             elif pangenome == 'unique':
                 groups = set([x.group_id for x in genome.getUni()])
                 
-            paths = set([r.path_id for r in filter(lambda x: x.group_id in groups, rall)])
+            paths = set([r.path_id for r in [x for x in rall if x.group_id in groups]])
             for p in paths:
                 yield Row([p], ['path_id'])
         

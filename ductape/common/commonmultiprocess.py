@@ -10,6 +10,11 @@ from ductape.common.commonthread import CommonThread
 from multiprocessing.queues import Queue
 import logging
 import multiprocessing
+import sys
+if sys.version_info[0] < 3:
+    def t():
+        return None
+    multiprocessing.get_context = t
 import time
 
 # Consumer borrowed from http://broadcast.oreilly.com/
@@ -46,7 +51,10 @@ class SafeQueue(Queue):
     IOError safe multiprocessing Queue
     '''
     def __init__(self):
-        Queue.__init__(self)
+        if sys.version_info[0] < 3:
+            Queue.__init__(self)
+        else:
+            Queue.__init__(self, ctx=multiprocessing.get_context())
         
     def empty(self):
         '''
@@ -136,8 +144,13 @@ class CommonMultiProcess(CommonThread):
     Class CommonMultiProcess
     A Thread that can perform multiprocesses
     '''
-    def __init__(self,ncpus=1, queue=Queue()):
-        CommonThread.__init__(self,queue)
+    def __init__(self, ncpus=1, queue=None):
+        if queue is None:
+            if sys.version_info[0] < 3:
+                queue = Queue()
+            else:
+                queue = Queue(ctx=multiprocessing.get_context())
+        CommonThread.__init__(self, queue)
         
         self.ncpus = int(ncpus)
         # Parallelization

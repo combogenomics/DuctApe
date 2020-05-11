@@ -75,33 +75,33 @@ class TerminalController:
         # Look up string capabilities.
         for capability in self._STRING_CAPABILITIES:
             (attrib, cap_name) = capability.split('=')
-            setattr(self, attrib, self._tigetstr(cap_name) or '')
+            setattr(self, attrib, self._tigetstr(cap_name).encode() or b'')
 
         # Colors
-        set_fg = self._tigetstr('setf')
+        set_fg = self._tigetstr('setf').encode()
         if set_fg:
-            for i,color in zip(range(len(self._COLORS)), self._COLORS):
-                setattr(self, color, curses.tparm(set_fg, i) or '')
-        set_fg_ansi = self._tigetstr('setaf')
+            for i,color in zip(list(range(len(self._COLORS))), self._COLORS):
+                setattr(self, color, curses.tparm(set_fg, i) or b'')
+        set_fg_ansi = self._tigetstr('setaf').encode()
         if set_fg_ansi:
-            for i,color in zip(range(len(self._ANSICOLORS)), self._ANSICOLORS):
-                setattr(self, color, curses.tparm(set_fg_ansi, i) or '')
-        set_bg = self._tigetstr('setb')
+            for i,color in zip(list(range(len(self._ANSICOLORS))), self._ANSICOLORS):
+                setattr(self, color, curses.tparm(set_fg_ansi, i) or b'')
+        set_bg = self._tigetstr('setb').encode()
         if set_bg:
-            for i,color in zip(range(len(self._COLORS)), self._COLORS):
-                setattr(self, 'BG_'+color, curses.tparm(set_bg, i) or '')
-        set_bg_ansi = self._tigetstr('setab')
+            for i,color in zip(list(range(len(self._COLORS))), self._COLORS):
+                setattr(self, 'BG_'+color, curses.tparm(set_bg, i) or b'')
+        set_bg_ansi = self._tigetstr('setab').encode()
         if set_bg_ansi:
-            for i,color in zip(range(len(self._ANSICOLORS)), self._ANSICOLORS):
-                setattr(self, 'BG_'+color, curses.tparm(set_bg_ansi, i) or '')
+            for i,color in zip(list(range(len(self._ANSICOLORS))), self._ANSICOLORS):
+                setattr(self, 'BG_'+color, curses.tparm(set_bg_ansi, i) or b'')
 
     def _tigetstr(self, cap_name):
         # String capabilities can include "delays" of the form "$<2>".
         # For any modern terminal, we should be able to just ignore
         # these, so strip them out.
         import curses
-        cap = curses.tigetstr(cap_name) or ''
-        return re.sub(r'\$<\d+>[/*]?', '', cap)
+        cap = curses.tigetstr(cap_name) or b''
+        return re.sub(r'\$<\d+>[/*]?', '', cap.decode('utf-8'))
 
     def render(self, template):
         return re.sub(r'\$\$|\${\w+}', self._render_sub, template)
@@ -109,7 +109,7 @@ class TerminalController:
     def _render_sub(self, match):
         s = match.group()
         if s == '$$': return s
-        else: return getattr(self, s[2:-1])
+        else: return getattr(self, s[2:-1]).decode('utf-8')
 
 class ProgressBar:
     BAR = '%3d%% ${GREEN}[${BOLD}%s%s${NORMAL}${GREEN}]${NORMAL}\n'
@@ -129,17 +129,19 @@ class ProgressBar:
     def update(self, percent, message=''):
         if not self.use_it:
             return
-        if isinstance(message, unicode):
+        if isinstance(message, str):
             message = message.encode('utf-8', 'ignore')
         if self.cleared:
             sys.stdout.write(self.header)
             self.cleared = 0
         n = int((self.width-10)*percent)
         msg = message.center(self.width)
+        s = self.term.BOL + self.term.UP + self.term.CLEAR_EOL
+        s = s.decode('utf-8')
         sys.stdout.write(
-        self.term.BOL + self.term.UP + self.term.CLEAR_EOL +
+        s +
         (self.bar % (100*percent, '='*n, '-'*(self.width-10-n))) +
-        self.term.CLEAR_EOL + msg)
+        self.term.CLEAR_EOL.decode('utf-8') + msg.decode('utf-8'))
         sys.stdout.flush()
 
     def clear(self):

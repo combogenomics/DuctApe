@@ -8,6 +8,7 @@ Spare parts
 """
 import logging
 import time
+import sys
 
 ################################################################################
 # Log setup
@@ -20,7 +21,7 @@ logger = logging.getLogger('ductape.utils')
 # Borrowed from: www.garyrobinson.net
 def slice_it(li, cols=10):
     start = 0
-    for i in xrange(cols):
+    for i in range(cols):
         stop = start + len(li[i::cols])
         yield li[start:stop]
         start = stop
@@ -158,8 +159,11 @@ def isOnline(url='http://8.8.8.8', timeout=1, retries=2):
     attempts = 0
     while True:
         try:
-            import urllib2
-            response=urllib2.urlopen(url, timeout=1)
+            if sys.version_info[0] < 3:
+                from urllib2 import urlopen
+            else:
+                from urllib.request import urlopen
+            response=urlopen(url, timeout=1)
             return
         except Exception as e:
             attempts += 1

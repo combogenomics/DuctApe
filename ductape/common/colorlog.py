@@ -12,7 +12,7 @@ Thanks to dh82 on Stackoverflow (http://stackoverflow.com/a/2532931/1237531)
 import logging
 import sys
 
-BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
+BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = list(range(8))
 
 COLORS = {
     'WARNING'  : YELLOW,
@@ -55,7 +55,7 @@ class ColorFormatter(logging.Formatter):
         message   = message.replace("$RESET", RESET_SEQ)\
                            .replace("$BOLD",  BOLD_SEQ)\
                            .replace("$COLOR", color)
-        for k,v in COLORS.items():
+        for k,v in list(COLORS.items()):
             message = message.replace("$" + k,    COLOR_SEQ % (v+30))\
                              .replace("$BG" + k,  COLOR_SEQ % (v+40))\
                              .replace("$BG-" + k, COLOR_SEQ % (v+40))

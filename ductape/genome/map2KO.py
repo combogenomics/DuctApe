@@ -10,7 +10,11 @@ from Bio import SeqIO
 from ductape.common.commonmultiprocess import CommonMultiProcess
 from ductape.common.utils import slice_it
 from ductape.genome.blast import Blaster, RunBBH
-import Queue
+import sys
+if sys.version_info[0] < 3:
+    import Queue as queue
+else:
+    import queue
 import logging
 import os
 import webbrowser
@@ -45,7 +49,7 @@ class LocalSearch(CommonMultiProcess):
     
     def __init__(self,query,target,
                  ncpus=1,evalue=1e-50,
-                 buildDB=True,bbh=True,recover=False,queue=Queue.Queue()):
+                 buildDB=True,bbh=True,recover=False,queue=queue.Queue()):
         CommonMultiProcess.__init__(self,ncpus,queue)
         # Blast
         self.query = query

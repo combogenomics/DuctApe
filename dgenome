@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 """
 DuctGenome
 
@@ -193,7 +193,7 @@ def daddKo(options, wdir, project):
         kaas.parseKAAS(filename)
         # TODO: here check if results are empty
         kegg.addDraftKOs( set(kaas.results.values()) )
-        prot_ko = [[x,y] for x,y in kaas.results.iteritems()]
+        prot_ko = [[x,y] for x,y in kaas.results.items()]
         gen.addKOs( prot_ko )
     
     logger.info('Mapped %d proteins to KO'%len(kaas.results))
@@ -232,7 +232,7 @@ def doPanGenome(project, infiles, cpu=1, prefix='',
                 matrix='BLOSUM80', evalue=1e-10):
     from ductape.genome.pangenome import PanGenomer
     
-    pang = PanGenomer(infiles.values(), ncpus=cpu, prefix=prefix,
+    pang = PanGenomer(list(infiles.values()), ncpus=cpu, prefix=prefix,
                        matrix=matrix, evalue=evalue)
     
     if not RunThread(pang):
@@ -256,13 +256,13 @@ def doMap2KO(project, infiles, local=False, keggdb='', cpu=1):
     gen = Genome(project)
     
     if local:
-        for org_id, infile in infiles.iteritems():
+        for org_id, infile in infiles.items():
             komap = LocalSearch(infile, keggdb, ncpus=cpu)
             if not RunThread(komap):
                 return False
             org.setGenomeStatus(org_id, 'map2ko')
             kegg.addDraftKOs( set(komap.results.values()) )
-            gen.addKOs( komap.results.iteritems() )
+            gen.addKOs( iter(komap.results.items()) )
             logger.info('%s - mapped %d proteins to KO'%
                         (org_id, len(komap.results)))
     else:

@@ -188,7 +188,7 @@ def dPhenomeAdd(project, orgID, filename):
         dPlates[plate.plate_id].addData(plate.strain, plate)
     
     # Grep the wells
-    wells = [w for plate in dPlates.itervalues() for w in plate.getWells()]
+    wells = [w for plate in list(dPlates.values()) for w in plate.getWells()]
     
     # Manually add the OrgID
     if not orgFound:
@@ -276,7 +276,7 @@ def dPhenomeMultiAdd(project, filename):
                     plate.replica = 1
         
         # Grep the wells
-        wells = [w for plate in dPlates.itervalues() 
+        wells = [w for plate in list(dPlates.values()) 
                  for w in plate.getWells()]
         
         biolog.addWells(wells, clustered=False)
@@ -1090,7 +1090,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     logger.info('Activity distributions')
     
     # Fake plot top get the correct bin centers
-    y,binEdges=np.histogram(range(10),bins=maxAct + 1)
+    y,binEdges=np.histogram(list(range(10)),bins=maxAct + 1)
     bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
     
     if kind == 'single':
@@ -1101,7 +1101,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         logger.debug('Overall activity')
         d = biolog.getActivityDistribution()
         x = []
-        for k, v in d.iteritems():
+        for k, v in list(d.items()):
             for i in range(v):
                 x.append(k)
                 
@@ -1110,7 +1110,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             y,binEdges=np.histogram(x,bins=maxAct + 1)
             ax.plot(bincenters,y,'-o', color='black', linewidth=2)
             
-            ax.set_ylim(0,max([x for x in d.itervalues()]) + 20)
+            ax.set_ylim(0,max([x for x in list(d.values())]) + 20)
             ax.set_xlim(min(bincenters)-1,max(bincenters)+1)
             
             x0,x1 = ax.get_xlim()
@@ -1140,7 +1140,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     for org in organism.getAll():
         d = biolog.getActivityDistributionByOrg(org.org_id)
         x = []
-        for k, v in d.iteritems():
+        for k, v in list(d.items()):
             for i in range(v):
                 x.append(k)
                 
@@ -1151,7 +1151,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         ax.plot(bincenters,y,'-o', color=dcolors[org.org_id], linewidth=2,
                 alpha=0.66, label=org.org_id)
         
-        maxv.append(max([x for x in d.itervalues()]))
+        maxv.append(max([x for x in list(d.values())]))
         
     ax.set_ylim(0,max(maxv) + 20)
     ax.set_xlim(min(bincenters)-1,max(bincenters)+1)
@@ -1195,7 +1195,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     for bzero in [False,True]:
         d = biolog.getActivityDistributionByZero(bzero)
         x = []
-        for k, v in d.iteritems():
+        for k, v in list(d.items()):
             for i in range(v):
                 x.append(k)
         
@@ -1216,7 +1216,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         for org in organism.getAll():
             d = biolog.getActivityDistributionByZeroAndOrg(org.org_id, bzero)
             x = []
-            for k, v in d.iteritems():
+            for k, v in list(d.items()):
                 for i in range(v):
                     x.append(k)
             
@@ -1227,7 +1227,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             ax.plot(bincenters,y,'-o', color=dcolors[org.org_id], linewidth=2,
                     alpha=0.66, label=org.org_id)
             
-            maxv.append(max([x for x in d.itervalues()]))
+            maxv.append(max([x for x in list(d.values())]))
         
         if len(maxv) == 0:
             continue
@@ -1284,7 +1284,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     for categ in categs:
         d = biolog.getActivityDistributionByCateg(categ)
         x = []
-        for k, v in d.iteritems():
+        for k, v in list(d.items()):
             for i in range(v):
                 x.append(k)
         
@@ -1303,7 +1303,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         for org in organism.getAll():
             d = biolog.getActivityDistributionByCategAndOrg(categ, org.org_id)
             x = []
-            for k, v in d.iteritems():
+            for k, v in list(d.items()):
                 for i in range(v):
                     x.append(k)
             
@@ -1314,7 +1314,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             ax.plot(bincenters,y,'-o', color=dcolors[org.org_id], linewidth=2,
                     alpha=0.66, label=org.org_id)
             
-            maxv.append(max([x for x in d.itervalues()]))
+            maxv.append(max([x for x in list(d.values())]))
         
         if len(maxv) == 0:
             continue
@@ -1366,7 +1366,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     
         d = biolog.getActivityDistribution()
         x = []
-        for k, v in d.iteritems():
+        for k, v in list(d.items()):
             for i in range(v):
                 x.append(k)
                 
@@ -1377,7 +1377,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             colorBoxPlot(ax, bplot, ['black'])
             
             ax.set_xlim(-1,maxAct + 1)
-            ax.set_xticks(range(maxAct + 1))
+            ax.set_xticks(list(range(maxAct + 1)))
             
             ax.get_yaxis().set_ticks([])
             
@@ -1422,7 +1422,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     for org_id in orgs:
         d = biolog.getActivityDistributionByOrg(org_id)
         x = []
-        for k, v in d.iteritems():
+        for k, v in list(d.items()):
             for i in range(v):
                 x.append(k)
                 
@@ -1442,7 +1442,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     
     if len(borgs) > 0:
         ax.set_xlim(-1,maxAct + 1)
-        ax.set_xticks(range(maxAct + 1))
+        ax.set_xticks(list(range(maxAct + 1)))
         
         ax.set_yticklabels(borgs, size='x-small')
         
@@ -1486,7 +1486,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     for categ in categs:
         d = biolog.getActivityDistributionByCateg(categ)
         x = []
-        for k, v in d.iteritems():
+        for k, v in list(d.items()):
             for i in range(v):
                 x.append(k)
         
@@ -1509,7 +1509,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         for org_id in orgs:
             d = biolog.getActivityDistributionByCategAndOrg(categ, org_id)
             x = []
-            for k, v in d.iteritems():
+            for k, v in list(d.items()):
                 for i in range(v):
                     x.append(k)
                     
@@ -1529,7 +1529,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
         
         if len(borgs) > 0:
             ax.set_xlim(-1,maxAct + 1)
-            ax.set_xticks(range(maxAct + 1))
+            ax.set_xticks(list(range(maxAct + 1)))
             
             ax.set_yticklabels(borgs, size='x-small')
             
@@ -1600,11 +1600,9 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     for categ in categorder:
         line = [categ]
         for org_id in orgs:
-            wells = filter(lambda x:x.plate_id in category[categ],
-                                [w for w in exp.getAverageWells(org_id)])
+            wells = [x for x in [w for w in exp.getAverageWells(org_id)] if x.plate_id in category[categ]]
             total = float(len(wells))
-            active = float(len(filter(lambda x: x.activity >= activity,
-                                      wells)))
+            active = float(len([x for x in wells if x.activity >= activity]))
             
             try:
                 line.append( str( (active/total) * 100) )
@@ -1636,8 +1634,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
     f.write(header+'\n')
         
     for categ in categorder:
-        pwlist = filter(lambda x: x[0] in category[categ],
-                    [pw for pw in getOrder(project)])
+        pwlist = [x for x in [pw for pw in getOrder(project)] if x[0] in category[categ]]
         
         pwdiff = []
         pwavgdiff = []
@@ -1685,7 +1682,7 @@ def dPhenomeStats(project, activity=5, delta=3, svg=False, doPrint=True):
             avgdiff = 'N/A'
         else:
             avgdiff = str(np.array(pwdiff).mean())
-        overdiff = float(len(filter(lambda x: x >= delta, pwavgdiff)))
+        overdiff = float(len([x for x in pwavgdiff if x >= delta]))
         try:
             maindiff = str((overdiff / total) * 100)
         except:
@@ -1979,7 +1976,7 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False,
     # Categ archs
     # Total points
     total = 0
-    for pw in categpworder.itervalues():
+    for pw in list(categpworder.values()):
         total += len(pw)
     total = float(total)
     
@@ -2014,7 +2011,7 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False,
     import matplotlib.colors as colors
     cNorm  = colors.Normalize(vmin=0, vmax=maxAct)
     scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.RdYlGn)
-    scalarMap.set_array(np.array(range(int(maxAct) + 1)))
+    scalarMap.set_array(np.array(list(range(int(maxAct) + 1))))
     cax = fig.add_axes([0.93, 0.2, 0.03, 0.6])
     cax.text(0.50, 1.01, param, size=20, ha='center')
     plt.colorbar(scalarMap, cax=cax)
@@ -2022,7 +2019,7 @@ def dPhenomeRings(project, delta=1, difforg=None, svg=False,
     if (kind == 'mutants' or difforg):
         cNorm  = colors.Normalize(vmin=-maxAct, vmax=maxAct)
         scalarMap = cm.ScalarMappable(norm=cNorm, cmap=cm.PuOr)
-        scalarMap.set_array(np.array(range(-int(maxAct),int(maxAct),20)))
+        scalarMap.set_array(np.array(list(range(-int(maxAct),int(maxAct),20))))
         cax = fig.add_axes([0.04, 0.2, 0.03, 0.6])
         cax.text(0.50, 1.01, 'Delta %s'%param, size=20, ha='center')
         plt.colorbar(scalarMap, cax=cax)
@@ -2352,7 +2349,7 @@ def dGenomeExport(project):
             fname = 'pangenome.tsv'
             fout = open(fname,'w')
             fout.write('#%s\t%s\n'%('orth_id', 'prot_id'))
-            for group, prots in dG.iteritems():
+            for group, prots in list(dG.items()):
                 for prot in prots:
                     fout.write('%s\t%s\n'%(group,prot))
             fout.close()
@@ -2721,7 +2718,7 @@ def getOrgNet(project, org_id, path_id=None, category=None):
                 corg[well.co_id].append(act)
     
         toremove = set()
-        for k, v in corg.iteritems():
+        for k, v in list(corg.items()):
             mean = np.array(v).mean()
             if not math.isnan(float(mean)):
                 corg[k] = mean
@@ -2730,7 +2727,7 @@ def getOrgNet(project, org_id, path_id=None, category=None):
         for k in toremove:
             del corg[k]
         
-        compounds = [Compound('cpd:'+k,kegg.getCompound('cpd:'+k).name,v,vmax) for k,v in corg.iteritems()]
+        compounds = [Compound('cpd:'+k,kegg.getCompound('cpd:'+k).name,v,vmax) for k,v in list(corg.items())]
         net.addNodes(compounds)
         logger.debug('Added %d metabolic activities'%len(compounds))
         
@@ -2778,7 +2775,7 @@ def getMutNet(project, mut_id, mut_rpairs, path_id=None, category=None):
                 corg[well.co_id].append(act)
     
         toremove = set()
-        for k, v in corg.iteritems():
+        for k, v in list(corg.items()):
             mean = np.array(v).mean()
             if not math.isnan(float(mean)):
                 corg[k] = mean
@@ -2787,7 +2784,7 @@ def getMutNet(project, mut_id, mut_rpairs, path_id=None, category=None):
         for k in toremove:
             del corg[k]
         
-        compounds = [Compound('cpd:'+k,kegg.getCompound('cpd:'+k).name,v,vmax) for k,v in corg.iteritems()]
+        compounds = [Compound('cpd:'+k,kegg.getCompound('cpd:'+k).name,v,vmax) for k,v in list(corg.items())]
         net.addNodes(compounds)
         logger.debug('Added %d metabolic activities'%len(compounds))
         
@@ -2857,7 +2854,7 @@ def getPanGenomeNet(project, dpangenome, pangenome='all', path_id=None, category
             corg[well.co_id].append(avgdiff)
         
         toremove = set()
-        for k, v in corg.iteritems():
+        for k, v in list(corg.items()):
             mean = np.array(v).mean()
             if not math.isnan(float(mean)):
                 corg[k] = mean
@@ -2866,7 +2863,7 @@ def getPanGenomeNet(project, dpangenome, pangenome='all', path_id=None, category
         for k in toremove:
             del corg[k]
         
-        compounds = [Compound('cpd:'+k,kegg.getCompound('cpd:'+k).name,v,vmax) for k,v in corg.iteritems()]
+        compounds = [Compound('cpd:'+k,kegg.getCompound('cpd:'+k).name,v,vmax) for k,v in list(corg.items())]
         net.addNodes(compounds)
         logger.debug('Added %d metabolic activities'%len(compounds))
         
@@ -2903,7 +2900,7 @@ def writeCombinedPanGenome(dvalues):
     # Order the pathway list for genomic variability
     allv = []
     cv = {}
-    for categ in filter(lambda x: x!= 'genome', dvalues.keys()):
+    for categ in [x for x in list(dvalues.keys()) if x!= 'genome']:
         cv[categ] = []
         for p in dvalues[categ]:
             allv.append([categ] + list(p))
@@ -2935,7 +2932,7 @@ def writeCombined(dvalues, orgs):
     # Order the pathway list for genomic content
     dallv = {}
     pnames = {}
-    for categ in filter(lambda x: x!= 'genome', dvalues[orgs[0]].keys()):
+    for categ in [x for x in list(dvalues[orgs[0]].keys()) if x!= 'genome']:
         dallv[categ] = {}
         for org_id in orgs:
             for p in dvalues[org_id][categ]:
@@ -2945,7 +2942,7 @@ def writeCombined(dvalues, orgs):
     
     allv = []
     cv = {}
-    for categ in filter(lambda x: x!= 'genome', dvalues[orgs[0]].keys()):
+    for categ in [x for x in list(dvalues[orgs[0]].keys()) if x!= 'genome']:
         cv[categ] = []
         for p in dallv[categ]:
             allv.append([categ, p, pnames[p]] + dallv[categ][p])
@@ -2998,7 +2995,7 @@ def dNet(project, allorgs=False, allpaths=False):
     # Write
     npath = makeRoom('', 'metNet', 'KEGG')
     writeNet(aNet, npath, 'ALL.gml')
-    for k,v in dapNet.iteritems():
+    for k,v in list(dapNet.items()):
         if ':' in k:
             k = k.split(':')[1]
         if allpaths:
@@ -3439,7 +3436,7 @@ def dNet(project, allorgs=False, allpaths=False):
             
             for mut_id in muts:
                 oNet[mut_id] = getMutNet(project, mut_id,
-                                         ref_rpairs[ref_id][mut_id].values())
+                                         list(ref_rpairs[ref_id][mut_id].values()))
                 npath = makeRoom('', 'metNet', mut_id)
                 writeNet(oNet[mut_id], npath, '%s.gml'%mut_id)
             
@@ -3478,7 +3475,7 @@ def dNet(project, allorgs=False, allpaths=False):
                     for mut_id in muts:
                         oNet[mut_id] = getMutNet(project,
                                                  mut_id,
-                                                 ref_rpairs[ref_id][mut_id].values(),
+                                                 list(ref_rpairs[ref_id][mut_id].values()),
                                                  category=categ.category)
                         npath = makeRoom('', 'metNet', mut_id, scateg)
                         writeNet(oNet[mut_id], npath, '%s_%s.gml'%(mut_id, scateg))
@@ -3529,7 +3526,7 @@ def dNet(project, allorgs=False, allpaths=False):
                 for mut_id in muts:
                     oNet[mut_id] = getMutNet(project,
                                              mut_id,
-                                             ref_rpairs[mut_id].values(),
+                                             list(ref_rpairs[mut_id].values()),
                                              path.path_id)
                 
                     dPaths[mut_id]['genome'] = dPaths[mut_id].get('genome', [])
@@ -3618,7 +3615,7 @@ def dNet(project, allorgs=False, allpaths=False):
                         for mut_id in muts:
                             oNet[mut_id] = getMutNet(project,
                                                  mut_id,
-                                                 ref_rpairs[mut_id].values(),
+                                                 list(ref_rpairs[mut_id].values()),
                                                  path.path_id,
                                                  categ.category)
                             
@@ -3683,11 +3680,11 @@ def getCombinedMatrix(phenome, genome, matrix, pthresh, gthresh):
     '''
     import numpy as np
 
-    phenome = sorted(filter(lambda x: x[3] >= pthresh, phenome),
+    phenome = sorted([x for x in phenome if x[3] >= pthresh],
                      key=lambda x: x[3], reverse=True)
     pnames = [(x[1]+' '+x[0], x[2]) for x in phenome]
     
-    genome = sorted(filter(lambda x: x[2] >= 0 , genome),
+    genome = sorted([x for x in genome if x[2] >= 0],
                     key=lambda x: x[2])
     
     # Remove those pathways with no compound mapped
@@ -3799,10 +3796,10 @@ def getCombinations(matrix, phenome, genome, pthresh, gthresh):
     '''
     Generator to combination of compounds and pathways data
     '''
-    phenome = sorted(filter(lambda x: x[3] >= pthresh, phenome),
+    phenome = sorted([x for x in phenome if x[3] >= pthresh],
                      key=lambda x: x[3], reverse=True)
     
-    genome = sorted(filter(lambda x: x[2] >= 0 , genome),
+    genome = sorted([x for x in genome if x[2] >= 0],
                     key=lambda x: x[2])
     
     # Remove those pathways with no compound mapped
@@ -3915,7 +3912,7 @@ def dCombine(project, allorgs=False, pthresh=5, doPrint=True):
                 corg[co_id].append(avgdiff)
             
             toremove = set()
-            for k, v in corg.iteritems():
+            for k, v in list(corg.items()):
                 mean = np.array(v).mean()
                 if not math.isnan(float(mean)):
                     corg[k] = mean
@@ -4070,7 +4067,7 @@ def dCombine(project, allorgs=False, pthresh=5, doPrint=True):
                         corg[co_id].append(act)
             
                 toremove = set()
-                for k, v in corg.iteritems():
+                for k, v in list(corg.items()):
                     mean = np.array(v).mean()
                     if not math.isnan(float(mean)):
                         corg[k] = mean
@@ -4170,7 +4167,7 @@ def dCombine(project, allorgs=False, pthresh=5, doPrint=True):
                             corg[co_id].append(refact-act)
                 
                     toremove = set()
-                    for k, v in corg.iteritems():
+                    for k, v in list(corg.items()):
                         mean = np.array(v).mean()
                         if not math.isnan(float(mean)):
                             corg[k] = mean
@@ -4377,10 +4374,10 @@ def mergeKegg(project):
     
     multiple = set()
     
-    for group_id, pko in pankegg.iteritems():
+    for group_id, pko in list(pankegg.items()):
         allko = set()
         missing = 0
-        for prot_id, kos in pko.iteritems():
+        for prot_id, kos in list(pko.items()):
             if kos is None:
                 missing += 1
                 continue
@@ -4391,7 +4388,7 @@ def mergeKegg(project):
         if len(allko) == 1 and missing >= 1:
             mergedg.add(group_id)
             # Single-annotations missing
-            for prot_id, kos in pko.iteritems():
+            for prot_id, kos in list(pko.items()):
                 if kos is None:
                     for ko in allko:
                         merged.add((prot_id, ko))
@@ -4401,7 +4398,7 @@ def mergeKegg(project):
             if missing == 0:
                 # Only duplicates
                 multiple.add(group_id)
-                for prot_id, kos in pko.iteritems():
+                for prot_id, kos in list(pko.items()):
                     if len(kos) != len(allko):
                         mergedg.add(group_id)
                         
@@ -4414,7 +4411,7 @@ def mergeKegg(project):
                 mergedg.add(group_id)
                 multiple.add(group_id)
                 
-                for prot_id, kos in pko.iteritems():
+                for prot_id, kos in list(pko.items()):
                     if kos is None:
                         for ko in allko:
                             merged.add((prot_id, ko))
@@ -4525,8 +4522,8 @@ def getOrganismsColors(project):
         else:
             colors[org.org_id] = org.color
 
-    orgs = colors.keys()
-    for org, color in colors.iteritems():
+    orgs = list(colors.keys())
+    for org, color in list(colors.items()):
         # Automatic assignment, probably not the best choiche
         # if we got some organism assigned and some others not
         if not color:
@@ -4686,7 +4683,7 @@ def colorBoxPlot(ax, bplot, colors):
     # Caps, Fliers and Whiskers
     tocolor = []
     for i in range(1,len(bplot['whiskers']),2):
-        color = colors[i/2]
+        color = colors[int(i/2)]
     
         try:
             tocolor.append((bplot['caps'][i-1], color))
@@ -4724,7 +4721,7 @@ def colorBoxPlot(ax, bplot, colors):
             boxX.append(j)
         for j in box.get_ydata():
             boxY.append(j)
-        boxCoords = zip(boxX,boxY)
+        boxCoords = list(zip(boxX,boxY))
         boxPolygon = Polygon(boxCoords, facecolor=color, alpha=0.66)
         ax.add_patch(boxPolygon)
     

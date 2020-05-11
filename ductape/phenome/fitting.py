@@ -118,7 +118,7 @@ def getFlex(x, y):
         return 0
     
     diffs = []
-    indexes = range(len(x))
+    indexes = list(range(len(x)))
     
     for i in indexes:
         if i+1 not in indexes:
@@ -147,7 +147,7 @@ def getPlateau(x, y):
     ymax = y.max()
     
     diffs = []
-    indexes = range(len(y))
+    indexes = list(range(len(y)))
     
     for i in indexes:
         if i+1 not in indexes:

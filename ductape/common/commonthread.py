@@ -6,7 +6,12 @@ Common library
 
 Thread base structure
 """
-import Queue
+
+import sys
+if sys.version_info[0] < 3:
+    import Queue as queue
+else:
+    import queue
 import logging
 import os
 import shutil
@@ -51,7 +56,7 @@ class CommonThread(threading.Thread):
     
     _substatuses = []
     
-    def __init__(self,queue=Queue.Queue()):
+    def __init__(self,queue=queue.Queue()):
         threading.Thread.__init__(self)
         # Thread
         self.msg = queue

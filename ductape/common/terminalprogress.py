@@ -109,7 +109,11 @@ class TerminalController:
     def _render_sub(self, match):
         s = match.group()
         if s == '$$': return s
-        else: return getattr(self, s[2:-1]).decode('utf-8')
+        else:
+            s = getattr(self, s[2:-1])
+            if isinstance(s, bytes):
+                s = s.decode('utf-8')
+            return s
 
 class ProgressBar:
     BAR = '%3d%% ${GREEN}[${BOLD}%s%s${NORMAL}${GREEN}]${NORMAL}\n'

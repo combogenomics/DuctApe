@@ -8,7 +8,7 @@
     <meta name="author" content="Marco Galardini" >
     
     <!-- Le meta tag to refresh the cache -->
-    <meta http-equiv="last-modified" content="Tue, 16 Nov 2014 17:50:00 GMT" />
+    <meta http-equiv="last-modified" content="Mon, 11 May 2020 14:50:00 CET" />
 
     <!-- Le styles -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -95,13 +95,13 @@
                         DuctApe should work in all Unix systems with a python install; the dependencies are the following:
                       </p>
                       <ul>
-                        <li><a href="http://www.python.org/">python</a> 2.6 or higher (still not working with python 3)</li>
+                        <li><a href="http://www.python.org/">python</a> 2.6 or higher (now compatible with python 3)</li>
                         <li><a href="http://www.biopython.org/">Biopython</a></li>
                         <li><a href="http://numpy.scipy.org/">NumPy</a></li>
                         <li><a href="http://scipy.org/">SciPy</a></li>
                         <li><a href="http://matplotlib.org/">matplotlib</a></li>
                         <li><a href="http://scikit-learn.org/">scikits.learn</a></li>
-                        <li><a href="http://docs.python.org/2/library/multiprocessing.html">multiprocessing</a> (included in python 2.6)</li>
+                        <li><a href="http://docs.python.org/2/library/multiprocessing.html">multiprocessing</a> (included since python 2.6)</li>
                         <li><a href="http://networkx.lanl.gov/">networkx</a></li>
                         <li><a href="http://pyyaml.org/">PyYaml</a></li>
                         <li><a href="http://www.ncbi.nlm.nih.gov/BLAST/">Blast+</a></li>
@@ -116,6 +116,9 @@
                         </p>
                         <p>If you are working in a Debian-based Linux distribution (like Ubuntu), you can install all the dependencies with the following command</p>
                         <p><pre>sudo apt-get install python-numpy python-scipy python-sklearn python-matplotlib python-biopython python-networkx python3-networkx python3-numpy python3-scipy python3-matplotlib ncbi-blast+</pre></p>
+                        <p>If you prefer anaconda, make sure you have bioconda listed as a channel, and you can install all the dependencies with the following command</p>
+			<p><pre>conda create -n ductape pip numpy scipy scikit-learn matplotlib biopython networkx blast</pre>
+			   </pre></p>
                     
                     </div>
                     
@@ -123,11 +126,17 @@
                         <div class="page-header">
                           <h1><div class="minititle">Installation</div></h1>
                         </div>
-                        <p>There are four ways to install DuctApe:</p>
-                        <p><strong>Method 1 (missing dependencies will be downloaded)</strong></p>
+                        <p>There are multiple ways to install DuctApe:</p>
+                        <p><strong>Method 1 (requires anaconda; all dependencies will be installed)</strong></p>
+                        <ol>
+			  <li><code>conda create -n ductape pip numpy scipy scikit-learn matplotlib biopython networkx blast</code></li>
+			  <li><code>conda activate ductape</code> (or <code>source activate ductape</code>)</li>
+			  <li><code>python -m pip install DuctApe</code></li>
+                        </ol>
+                        <p><strong>Method 2 (missing dependencies will be downloaded)</strong></p>
                         <p><code>sudo pip install DuctApe</code></p>
                         <br>
-                        <p><strong>Method 2 (dependencies won't be checked)</strong></p>
+                        <p><strong>Method 3 (dependencies won't be checked)</strong></p>
                         <ol>
                           <li>Extract the archive</li>
                           <code>tar -xvf DuctApe-latest.tar.gz</code>
@@ -137,10 +146,10 @@
                           <code>sudo python setup.py install</code>
                         </ol>
                         <br>
-                        <p><strong>Method 3 (missing dependencies will be downloaded)</strong></p>
+                        <p><strong>Method 4 (missing dependencies will be downloaded)</strong></p>
                         <p><code>sudo pip install DuctApe-latest.tar.gz</code></p>
                         <br>
-                        <p><strong>Method 4 (if you don't have sudo access)</strong></p>
+                        <p><strong>Method 5 (if you don't have sudo access)</strong></p>
                         <ol>
                           <li>Extract the archive anywhere (i.e. in your $HOME)</li>
                           <code>tar -xvf DuctApe-latest.tar.gz</code>
@@ -1166,6 +1175,7 @@ dape start</pre>
               <p><a href="https://travis-ci.org/combogenomics/DuctApe/builds"><img src="https://travis-ci.org/combogenomics/DuctApe.png"></a></p>
           </div>
         </div>
+     </div>
      </div>
         </footer>
     

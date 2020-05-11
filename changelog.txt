@@ -1,3 +1,12 @@
+Version 0.18.0
+==============
+
+FEATURES:
+* Compatibility with python 2 and python 3
+
+BUGFIXES:
+* kegg: fix coloring of compounds (broken since 0.17.18)
+
 Version 0.17.18
 ==============
 

@@ -30,21 +30,27 @@ Installation
 
 * Method 1 (missing dependencies will be downloaded)
 
-    * python2 -m pip install DuctApe
+    * `python -m pip install DuctApe`
 
 * Method 2 (the dependencies won't be checked)
 
     * (Download and extract the tarball)
-    * sudo python2 setup.py install
+    * `sudo python setup.py install`
 
 * Method 3 (missing dependencies will be downloaded)
 
     * (Download and extract the tarball)
-    * python2 -m pip install .
+    * `python -m pip install .`
+
+* Method 4 (missing dependencies will be downloaded)
+
+    * `conda create -n ductape pip numpy scipy scikit-learn matplotlib biopython networkx blast`
+    * `conda activate ductape` (or `source activate ductape`)
+    * python -m pip install DuctApe
 
 * Dependencies installation on Debian/Ubuntu
     
-    * sudo apt-get install python-numpy python-scipy python-sklearn python-matplotlib python-biopython python-networkx ncbi-blast+
+    * `sudo apt-get install python-numpy python-scipy python-sklearn python-matplotlib python-biopython python-networkx ncbi-blast+`
 
 Note: when using pip, some of the dependencies may fail to be installed; use your package manager (such as apt-get in the above snippet) to manually install the problematic packages
 

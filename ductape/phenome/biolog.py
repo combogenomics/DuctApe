@@ -1686,7 +1686,7 @@ class BiologParser(object):
                 continue
 
             # header repetition
-            if not header and line[0].strip() == 'Record File':
+            if not header and (line[0].strip() == 'Record File' or line[0].strip() == 'Plate File'):
                 continue
 
             record_file, setup_time, position, plate_type, f1, f2, f3, f4, hour = line[:9]
@@ -1699,13 +1699,14 @@ class BiologParser(object):
                 plate.strainNumber = f4.strip()
                 plate.strainName = f3.strip()
 
+                current_plate = position, plate_type
+
                 plateID = plate_type
                 # Parse also non-standard plate IDs
                 if not plateID.startswith(self._platesPrefix):
                     logger.warning('Non-standard plate ID found (%s)'%plateID)
                     logger.warning('Plate IDs should start with %s'%self._platesPrefix)
                     plate.plate_id = plateID
-                    continue
 
                 # Simplify the plates IDs, removing letters, as opm does
                 pID = plateID[2:]
@@ -1720,13 +1721,11 @@ class BiologParser(object):
                 if len(pID) == 0:
                     logger.warning('Non-standard plate ID found (%s)'%plateID)
                     plate.plate_id = plateID
-                    continue
                 elif int(pID) < 0:
                     logger.warning('Non-standard plate ID found (%s)'%plateID)
                     plateID = self._platesPrefix + abs(int(pID))
                     logger.warning('Going to use this ID (%s)'%plateID)
                     plate.plate_id = plateID
-                    continue
 
                 plateID = self._platesPrefix + '%02d'%int(pID)
                 plate.plate_id = plateID
@@ -1738,8 +1737,6 @@ class BiologParser(object):
                     plate.data[x.strip()] = Well(plate.plate_id, x.strip())
                     plate._idx[i] = x.strip()
 
-                current_plate == position, plate_type
-
             # Workaround for bad-formatted files
             try: float(hour)
             except:
@@ -1748,8 +1745,8 @@ class BiologParser(object):
             #
 
             time = float(hour)
-            for i in range(len(line[10:])):
-                x = line[10:][i]
+            for i in range(len(line[9:])):
+                x = line[9:][i]
                 if x == '':
                     continue
                 well = plate._idx[i]

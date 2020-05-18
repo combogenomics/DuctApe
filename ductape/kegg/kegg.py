@@ -666,6 +666,7 @@ class KeggAPI(object):
                 if len(url) > 2000:
                     logger.warning('URL too long for pathway %s, will skip'%path_id)
                     self.result = ''
+                    return
 
                 sock=urlopen(url, timeout=60)
                 self.result = sock.read().decode('utf-8')

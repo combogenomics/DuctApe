@@ -18,6 +18,25 @@ cleanUp () {
 	rm -rf tmp &> /dev/null
 }
 
+echo -e $green"New CSV format"$reset
+
+../dape init || die "dape init"
+../dape add Ecoli -c red || die "dape add"
+../dphenome add input/new_csv/single.csv Ecoli || die "dphenome add"
+../dphenome start -g || die "dphenome start -g"
+../dphenome export || die "dphenome export"
+
+cleanUp
+
+../dape init || die "dape init"
+../dape add Ecoli -c red || die "dape add"
+../dphenome add input/new_csv/multi.csv Ecoli || die "dphenome add"
+../dphenome start -g || die "dphenome start -g"
+../dphenome export || die "dphenome export"
+
+cleanUp
+
+
 echo -e $green"Single organism"$reset
 
 ../dape init || die "dape init"

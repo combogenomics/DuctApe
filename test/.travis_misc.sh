@@ -12,6 +12,24 @@ die () {
 	exit 1
 }
 
+echo -e $green"New CSV format"$reset
+
+python dape init || die "dape init"
+python dape add Ecoli -c red || die "dape add"
+python dphenome add test/input/new_csv/single.csv Ecoli || die "dphenome add"
+python dphenome start -g || die "dphenome start -g"
+python dphenome export || die "dphenome export"
+
+rm ductape.db
+
+python dape init || die "dape init"
+python dape add Ecoli -c red || die "dape add"
+python dphenome add test/input/new_csv/multi.csv Ecoli || die "dphenome add"
+python dphenome start -g || die "dphenome start -g"
+python dphenome export || die "dphenome export"
+
+rm ductape.db
+
 echo -e $green"Custom plates"$reset
 
 python dape -v init || die "dape init"

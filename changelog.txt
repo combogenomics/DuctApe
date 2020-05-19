@@ -1,3 +1,10 @@
+Version 0.18.1
+==============
+
+BUGFIXES:
+* Ability to parse the new CSV format for phenotype microarrays
+* Long kegg URL bugfix
+
 Version 0.18.0
 ==============
 

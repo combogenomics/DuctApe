@@ -23,7 +23,7 @@ setup(
     long_description = long_description,
     long_description_content_type='text/markdown',
     install_requires = ['argparse >= 1.1', 'biopython >= 1.5', 'numpy',
-                        'matplotlib >= 1.1', 'multiprocessing',
+                        'matplotlib >= 1.1',
                         'scipy', 'scikit-learn >= 0.11', 'PyYAML',
 			'networkx']
 )

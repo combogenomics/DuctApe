@@ -1660,7 +1660,7 @@ class BiologParser(object):
         current_plate = None
         wells = []
 
-        tblreader = csv.reader(open(self.file, 'r'), delimiter=',',
+        tblreader = csv.reader(open(self.file, 'rU'), delimiter=',',
                                quotechar='"')
         header = True
         for line in tblreader:
@@ -1763,7 +1763,7 @@ class BiologParser(object):
         data = False
         wells = []
         
-        tblreader = csv.reader(open(self.file, 'r'), delimiter=',',
+        tblreader = csv.reader(open(self.file, 'rU'), delimiter=',',
                                quotechar='"')
         for line in tblreader:
             if len(line) < 2:

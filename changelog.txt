@@ -1,3 +1,10 @@
+Version 0.18.2
+==============
+
+BUGFIXES:
+* Revert universal newlines for CSV parsing
+* Avoid potential issue with threaded kegg download in python3
+
 Version 0.18.1
 ==============
 

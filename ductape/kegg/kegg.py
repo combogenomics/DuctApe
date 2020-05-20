@@ -634,7 +634,7 @@ class KeggAPI(object):
                 self.input = path_id
                 
                 # Fix color codes
-                hblue = colors.cnames['blue'].replace('#', '%23')
+                hblue = '#0000FF'.replace('#', '%23')
                 for i in range(len(color_list)):
                     if '#' in color_list[i]:
                         color_list[i] = color_list[i].replace('#', '%23')

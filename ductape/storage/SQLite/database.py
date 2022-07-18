@@ -705,14 +705,21 @@ class Genome(DBBase):
         Get all the proteins from a specific organism
         As SeqRecords objects
         '''
-        from Bio import Alphabet
+        try:
+            from Bio import Alphabet
+        except:
+            pass
         from Bio.Seq import Seq
         from Bio.SeqRecord import SeqRecord
         
         for prot in self.getAllProt(org_id):
-            yield SeqRecord(Seq(prot.sequence,
-                                Alphabet.IUPAC.ExtendedIUPACProtein()),
-                            id = prot.prot_id)
+            try:
+                yield SeqRecord(Seq(prot.sequence,
+                                    Alphabet.IUPAC.ExtendedIUPACProtein()),
+                                id = prot.prot_id)
+            except:
+                yield SeqRecord(Seq(prot.sequence),
+                                id = prot.prot_id)
     
     def howMany(self, org_id):
         '''
